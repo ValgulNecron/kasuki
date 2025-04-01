@@ -1,14 +1,19 @@
 use std::fmt::Display;
-
+use std::sync::Arc;
 use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::constant::UNKNOWN;
+use crate::database::prelude::AnimeSong;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{Result, anyhow};
-use serenity::all::{CommandInteraction, Context as SerenityContext};
+use anyhow::{anyhow, Result};
+use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
+use sea_orm::{entity::*, query::*, DbBackend};
+use tracing::log::trace;
+use crate::database::anime_song::Column::AnilistId;
+use crate::event_handler::BotData;
 
 #[cynic::schema("anilist")]
 
@@ -521,7 +526,7 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 
 		let role = s_role.unwrap_or(UNKNOWN.to_string());
 
-		staff_text.push_str(format!("{}: {}", staff_name.as_str(), role.as_str()).as_str());
+		staff_text.push_str(format!("{}: {}\n", staff_name.as_str(), role.as_str()).as_str());
 
 		i += 1;
 	}
@@ -564,6 +569,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 		};
 
 		character_text.push_str(name.as_str());
+		character_text.push('\n');
 
 		i += 1;
 	}
@@ -574,6 +580,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig,
+	bot_data: Arc<BotData>,
 ) -> Result<EmbedContent<'a, 'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
@@ -586,9 +593,41 @@ pub async fn media_content<'a>(
 		None => String::from("0"),
 	};
 
+	let connection = bot_data.db_connection.clone();
+
+	let anime_song = AnimeSong::find().filter(AnilistId.eq(data.id.to_string())).all(&*connection.clone()).await?;
+
+	let mut song_list = anime_song.into_iter()
+		.map(| song | {
+			let mut message = song.song_name;
+			if song.audio != String::new() {
+				message.push_str(format!(" | [mp3]({})", song.audio).as_str());
+			}
+			if song.hq != String::new() {
+				message.push_str(format!(" | [mp4]({})", song.hq).as_str());
+			} else if song.mq != String::new() {
+				message.push_str(format!(" | [mp4]({})", song.mq).as_str());
+			}
+			message.push_str("\n");
+			message
+		})
+		.collect::<String>();
+
+	if song_list.len() > 1024 {
+		song_list.truncate(1024);
+		// check until only \n is the last char
+		while !song_list.ends_with('\n') {
+			song_list.pop(); // Remove the last character until it ends with '\n'
+		}
+	}
+
 	let media_localised = load_localization_media(guild_id, db_config).await?;
 
 	let mut fields = Vec::new();
+
+	if song_list.len() != 0 {
+		fields.push((media_localised.song, song_list, false));
+	}
 
 	let genres = data.genres.clone().unwrap_or_default();
 
@@ -615,7 +654,7 @@ pub async fn media_content<'a>(
 		if let Some(edges) = staff.edges {
 			let staffs = get_staff(edges);
 
-			fields.push((media_localised.staffs, staffs, true));
+			fields.push((media_localised.staffs, staffs, false));
 		}
 	}
 

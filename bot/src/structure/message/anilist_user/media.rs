@@ -29,6 +29,8 @@ pub struct MediaLocalised {
 	pub chapter: String,
 
 	pub minutes: String,
+
+	pub song: String,
 }
 
 use anyhow::Result;

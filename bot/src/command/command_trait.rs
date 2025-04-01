@@ -82,6 +82,8 @@ impl<T: Command> Embed for T {
 			embed = embed.url(url);
 		}
 
+		embed = embed.fields(content.fields);
+
 		match (content.command_type, content.images, content.images_url) {
 			(EmbedType::First, Some(images), None) => {
 				let mut embeds = Vec::new();
