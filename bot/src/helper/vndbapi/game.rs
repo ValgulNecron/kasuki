@@ -142,8 +142,7 @@ pub enum DevStatus {
 impl Serialize for DevStatus {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer,
-	{
+		S: Serializer, {
 		let value = match self {
 			Self::Finished => 0,
 			Self::Development => 1,
@@ -158,8 +157,7 @@ impl Serialize for DevStatus {
 impl<'de> Deserialize<'de> for DevStatus {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>,
-	{
+		D: Deserializer<'de>, {
 		let value = i8::deserialize(deserializer)?;
 
 		match value {

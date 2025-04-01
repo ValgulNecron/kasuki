@@ -1,19 +1,19 @@
-use std::fmt::Display;
-use std::sync::Arc;
 use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::constant::UNKNOWN;
+use crate::database::anime_song::Column::AnilistId;
 use crate::database::prelude::AnimeSong;
+use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
+use sea_orm::{DbBackend, entity::*, query::*};
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
-use sea_orm::{entity::*, query::*, DbBackend};
+use std::fmt::Display;
+use std::sync::Arc;
 use tracing::log::trace;
-use crate::database::anime_song::Column::AnilistId;
-use crate::event_handler::BotData;
 
 #[cynic::schema("anilist")]
 
@@ -579,8 +579,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
-	db_config: DbConfig,
-	bot_data: Arc<BotData>,
+	db_config: DbConfig, bot_data: Arc<BotData>,
 ) -> Result<EmbedContent<'a, 'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
@@ -595,10 +594,14 @@ pub async fn media_content<'a>(
 
 	let connection = bot_data.db_connection.clone();
 
-	let anime_song = AnimeSong::find().filter(AnilistId.eq(data.id.to_string())).all(&*connection.clone()).await?;
+	let anime_song = AnimeSong::find()
+		.filter(AnilistId.eq(data.id.to_string()))
+		.all(&*connection.clone())
+		.await?;
 
-	let mut song_list = anime_song.into_iter()
-		.map(| song | {
+	let mut song_list = anime_song
+		.into_iter()
+		.map(|song| {
 			let mut message = song.song_name;
 			if song.audio != String::new() {
 				message.push_str(format!(" | [mp3]({})", song.audio).as_str());

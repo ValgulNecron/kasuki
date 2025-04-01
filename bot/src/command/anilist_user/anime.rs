@@ -96,7 +96,8 @@ impl SlashCommand for AnimeCommand {
 		};
 
 		let content =
-			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data).await?;
+			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
+				.await?;
 
 		self.send_embed(content).await
 	}

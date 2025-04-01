@@ -53,7 +53,7 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 
 		// Create a deferred response to the command interaction
 		self.defer().await?;
-		
+
 		// Send the random NSFW image as a response to the command interaction
 		send_embed(
 			ctx,
@@ -63,7 +63,6 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 			"nsfw",
 			self,
 		)
-			.await
+		.await
 	}
 }
-

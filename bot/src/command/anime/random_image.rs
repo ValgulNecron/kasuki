@@ -1,4 +1,6 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand};
+use crate::command::command_trait::{
+	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,
+};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
@@ -7,7 +9,10 @@ use crate::structure::message::anime::random_image::load_localization_random_ima
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, Context as SerenityContext, Context, CreateAttachment, CreateInteractionResponseFollowup, CreateInteractionResponseMessage};
+use serenity::all::{
+	CommandInteraction, Context as SerenityContext, Context, CreateAttachment,
+	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
+};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -57,16 +62,15 @@ impl SlashCommand for AnimeRandomImageCommand {
 			image_type,
 			random_image_localised.title,
 			"sfw",
-			self
+			self,
 		)
-			.await
+		.await
 	}
 }
 
 pub async fn send_embed(
 	ctx: &SerenityContext, command_interaction: &CommandInteraction, image_type: &String,
-	title: String, endpoint: &str,
-	self_: &impl Command,
+	title: String, endpoint: &str, self_: &impl Command,
 ) -> Result<()> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
@@ -97,7 +101,7 @@ pub async fn send_embed(
 	// Construct the attachment for the image
 	let bytes = bytes.as_bytes().to_vec();
 	let attachment = CreateAttachment::bytes(bytes, filename.clone());
-	
+
 	let content = EmbedContent {
 		title,
 		description: "".to_string(),
@@ -106,15 +110,13 @@ pub async fn send_embed(
 		command_type: EmbedType::Followup,
 		colour: None,
 		fields: vec![],
-		images: Some(vec![
-			EmbedImage {
-				attachment,
-				image: filename,
-			}
-		]),
+		images: Some(vec![EmbedImage {
+			attachment,
+			image: filename,
+		}]),
 		action_row: None,
 		images_url: None,
 	};
-	
+
 	self_.send_embed(content).await
 }
