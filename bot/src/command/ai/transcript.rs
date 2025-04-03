@@ -93,11 +93,11 @@ impl SlashCommand for TranscriptCommand {
 
 		let parsed_url = Url::parse(content.as_str())?;
 
-		let path_segments = parsed_url
+		let mut path_segments = parsed_url
 			.path_segments()
 			.ok_or(anyhow!("Failed to get the path segments"))?;
 
-		let last_segment = path_segments.last().unwrap_or_default();
+		let last_segment = path_segments.next_back().unwrap_or_default();
 
 		let file_extension = last_segment
 			.rsplit('.')

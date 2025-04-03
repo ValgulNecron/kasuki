@@ -35,10 +35,7 @@ pub async fn update(
 	let id = if user_id == "0" {
 		None
 	} else {
-		match user_id.parse() {
-			Ok(id) => Some(id),
-			Err(_) => None,
-		}
+		user_id.parse().ok()
 	};
 
 	// Get the list of users

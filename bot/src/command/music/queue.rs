@@ -42,11 +42,8 @@ impl SlashCommand for QueueCommand {
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
-		match lava_client {
-			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
-			},
-			_ => {},
+		if lava_client.is_none() {
+			return Err(anyhow::anyhow!("Lavalink is disabled"));
 		}
 		let lava_client = lava_client.unwrap();
 		let Some(player) =
@@ -106,33 +103,29 @@ impl SlashCommand for QueueCommand {
 			let time = format!("{:02}:{:02}", time_m, time_s);
 
 			if let Some(uri) = &track.info.uri {
-				format!(
-					"{}",
-					queue_localised
-						.now_playing
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", uri)
-						.replace("{3}", &time)
-						.replace(
-							"{4}",
-							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
-						)
-				)
+				queue_localised
+					.now_playing
+					.replace("{0}", &track.info.author)
+					.replace("{1}", &track.info.title)
+					.replace("{2}", uri)
+					.replace("{3}", &time)
+					.replace(
+						"{4}",
+						&format!("<@!{}>", track.user_data.unwrap()["requester_id"]),
+					)
+					.to_string()
 			} else {
-				format!(
-					"{}",
-					queue_localised
-						.now_playing
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", "")
-						.replace("{3}", &time)
-						.replace(
-							"{4}",
-							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
-						)
-				)
+				queue_localised
+					.now_playing
+					.replace("{0}", &track.info.author)
+					.replace("{1}", &track.info.title)
+					.replace("{2}", "")
+					.replace("{3}", &time)
+					.replace(
+						"{4}",
+						&format!("<@!{}>", track.user_data.unwrap()["requester_id"]),
+					)
+					.to_string()
 			}
 		} else {
 			queue_localised.nothing_playing.clone()

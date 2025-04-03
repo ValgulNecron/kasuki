@@ -1,5 +1,4 @@
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
+use crate::command::command_trait::{Command, Embed, SlashCommand};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -54,7 +53,10 @@ impl SlashCommand for UserCommand {
 		if let Some(value) = user {
 			let data: User = get_user(value, anilist_cache.clone()).await?;
 
-			return user::send_embed(ctx, command_interaction, data, config.db.clone()).await;
+			let content =
+				user::user_content(ctx, command_interaction, data, config.db.clone()).await?;
+
+			self.send_embed(content).await?;
 		}
 
 		let user_id = &command_interaction.user.id.to_string();
@@ -71,7 +73,9 @@ impl SlashCommand for UserCommand {
 		// Fetch the user's data from AniList and send it as a response
 		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
 
-		user::send_embed(ctx, command_interaction, data, config.db.clone()).await
+		let content = user::user_content(ctx, command_interaction, data, config.db.clone()).await?;
+
+		self.send_embed(content).await
 	}
 }
 

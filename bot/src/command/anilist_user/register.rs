@@ -89,7 +89,7 @@ impl SlashCommand for RegisterCommand {
 			title: user_data.clone().name,
 			description: desc,
 			thumbnail: Some(user_data.clone().avatar.unwrap().large.unwrap()),
-			url: Some(get_user_url(user_data.id)),
+			url: Some(get_user_url(&user_data.id)),
 			command_type: EmbedType::First,
 			colour: Some(get_color(user_data.clone())),
 			fields: vec![],

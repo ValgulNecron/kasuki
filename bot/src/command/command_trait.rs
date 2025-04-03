@@ -72,7 +72,7 @@ impl<T: Command> Embed for T {
 
 		let command_interaction = self.get_command_interaction();
 
-		let mut embed = get_default_embed(content.colour.clone());
+		let mut embed = get_default_embed(content.colour);
 
 		embed = embed.title(content.title).description(content.description);
 		if let Some(thumbnail) = content.thumbnail {
@@ -98,7 +98,7 @@ impl<T: Command> Embed for T {
 							.attachment(image.image);
 						embeds.push(embed.clone());
 					} else {
-						let mut embed = get_default_embed(content.colour.clone());
+						let mut embed = get_default_embed(content.colour);
 						embed = embed.image(image.image.clone()).attachment(image.image);
 						embeds.push(embed);
 					}
@@ -132,7 +132,7 @@ impl<T: Command> Embed for T {
 						embed = embed.image(image.image.clone()).attachment(image.image);
 						embeds.push(embed.clone());
 					} else {
-						let mut embed = get_default_embed(content.colour.clone());
+						let mut embed = get_default_embed(content.colour);
 						embed = embed.image(image.image.clone()).attachment(image.image);
 						embeds.push(embed);
 					}

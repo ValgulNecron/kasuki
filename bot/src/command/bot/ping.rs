@@ -8,7 +8,7 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
 	CreateInteractionResponseMessage,
 };
-use std::sync::{Arc, LockResult, PoisonError};
+use std::sync::Arc;
 pub struct PingCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,

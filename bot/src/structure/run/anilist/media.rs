@@ -9,11 +9,10 @@ use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
 use anyhow::{Result, anyhow};
-use sea_orm::{DbBackend, entity::*, query::*};
-use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
+use sea_orm::{entity::*, query::*};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::fmt::Display;
 use std::sync::Arc;
-use tracing::log::trace;
 
 #[cynic::schema("anilist")]
 
@@ -611,7 +610,7 @@ pub async fn media_content<'a>(
 			} else if song.mq != String::new() {
 				message.push_str(format!(" | [mp4]({})", song.mq).as_str());
 			}
-			message.push_str("\n");
+			message.push('\n');
 			message
 		})
 		.collect::<String>();
@@ -628,7 +627,7 @@ pub async fn media_content<'a>(
 
 	let mut fields = Vec::new();
 
-	if song_list.len() != 0 {
+	if !song_list.is_empty() {
 		fields.push((media_localised.song, song_list, false));
 	}
 

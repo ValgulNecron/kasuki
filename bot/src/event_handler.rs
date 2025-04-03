@@ -27,7 +27,7 @@ use serenity::all::{
 	Member, Presence, Ready, ShardId, User,
 };
 use serenity::async_trait;
-use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager, ShardRunnerInfo};
+use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
@@ -180,8 +180,7 @@ impl EventHandler for Handler {
 	async fn dispatch(&self, ctx: &SerenityContext, event: &FullEvent) {
 		match event {
 			FullEvent::GuildCreate { guild, is_new } => {
-				self.guild_create(ctx.clone(), guild.clone(), is_new.clone())
-					.await;
+				self.guild_create(ctx.clone(), guild.clone(), *is_new).await;
 			},
 			FullEvent::GuildMemberAddition { new_member } => {
 				self.guild_member_addition(ctx.clone(), new_member.clone())
@@ -447,7 +446,7 @@ impl Handler {
 				},
 			};
 			// Iterates over each guild the bot is in
-			let shard = ctx.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
+			ctx.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
 
 			debug!(
 				"guild name {} (guild id: {})",

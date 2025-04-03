@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::helper::create_default_embed::get_default_embed;
@@ -182,9 +183,9 @@ impl Display for UserStatisticsSort {
 	}
 }
 
-pub async fn send_embed(
-	ctx: &SerenityContext, command: &CommandInteraction, user: User, db_config: DbConfig,
-) -> Result<()> {
+pub async fn user_content<'a>(
+	ctx: &'a SerenityContext, command: &'a CommandInteraction, user: User, db_config: DbConfig,
+) -> Result<EmbedContent<'a, 'a>> {
 	let guild_id = match command.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -215,28 +216,29 @@ pub async fn send_embed(
 		}
 	}
 
-	let mut builder_embed = get_default_embed(Some(get_color(user.clone())))
-		.title(user.name)
-		.url(get_user_url(user.id))
-		.fields(field)
-		.image(get_banner(&user.id));
+	let mut content = EmbedContent {
+		title: user.name.clone(),
+		description: "".to_string(),
+		thumbnail: None,
+		url: Some(get_user_url(&user.id)),
+		command_type: EmbedType::First,
+		colour: Some(get_color(user.clone())),
+		fields: field,
+		images: None,
+		action_row: None,
+		images_url: Some(get_banner(&user.id)),
+	};
 
 	if let Some(avatar) = user.avatar {
 		if let Some(large) = avatar.large {
-			builder_embed = builder_embed.thumbnail(large)
+			content.thumbnail = Some(large)
 		}
 	}
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command.create_response(&ctx.http, builder).await?;
-
-	Ok(())
+	Ok(content)
 }
 
-pub fn get_user_url(user_id: i32) -> String {
+pub fn get_user_url(user_id: &i32) -> String {
 	format!("https://anilist.co/user/{}", user_id)
 }
 
@@ -422,7 +424,7 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 }
 
 pub fn get_color(user: User) -> Colour {
-	let color = match user
+	match user
 		.options
 		.unwrap()
 		.profile_color
@@ -438,7 +440,5 @@ pub fn get_color(user: User) -> Colour {
 		"green" => Colour::DARK_GREEN,
 		"gray" => Colour::LIGHT_GREY,
 		_ => COLOR,
-	};
-
-	color
+	}
 }

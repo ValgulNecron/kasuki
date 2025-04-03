@@ -19,7 +19,6 @@ mod m20241221_192339_random_stats;
 mod m20241225_163933_anime_song;
 mod m20250312_195747_update_unique;
 
-
 pub struct Migrator;
 
 #[async_trait::async_trait]

@@ -1,19 +1,12 @@
 use crate::command::command_trait::{
 	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,
 };
-use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, Context, CreateAttachment,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use uuid::Uuid;
 
 pub struct AnimeRandomImageCommand {
@@ -46,7 +39,7 @@ impl SlashCommand for AnimeRandomImageCommand {
 			.ok_or(anyhow!("No image type specified"))?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id.clone() {
+		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};

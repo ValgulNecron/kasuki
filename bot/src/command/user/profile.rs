@@ -104,10 +104,7 @@ async fn send_embed(
 
 	let member: Option<Member> = {
 		match command_interaction.guild_id {
-			Some(guild_id) => match guild_id.member(&ctx.http, user.id).await {
-				Ok(member) => Some(member),
-				Err(_) => None,
-			},
+			Some(guild_id) => (guild_id.member(&ctx.http, user.id).await).ok(),
 			None => None,
 		}
 	};

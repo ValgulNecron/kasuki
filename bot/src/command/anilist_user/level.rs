@@ -128,7 +128,7 @@ impl LevelCommand {
 				.replace("$actual$", actual.to_string().as_str())
 				.replace("$next$", next_xp.to_string().as_str()),
 			thumbnail: Some(user.clone().avatar.unwrap().large.clone().unwrap()),
-			url: Some(get_user_url(user.clone().id)),
+			url: Some(get_user_url(&user.id)),
 			command_type: EmbedType::First,
 			colour: Some(get_color(user.clone())),
 			fields: vec![],

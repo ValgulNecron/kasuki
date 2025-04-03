@@ -254,9 +254,8 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 
 async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> CreateAttachment<'a> {
 	let bytes = bytes[0].as_bytes().to_vec();
-	let attachment = CreateAttachment::bytes(bytes, filename);
 
-	attachment
+	CreateAttachment::bytes(bytes, filename)
 }
 
 async fn image_with_n_greater_than_1<'a>(

@@ -1,16 +1,11 @@
 use anyhow::{Result, anyhow};
-use std::sync::Arc;
 
 use crate::command::anime::random_image::send_embed;
 use crate::command::command_trait::{Command, Embed, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct AnimeRandomNsfwImageCommand {
 	pub ctx: SerenityContext,
@@ -42,7 +37,7 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 			.ok_or(anyhow!("No image type specified"))?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id.clone() {
+		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};

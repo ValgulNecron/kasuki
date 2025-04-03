@@ -1,4 +1,3 @@
-use crate::api::rest::start_api_server;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -17,7 +16,6 @@ use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-mod api;
 pub mod autocomplete;
 mod background_task;
 mod command;
@@ -219,13 +217,6 @@ async fn main() {
 	});
 
 	info!("test");
-
-	let data = bot_data.clone();
-	tokio::spawn(async move {
-		if let Err(e) = start_api_server(config.clone(), data.clone()).await {
-			error!("API server error: {:?}", e);
-		}
-	});
 
 	#[cfg(unix)]
 	{
