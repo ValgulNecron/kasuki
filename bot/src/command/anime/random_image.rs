@@ -49,22 +49,21 @@ impl SlashCommand for AnimeRandomImageCommand {
 
 		self.defer().await?;
 
-		send_embed(
-			ctx,
-			&command_interaction,
+		let content = random_image_content(
 			image_type,
 			random_image_localised.title,
 			"sfw",
-			self,
 		)
-		.await
+		.await?;
+
+		self.send_embed(content).await
 	}
 }
 
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, image_type: &String,
-	title: String, endpoint: &str, self_: &impl Command,
-) -> Result<()> {
+pub async fn random_image_content<'a>(
+	image_type: &'a String,
+	title: String, endpoint: &'a str
+) -> Result<EmbedContent<'a, 'a>> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
@@ -111,5 +110,5 @@ pub async fn send_embed(
 		images_url: None,
 	};
 
-	self_.send_embed(content).await
+	Ok(content)
 }

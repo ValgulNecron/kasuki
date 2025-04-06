@@ -3,11 +3,9 @@ use std::fmt::Display;
 use crate::command::command_trait::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::constant::COLOR;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::user::{UserLocalised, load_localization_user};
 use anyhow::{Result, anyhow};
 use serenity::all::CommandInteraction;
-use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::Colour;
 use serenity::prelude::Context as SerenityContext;
 

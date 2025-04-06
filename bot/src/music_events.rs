@@ -1,7 +1,7 @@
 use lavalink_rs::{hook, model::events, prelude::*};
 use serenity::all::ChannelId;
 use serenity::http::Http;
-use tracing::{error, info, trace};
+use tracing::{error, trace};
 
 #[hook]
 pub async fn raw_event(_: LavalinkClient, session_id: String, event: &serde_json::Value) {

@@ -84,7 +84,7 @@ impl SlashCommand for SeekCommand {
 			images_url: None,
 		};
 
-		if let Some(np) = now_playing {
+		if let Some(_) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;
 			content.description = seek_localised.success.replace("{0}", &time.to_string());
 		} else {

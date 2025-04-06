@@ -39,7 +39,6 @@ pub async fn update(
 	};
 
 	// Get the list of users
-	let list_user = list_user_localised.clone();
 	let (builder_message, len, last_id): (String, usize, Option<UserId>) =
 		get_the_list(guild, ctx, id, db_config).await?;
 

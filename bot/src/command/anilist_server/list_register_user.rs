@@ -121,15 +121,14 @@ pub async fn get_the_list(
 
 			let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
-			let row = RegisteredUser::find()
+			let row = match RegisteredUser::find()
 				.filter(Column::UserId.eq(user_id.clone()))
 				.one(&connection)
 				.await?
-				.unwrap_or(Model {
-					user_id: user_id.clone(),
-					anilist_id: 2134,
-					registered_at: Default::default(),
-				});
+			{
+				Some(row) => row,
+				None => continue,
+				 };
 
 			let user_data = row;
 
@@ -146,13 +145,13 @@ pub async fn get_the_list(
 		.iter()
 		.map(|data| {
 			format!(
-				"[{}](<https://anilist_user.co/user/{}>)",
+				"[{}](<https://anilist.co/user/{}>)",
 				data.user.name, data.anilist
 			)
 		})
 		.collect();
 
-	let joined_string = user_links.join("\n\n");
+	let joined_string = user_links.join("\n");
 
 	Ok((joined_string, anilist_user.len(), last_id))
 }

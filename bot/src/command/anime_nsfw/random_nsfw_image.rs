@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 
-use crate::command::anime::random_image::send_embed;
+use crate::command::anime::random_image::random_image_content;
 use crate::command::command_trait::{Command, Embed, SlashCommand};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -50,14 +50,13 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 		self.defer().await?;
 
 		// Send the random NSFW image as a response to the command interaction
-		send_embed(
-			ctx,
-			&command_interaction,
+		let content = random_image_content(
 			image_type,
 			random_image_nsfw_localised.title,
 			"nsfw",
-			self,
 		)
-		.await
+		.await?;
+
+		self.send_embed(content).await
 	}
 }

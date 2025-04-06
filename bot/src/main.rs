@@ -214,9 +214,9 @@ async fn main() {
 
 			process::exit(6);
 		}
-	});
 
-	info!("test");
+		drop(client);
+	});
 
 	#[cfg(unix)]
 	{
@@ -247,8 +247,6 @@ async fn main() {
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
-
-		process::exit(0)
 	}
 
 	#[cfg(windows)]
@@ -275,8 +273,6 @@ async fn main() {
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
-
-		process::exit(0);
 	}
 }
 

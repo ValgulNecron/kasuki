@@ -43,7 +43,7 @@ impl SlashCommand for PlayCommand {
 			load_localization_play(guild_id_str, bot_data.config.db.clone()).await?;
 
 		let lava_client = bot_data.lavalink.read().await.clone();
-		let (has_joined, mut content) = join(ctx, bot_data, command_interaction).await?;
+		let (_, mut content) = join(ctx, bot_data, command_interaction).await?;
 
 		match lava_client {
 			Some(_) => {},

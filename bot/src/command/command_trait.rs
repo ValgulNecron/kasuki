@@ -60,6 +60,73 @@ pub struct EmbedContent<'a, 'b> {
 	pub images_url: Option<String>,
 }
 
+
+
+impl EmbedContent<'_, '_> {
+	pub fn new(title: String) -> EmbedContent<'static, 'static> {
+		EmbedContent {
+			title,
+			description: "".to_string(),
+			thumbnail: None,
+			url: None,
+			command_type: EmbedType::First,
+			colour: None,
+			fields: vec![],
+			images: None,
+			action_row: None,
+			images_url: None,
+		}
+	}
+	
+	pub fn title(&'static mut self, title: String) 	-> &'static EmbedContent<'static,'static>	 {
+		self.title = title;
+		self
+	}
+	pub fn description(&'static mut self, description: String) -> &'static EmbedContent<'static, 'static> {
+		self.description = description;
+		self
+	}
+	pub fn thumbnail(&'static mut self, thumbnail: Option<String>) -> &'static EmbedContent<'static, 'static> {
+		self.thumbnail = thumbnail;
+		self
+	}
+
+	pub fn url(&'static mut self, url: Option<String>) -> &'static EmbedContent<'static, 'static> {
+		self.url = url;
+		self
+	}
+
+	pub fn command_type(&'static mut self, command_type: EmbedType) -> &'static EmbedContent<'static, 'static> {
+		self.command_type = command_type;
+		self
+	}
+
+	pub fn colour(&'static mut self, colour: Option<Colour>) -> &'static EmbedContent<'static, 'static> {
+		self.colour = colour;
+		self
+	}
+
+	pub fn fields(&'static mut self, fields: Vec<(String, String, bool)>) -> &'static EmbedContent<'static, 'static> {
+		self.fields = fields;
+		self
+	}
+
+	pub fn images(&'static mut self, images: Option<Vec<EmbedImage<'static>>>) -> &'static EmbedContent<'static, 'static> {
+		self.images = images;
+		self
+	}
+
+	pub fn action_row(&'static mut self, action_row: Option<CreateActionRow<'static>>) -> &'static EmbedContent<'static, 'static> {
+		self.action_row = action_row;
+		self
+	}
+
+	pub fn images_url(&'static mut self, images_url: Option<String>) -> &'static EmbedContent<'static, 'static> {
+		self.images_url = images_url;
+		self
+	}
+}
+
 #[derive(Clone)]
 pub struct EmbedImage<'a> {
 	pub attachment: CreateAttachment<'a>,
