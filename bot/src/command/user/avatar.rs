@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, SlashCommand, UserCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand, UserCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
@@ -30,7 +30,10 @@ impl SlashCommand for AvatarCommand {
 		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
+		let contents =
+			get_user_content(&self.ctx, &self.command_interaction, user, &bot_data.config).await?;
+
+		self.send_embed(contents).await
 	}
 }
 
@@ -39,7 +42,10 @@ impl UserCommand for AvatarCommand {
 		let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
+		let contents =
+			get_user_content(&self.ctx, &self.command_interaction, user, &bot_data.config).await?;
+
+		self.send_embed(contents).await
 	}
 }
 
@@ -86,9 +92,9 @@ pub async fn get_user_command(
 	Ok(user)
 }
 
-pub async fn send_embed(
+pub async fn get_user_content(
 	ctx: &SerenityContext, interaction: &CommandInteraction, user: User, config: &Config,
-) -> Result<()> {
+) -> Result<Vec<EmbedContent<'static, 'static>>> {
 	let guild_id = interaction
 		.guild_id
 		.map(|id| id.to_string())
@@ -99,10 +105,6 @@ pub async fn send_embed(
 	let username = user.name;
 
 	let avatar_localised = load_localization_avatar(guild_id, config.db.clone()).await?;
-
-	let embed = get_default_embed(None)
-		.image(avatar_url)
-		.title(avatar_localised.title.replace("$user$", username.as_str()));
 
 	let server_avatar = match interaction.guild_id {
 		Some(guild_id) => {
@@ -116,22 +118,22 @@ pub async fn send_embed(
 		None => None,
 	};
 
-	let message = match server_avatar {
+	let content1 = EmbedContent::new(avatar_localised.title.replace("$user$", username.as_str()))
+		.images_url(Some(avatar_url));
+
+	let contents = match server_avatar {
 		Some(server_avatar) => {
-			let server_embed = get_default_embed(None).image(server_avatar).title(
+			let content2 = EmbedContent::new(
 				avatar_localised
 					.server_title
 					.replace("$user$", username.as_str()),
-			);
+			)
+			.images_url(Some(server_avatar));
 
-			CreateInteractionResponseMessage::new().embeds(vec![embed, server_embed])
+			vec![content1, content2]
 		},
-		None => CreateInteractionResponseMessage::new().embed(embed),
+		None => vec![content1],
 	};
 
-	interaction
-		.create_response(&ctx.http, CreateInteractionResponse::Message(message))
-		.await?;
-
-	Ok(())
+	Ok(contents)
 }

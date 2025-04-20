@@ -41,7 +41,7 @@ impl Command for ImageCommand {
 
 impl SlashCommand for ImageCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
+		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		if self
 			.check_hourly_limit(
@@ -56,7 +56,7 @@ impl SlashCommand for ImageCommand {
 			));
 		}
 
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -167,20 +167,12 @@ impl SlashCommand for ImageCommand {
 			.await?;
 		}
 
-		let embed_content = EmbedContent {
-			title: image_localised.title,
-			description: String::new(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: Some(images),
-			action_row: None,
-			images_url: None,
-		};
+		let embed_content = EmbedContent::new(image_localised.title)
+			.description(String::new())
+			.command_type(EmbedType::Followup)
+			.images(Some(images));
 
-		self.send_embed(embed_content).await
+		self.send_embed(vec![embed_content]).await
 	}
 }
 

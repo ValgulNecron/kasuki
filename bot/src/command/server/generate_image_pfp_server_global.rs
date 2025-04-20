@@ -1,8 +1,5 @@
-use std::sync::Arc;
-
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::command::server::generate_image_pfp_server::send_embed;
-use crate::config::Config;
+use crate::command::command_trait::{Command, Embed, SlashCommand};
+use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
 use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -26,17 +23,11 @@ impl SlashCommand for GenerateGlobalImagePfPCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		init(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-		)
-		.await
-	}
-}
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
 
-pub async fn init(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-) -> Result<()> {
-	send_embed(ctx, command_interaction, "global", config.db.clone()).await
+		let content = get_content(ctx, command_interaction, "global", config.db.clone()).await?;
+
+		self.send_embed(vec![content]).await
+	}
 }

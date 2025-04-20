@@ -80,9 +80,9 @@ pub struct FuzzyDate {
 	pub year: Option<i32>,
 	pub day: Option<i32>,
 }
-pub async fn character_content(
-	command_interaction: &CommandInteraction, character: Character, db_config: DbConfig,
-) -> Result<EmbedContent> {
+pub async fn character_content<'a>(
+	command_interaction: &'a CommandInteraction, character: Character, db_config: DbConfig,
+) -> Result<Vec<EmbedContent<'static, 'static>>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -179,18 +179,11 @@ pub async fn character_content(
 
 	let character_name = format!("{}/{}", user_pref, native);
 
-	let mut content = EmbedContent {
-		title: character_name,
-		description: desc,
-		thumbnail: None,
-		url: Some(character.site_url.unwrap_or_default()),
-		command_type: EmbedType::First,
-		colour: None,
-		fields,
-		images: None,
-		action_row: None,
-		images_url: None,
-	};
+	let mut content = EmbedContent::new(character_name)
+		.description(desc)
+		.url(Some(character.site_url.unwrap_or_default()))
+		.command_type(EmbedType::First)
+		.fields(fields);
 
 	if let Some(image) = character.image {
 		if let Some(large) = image.large {
@@ -198,5 +191,5 @@ pub async fn character_content(
 		}
 	}
 
-	Ok(content)
+	Ok(vec![content])
 }

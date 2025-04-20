@@ -7,7 +7,6 @@ use crate::structure::message::anilist_user::user::{UserLocalised, load_localiza
 use anyhow::{Result, anyhow};
 use serenity::all::CommandInteraction;
 use serenity::model::Colour;
-use serenity::prelude::Context as SerenityContext;
 
 #[cynic::schema("anilist")]
 
@@ -182,8 +181,8 @@ impl Display for UserStatisticsSort {
 }
 
 pub async fn user_content<'a>(
-	ctx: &'a SerenityContext, command: &'a CommandInteraction, user: User, db_config: DbConfig,
-) -> Result<EmbedContent<'a, 'a>> {
+	command: &'a CommandInteraction, user: User, db_config: DbConfig,
+) -> Result<Vec<EmbedContent<'static, 'static>>> {
 	let guild_id = match command.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -214,18 +213,12 @@ pub async fn user_content<'a>(
 		}
 	}
 
-	let mut content = EmbedContent {
-		title: user.name.clone(),
-		description: "".to_string(),
-		thumbnail: None,
-		url: Some(get_user_url(&user.id)),
-		command_type: EmbedType::First,
-		colour: Some(get_color(user.clone())),
-		fields: field,
-		images: None,
-		action_row: None,
-		images_url: Some(get_banner(&user.id)),
-	};
+	let mut content = EmbedContent::new(user.name.clone())
+		.url(Some(get_user_url(&user.id)))
+		.command_type(EmbedType::First)
+		.colour(Some(get_color(user.clone())))
+		.fields(field)
+		.images_url(Some(get_banner(&user.id)));
 
 	if let Some(avatar) = user.avatar {
 		if let Some(large) = avatar.large {
@@ -233,7 +226,7 @@ pub async fn user_content<'a>(
 		}
 	}
 
-	Ok(content)
+	Ok(vec![content])
 }
 
 pub fn get_user_url(user_id: &i32) -> String {

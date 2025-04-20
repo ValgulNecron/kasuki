@@ -56,9 +56,9 @@ impl Command for AddActivityCommand {
 
 impl SlashCommand for AddActivityCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let command_interaction = self.command_interaction.clone();
+		let command_interaction = self.get_command_interaction();
 
-		let ctx = self.ctx.clone();
+		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let anilist_cache = bot_data.anilist_cache.clone();
 
@@ -100,21 +100,16 @@ impl SlashCommand for AddActivityCommand {
 		if exist {
 			trace!("already added");
 			trace!(?anime_name);
-			let embed_content = EmbedContent {
-				title: add_activity_localised.fail.clone(),
-				description: add_activity_localised
-					.fail_desc
-					.replace("$anime$", anime_name.as_str()),
-				thumbnail: None,
-				url: Some(url),
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			self.send_embed(embed_content).await?;
+			let embed_content = EmbedContent::new(add_activity_localised.fail.clone())
+				.description(
+					add_activity_localised
+						.fail_desc
+						.replace("$anime$", anime_name.as_str()),
+				)
+				.url(Some(url))
+				.command_type(EmbedType::Followup);
+
+			self.send_embed(vec![embed_content]).await?;
 		} else {
 			trace!("adding");
 			trace!(?anime_name);
@@ -133,12 +128,12 @@ impl SlashCommand for AddActivityCommand {
 			};
 
 			let image_url = media.cover_image.ok_or(
-				anyhow!("No cover image for this media".to_string()),
-			)?.extra_large.
-				unwrap_or(
-					"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-						.to_string()
-				);
+                anyhow!("No cover image for this media".to_string()),
+            )?.extra_large.
+                unwrap_or(
+                    "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                        .to_string()
+                );
 			let bytes = get(image_url.clone()).await?.bytes().await?;
 
 			let buf = resize_image(&bytes).await?;
@@ -182,21 +177,16 @@ impl SlashCommand for AddActivityCommand {
 			.exec(&*connection)
 			.await?;
 
-			let embed_content = EmbedContent {
-				title: add_activity_localised.success.clone(),
-				description: add_activity_localised
-					.success_desc
-					.replace("$anime$", anime_name.as_str()),
-				thumbnail: Some(image_url),
-				url: Some(url),
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			self.send_embed(embed_content).await?;
+			let embed_content = EmbedContent::new(add_activity_localised.success.clone())
+				.description(
+					add_activity_localised
+						.success_desc
+						.replace("$anime$", anime_name.as_str()),
+				)
+				.url(Some(url))
+				.command_type(EmbedType::Followup);
+
+			self.send_embed(vec![embed_content]).await?;
 		}
 
 		Ok(())

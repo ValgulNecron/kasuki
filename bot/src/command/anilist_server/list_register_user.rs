@@ -4,7 +4,7 @@ use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, Sla
 use crate::config::DbConfig;
 use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
 use crate::database::prelude::RegisteredUser;
-use crate::database::registered_user::{Column, Model};
+use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
@@ -61,26 +61,17 @@ impl SlashCommand for ListRegisterUser {
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, ctx, None, config.db.clone()).await?;
 
-		let mut content = EmbedContent {
-			title: list_user_localised.title,
-			description: desc,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(list_user_localised.title)
+			.description(desc)
+			.command_type(EmbedType::Followup);
 
 		if len >= MEMBER_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+			content.action_row = vec![CreateActionRow::Buttons(Cow::from(vec![
 				CreateButton::new(format!("user_{}_0", last_id.unwrap()))
-					.label(&list_user_localised.next),
-			])));
+					.label(list_user_localised.next),
+			]))];
 		}
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 
@@ -128,7 +119,7 @@ pub async fn get_the_list(
 			{
 				Some(row) => row,
 				None => continue,
-				 };
+			};
 
 			let user_data = row;
 

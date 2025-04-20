@@ -31,7 +31,7 @@ impl Command for SearchCommand {
 impl SlashCommand for SearchCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		// Retrieve the type of AniList data to search for from the command interaction
 		let map = get_option_map_string(command_interaction);

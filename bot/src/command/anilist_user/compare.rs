@@ -297,20 +297,11 @@ impl SlashCommand for CompareCommand {
 			.as_str(),
 		);
 
-		let content = EmbedContent {
-			title: "".to_string(),
-			description: desc,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::First,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new("".to_string())
+			.description(desc)
+			.command_type(EmbedType::First);
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 

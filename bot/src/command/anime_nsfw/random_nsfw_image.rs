@@ -26,7 +26,7 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.command_interaction.clone();
+		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
 
 		// Retrieve the type of image to fetch from the command interaction
@@ -50,13 +50,9 @@ impl SlashCommand for AnimeRandomNsfwImageCommand {
 		self.defer().await?;
 
 		// Send the random NSFW image as a response to the command interaction
-		let content = random_image_content(
-			image_type,
-			random_image_nsfw_localised.title,
-			"nsfw",
-		)
-		.await?;
+		let content =
+			random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await?;
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

@@ -1,16 +1,16 @@
 use anyhow::{Result, anyhow};
-use std::sync::Arc;
+use std::borrow::Cow;
 
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::{Config, DbConfig};
+use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedImage, SlashCommand};
+use crate::config::DbConfig;
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
 use crate::event_handler::BotData;
 use crate::get_url;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use prost::bytes::Buf;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -19,8 +19,6 @@ use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateAttachment,
 	CreateInteractionResponseMessage,
 };
-use serenity::builder::CreateInteractionResponseFollowup;
-use tracing::trace;
 use uuid::Uuid;
 
 pub struct GenerateImagePfPCommand {
@@ -42,25 +40,19 @@ impl SlashCommand for GenerateImagePfPCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		init(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-		)
-		.await
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+
+		let content = get_content(ctx, command_interaction, "local", config.db.clone()).await?;
+
+		self.send_embed(vec![content]).await
 	}
 }
 
-async fn init(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-) -> Result<()> {
-	send_embed(ctx, command_interaction, "local", config.db.clone()).await
-}
-
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, image_type: &str,
+pub async fn get_content<'a>(
+	ctx: &'a SerenityContext, command_interaction: &CommandInteraction, image_type: &str,
 	db_config: DbConfig,
-) -> Result<()> {
+) -> Result<EmbedContent<'static, 'static>> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -105,25 +97,10 @@ pub async fn send_embed(
 
 	let image_path = format!("{}.png", uuid);
 
-	// Construct the embed for the response
-	let builder_embed = get_default_embed(None)
-		.image(format!("attachment://{}", &image_path))
-		.title(pfp_server_image_localised_text.title);
-
-	// Create an attachment with the image
-	let attachment = CreateAttachment::bytes(image_data, image_path);
-
-	// Construct the follow-up response with the embed and the attachment
-	let builder = CreateInteractionResponseFollowup::new()
-		.embed(builder_embed)
-		.files(vec![attachment]);
-
-	// Send the follow-up response to the command interaction
-	command_interaction
-		.create_followup(&ctx.http, builder)
-		.await?;
-
-	trace!("Done");
-
-	Ok(())
+	Ok(
+		EmbedContent::new(pfp_server_image_localised_text.title).images(Some(vec![EmbedImage {
+			attachment: CreateAttachment::bytes(image_data, Cow::from(image_path.clone())),
+			image: image_path,
+		}])),
+	)
 }

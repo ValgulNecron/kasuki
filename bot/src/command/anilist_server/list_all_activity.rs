@@ -60,30 +60,21 @@ impl SlashCommand for ListAllActivity {
 
 		let join_activity = activity.join("\n");
 
-		let mut content = EmbedContent {
-			title: list_activity_localised_text.title,
-			description: join_activity,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(list_activity_localised_text.title)
+			.description(join_activity)
+			.command_type(EmbedType::Followup);
 
 		trace!("{:?}", len);
 
 		trace!("{:?}", ACTIVITY_LIST_LIMIT);
 
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+			content = content.action_row(vec![CreateActionRow::Buttons(Cow::from(vec![
 				CreateButton::new(format!("next_activity_{}", next_page))
-					.label(&list_activity_localised_text.next),
-			])));
+					.label(list_activity_localised_text.next),
+			]))]);
 		}
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

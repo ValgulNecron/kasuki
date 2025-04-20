@@ -36,19 +36,6 @@ impl SlashCommand for LeaveCommand {
 		let leave_localised =
 			load_localization_leave(guild_id_str, bot_data.config.db.clone()).await?;
 
-		let mut content = EmbedContent {
-			title: leave_localised.title,
-			description: "".to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-
 		let manager = bot_data.manager.clone();
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
@@ -67,8 +54,10 @@ impl SlashCommand for LeaveCommand {
 			manager.remove(guild_id).await?;
 		}
 
-		content.description = leave_localised.success;
+		let mut content = EmbedContent::new(leave_localised.title)
+			.description(leave_localised.success)
+			.command_type(EmbedType::Followup);
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

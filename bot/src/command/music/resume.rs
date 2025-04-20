@@ -47,35 +47,17 @@ impl SlashCommand for ResumeCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: resume_localised.title,
-				description: resume_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(resume_localised.title)
+				.description(resume_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
 
 		player.set_pause(false).await?;
 
-		let content = EmbedContent {
-			title: resume_localised.title,
-			description: resume_localised.success,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(content).await
+		let content = EmbedContent::new(resume_localised.title)
+			.description(resume_localised.success)
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![content]).await
 	}
 }

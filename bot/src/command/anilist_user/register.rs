@@ -85,19 +85,13 @@ impl SlashCommand for RegisterCommand {
 			.replace("$id$", user_id)
 			.replace("$anilist$", user_data.name.clone().as_str());
 
-		let content = EmbedContent {
-			title: user_data.clone().name,
-			description: desc,
-			thumbnail: Some(user_data.clone().avatar.unwrap().large.unwrap()),
-			url: Some(get_user_url(&user_data.id)),
-			command_type: EmbedType::First,
-			colour: Some(get_color(user_data.clone())),
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(user_data.clone().name)
+			.description(desc)
+			.thumbnail(Some(user_data.clone().avatar.unwrap().large.unwrap()))
+			.url(Some(get_user_url(&user_data.id)))
+			.command_type(EmbedType::First)
+			.colour(Some(get_color(user_data.clone())));
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

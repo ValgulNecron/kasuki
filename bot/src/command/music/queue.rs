@@ -49,19 +49,10 @@ impl SlashCommand for QueueCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: queue_localised.title,
-				description: queue_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(queue_localised.title)
+				.description(queue_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
 		let queue = player.get_queue();
 		let player_data = player.get_player().await?;
@@ -131,18 +122,9 @@ impl SlashCommand for QueueCommand {
 			queue_localised.nothing_playing.clone()
 		};
 
-		let content = EmbedContent {
-			title: now_playing_message,
-			description: queue_message,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(content).await
+		let content = EmbedContent::new(now_playing_message)
+			.description(queue_message)
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![content]).await
 	}
 }

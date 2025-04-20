@@ -39,7 +39,7 @@ impl SlashCommand for UserCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -53,8 +53,7 @@ impl SlashCommand for UserCommand {
 		if let Some(value) = user {
 			let data: User = get_user(value, anilist_cache.clone()).await?;
 
-			let content =
-				user::user_content(ctx, command_interaction, data, config.db.clone()).await?;
+			let content = user::user_content(command_interaction, data, config.db.clone()).await?;
 
 			self.send_embed(content).await?;
 		}
@@ -73,7 +72,7 @@ impl SlashCommand for UserCommand {
 		// Fetch the user's data from AniList and send it as a response
 		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
 
-		let content = user::user_content(ctx, command_interaction, data, config.db.clone()).await?;
+		let content = user::user_content(command_interaction, data, config.db.clone()).await?;
 
 		self.send_embed(content).await
 	}

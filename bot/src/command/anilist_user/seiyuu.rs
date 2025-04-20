@@ -221,20 +221,11 @@ impl SlashCommand for SeiyuuCommand {
 			image: image_path.clone(),
 		};
 
-		let content = EmbedContent {
-			title: seiyuu_localised.title,
-			description: "".to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: Some(vec![image]),
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(seiyuu_localised.title)
+			.command_type(EmbedType::Followup)
+			.images(Some(vec![image]));
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 

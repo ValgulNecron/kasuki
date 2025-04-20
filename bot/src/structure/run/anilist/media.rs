@@ -579,7 +579,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig, bot_data: Arc<BotData>,
-) -> Result<EmbedContent<'a, 'a>> {
+) -> Result<Vec<EmbedContent<'static, 'static>>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
 	if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -740,18 +740,11 @@ pub async fn media_content<'a>(
 		None => return Err(anyhow!("No title")),
 	};
 
-	let mut content = EmbedContent {
-		title: embed_title(&title),
-		description: "".to_string(),
-		thumbnail: None,
-		url: Some(get_url(&data.clone())),
-		command_type: EmbedType::First,
-		colour: None,
-		fields,
-		images: None,
-		action_row: None,
-		images_url: Some(get_banner(&data.clone())),
-	};
+	let mut content = EmbedContent::new(embed_title(&title))
+		.url(Some(get_url(&data.clone())))
+		.command_type(EmbedType::First)
+		.fields(fields)
+		.images_url(Some(get_banner(&data.clone())));
 
 	if let Some(image) = data.cover_image {
 		if let Some(extra_large) = image.extra_large {
@@ -759,5 +752,5 @@ pub async fn media_content<'a>(
 		}
 	}
 
-	Ok(content)
+	Ok(vec![content])
 }

@@ -33,7 +33,7 @@ impl SlashCommand for StudioCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -125,19 +125,11 @@ impl SlashCommand for StudioCommand {
 		// Retrieve the name of the studio
 		let name = studio.name;
 
-		let content = EmbedContent {
-			title: name,
-			description: desc,
-			thumbnail: None,
-			url: Some(studio.site_url.unwrap_or_default()),
-			command_type: EmbedType::First,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(name)
+			.description(desc)
+			.url(Some(studio.site_url.unwrap_or_default()))
+			.command_type(EmbedType::First);
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

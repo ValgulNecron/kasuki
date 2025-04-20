@@ -26,8 +26,8 @@ impl Command for LangCommand {
 
 impl SlashCommand for LangCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
-		let command_interaction = &self.command_interaction;
+		let ctx = self.get_ctx();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let connection = bot_data.db_connection.clone();
 
@@ -52,19 +52,10 @@ impl SlashCommand for LangCommand {
 
 		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
 
-		let embed_content = EmbedContent {
-			title: lang_localised.title.clone(),
-			description: lang_localised.desc.replace("$lang$", lang.as_str()),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::First,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let embed_content = EmbedContent::new(lang_localised.title.clone())
+			.description(lang_localised.desc.replace("$lang$", lang.as_str()))
+			.command_type(EmbedType::First);
 
-		self.send_embed(embed_content).await
+		self.send_embed(vec![embed_content]).await
 	}
 }

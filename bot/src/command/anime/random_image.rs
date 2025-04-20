@@ -28,7 +28,7 @@ impl SlashCommand for AnimeRandomImageCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.command_interaction.clone();
+		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
 
 		// Retrieve the type of image to fetch from the command interaction
@@ -49,21 +49,15 @@ impl SlashCommand for AnimeRandomImageCommand {
 
 		self.defer().await?;
 
-		let content = random_image_content(
-			image_type,
-			random_image_localised.title,
-			"sfw",
-		)
-		.await?;
+		let content = random_image_content(image_type, random_image_localised.title, "sfw").await?;
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 
 pub async fn random_image_content<'a>(
-	image_type: &'a String,
-	title: String, endpoint: &'a str
-) -> Result<EmbedContent<'a, 'a>> {
+	image_type: &str, title: String, endpoint: &'a str,
+) -> Result<EmbedContent<'static, 'static>> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
@@ -94,21 +88,12 @@ pub async fn random_image_content<'a>(
 	let bytes = bytes.as_bytes().to_vec();
 	let attachment = CreateAttachment::bytes(bytes, filename.clone());
 
-	let content = EmbedContent {
-		title,
-		description: "".to_string(),
-		thumbnail: None,
-		url: None,
-		command_type: EmbedType::Followup,
-		colour: None,
-		fields: vec![],
-		images: Some(vec![EmbedImage {
+	let content = EmbedContent::new(title)
+		.command_type(EmbedType::Followup)
+		.images(Some(vec![EmbedImage {
 			attachment,
 			image: filename,
-		}]),
-		action_row: None,
-		images_url: None,
-	};
+		}]));
 
 	Ok(content)
 }

@@ -1,12 +1,12 @@
+// Import necessary libraries and modules
+use crate::database::prelude::AnimeSong;
 use futures::future::join_all;
 use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
-use std::sync::Arc;
-// Import necessary libraries and modules
-use crate::database::prelude::AnimeSong;
 use serde::Deserialize;
 use serde_json::json;
+use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tracing::error;
 use tracing::trace;

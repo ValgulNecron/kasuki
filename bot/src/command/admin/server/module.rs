@@ -28,8 +28,8 @@ impl Command for ModuleCommand {
 
 impl SlashCommand for ModuleCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
-		let command_interaction = &self.command_interaction;
+		let ctx = self.get_ctx();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let connection = bot_data.db_connection.clone();
 		let guild_id = match command_interaction.guild_id {
@@ -91,20 +91,11 @@ impl SlashCommand for ModuleCommand {
 			&module_localised.off
 		};
 
-		let embed_content = EmbedContent {
-			title: module.clone(),
-			description: desc.clone(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::First,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let embed_content = EmbedContent::new(module.clone())
+			.description(desc.clone())
+			.command_type(EmbedType::First);
 
-		self.send_embed(embed_content).await
+		self.send_embed(vec![embed_content]).await
 	}
 }
 

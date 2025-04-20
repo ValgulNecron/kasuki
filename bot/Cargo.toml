@@ -16,7 +16,7 @@ reqwest = { version = "0.12.15", features = ["json", "multipart", "blocking"] }
 serde = "1.0.219"
 serde_json = "1.0.140"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
-tokio = { version = "1.44.1", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 rand = "0.9.0"
 chrono = "0.4.40"
 uuid = { version = "1.16.0", features = ["v4"] }
@@ -39,17 +39,17 @@ moka = { version = "0.12.10", features = ["future"] }
 toml = "0.8.20"
 num-bigint = "0.4.6"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
-sea-orm = { version = "1.1.6", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
+sea-orm = { version = "1.1.8", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
-tempfile = "3.17.1"
-anyhow = "1.0.96"
+tempfile = "3.19.1"
+anyhow = "1.0.97"
 small-fixed-array = "0.4.8"
-lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"]}
-async-trait = "0.1.86"
+lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
+async-trait = "0.1.88"
 
 [build-dependencies]
-cynic-codegen = { version = "3.9.1" }
+cynic-codegen = { version = "3.10.0" }
 
 [profile.dev]
 debug = 2

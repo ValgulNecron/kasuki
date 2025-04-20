@@ -23,26 +23,26 @@ pub struct Migrator;
 
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
-	fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-		vec![
-			Box::new(m20240815_180000_guild_data::Migration),
-			Box::new(m20240815_180201_user_data::Migration),
-			Box::new(m20240815_180308_server_image::Migration),
-			Box::new(m20240815_182736_user_color::Migration),
-			Box::new(m20240815_183343_registered_anilist_user::Migration),
-			Box::new(m20240815_190656_module_activation::Migration),
-			Box::new(m20240815_213206_guild_lang::Migration),
-			Box::new(m20240815_231355_kill_switch::Migration),
-			Box::new(m20240815_231524_activity_data::Migration),
-			Box::new(m20240815_231538_ping_history::Migration),
-			Box::new(m20240826_215627_server_user_relation::Migration),
-			Box::new(m20240831_133253_user_subscription::Migration),
-			Box::new(m20240831_134027_guild_subscription::Migration),
-			Box::new(m20241221_192311_command_list::Migration),
-			Box::new(m20241221_192314_command_usage::Migration),
-			Box::new(m20241221_192339_random_stats::Migration),
-			Box::new(m20241225_163933_anime_song::Migration),
-			Box::new(m20250312_195747_update_unique::Migration),
-		]
-	}
+    fn migrations() -> Vec<Box<dyn MigrationTrait>> {
+        vec![
+            Box::new(m20240815_180000_guild_data::Migration),
+            Box::new(m20240815_180201_user_data::Migration),
+            Box::new(m20240815_180308_server_image::Migration),
+            Box::new(m20240815_182736_user_color::Migration),
+            Box::new(m20240815_183343_registered_anilist_user::Migration),
+            Box::new(m20240815_190656_module_activation::Migration),
+            Box::new(m20240815_213206_guild_lang::Migration),
+            Box::new(m20240815_231355_kill_switch::Migration),
+            Box::new(m20240815_231524_activity_data::Migration),
+            Box::new(m20240815_231538_ping_history::Migration),
+            Box::new(m20240826_215627_server_user_relation::Migration),
+            Box::new(m20240831_133253_user_subscription::Migration),
+            Box::new(m20240831_134027_guild_subscription::Migration),
+            Box::new(m20241221_192311_command_list::Migration),
+            Box::new(m20241221_192314_command_usage::Migration),
+            Box::new(m20241221_192339_random_stats::Migration),
+            Box::new(m20241225_163933_anime_song::Migration),
+            Box::new(m20250312_195747_update_unique::Migration),
+        ]
+    }
 }
