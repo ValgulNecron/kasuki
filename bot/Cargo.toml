@@ -47,7 +47,7 @@ anyhow = "1.0.98"
 small-fixed-array = "0.4.8"
 lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
 async-trait = "0.1.88"
-dashmap = "7.0.0-rc2"
+dashmap = "6.1.0"
 
 [build-dependencies]
 cynic-codegen = { version = "3.10.0" }
