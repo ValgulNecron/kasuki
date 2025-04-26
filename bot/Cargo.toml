@@ -36,7 +36,7 @@ futures = "0.3.31"
 rapidfuzz = "0.5.0"
 cynic = { version = "3.10.0", features = ["reqwest", "http-reqwest", "serde_json"] }
 moka = { version = "0.12.10", features = ["future"] }
-toml = "0.8.20"
+toml = "0.8.21"
 num-bigint = "0.4.6"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
 sea-orm = { version = "1.1.8", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
@@ -47,7 +47,7 @@ anyhow = "1.0.98"
 small-fixed-array = "0.4.8"
 lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
 async-trait = "0.1.88"
-dashmap = "6.1.0"
+dashmap = "7.0.0-rc2"
 
 [build-dependencies]
 cynic-codegen = { version = "3.10.0" }
