@@ -2,10 +2,13 @@ use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::{Context as SerenityContext, CurrentApplicationInfo};
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardId};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
+use dashmap::DashMap;
+use futures::channel::mpsc::UnboundedSender;
+use serenity::gateway::{ShardRunnerInfo, ShardRunnerMessage};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
@@ -83,7 +86,7 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 	info!("Launching the ping thread!");
 
 	// Get the ShardManager from the data
-	let shard_manager = match ctx
+	let shard_manager: Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>  = match ctx
 		.data::<BotData>()
 		.shard_manager
 		.clone()
@@ -119,23 +122,18 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		// Lock the shard manager and iterate over the runners
 		let runner = &shard_manager;
 
-		for (shard_id, shard) in runner.iter() {
+		for entry in runner.iter() {
+			let shard_id = entry.key();
+			let shard = entry.value();
 			// Extract latency and current timestamp information
 			let (now, latency) = {
-				let shard_info = match shard.lock() {
-					Ok(shard_runner_info) => shard_runner_info,
-					Err(_) => {
-						error!("failed to get the shard runner info");
-						continue;
-					},
-				};
+				let (shard_info, _) = shard;
 
 				let latency = shard_info
 					.latency
 					.unwrap_or_default()
 					.as_millis()
 					.to_string();
-				drop(shard_info);
 				let now = chrono::Utc::now().naive_utc();
 				(now, latency)
 			};

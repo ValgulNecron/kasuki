@@ -19,7 +19,9 @@ use prost::bytes::Bytes;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
+use serenity::all::{AttachmentData, CommandInteraction, Context as SerenityContext, CreateAttachment};
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -152,14 +154,24 @@ impl SlashCommand for ImageCommand {
 		};
 
 		for image in images.clone() {
-			let bytes = image.attachment.data.clone();
+			let bytes = match image.attachment.data.clone() {
+				AttachmentData::Bytes(bytes) => {bytes}
+				AttachmentData::File(_) => {
+					Err(anyhow!("File not supported"))?
+				},
+				AttachmentData::Path(path) => Bytes::from({
+					let mut file = File::open(path).await?;
+					let mut bytes = vec![];
+					file.read(&mut bytes).await?;
+					bytes
+				})
+			};
 			let filename = image.attachment.filename.clone();
 			let image_config = bot_data.config.image.clone();
-			let bytes: Vec<u8> = bytes.clone().to_owned().into();
 			image_saver(
 				guild_id.to_string(),
 				filename.to_string(),
-				bytes,
+				Vec::from(bytes),
 				image_config.save_server.unwrap_or_default(),
 				image_config.token.unwrap_or_default(),
 				image_config.save_image,

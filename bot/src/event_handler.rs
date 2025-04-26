@@ -27,7 +27,7 @@ use serenity::all::{
 	Member, Presence, Ready, ShardId, User,
 };
 use serenity::async_trait;
-use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo};
+use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo, ShardRunnerMessage};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
@@ -48,11 +48,13 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<Arc<HashMap<ShardId, Arc<Mutex<ShardRunnerInfo>>>>>>>,
+	pub shard_manager: Arc<RwLock<Option< Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>>>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
 use crate::music_events;
 use anyhow::{Context, Result};
+use dashmap::DashMap;
+use futures::channel::mpsc::UnboundedSender;
 use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;

@@ -17,7 +17,7 @@ serde = "1.0.219"
 serde_json = "1.0.140"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
 tokio = { version = "1.44.2", features = ["full"] }
-rand = "0.9.0"
+rand = "0.9.1"
 chrono = "0.4.40"
 uuid = { version = "1.16.0", features = ["v4"] }
 image = "0.25.6"
@@ -43,10 +43,11 @@ sea-orm = { version = "1.1.8", features = ["sqlx-sqlite", "sqlx-postgres", "runt
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
 tempfile = "3.19.1"
-anyhow = "1.0.97"
+anyhow = "1.0.98"
 small-fixed-array = "0.4.8"
 lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
 async-trait = "0.1.88"
+dashmap = "6.1.0"
 
 [build-dependencies]
 cynic-codegen = { version = "3.10.0" }

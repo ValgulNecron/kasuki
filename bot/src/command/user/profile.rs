@@ -1,16 +1,10 @@
-use std::sync::Arc;
-
-use crate::command::command_trait::{Command, SlashCommand, UserCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::config::Config;
+use crate::config::DbConfig;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
 use anyhow::Result;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage, Member, User,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 
 pub struct ProfileCommand {
 	pub ctx: SerenityContext,
@@ -32,7 +26,16 @@ impl SlashCommand for ProfileCommand {
 		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
+		let command_interaction = self.get_command_interaction();
+		let db_config = bot_data.config.db.clone();
+
+		let guild_id = command_interaction
+			.guild_id
+			.map(|id| id.to_string())
+			.unwrap_or("0".to_string());
+
+		let content = get_content(user, guild_id, db_config, command_interaction, ctx).await?;
+		self.send_embed(vec![content]).await
 	}
 }
 
@@ -41,61 +44,23 @@ impl UserCommand for ProfileCommand {
 		let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(&self.ctx, &self.command_interaction, user, &bot_data.config).await
+		let command_interaction = self.get_command_interaction();
+		let db_config = bot_data.config.db.clone();
+
+		let guild_id = command_interaction
+			.guild_id
+			.map(|id| id.to_string())
+			.unwrap_or("0".to_string());
+
+		let content = get_content(user, guild_id, db_config, command_interaction, ctx).await?;
+		self.send_embed(vec![content]).await
 	}
 }
 
-fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
-	let mut fields = vec![
-		(
-			profile_localised.id.clone(),
-			user.id.clone().to_string(),
-			true,
-		),
-		(
-			profile_localised.creation_date.clone(),
-			format!("<t:{}>", user.id.created_at().timestamp()),
-			true,
-		),
-		(profile_localised.bot.clone(), user.bot().to_string(), true),
-		(
-			profile_localised.system.clone(),
-			user.system().to_string(),
-			true,
-		),
-	];
-
-	if let Some(public_flag) = user.public_flags {
-		let mut user_flags = Vec::new();
-
-		// If there are, iterate over the flags and add them to a vector
-		for (flag, _) in public_flag.iter_names() {
-			user_flags.push(flag)
-		}
-
-		if !user_flags.is_empty() {
-			fields.push((
-				profile_localised.public_flag.clone(),
-				user_flags.join(" / "),
-				false,
-			));
-		}
-	}
-
-	fields
-}
-
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, user: User,
-	config: &Arc<Config>,
-) -> Result<()> {
-	let db_config = config.db.clone();
-
-	let guild_id = command_interaction
-		.guild_id
-		.map(|id| id.to_string())
-		.unwrap_or("0".to_string());
-
+async fn get_content(
+	user: User, guild_id: String, db_config: DbConfig, command_interaction: &CommandInteraction,
+	ctx: &SerenityContext,
+) -> Result<EmbedContent<'static, 'static>> {
 	let profile_localised = load_localization_profile(guild_id, db_config).await?;
 
 	let mut fields = get_fields(&profile_localised, user.clone());
@@ -167,27 +132,53 @@ async fn send_embed(
 			fields.push((profile_localised.premium, string.collect::<String>(), true));
 		}
 	}
+	let content = EmbedContent::new(
+		profile_localised
+			.title
+			.replace("$user$", user.name.as_str()),
+	)
+	.thumbnail(Some(avatar_url))
+	.fields(fields)
+	.images_url(user.banner_url());
+	Ok(content)
+}
 
-	let mut builder_embed = get_default_embed(None)
-		.thumbnail(avatar_url)
-		.title(
-			profile_localised
-				.title
-				.replace("$user$", user.name.as_str()),
-		)
-		.fields(fields);
+fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
+	let mut fields = vec![
+		(
+			profile_localised.id.clone(),
+			user.id.clone().to_string(),
+			true,
+		),
+		(
+			profile_localised.creation_date.clone(),
+			format!("<t:{}>", user.id.created_at().timestamp()),
+			true,
+		),
+		(profile_localised.bot.clone(), user.bot().to_string(), true),
+		(
+			profile_localised.system.clone(),
+			user.system().to_string(),
+			true,
+		),
+	];
 
-	if let Some(banner) = user.banner_url() {
-		builder_embed = builder_embed.image(banner);
+	if let Some(public_flag) = user.public_flags {
+		let mut user_flags = Vec::new();
+
+		// If there are, iterate over the flags and add them to a vector
+		for (flag, _) in public_flag.iter_names() {
+			user_flags.push(flag)
+		}
+
+		if !user_flags.is_empty() {
+			fields.push((
+				profile_localised.public_flag.clone(),
+				user_flags.join(" / "),
+				false,
+			));
+		}
 	}
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	fields
 }

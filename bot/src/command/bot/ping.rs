@@ -49,25 +49,18 @@ impl SlashCommand for PingCommand {
 		let shard_id = ctx.shard_id;
 		// Retrieve the shard runner info from the shard manager
 		let (latency, stage) = {
-			let shard_runner_info_lock = shard_manager.clone();
-			let shard_runner_info = shard_runner_info_lock
+			let shard_runner_info = shard_manager
 				.get(&shard_id)
 				.ok_or(anyhow!("failed to get the shard info"))?;
 			// Format the latency as a string
-			let shard_runner_info = shard_runner_info;
-			let shard_runner_info = match shard_runner_info.lock() {
-				Ok(shard_runner_info) => shard_runner_info,
-				Err(_) => {
-					return Err(anyhow!("failed to get the shard runner info"));
-				},
-			};
-			let latency = match shard_runner_info.latency {
+			let (info,_) = shard_runner_info.value();
+			let latency = match info.latency {
 				Some(latency) => format!("{:.2}ms", latency.as_millis()),
 				None => "?,??ms".to_string(),
 			};
 
 			// Retrieve the stage of the shard runner
-			let stage = shard_runner_info.stage.to_string();
+			let stage = info.stage.to_string();
 			drop(shard_runner_info);
 			(latency, stage)
 		};

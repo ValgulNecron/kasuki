@@ -33,9 +33,7 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serde_json::json;
-use serenity::all::{
-	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
-};
+use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook, GenericChannelId};
 use tokio::sync::RwLock;
 use tracing::trace;
 
@@ -260,7 +258,7 @@ pub fn get_name(title: MediaTitle) -> String {
 }
 
 async fn get_webhook(
-	ctx: &SerenityContext, channel_id: ChannelId, image: String, base64: String, anime_name: String,
+	ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String, anime_name: String,
 ) -> Result<String> {
 	trace!(?image);
 
@@ -282,12 +280,12 @@ async fn get_webhook(
 
 	let mut webhook_url = String::new();
 
-	let webhooks = ctx.http.get_channel_webhooks(channel_id).await?;
+	let webhooks = ctx.http.get_channel_webhooks(ChannelId::new(channel_id.get())).await?;
 
 	if webhooks.is_empty() {
 		let webhook = ctx
 			.http
-			.create_webhook(channel_id, &webhook_info, None)
+			.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
 			.await?;
 
 		webhook_url = webhook.url()?;
@@ -309,7 +307,7 @@ async fn get_webhook(
 		if webhook_url.is_empty() {
 			let webhook = ctx
 				.http
-				.create_webhook(channel_id, &webhook_info, None)
+				.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
 				.await?;
 
 			webhook_url = webhook.url()?;
@@ -329,8 +327,8 @@ async fn get_webhook(
 	let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
 
 	let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-
-	let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachment);
+	let attachment = attachment.encode().await?;
+	let edit_webhook = EditWebhook::new().name(anime_name).avatar(attachment);
 
 	webhook.edit(&ctx.http, edit_webhook).await?;
 

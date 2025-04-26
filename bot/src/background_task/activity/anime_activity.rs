@@ -114,10 +114,12 @@ async fn send_specific_activity(
 	let decoded_bytes = decode_image(&row.image)?;
 
 	let trimmed_name = row.name.chars().take(100).collect::<String>();
+	
+	let filename = format!("{}_{}.png", guild_id, row.anime_id);
+	let attachment = CreateAttachment::bytes(decoded_bytes, filename);
+	let attachment = attachment.encode().await?;
 
-	let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-
-	let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(&attachment);
+	let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(attachment);
 
 	webhook.edit(&ctx.http, edit_webhook).await?;
 
