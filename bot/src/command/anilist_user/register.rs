@@ -37,6 +37,7 @@ impl SlashCommand for RegisterCommand {
 		let command_interaction = self.get_command_interaction();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
+		let connection = bot_data.db_connection.clone();
 		let config = bot_data.config.clone();
 
 		let map = get_option_map_string(command_interaction);
@@ -61,10 +62,7 @@ impl SlashCommand for RegisterCommand {
 		let user_id = &command_interaction.user.id.to_string();
 
 		let username = &command_interaction.user.name;
-
-		// Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
-		let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
+		
 		RegisteredUser::insert(ActiveModel {
 			user_id: Set(user_id.to_string()),
 			anilist_id: Set(user_data.id),
@@ -75,7 +73,7 @@ impl SlashCommand for RegisterCommand {
 				.update_column(Column::AnilistId)
 				.to_owned(),
 		)
-		.exec(&connection)
+		.exec(&*connection)
 		.await?;
 
 		// Construct the description for the embed

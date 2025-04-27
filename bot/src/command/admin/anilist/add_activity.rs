@@ -33,7 +33,10 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serde_json::json;
-use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook, GenericChannelId};
+use serenity::all::{
+	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
+	GenericChannelId,
+};
 use tokio::sync::RwLock;
 use tracing::trace;
 
@@ -258,7 +261,8 @@ pub fn get_name(title: MediaTitle) -> String {
 }
 
 async fn get_webhook(
-	ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String, anime_name: String,
+	ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String,
+	anime_name: String,
 ) -> Result<String> {
 	trace!(?image);
 
@@ -280,7 +284,10 @@ async fn get_webhook(
 
 	let mut webhook_url = String::new();
 
-	let webhooks = ctx.http.get_channel_webhooks(ChannelId::new(channel_id.get())).await?;
+	let webhooks = ctx
+		.http
+		.get_channel_webhooks(ChannelId::new(channel_id.get()))
+		.await?;
 
 	if webhooks.is_empty() {
 		let webhook = ctx

@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use serenity::all::{Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedOption, ResolvedValue, RoleId, UserId};
+use serenity::all::{
+	Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedOption, ResolvedValue,
+	RoleId, UserId,
+};
 
 pub fn get_subcommand(interaction: &CommandInteraction) -> Option<ResolvedOption<'_>> {
 	let subcommand_group_value = interaction.data.options().first()?.clone();

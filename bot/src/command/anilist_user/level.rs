@@ -108,9 +108,9 @@ impl LevelCommand {
 		};
 
 		// Calculate the experience points
-		let xp = (2.0 * (manga_completed + anime_completed) as f64)
-			+ chap_read as f64
-			+ (tw as f64 * 0.1);
+		let xp = (8.0 * (manga_completed + anime_completed) as f64)
+			+ (2.0 * chap_read as f64)
+			+ (tw as f64 * 0.5);
 
 		// Get the username
 		let username = user.name.clone();

@@ -3,6 +3,8 @@ use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{Result, anyhow};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use tracing::trace;
+
 pub struct PingCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
@@ -53,7 +55,7 @@ impl SlashCommand for PingCommand {
 				.get(&shard_id)
 				.ok_or(anyhow!("failed to get the shard info"))?;
 			// Format the latency as a string
-			let (info,_) = shard_runner_info.value();
+			let (info, _) = shard_runner_info.value();
 			let latency = match info.latency {
 				Some(latency) => format!("{:.2}ms", latency.as_millis()),
 				None => "?,??ms".to_string(),
@@ -74,7 +76,7 @@ impl SlashCommand for PingCommand {
 					.replace("$status$", &stage),
 			)
 			.command_type(EmbedType::First);
-
+		
 		self.send_embed(vec![content]).await
 	}
 }

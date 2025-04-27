@@ -206,6 +206,7 @@ async fn main() {
 	let mut guard = bot_data.shard_manager.write().await;
 	let runner = client.shard_manager.runners.clone();
 	*guard = Some(runner);
+	drop(guard);
 
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {

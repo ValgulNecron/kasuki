@@ -1,14 +1,11 @@
-use anyhow::{Result, anyhow};
-use std::sync::Arc;
+use anyhow::{anyhow, Result};
 
 use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
-use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext
+	,
 };
 use serenity::nonmax::NonMaxU64;
 

@@ -1,15 +1,12 @@
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::config::{Config, DbConfig};
+use crate::config::DbConfig;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::banner::load_localization_banner;
 use anyhow::Result;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage, User,
+	CommandInteraction, Context as SerenityContext
+	,
 };
 pub struct BannerCommand {
 	pub ctx: SerenityContext,

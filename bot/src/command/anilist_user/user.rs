@@ -56,6 +56,8 @@ impl SlashCommand for UserCommand {
 			let content = user::user_content(command_interaction, data, config.db.clone()).await?;
 
 			self.send_embed(content).await?;
+			
+			return Ok(());
 		}
 
 		let user_id = &command_interaction.user.id.to_string();

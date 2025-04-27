@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
@@ -11,8 +10,7 @@ use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext,
 };
 use tokio::sync::RwLock;
 use tracing::trace;
@@ -36,20 +34,19 @@ impl SlashCommand for VnCharacterCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send_embed(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-			bot_data.vndb_cache.clone(),
-		)
-		.await
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+
+		let content = get_content(command_interaction, config, bot_data.vndb_cache.clone()).await?;
+
+		self.send_embed(vec![content]).await
 	}
 }
 
-async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
+async fn get_content(
+	command_interaction: &CommandInteraction, config: Arc<Config>,
 	vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<()> {
+) -> Result<EmbedContent<'static, 'static>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -144,11 +141,6 @@ async fn send_embed(
 
 	fields.push((character_localised.traits.clone(), traits, true));
 	let char_desc = character.description.clone().unwrap_or_default();
-	let mut builder_embed = get_default_embed(None)
-		.description(convert_vndb_markdown(&char_desc))
-		.fields(fields)
-		.title(character.name.clone())
-		.url(format!("https://vndb.org/{}", character.id));
 
 	let sexual = match character.image.clone() {
 		Some(image) => image.sexual,
@@ -165,19 +157,16 @@ async fn send_embed(
 		None => None,
 	};
 
+	let mut content = EmbedContent::new(character.name.clone())
+		.description(String::from(convert_vndb_markdown(&char_desc)))
+		.fields(fields)
+		.url(Some(format!("https://vndb.org/{}", character.id)));
+
 	if (sexual <= 1.5) && (violence <= 1.0) {
 		if let Some(url) = url {
-			builder_embed = builder_embed.image(url);
+			content = content.images_url(Some(url));
 		}
 	}
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }

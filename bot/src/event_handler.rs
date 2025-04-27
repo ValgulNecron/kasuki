@@ -48,7 +48,11 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>>>,
+	pub shard_manager: Arc<
+		RwLock<
+			Option<Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>,
+		>,
+	>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
 use crate::music_events;

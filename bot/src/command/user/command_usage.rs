@@ -1,17 +1,13 @@
-use std::sync::Arc;
-
 use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
 use crate::command::user::avatar::get_user_command;
-use crate::config::DbConfig;
 use crate::event_handler::{BotData, RootUsage};
-use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
 use anyhow::Result;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage, User,
+	CommandInteraction, Context as SerenityContext
+	,
 };
-use tokio::sync::{RwLock, RwLockReadGuard};
+use tokio::sync::RwLockReadGuard;
 
 pub struct CommandUsageCommand {
 	pub ctx: SerenityContext,
@@ -54,7 +50,7 @@ impl SlashCommand for CommandUsageCommand {
 
 		let mut contents = vec![];
 
-		let mut content =
+		let content =
 			EmbedContent::new(localized_command_usage.title.replace("$user$", &username));
 
 		if usage.is_empty() {

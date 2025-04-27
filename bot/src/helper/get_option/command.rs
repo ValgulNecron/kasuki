@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use serenity::all::{AttachmentId, ChannelId, CommandInteraction, GenericChannelId, RoleId, UserId};
+use serenity::all::{
+	AttachmentId, ChannelId, CommandInteraction, GenericChannelId, RoleId, UserId,
+};
 use small_fixed_array::FixedString;
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<FixedString, String> {
@@ -71,7 +73,9 @@ pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<FixedStr
 	map
 }
 
-pub fn get_option_map_channel(interaction: &CommandInteraction) -> HashMap<FixedString,  GenericChannelId> {
+pub fn get_option_map_channel(
+	interaction: &CommandInteraction,
+) -> HashMap<FixedString, GenericChannelId> {
 	let mut map = HashMap::new();
 
 	for option in &interaction.data.options {

@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use serenity::all::{Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedValue, RoleId, UserId};
+use serenity::all::{
+	Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedValue, RoleId, UserId,
+};
 
 pub fn get_option_map_string_subcommand(
 	interaction: &CommandInteraction,
