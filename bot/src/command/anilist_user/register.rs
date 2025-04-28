@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -10,10 +10,9 @@ use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, Sla
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::register::load_localization_register;
-use crate::structure::run::anilist::user::{User, get_color, get_user_url};
+use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 
 pub struct RegisterCommand {
 	pub ctx: SerenityContext,

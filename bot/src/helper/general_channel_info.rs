@@ -1,4 +1,4 @@
-use serenity::all::{ChannelId, CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context};
 
 pub async fn get_nsfw(command: &CommandInteraction, ctx: &Context) -> bool {
 	let channel_id = command.channel_id;

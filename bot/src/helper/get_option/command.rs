@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serenity::all::{
-	AttachmentId, ChannelId, CommandInteraction, GenericChannelId, RoleId, UserId,
+	AttachmentId, CommandInteraction, GenericChannelId, RoleId, UserId,
 };
 use small_fixed_array::FixedString;
 

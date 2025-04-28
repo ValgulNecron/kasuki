@@ -32,7 +32,7 @@ use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 

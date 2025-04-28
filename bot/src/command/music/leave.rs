@@ -54,7 +54,7 @@ impl SlashCommand for LeaveCommand {
 			manager.remove(guild_id).await?;
 		}
 
-		let mut content = EmbedContent::new(leave_localised.title)
+		let content = EmbedContent::new(leave_localised.title)
 			.description(leave_localised.success)
 			.command_type(EmbedType::Followup);
 

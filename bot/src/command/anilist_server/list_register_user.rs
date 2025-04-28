@@ -1,20 +1,17 @@
 use std::borrow::Cow;
 use std::sync::Arc;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::DbConfig;
-use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::constant::{MEMBER_LIST_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{Result, anyhow};
 use futures::StreamExt;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{CommandInteraction, Context as SerenityContext, Context, CreateActionRow, CreateButton, PartialGuild, User, UserId};
-use serenity::nonmax::NonMaxU16;
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild, User, UserId};
 use tracing::trace;
 use futures::{pin_mut};
 
@@ -88,7 +85,7 @@ pub async fn get_the_list(
 
 	let mut last_id: Option<UserId> = last_id;
 
-	let mut members = guild
+	let members = guild
 		.id
 		.members_iter(
 			&ctx.http,
