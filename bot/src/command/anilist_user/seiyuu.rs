@@ -1,5 +1,6 @@
 use anyhow::{Result, anyhow};
 use std::io::Cursor;
+use bytes::Bytes;
 
 use crate::command::command_trait::{
 	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,
@@ -15,7 +16,6 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use prost::bytes::Bytes;
 use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use small_fixed_array::FixedString;
 use uuid::Uuid;

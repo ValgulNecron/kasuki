@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::sync::Arc;
 
 use crate::command::command_trait::{
@@ -14,8 +15,6 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use prost::Message;
-use prost::bytes::Bytes;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -319,7 +318,7 @@ async fn get_image_from_response(
 		match image_saver(
 			guild_id.clone(),
 			filename.clone(),
-			body.clone().encode_to_vec(),
+			Vec::from(body.clone()),
 			saver_server.clone(),
 			token.clone(),
 			saver.clone(),

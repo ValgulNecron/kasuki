@@ -26,7 +26,7 @@ use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
-use prost::bytes::Bytes;
+use bytes::Bytes;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
