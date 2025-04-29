@@ -4,10 +4,7 @@ use crate::config::DbConfig;
 use crate::event_handler::BotData;
 use crate::structure::message::user::banner::load_localization_banner;
 use anyhow::Result;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 pub struct BannerCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,

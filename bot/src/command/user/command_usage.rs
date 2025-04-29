@@ -3,10 +3,7 @@ use crate::command::user::avatar::get_user_command;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::message::user::command_usage::load_localization_command_usage;
 use anyhow::Result;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLockReadGuard;
 
 pub struct CommandUsageCommand {
@@ -50,8 +47,7 @@ impl SlashCommand for CommandUsageCommand {
 
 		let mut contents = vec![];
 
-		let content =
-			EmbedContent::new(localized_command_usage.title.replace("$user$", &username));
+		let content = EmbedContent::new(localized_command_usage.title.replace("$user$", &username));
 
 		if usage.is_empty() {
 			let inner_embed = content.description(

@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use serenity::all::{
-	AttachmentId, CommandInteraction, GenericChannelId, RoleId, UserId,
-};
+use serenity::all::{AttachmentId, CommandInteraction, GenericChannelId, RoleId, UserId};
 use small_fixed_array::FixedString;
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<FixedString, String> {

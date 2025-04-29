@@ -97,6 +97,11 @@ impl SlashCommand for StaffCommand {
 			(staff_localised.gender, gender, true),
 			(staff_localised.lang, lang, true),
 		];
+
+		if let Some(home_town) = staff.home_town {
+			fields.push((staff_localised.hometown, home_town, true))
+		}
+
 		if !va.is_empty() {
 			fields.push((staff_localised.va, va, true))
 		}

@@ -5,8 +5,7 @@ use crate::structure::message::management::remove_test_sub::load_localization_re
 use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
 use small_fixed_array::FixedString;
 use tracing::error;

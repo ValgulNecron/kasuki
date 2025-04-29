@@ -78,10 +78,6 @@ impl<'a, 'b> EmbedContent<'a, 'b> {
 		}
 	}
 
-	pub fn title(mut self, title: String) -> EmbedContent<'a, 'b> {
-		self.title = title;
-		self
-	}
 	pub fn description(mut self, description: String) -> EmbedContent<'a, 'b> {
 		self.description = description;
 		self

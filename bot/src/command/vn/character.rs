@@ -9,9 +9,7 @@ use crate::structure::message::vn::character::load_localization_character;
 use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLock;
 use tracing::trace;
 

@@ -1,19 +1,22 @@
-use std::borrow::Cow;
-use std::sync::Arc;
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::constant::{MEMBER_LIST_LIMIT};
+use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{Result, anyhow};
 use futures::StreamExt;
-use sea_orm::{ColumnTrait, DatabaseConnection};
+use futures::pin_mut;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild, User, UserId};
+use sea_orm::{ColumnTrait, DatabaseConnection};
+use serenity::all::{
+	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild,
+	User, UserId,
+};
+use std::borrow::Cow;
+use std::sync::Arc;
 use tracing::trace;
-use futures::{pin_mut};
 
 pub struct ListRegisterUser {
 	pub ctx: SerenityContext,
@@ -79,17 +82,14 @@ struct Data {
 }
 
 pub async fn get_the_list(
-	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>, connection: Arc<DatabaseConnection>,
+	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
+	connection: Arc<DatabaseConnection>,
 ) -> Result<(String, usize, Option<UserId>)> {
 	let mut anilist_user = Vec::new();
 
 	let mut last_id: Option<UserId> = last_id;
 
-	let members = guild
-		.id
-		.members_iter(
-			&ctx.http,
-		);
+	let members = guild.id.members_iter(&ctx.http);
 	pin_mut!(members);
 	while let Some(result) = members.next().await {
 		let member = match result {
@@ -100,7 +100,7 @@ pub async fn get_the_list(
 		last_id = Some(member.user.id);
 
 		let user_id = member.user.id.to_string();
-		
+
 		let row = match RegisteredUser::find()
 			.filter(Column::UserId.eq(user_id.clone()))
 			.one(&*connection)

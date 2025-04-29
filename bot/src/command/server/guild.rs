@@ -1,12 +1,9 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
 use crate::event_handler::BotData;
 use crate::structure::message::server::guild::load_localization_guild;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::nonmax::NonMaxU64;
 
 pub struct GuildCommand {

@@ -1,7 +1,7 @@
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct PingCommand {
@@ -75,7 +75,7 @@ impl SlashCommand for PingCommand {
 					.replace("$status$", &stage),
 			)
 			.command_type(EmbedType::First);
-		
+
 		self.send_embed(vec![content]).await
 	}
 }

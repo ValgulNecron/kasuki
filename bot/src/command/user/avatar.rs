@@ -4,10 +4,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 use anyhow::Result;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	, User,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, User};
 
 pub struct AvatarCommand {
 	pub ctx: SerenityContext,

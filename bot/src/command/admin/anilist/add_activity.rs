@@ -21,12 +21,12 @@ use crate::structure::run::anilist::minimal_anime::{
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
+use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
-use bytes::Bytes;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;

@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
-use std::io::Cursor;
 use bytes::Bytes;
+use std::io::Cursor;
 
 use crate::command::command_trait::{
 	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,

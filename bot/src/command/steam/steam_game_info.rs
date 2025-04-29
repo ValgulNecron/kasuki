@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -9,9 +9,7 @@ use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, GuildId,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
 use tokio::sync::RwLock;
 
 pub struct SteamGameInfoCommand {

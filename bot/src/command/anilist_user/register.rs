@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -12,7 +12,7 @@ use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::register::load_localization_register;
-use crate::structure::run::anilist::user::{get_color, get_user_url, User};
+use crate::structure::run::anilist::user::{User, get_color, get_user_url};
 
 pub struct RegisterCommand {
 	pub ctx: SerenityContext,
@@ -61,7 +61,7 @@ impl SlashCommand for RegisterCommand {
 		let user_id = &command_interaction.user.id.to_string();
 
 		let username = &command_interaction.user.name;
-		
+
 		RegisteredUser::insert(ActiveModel {
 			user_id: Set(user_id.to_string()),
 			anilist_id: Set(user_data.id),

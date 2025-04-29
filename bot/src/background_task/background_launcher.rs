@@ -19,9 +19,9 @@ use crate::background_task::server_image::generate_server_image::server_image_ma
 use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::config::{DbConfig, ImageConfig};
 use crate::constant::{
-	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
-	TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
-	TIME_BETWEEN_SERVER_IMAGE_UPDATE,
+	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_ANISONG_UPDATE,
+	TIME_BETWEEN_BLACKLISTED_USER_UPDATE, TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE,
+	TIME_BETWEEN_PING_UPDATE, TIME_BETWEEN_SERVER_IMAGE_UPDATE,
 };
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
@@ -57,8 +57,6 @@ pub async fn thread_management_launcher(
 
 	tokio::spawn(update_bot_info(ctx.clone(), bot_data.bot_info.clone()));
 
-	sleep(Duration::from_secs(1)).await;
-
 	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
 	let image_config = bot_data.config.image.clone();
@@ -74,7 +72,7 @@ pub async fn thread_management_launcher(
 
 async fn update_anisong_db(db: Arc<DatabaseConnection>) {
 	info!("Launching the anisongdb thread!");
-	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
+	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_ANISONG_UPDATE));
 	loop {
 		interval.tick().await;
 		get_anisong(db.clone()).await;
