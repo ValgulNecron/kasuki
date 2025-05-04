@@ -1,13 +1,16 @@
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
 use anyhow::Result;
+use moka::future::Cache;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext
+	,
 };
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub struct VnStatsCommand {
 	pub ctx: SerenityContext,
@@ -26,20 +29,28 @@ impl Command for VnStatsCommand {
 
 impl SlashCommand for VnStatsCommand {
 	async fn run_slash(&self) -> Result<()> {
-		send_embed(&self.ctx, &self.command_interaction).await
+		let ctx = self.get_ctx();
+		let bot_data = ctx.data::<BotData>().clone();
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+		let vndb_cache = bot_data.vndb_cache.clone();
+
+		let content = get_content(command_interaction, config, vndb_cache).await?;
+
+		self.send_embed(vec![content]).await
 	}
 }
 
-async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
+async fn get_content(
+	command_interaction: &CommandInteraction, config: Arc<Config>,
+	vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<EmbedContent<'static, 'static>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
 	};
 
-	let bot_data = ctx.data::<BotData>().clone();
-	let vndb_cache = bot_data.vndb_cache.clone();
 	let stats = get_stats(vndb_cache).await?;
-	let config = bot_data.config.clone();
 	let stats_localised = load_localization_stats(guild_id, config.db.clone()).await?;
 	let fields = vec![
 		(stats_localised.chars.clone(), stats.chars.to_string(), true),
@@ -65,17 +76,7 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
 		(stats_localised.api.clone(), String::from("VNDB API"), true),
 	];
 
-	let builder_embed = get_default_embed(None)
-		.title(stats_localised.title)
-		.fields(fields);
+	let content = EmbedContent::new(stats_localised.title).fields(fields);
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }

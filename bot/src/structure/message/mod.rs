@@ -9,8 +9,6 @@ pub mod common;
 pub mod game;
 pub mod management;
 pub mod music;
-pub mod new_member;
-pub mod removed_member;
 pub mod server;
 pub mod user;
 pub mod vn;
