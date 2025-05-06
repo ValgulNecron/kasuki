@@ -89,10 +89,10 @@ pub async fn generate_server_image(
 		.context("Failed to get partial guild")?;
 
 	let guild_pfp = change_to_x128_url(
-		guild
-			.icon_url()
-			.ok_or(anyhow!("Failed to get guild icon URL"))?,
-	);
+        guild
+            .icon_url()
+            .unwrap_or(String::from("https://cdn.discordapp.com/icons/1117152661620408531/541e10cc07361e99b7b1012861cd518a.webp?size=128&quality=lossless")),
+    );
 
 	let img = get_image_from_url(guild_pfp.clone()).await?;
 

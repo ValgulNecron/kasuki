@@ -11,7 +11,8 @@
     "fav": "Favorites:",
     "duration": "Duration:",
     "chapter": "Chapters:",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "song": "song"
   },
   "fr": {
     "genre": "Genre",
@@ -25,7 +26,8 @@
     "fav": "Favoris:",
     "duration": "Durée:",
     "chapter": "Chapitres:",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "song": "musique"
   },
   "jp": {
     "genre": "ジャンル",
@@ -39,7 +41,8 @@
     "fav": "お気に入り:",
     "duration": "期間:",
     "chapter": "チャプター:",
-    "minutes": "分"
+    "minutes": "分",
+    "song": "歌"
   },
   "de": {
     "genre": "Genre",
@@ -53,6 +56,7 @@
     "fav": "Favorites:",
     "duration": "Duration:",
     "chapter": "Chapters:",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "song": "Lied"
   }
 }

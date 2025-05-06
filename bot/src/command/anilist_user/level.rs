@@ -108,9 +108,9 @@ impl LevelCommand {
 		};
 
 		// Calculate the experience points
-		let xp = (2.0 * (manga_completed + anime_completed) as f64)
-			+ chap_read as f64
-			+ (tw as f64 * 0.1);
+		let xp = (8.0 * (manga_completed + anime_completed) as f64)
+			+ (2.0 * chap_read as f64)
+			+ (tw as f64 * 0.5);
 
 		// Get the username
 		let username = user.name.clone();
@@ -118,31 +118,27 @@ impl LevelCommand {
 		// Calculate the level and progress
 		let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-		let mut content = EmbedContent {
-			title: user.clone().name,
-			description: level_localised
-				.desc
-				.replace("$username$", username.as_str())
-				.replace("$level$", level.to_string().as_str())
-				.replace("$xp$", xp.to_string().as_str())
-				.replace("$actual$", actual.to_string().as_str())
-				.replace("$next$", next_xp.to_string().as_str()),
-			thumbnail: Some(user.clone().avatar.unwrap().large.clone().unwrap()),
-			url: Some(get_user_url(user.clone().id)),
-			command_type: EmbedType::First,
-			colour: Some(get_color(user.clone())),
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(user.clone().name)
+			.description(
+				level_localised
+					.desc
+					.replace("$username$", username.as_str())
+					.replace("$level$", level.to_string().as_str())
+					.replace("$xp$", xp.to_string().as_str())
+					.replace("$actual$", actual.to_string().as_str())
+					.replace("$next$", next_xp.to_string().as_str()),
+			)
+			.thumbnail(Some(user.clone().avatar.unwrap().large.clone().unwrap()))
+			.url(Some(get_user_url(&user.id)))
+			.command_type(EmbedType::First)
+			.colour(Some(get_color(user.clone())));
 
 		// Add the user's banner image to the embed if it exists
 		if let Some(banner_image) = &user.banner_image {
-			content.images_url = Some(banner_image.clone());
+			content = content.images_url(Some(banner_image.clone()));
 		}
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 

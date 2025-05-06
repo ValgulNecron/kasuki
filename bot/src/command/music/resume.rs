@@ -40,45 +40,24 @@ impl SlashCommand for ResumeCommand {
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
-		match lava_client {
-			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
-			},
-			_ => {},
+		if lava_client.is_none() {
+			return Err(anyhow::anyhow!("Lavalink is disabled"));
 		}
 		let lava_client = lava_client.unwrap();
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: resume_localised.title,
-				description: resume_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(resume_localised.title)
+				.description(resume_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
 
 		player.set_pause(false).await?;
 
-		let content = EmbedContent {
-			title: resume_localised.title,
-			description: resume_localised.success,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(content).await
+		let content = EmbedContent::new(resume_localised.title)
+			.description(resume_localised.success)
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![content]).await
 	}
 }

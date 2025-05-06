@@ -32,7 +32,7 @@ impl SlashCommand for DeleteActivityCommand {
 		let bot_data = ctx.data::<BotData>().clone();
 		let anilist_cache = bot_data.anilist_cache.clone();
 
-		let command_interaction = self.command_interaction.clone();
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -67,22 +67,16 @@ impl SlashCommand for DeleteActivityCommand {
 
 		let url = format!("https://anilist.co/anime/{}", media.id);
 
-		let embed_content = EmbedContent {
-			title: delete_activity_localised_text.success.clone(),
-			description: delete_activity_localised_text
-				.success_desc
-				.replace("$anime$", anime_name.as_str()),
-			thumbnail: None,
-			url: Some(url),
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let embed_content = EmbedContent::new(delete_activity_localised_text.success)
+			.description(
+				delete_activity_localised_text
+					.success_desc
+					.replace("$anime$", anime_name.as_str()),
+			)
+			.url(Some(url))
+			.command_type(EmbedType::Followup);
 
-		self.send_embed(embed_content).await?;
+		self.send_embed(vec![embed_content]).await?;
 
 		Ok(())
 	}

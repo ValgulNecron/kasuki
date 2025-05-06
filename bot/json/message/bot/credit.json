@@ -3,10 +3,7 @@
     "title": "Credit",
     "credits": [
       {
-        "desc": "valgul: Main dev / original creator / French and English translation \n"
-      },
-      {
-        "desc": "Sionnakh: Dev of the website \n"
+        "desc": "valgul: Main dev / original creator / French and English translation / dev of the website \n"
       }
     ]
   },
@@ -14,10 +11,7 @@
     "title": "Crédit",
     "credits": [
       {
-        "desc": "valgul: Développeur principal / créateur original / traduction française et anglaise \n"
-      },
-      {
-        "desc": "Sionnakh: Développeur du site web \n"
+        "desc": "valgul: Développeur principal / créateur original / traduction française et anglaise / Développeur du site web \n"
       }
     ]
   },
@@ -25,10 +19,7 @@
     "title": "クレジット",
     "credits": [
       {
-        "desc": "valgul: メイン開発者 / 元のクリエーター / フランス語と英語の翻訳 \n"
-      },
-      {
-        "desc": "Sionnakh: ウェブサイトの開発者 \n"
+        "desc": "valgul: メイン開発者 / 元のクリエーター / フランス語と英語の翻訳 / ウェブサイトの開発者 \n"
       }
     ]
   },
@@ -36,10 +27,7 @@
     "title": "Kredit",
     "credits": [
       {
-        "desc": "valgul: Hauptentwickler / ursprünglicher Schöpfer / französische und englische Übersetzung \n"
-      },
-      {
-        "desc": "Sionnakh: Webseiten-Entwickler \n"
+        "desc": "valgul: Hauptentwickler / ursprünglicher Schöpfer / französische und englische Übersetzung / webseiten-Entwickler \n"
       }
     ]
   }

@@ -27,8 +27,8 @@ impl Command for QuestionCommand {
 
 impl SlashCommand for QuestionCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
-		let command_interaction = &self.command_interaction;
+		let ctx = self.get_ctx();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
@@ -74,19 +74,10 @@ impl SlashCommand for QuestionCommand {
 
 		let text = question(prompt, api_key, api_base_url, model).await?;
 
-		let embed_content = EmbedContent {
-			title: String::new(),
-			description: text,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(embed_content).await
+		let embed_content = EmbedContent::new(String::new())
+			.description(text)
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![embed_content]).await
 	}
 }
 

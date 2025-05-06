@@ -146,19 +146,11 @@ impl SlashCommand for RandomCommand {
 			.replace("$genres$", genres.as_str())
 			.replace("$desc$", desc.as_str());
 
-		let content = EmbedContent {
-			title,
-			description: full_desc,
-			thumbnail: None,
-			url: Some(url),
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(title)
+			.description(full_desc)
+			.url(Some(url))
+			.command_type(EmbedType::Followup);
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

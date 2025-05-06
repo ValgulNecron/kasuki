@@ -1,15 +1,15 @@
-use crate::command::command_trait::{Command, SlashCommand};
+use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::config::Config;
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::producer::get_producer;
 use crate::structure::message::vn::producer::load_localization_producer;
 use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use moka::future::Cache;
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct VnProducerCommand {
@@ -29,11 +29,22 @@ impl Command for VnProducerCommand {
 
 impl SlashCommand for VnProducerCommand {
 	async fn run_slash(&self) -> Result<()> {
-		send_embed(&self.ctx, &self.command_interaction).await
+		let ctx = self.get_ctx();
+		let bot_data = ctx.data::<BotData>().clone();
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+		let vndb_cache = bot_data.vndb_cache.clone();
+
+		let content = get_content(command_interaction, config, vndb_cache).await?;
+
+		self.send_embed(vec![content]).await
 	}
 }
 
-async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteraction) -> Result<()> {
+async fn get_content(
+	command_interaction: &CommandInteraction, config: Arc<Config>,
+	vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<EmbedContent<'static, 'static>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -47,12 +58,11 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
 		.get(&String::from("name"))
 		.cloned()
 		.unwrap_or(String::new());
-	let bot_data = ctx.data::<BotData>().clone();
+	let db_config = config.db.clone();
 
-	let producer_localised =
-		load_localization_producer(guild_id, bot_data.config.db.clone()).await?;
+	let producer_localised = load_localization_producer(guild_id, db_config.clone()).await?;
 
-	let producer = get_producer(producer.clone(), bot_data.vndb_cache.clone()).await?;
+	let producer = get_producer(producer.clone(), vndb_cache.clone()).await?;
 
 	let producer = producer.results[0].clone();
 
@@ -81,19 +91,10 @@ async fn send_embed(ctx: &SerenityContext, command_interaction: &CommandInteract
 	}
 	let prod_desc = producer.description.clone().unwrap_or_default();
 
-	let builder_embed = get_default_embed(None)
-		.description(convert_vndb_markdown(&prod_desc))
+	let content = EmbedContent::new(producer.name.clone())
+		.description(String::from(convert_vndb_markdown(&prod_desc)))
 		.fields(fields)
-		.title(producer.name.clone())
-		.url(format!("https://vndb.org/{}", producer.id));
+		.url(Some(format!("https://vndb.org/{}", producer.id)));
 
-	let builder_message = CreateInteractionResponseMessage::new().embed(builder_embed);
-
-	let builder = CreateInteractionResponse::Message(builder_message);
-
-	command_interaction
-		.create_response(&ctx.http, builder)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }

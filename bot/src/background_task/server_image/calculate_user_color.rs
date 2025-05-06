@@ -44,6 +44,8 @@ pub fn change_to_x128_url(url: String) -> String {
 		url = format!("{}?size=128", url)
 	}
 
+	url = format!("{}&quality=lossless", url);
+
 	url
 }
 

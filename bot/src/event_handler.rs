@@ -21,17 +21,18 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
+use serenity::all::FullEvent;
 use serenity::all::{
 	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction,
 	Member, Presence, Ready, ShardId, User,
 };
 use serenity::async_trait;
-use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardManager, ShardRunnerInfo};
+use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo, ShardRunnerMessage};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
 use std::ops::{Add, AddAssign};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace};
 
@@ -47,11 +48,17 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Client,
-	pub shard_manager: Arc<RwLock<Option<Arc<HashMap<ShardId, Arc<Mutex<ShardRunnerInfo>>>>>>>,
+	pub shard_manager: Arc<
+		RwLock<
+			Option<Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>,
+		>,
+	>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 }
 use crate::music_events;
 use anyhow::{Context, Result};
+use dashmap::DashMap;
+use futures::channel::mpsc::UnboundedSender;
 use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;
@@ -176,6 +183,49 @@ impl BotData {
 #[async_trait]
 
 impl EventHandler for Handler {
+	async fn dispatch(&self, ctx: &SerenityContext, event: &FullEvent) {
+		match event {
+			FullEvent::GuildCreate { guild, is_new } => {
+				self.guild_create(ctx.clone(), guild.clone(), *is_new).await;
+			},
+			FullEvent::GuildMemberAddition { new_member } => {
+				self.guild_member_addition(ctx.clone(), new_member.clone())
+					.await;
+			},
+			FullEvent::GuildMembersChunk { chunk } => {
+				self.guild_members_chunk(ctx.clone(), chunk.clone()).await;
+			},
+			FullEvent::PresenceUpdate { old_data, new_data } => {
+				self.presence_update(ctx.clone(), old_data.clone(), new_data.clone())
+					.await;
+			},
+			FullEvent::Ready { data_about_bot } => {
+				self.ready(ctx.clone(), data_about_bot.clone()).await;
+			},
+
+			FullEvent::InteractionCreate { interaction } => {
+				self.interaction_create(ctx.clone(), interaction.clone())
+					.await;
+			},
+			FullEvent::EntitlementCreate { entitlement } => {
+				self.entitlement_create(ctx.clone(), entitlement.clone())
+					.await;
+			},
+			FullEvent::EntitlementUpdate { entitlement } => {
+				self.entitlement_update(ctx.clone(), entitlement.clone())
+					.await;
+			},
+			FullEvent::EntitlementDelete { entitlement } => {
+				self.entitlement_delete(ctx.clone(), entitlement.clone())
+					.await;
+			},
+			_ => {
+				trace!("this event is not handled nothing to worry")
+			},
+		}
+	}
+}
+impl Handler {
 	async fn guild_create(&self, ctx: SerenityContext, guild: Guild, is_new: Option<bool>) {
 		let bot_data = ctx.data::<BotData>().clone();
 
@@ -390,8 +440,6 @@ impl EventHandler for Handler {
 				drop(guard);
 			},
 		}
-		// Iterates over each guild the bot is in
-		let shard = ctx.shard.clone();
 
 		for guild in ctx.cache.guilds() {
 			// Retrieves partial guild information
@@ -403,9 +451,8 @@ impl EventHandler for Handler {
 					continue;
 				},
 			};
-
-			// Logs the guild name and ID
-			shard.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
+			// Iterates over each guild the bot is in
+			ctx.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
 
 			debug!(
 				"guild name {} (guild id: {})",

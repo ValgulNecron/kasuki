@@ -6,78 +6,53 @@ use serenity::all::Colour;
 
 /// Delay before a new thread is spawned.
 /// Delay between ping updates.
-
 pub const TIME_BETWEEN_PING_UPDATE: u64 = 600;
 
 /// Time before a server image is updated.
-
 pub const TIME_BEFORE_SERVER_IMAGE: u64 = 1_800;
 
 /// Time between server image updates.
-
 pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 21_600;
 
-/// Time between user color updates.
-
-pub const TIME_BETWEEN_USER_COLOR_UPDATE: u64 = 300;
-
 /// Time between steam updates.
-
 pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
 
 /// Time between cache updates.
-
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
 
 /// Time between bot info update
-
 pub const TIME_BETWEEN_BOT_INFO: u64 = 1_800;
 
 /// time between blacklisted user update
-
 pub const TIME_BETWEEN_BLACKLISTED_USER_UPDATE: u64 = 3600;
 
 /// time between activity check.
-
 pub const TIME_BETWEEN_ACTIVITY_CHECK: u64 = 1;
 
 /// time between random stats update.
-
 pub const TIME_BETWEEN_RANDOM_STATS_UPDATE: u64 = 86_400;
+
 /// time between anisong db update
 pub const TIME_BETWEEN_ANISONG_UPDATE: u64 = 604_800;
 
 /// Max capacity for the cache.
-
 pub const CACHE_MAX_CAPACITY: u64 = 100_000;
 
 /// Limit for autocomplete count.
-
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
-
-/// Limit for pass count.
-
-pub const PASS_LIMIT: u32 = 10;
 
 pub const THREAD_POOL_SIZE: usize = 25;
 
 /// Limit for member list.
-
 pub const MEMBER_LIST_LIMIT: u16 = 10;
 
 /// Limit for activity list.
-
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
 
 /// Path to the data SQLite database.
-
 pub const COMMAND_USE_PATH: &str = "db/command_use.json";
 
 pub const RANDOM_STATS_PATH: &str = "db/random_stats.json";
-
-pub const NEW_MEMBER_PATH: &str = "db/new_member.json";
-
-pub const NEW_MEMBER_IMAGE_PATH: &str = "new_member_image/";
 
 /*
 App embed color.
@@ -86,8 +61,6 @@ App embed color.
 /// Color for the app embed.
 
 pub const COLOR: Colour = Colour::FABLED_PINK;
-
-pub const HEX_COLOR: &str = "#FAB1ED";
 
 /// Log level for other crates.
 

@@ -21,12 +21,12 @@ use crate::structure::run::anilist::minimal_anime::{
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
+use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
-use prost::bytes::Bytes;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
@@ -35,6 +35,7 @@ use sea_orm::QueryFilter;
 use serde_json::json;
 use serenity::all::{
 	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
+	GenericChannelId,
 };
 use tokio::sync::RwLock;
 use tracing::trace;
@@ -56,9 +57,9 @@ impl Command for AddActivityCommand {
 
 impl SlashCommand for AddActivityCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let command_interaction = self.command_interaction.clone();
+		let command_interaction = self.get_command_interaction();
 
-		let ctx = self.ctx.clone();
+		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let anilist_cache = bot_data.anilist_cache.clone();
 
@@ -100,21 +101,16 @@ impl SlashCommand for AddActivityCommand {
 		if exist {
 			trace!("already added");
 			trace!(?anime_name);
-			let embed_content = EmbedContent {
-				title: add_activity_localised.fail.clone(),
-				description: add_activity_localised
-					.fail_desc
-					.replace("$anime$", anime_name.as_str()),
-				thumbnail: None,
-				url: Some(url),
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			self.send_embed(embed_content).await?;
+			let embed_content = EmbedContent::new(add_activity_localised.fail.clone())
+				.description(
+					add_activity_localised
+						.fail_desc
+						.replace("$anime$", anime_name.as_str()),
+				)
+				.url(Some(url))
+				.command_type(EmbedType::Followup);
+
+			self.send_embed(vec![embed_content]).await?;
 		} else {
 			trace!("adding");
 			trace!(?anime_name);
@@ -133,12 +129,12 @@ impl SlashCommand for AddActivityCommand {
 			};
 
 			let image_url = media.cover_image.ok_or(
-				anyhow!("No cover image for this media".to_string()),
-			)?.extra_large.
-				unwrap_or(
-					"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-						.to_string()
-				);
+                anyhow!("No cover image for this media".to_string()),
+            )?.extra_large.
+                unwrap_or(
+                    "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                        .to_string()
+                );
 			let bytes = get(image_url.clone()).await?.bytes().await?;
 
 			let buf = resize_image(&bytes).await?;
@@ -182,21 +178,16 @@ impl SlashCommand for AddActivityCommand {
 			.exec(&*connection)
 			.await?;
 
-			let embed_content = EmbedContent {
-				title: add_activity_localised.success.clone(),
-				description: add_activity_localised
-					.success_desc
-					.replace("$anime$", anime_name.as_str()),
-				thumbnail: Some(image_url),
-				url: Some(url),
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			self.send_embed(embed_content).await?;
+			let embed_content = EmbedContent::new(add_activity_localised.success.clone())
+				.description(
+					add_activity_localised
+						.success_desc
+						.replace("$anime$", anime_name.as_str()),
+				)
+				.url(Some(url))
+				.command_type(EmbedType::Followup);
+
+			self.send_embed(vec![embed_content]).await?;
 		}
 
 		Ok(())
@@ -270,7 +261,8 @@ pub fn get_name(title: MediaTitle) -> String {
 }
 
 async fn get_webhook(
-	ctx: &SerenityContext, channel_id: ChannelId, image: String, base64: String, anime_name: String,
+	ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String,
+	anime_name: String,
 ) -> Result<String> {
 	trace!(?image);
 
@@ -292,12 +284,15 @@ async fn get_webhook(
 
 	let mut webhook_url = String::new();
 
-	let webhooks = ctx.http.get_channel_webhooks(channel_id).await?;
+	let webhooks = ctx
+		.http
+		.get_channel_webhooks(ChannelId::new(channel_id.get()))
+		.await?;
 
 	if webhooks.is_empty() {
 		let webhook = ctx
 			.http
-			.create_webhook(channel_id, &webhook_info, None)
+			.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
 			.await?;
 
 		webhook_url = webhook.url()?;
@@ -319,7 +314,7 @@ async fn get_webhook(
 		if webhook_url.is_empty() {
 			let webhook = ctx
 				.http
-				.create_webhook(channel_id, &webhook_info, None)
+				.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
 				.await?;
 
 			webhook_url = webhook.url()?;
@@ -339,8 +334,8 @@ async fn get_webhook(
 	let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
 
 	let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-
-	let edit_webhook = EditWebhook::new().name(anime_name).avatar(&attachment);
+	let attachment = attachment.encode().await?;
+	let edit_webhook = EditWebhook::new().name(anime_name).avatar(attachment);
 
 	webhook.edit(&ctx.http, edit_webhook).await?;
 

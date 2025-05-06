@@ -37,9 +37,9 @@ impl SlashCommand for JoinCommand {
 	}
 }
 
-pub async fn join<'a>(
+pub async fn join(
 	ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction,
-) -> Result<(bool, EmbedContent<'a, 'a>)> {
+) -> Result<(bool, Vec<EmbedContent<'static, 'static>>)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -83,36 +83,18 @@ pub async fn join<'a>(
 			None => {
 				return Ok((
 					false,
-					EmbedContent {
-						title: join_localised.title,
-						description: join_localised.error_no_voice,
-						thumbnail: None,
-						url: None,
-						command_type: EmbedType::Followup,
-						colour: None,
-						fields: vec![],
-						images: None,
-						action_row: None,
-						images_url: None,
-					},
+					vec![
+						EmbedContent::new(join_localised.title)
+							.description(join_localised.error_no_voice)
+							.command_type(EmbedType::Followup),
+					],
 				));
 			},
 		}
 	};
 
 	// Create the embed content outside the non-Send guild reference scope
-	let mut content = EmbedContent {
-		title: join_localised.title,
-		description: "".to_string(),
-		thumbnail: None,
-		url: None,
-		command_type: EmbedType::Followup,
-		colour: None,
-		fields: vec![],
-		images: None,
-		action_row: None,
-		images_url: None,
-	};
+	let mut content = EmbedContent::new(join_localised.title).command_type(EmbedType::Followup);
 
 	if lava_client
 		.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
@@ -134,19 +116,23 @@ pub async fn join<'a>(
 					)
 					.await?;
 
-				content.description = join_localised
-					.success
-					.replace("{0}", &connect_to.mention().to_string());
+				content = content.description(
+					join_localised
+						.success
+						.replace("{0}", &connect_to.mention().to_string()),
+				);
 				(true, content)
 			},
 			Err(why) => {
-				content.description = join_localised
-					.error_joining
-					.replace("{0}", &why.to_string());
+				content = content.description(
+					join_localised
+						.error_joining
+						.replace("{0}", &why.to_string()),
+				);
 				(false, content)
 			},
 		};
-		return Ok((result, return_data));
+		return Ok((result, vec![return_data]));
 	};
-	Ok((false, content))
+	Ok((false, vec![content]))
 }

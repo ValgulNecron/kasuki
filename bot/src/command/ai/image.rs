@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::sync::Arc;
 
 use crate::command::command_trait::{
@@ -14,12 +15,14 @@ use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use prost::Message;
-use prost::bytes::Bytes;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
+use serenity::all::{
+	AttachmentData, CommandInteraction, Context as SerenityContext, CreateAttachment,
+};
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -41,7 +44,7 @@ impl Command for ImageCommand {
 
 impl SlashCommand for ImageCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
+		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		if self
 			.check_hourly_limit(
@@ -56,7 +59,7 @@ impl SlashCommand for ImageCommand {
 			));
 		}
 
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -152,14 +155,22 @@ impl SlashCommand for ImageCommand {
 		};
 
 		for image in images.clone() {
-			let bytes = image.attachment.data.clone();
+			let bytes = match image.attachment.data.clone() {
+				AttachmentData::Bytes(bytes) => bytes,
+				AttachmentData::File(_) => Err(anyhow!("File not supported"))?,
+				AttachmentData::Path(path) => Bytes::from({
+					let mut file = File::open(path).await?;
+					let mut bytes = vec![];
+					file.read_exact(&mut bytes).await?;
+					bytes
+				}),
+			};
 			let filename = image.attachment.filename.clone();
 			let image_config = bot_data.config.image.clone();
-			let bytes: Vec<u8> = bytes.clone().to_owned().into();
 			image_saver(
 				guild_id.to_string(),
 				filename.to_string(),
-				bytes,
+				Vec::from(bytes),
 				image_config.save_server.unwrap_or_default(),
 				image_config.token.unwrap_or_default(),
 				image_config.save_image,
@@ -167,20 +178,12 @@ impl SlashCommand for ImageCommand {
 			.await?;
 		}
 
-		let embed_content = EmbedContent {
-			title: image_localised.title,
-			description: String::new(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: Some(images),
-			action_row: None,
-			images_url: None,
-		};
+		let embed_content = EmbedContent::new(image_localised.title)
+			.description(String::new())
+			.command_type(EmbedType::Followup)
+			.images(Some(images));
 
-		self.send_embed(embed_content).await
+		self.send_embed(vec![embed_content]).await
 	}
 }
 
@@ -254,9 +257,8 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 
 async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> CreateAttachment<'a> {
 	let bytes = bytes[0].as_bytes().to_vec();
-	let attachment = CreateAttachment::bytes(bytes, filename);
 
-	attachment
+	CreateAttachment::bytes(bytes, filename)
 }
 
 async fn image_with_n_greater_than_1<'a>(
@@ -316,7 +318,7 @@ async fn get_image_from_response(
 		match image_saver(
 			guild_id.clone(),
 			filename.clone(),
-			body.clone().encode_to_vec(),
+			Vec::from(body.clone()),
 			saver_server.clone(),
 			token.clone(),
 			saver.clone(),

@@ -26,7 +26,7 @@ impl SlashCommand for WaifuCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 		let db_config = config.db.clone();

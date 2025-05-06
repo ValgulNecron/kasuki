@@ -1,22 +1,22 @@
-use std::borrow::Cow;
-
 use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
-use crate::config::DbConfig;
-use crate::constant::{MEMBER_LIST_LIMIT, PASS_LIMIT};
+use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
-use crate::database::registered_user::{Column, Model};
+use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{Result, anyhow};
-use sea_orm::ColumnTrait;
+use futures::StreamExt;
+use futures::pin_mut;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild,
 	User, UserId,
 };
-use serenity::nonmax::NonMaxU16;
+use std::borrow::Cow;
+use std::sync::Arc;
+use tracing::trace;
 
 pub struct ListRegisterUser {
 	pub ctx: SerenityContext,
@@ -39,6 +39,7 @@ impl SlashCommand for ListRegisterUser {
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
+		let connection = bot_data.db_connection.clone();
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
@@ -59,28 +60,19 @@ impl SlashCommand for ListRegisterUser {
 		self.defer().await?;
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
-			get_the_list(guild, ctx, None, config.db.clone()).await?;
+			get_the_list(guild, ctx, None, connection).await?;
 
-		let mut content = EmbedContent {
-			title: list_user_localised.title,
-			description: desc,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(list_user_localised.title)
+			.description(desc)
+			.command_type(EmbedType::Followup);
 
 		if len >= MEMBER_LIST_LIMIT as usize {
-			content.action_row = Some(CreateActionRow::Buttons(Cow::from(vec![
+			content.action_row = vec![CreateActionRow::Buttons(Cow::from(vec![
 				CreateButton::new(format!("user_{}_0", last_id.unwrap()))
-					.label(&list_user_localised.next),
-			])));
+					.label(list_user_localised.next),
+			]))];
 		}
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 
@@ -90,69 +82,56 @@ struct Data {
 }
 
 pub async fn get_the_list(
-	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>, db_config: DbConfig,
+	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
+	connection: Arc<DatabaseConnection>,
 ) -> Result<(String, usize, Option<UserId>)> {
 	let mut anilist_user = Vec::new();
 
 	let mut last_id: Option<UserId> = last_id;
 
-	let mut pass = 0;
+	let members = guild.id.members_iter(&ctx.http);
+	pin_mut!(members);
+	while let Some(result) = members.next().await {
+		let member = match result {
+			Ok(member) => member,
+			Err(e) => return Err(anyhow!("Failed to get the members of the guild: {}", e)),
+		};
+		trace!("{:?}", member);
+		last_id = Some(member.user.id);
 
-	while anilist_user.len() < MEMBER_LIST_LIMIT as usize && pass < PASS_LIMIT {
-		pass += 1;
+		let user_id = member.user.id.to_string();
 
-		let members = guild
-			.id
-			.members(
-				&ctx.http,
-				Some(NonMaxU16::new(MEMBER_LIST_LIMIT).unwrap_or_default()),
-				last_id,
-			)
-			.await?;
+		let row = match RegisteredUser::find()
+			.filter(Column::UserId.eq(user_id.clone()))
+			.one(&*connection)
+			.await?
+		{
+			Some(row) => row,
+			None => continue,
+		};
+		trace!("{:?}", row);
 
-		if members.is_empty() {
-			break;
-		}
+		let user_data = row;
 
-		for member in members {
-			last_id = Some(member.user.id);
+		let data = Data {
+			user: member.user,
+			anilist: user_data.anilist_id.to_string(),
+		};
 
-			let user_id = member.user.id.to_string();
-
-			let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
-			let row = RegisteredUser::find()
-				.filter(Column::UserId.eq(user_id.clone()))
-				.one(&connection)
-				.await?
-				.unwrap_or(Model {
-					user_id: user_id.clone(),
-					anilist_id: 2134,
-					registered_at: Default::default(),
-				});
-
-			let user_data = row;
-
-			let data = Data {
-				user: member.user,
-				anilist: user_data.anilist_id.to_string(),
-			};
-
-			anilist_user.push(data)
-		}
+		anilist_user.push(data)
 	}
 
 	let user_links: Vec<String> = anilist_user
 		.iter()
 		.map(|data| {
 			format!(
-				"[{}](<https://anilist_user.co/user/{}>)",
+				"[{}](<https://anilist.co/user/{}>)",
 				data.user.name, data.anilist
 			)
 		})
 		.collect();
 
-	let joined_string = user_links.join("\n\n");
+	let joined_string = user_links.join("\n");
 
 	Ok((joined_string, anilist_user.len(), last_id))
 }

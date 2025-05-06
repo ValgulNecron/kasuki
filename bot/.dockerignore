@@ -90,4 +90,4 @@ fabric.properties
 target/
 
 # ignore .gitkeep file in json directory and all its subdirectories
-json/**/.gitkeep
+json/**/.gitkeep/

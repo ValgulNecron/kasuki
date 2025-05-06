@@ -1,4 +1,5 @@
 use anyhow::{Result, anyhow};
+use bytes::Bytes;
 use std::io::Cursor;
 
 use crate::command::command_trait::{
@@ -15,7 +16,6 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use prost::bytes::Bytes;
 use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
@@ -221,20 +221,11 @@ impl SlashCommand for SeiyuuCommand {
 			image: image_path.clone(),
 		};
 
-		let content = EmbedContent {
-			title: seiyuu_localised.title,
-			description: "".to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: Some(vec![image]),
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(seiyuu_localised.title)
+			.command_type(EmbedType::Followup)
+			.images(Some(vec![image]));
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }
 

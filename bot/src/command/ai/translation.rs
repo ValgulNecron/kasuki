@@ -36,8 +36,8 @@ impl Command for TranslationCommand {
 
 impl SlashCommand for TranslationCommand {
 	async fn run_slash(&self) -> Result<()> {
-		let ctx = &self.ctx;
-		let command_interaction = &self.command_interaction;
+		let ctx = self.get_ctx();
+		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
@@ -92,11 +92,11 @@ impl SlashCommand for TranslationCommand {
 
 		let parsed_url = Url::parse(content.as_str())?;
 
-		let path_segments = parsed_url
+		let mut path_segments = parsed_url
 			.path_segments()
 			.ok_or(anyhow!("Failed to get the path segments"))?;
 
-		let last_segment = path_segments.last().unwrap_or_default();
+		let last_segment = path_segments.next_back().unwrap_or_default();
 
 		let file_extension = last_segment
 			.rsplit('.')
@@ -214,19 +214,10 @@ impl SlashCommand for TranslationCommand {
 		} else {
 			String::from(text)
 		};
-		let embed_content = EmbedContent {
-			title: translation_localised.title,
-			description: text.to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(embed_content).await
+		let embed_content = EmbedContent::new(translation_localised.title)
+			.description(text.to_string())
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![embed_content]).await
 	}
 }
 pub async fn translation(

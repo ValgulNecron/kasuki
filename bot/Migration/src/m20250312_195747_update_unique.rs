@@ -1,11 +1,10 @@
-use sea_orm_migration::prelude::*;
 use crate::m20240815_180000_guild_data::GuildData;
-use crate::m20240815_180201_user_data::UserData;
 // Import the enum identifier types from your files - adjust paths as needed
 // You'll need to import these enum types from where they are defined
 use crate::m20240815_183343_registered_anilist_user::RegisteredUser;
 use crate::m20240831_133253_user_subscription::UserSubscription;
 use crate::m20240831_134027_guild_subscription::GuildSubscription;
+use sea_orm_migration::prelude::*;
 
 pub struct Migration;
 

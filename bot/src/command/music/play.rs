@@ -43,7 +43,7 @@ impl SlashCommand for PlayCommand {
 			load_localization_play(guild_id_str, bot_data.config.db.clone()).await?;
 
 		let lava_client = bot_data.lavalink.read().await.clone();
-		let (has_joined, mut content) = join(ctx, bot_data, command_interaction).await?;
+		let (_, mut content) = join(ctx, bot_data, command_interaction).await?;
 
 		match lava_client {
 			Some(_) => {},
@@ -58,7 +58,9 @@ impl SlashCommand for PlayCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			content.description = play_localised.error_no_voice;
+			content[0] = content[0]
+				.clone()
+				.description(play_localised.error_no_voice);
 			self.send_embed(content).await?;
 			return Ok(());
 		};
@@ -92,29 +94,37 @@ impl SlashCommand for PlayCommand {
 			},
 
 			_ => {
-				content.description = format!("{:?}", loaded_tracks);
+				content[0] = content[0]
+					.clone()
+					.description(format!("{:?}", loaded_tracks));
 				self.send_embed(content).await?;
 				return Ok(());
 			},
 		};
 
 		if let Some(info) = playlist_info {
-			content.description = play_localised.added_playlist.replace("{0}", &info.name);
+			content[0] = content[0]
+				.clone()
+				.description(play_localised.added_playlist.replace("{0}", &info.name));
 		} else {
 			let track = &tracks[0].track;
 
 			if let Some(uri) = &track.info.uri {
-				content.description = play_localised
-					.added_to_queue
-					.replace("{0}", &track.info.author)
-					.replace("{1}", &track.info.title)
-					.replace("{2}", uri);
+				content[0] = content[0].clone().description(
+					play_localised
+						.added_to_queue
+						.replace("{0}", &track.info.author)
+						.replace("{1}", &track.info.title)
+						.replace("{2}", uri),
+				);
 			} else {
-				content.description = play_localised
-					.added_to_queue
-					.replace("{0}", &track.info.author)
-					.replace("{1}", &track.info.title)
-					.replace("{2}", "");
+				content[0] = content[0].clone().description(
+					play_localised
+						.added_to_queue
+						.replace("{0}", &track.info.author)
+						.replace("{1}", &track.info.title)
+						.replace("{2}", ""),
+				);
 			}
 
 			return self.send_embed(content).await;

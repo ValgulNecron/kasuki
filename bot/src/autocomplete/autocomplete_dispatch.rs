@@ -11,7 +11,7 @@ use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
 pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
-	trace!(?ctx, ?autocomplete_interaction);
+	trace!(?autocomplete_interaction);
 	match autocomplete_interaction.data.name.as_str() {
 		"admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
 		"anime" => anime::autocomplete(ctx, autocomplete_interaction).await,

@@ -1,4 +1,3 @@
-use crate::api::rest::start_api_server;
 use crate::config::{Config, DbConfig};
 use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
 use crate::event_handler::{BotData, Handler, RootUsage};
@@ -13,11 +12,9 @@ use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
-mod api;
 pub mod autocomplete;
 mod background_task;
 mod command;
@@ -206,9 +203,9 @@ async fn main() {
 
 	let bot_data = data;
 	let mut guard = bot_data.shard_manager.write().await;
-	let runner = client.shard_manager.runner_info();
-	let arc = Arc::from(runner);
-	*guard = Some(arc);
+	let runner = client.shard_manager.runners.clone();
+	*guard = Some(runner);
+	drop(guard);
 
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
@@ -216,15 +213,8 @@ async fn main() {
 
 			process::exit(6);
 		}
-	});
 
-	info!("test");
-
-	let data = bot_data.clone();
-	tokio::spawn(async move {
-		if let Err(e) = start_api_server(config.clone(), data.clone()).await {
-			error!("API server error: {:?}", e);
-		}
+		drop(client);
 	});
 
 	#[cfg(unix)]
@@ -256,8 +246,6 @@ async fn main() {
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
-
-		process::exit(0)
 	}
 
 	#[cfg(windows)]
@@ -284,8 +272,6 @@ async fn main() {
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
-
-		process::exit(0);
 	}
 }
 

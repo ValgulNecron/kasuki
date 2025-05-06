@@ -1,13 +1,15 @@
-use anyhow::anyhow;
+use dashmap::DashMap;
+use futures::channel::mpsc::UnboundedSender;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde_json::Value;
-use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardRunnerInfo};
+use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardId};
+use serenity::gateway::{ShardRunnerInfo, ShardRunnerMessage};
 use std::collections::HashMap;
-use std::sync::{Arc, PoisonError};
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{MutexGuard, RwLock};
+use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info};
 
@@ -17,9 +19,9 @@ use crate::background_task::server_image::generate_server_image::server_image_ma
 use crate::background_task::update_random_stats::update_random_stats_launcher;
 use crate::config::{DbConfig, ImageConfig};
 use crate::constant::{
-	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_BLACKLISTED_USER_UPDATE,
-	TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE, TIME_BETWEEN_PING_UPDATE,
-	TIME_BETWEEN_SERVER_IMAGE_UPDATE,
+	TIME_BEFORE_SERVER_IMAGE, TIME_BETWEEN_ACTIVITY_CHECK, TIME_BETWEEN_ANISONG_UPDATE,
+	TIME_BETWEEN_BLACKLISTED_USER_UPDATE, TIME_BETWEEN_BOT_INFO, TIME_BETWEEN_GAME_UPDATE,
+	TIME_BETWEEN_PING_UPDATE, TIME_BETWEEN_SERVER_IMAGE_UPDATE,
 };
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
@@ -37,7 +39,7 @@ pub async fn thread_management_launcher(
 
 	let connection = bot_data.db_connection.clone();
 
-	//tokio::spawn(update_anisong_db(connection.clone()));
+	tokio::spawn(update_anisong_db(connection.clone()));
 
 	tokio::spawn(launch_activity_management_thread(
 		ctx.clone(),
@@ -55,8 +57,6 @@ pub async fn thread_management_launcher(
 
 	tokio::spawn(update_bot_info(ctx.clone(), bot_data.bot_info.clone()));
 
-	sleep(Duration::from_secs(1)).await;
-
 	sleep(Duration::from_secs(TIME_BEFORE_SERVER_IMAGE)).await;
 
 	let image_config = bot_data.config.image.clone();
@@ -72,7 +72,7 @@ pub async fn thread_management_launcher(
 
 async fn update_anisong_db(db: Arc<DatabaseConnection>) {
 	info!("Launching the anisongdb thread!");
-	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_PING_UPDATE));
+	let mut interval = tokio::time::interval(Duration::from_secs(TIME_BETWEEN_ANISONG_UPDATE));
 	loop {
 		interval.tick().await;
 		get_anisong(db.clone()).await;
@@ -84,7 +84,9 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 	info!("Launching the ping thread!");
 
 	// Get the ShardManager from the data
-	let shard_manager = match ctx
+	let shard_manager: Arc<
+		DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>,
+	> = match ctx
 		.data::<BotData>()
 		.shard_manager
 		.clone()
@@ -120,23 +122,18 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig) {
 		// Lock the shard manager and iterate over the runners
 		let runner = &shard_manager;
 
-		for (shard_id, (shard)) in runner.iter() {
+		for entry in runner.iter() {
+			let shard_id = entry.key();
+			let shard = entry.value();
 			// Extract latency and current timestamp information
 			let (now, latency) = {
-				let shard_info = match shard.lock() {
-					Ok(shard_runner_info) => shard_runner_info,
-					Err(_) => {
-						error!("failed to get the shard runner info");
-						continue;
-					},
-				};
+				let (shard_info, _) = shard;
 
 				let latency = shard_info
 					.latency
 					.unwrap_or_default()
 					.as_millis()
 					.to_string();
-				drop(shard_info);
 				let now = chrono::Utc::now().naive_utc();
 				(now, latency)
 			};

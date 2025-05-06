@@ -116,11 +116,11 @@ for those of you who prefer web dev.\
 # Credit
 
 - Thanks Srayeals for the badge I use as the bot
-  pfp. ([Anilist thread](https://anilist.co/forum/thread/20292), [Anilist user](https://anilist.co/user/Srayeals), [website](https://srayealsbadges.carrd.co/#s)) \
+  pfp. ([Anilist thread](https://anilist.co/forum/thread/20292), [Anilist user](https://anilist.co/user/Srayeals), [website](https://srayealsbadges.carrd.co/)) \
   for the bot
-  pfp [Valedstorm Olivia](https://i.imgur.com/vERcUNo.png) \
+  pfp [Madoka Kaname](https://srayealsbadges.carrd.co/assets/images/gallery98/62958db0_original.jpg?v=4f4b0481) \
   for the beta
-  bot [Megumin](https://srayealsbadges.carrd.co/assets/images/gallery33/491d1503_original.png?v=4e7d71b0) \
+  bot [RAM](https://srayealsbadges.carrd.co/assets/images/gallery120/bafa5ee8_original.png?v=4f4b0481) \
   for the dev bot (private only on my
   server) [Krul tepes](https://srayealsbadges.carrd.co/assets/images/gallery121/67449fb5_original.png?v=0ff4ab06)
 - Annie May for the idea of having a discord bot linked to anilist (not the only one but the one I used and do not work

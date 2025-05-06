@@ -42,29 +42,17 @@ impl SlashCommand for QueueCommand {
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
-		match lava_client {
-			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
-			},
-			_ => {},
+		if lava_client.is_none() {
+			return Err(anyhow::anyhow!("Lavalink is disabled"));
 		}
 		let lava_client = lava_client.unwrap();
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: queue_localised.title,
-				description: queue_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(queue_localised.title)
+				.description(queue_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
 		let queue = player.get_queue();
 		let player_data = player.get_player().await?;
@@ -106,50 +94,37 @@ impl SlashCommand for QueueCommand {
 			let time = format!("{:02}:{:02}", time_m, time_s);
 
 			if let Some(uri) = &track.info.uri {
-				format!(
-					"{}",
-					queue_localised
-						.now_playing
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", uri)
-						.replace("{3}", &time)
-						.replace(
-							"{4}",
-							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
-						)
-				)
+				queue_localised
+					.now_playing
+					.replace("{0}", &track.info.author)
+					.replace("{1}", &track.info.title)
+					.replace("{2}", uri)
+					.replace("{3}", &time)
+					.replace(
+						"{4}",
+						&format!("<@!{}>", track.user_data.unwrap()["requester_id"]),
+					)
+					.to_string()
 			} else {
-				format!(
-					"{}",
-					queue_localised
-						.now_playing
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", "")
-						.replace("{3}", &time)
-						.replace(
-							"{4}",
-							&format!("<@!{}>", track.user_data.unwrap()["requester_id"])
-						)
-				)
+				queue_localised
+					.now_playing
+					.replace("{0}", &track.info.author)
+					.replace("{1}", &track.info.title)
+					.replace("{2}", "")
+					.replace("{3}", &time)
+					.replace(
+						"{4}",
+						&format!("<@!{}>", track.user_data.unwrap()["requester_id"]),
+					)
+					.to_string()
 			}
 		} else {
 			queue_localised.nothing_playing.clone()
 		};
 
-		let content = EmbedContent {
-			title: now_playing_message,
-			description: queue_message,
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(content).await
+		let content = EmbedContent::new(now_playing_message)
+			.description(queue_message)
+			.command_type(EmbedType::Followup);
+		self.send_embed(vec![content]).await
 	}
 }

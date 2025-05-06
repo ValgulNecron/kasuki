@@ -41,42 +41,19 @@ impl SlashCommand for StopCommand {
 
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
-		match lava_client {
-			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
-			},
-			_ => {},
+		if lava_client.is_none() {
+			return Err(anyhow::anyhow!("Lavalink is disabled"));
 		}
 		let lava_client = lava_client.unwrap();
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: stop_localised.title,
-				description: stop_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(stop_localised.title)
+				.description(stop_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
-		let mut content = EmbedContent {
-			title: stop_localised.title,
-			description: "".to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(stop_localised.title).command_type(EmbedType::Followup);
 
 		let now_playing = player.get_player().await?.track;
 
@@ -87,6 +64,6 @@ impl SlashCommand for StopCommand {
 			content.description = stop_localised.nothing_to_stop;
 		}
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

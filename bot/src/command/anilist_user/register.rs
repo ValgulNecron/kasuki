@@ -10,7 +10,6 @@ use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, Sla
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{User, get_color, get_user_url};
@@ -37,6 +36,7 @@ impl SlashCommand for RegisterCommand {
 		let command_interaction = self.get_command_interaction();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
+		let connection = bot_data.db_connection.clone();
 		let config = bot_data.config.clone();
 
 		let map = get_option_map_string(command_interaction);
@@ -62,9 +62,6 @@ impl SlashCommand for RegisterCommand {
 
 		let username = &command_interaction.user.name;
 
-		// Register the user's AniList account by storing the user's Discord ID and AniList ID in the database
-		let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
 		RegisteredUser::insert(ActiveModel {
 			user_id: Set(user_id.to_string()),
 			anilist_id: Set(user_data.id),
@@ -75,7 +72,7 @@ impl SlashCommand for RegisterCommand {
 				.update_column(Column::AnilistId)
 				.to_owned(),
 		)
-		.exec(&connection)
+		.exec(&*connection)
 		.await?;
 
 		// Construct the description for the embed
@@ -85,19 +82,13 @@ impl SlashCommand for RegisterCommand {
 			.replace("$id$", user_id)
 			.replace("$anilist$", user_data.name.clone().as_str());
 
-		let content = EmbedContent {
-			title: user_data.clone().name,
-			description: desc,
-			thumbnail: Some(user_data.clone().avatar.unwrap().large.unwrap()),
-			url: Some(get_user_url(user_data.id)),
-			command_type: EmbedType::First,
-			colour: Some(get_color(user_data.clone())),
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let content = EmbedContent::new(user_data.clone().name)
+			.description(desc)
+			.thumbnail(Some(user_data.clone().avatar.unwrap().large.unwrap()))
+			.url(Some(get_user_url(&user_data.id)))
+			.command_type(EmbedType::First)
+			.colour(Some(get_color(user_data.clone())));
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

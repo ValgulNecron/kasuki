@@ -43,29 +43,17 @@ impl SlashCommand for SeekCommand {
 
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();
-		match lava_client {
-			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
-			},
-			_ => {},
+		if lava_client.is_none() {
+			return Err(anyhow::anyhow!("Lavalink is disabled"));
 		}
 		let lava_client = lava_client.unwrap();
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent {
-				title: seek_localised.title,
-				description: seek_localised.error_no_voice,
-				thumbnail: None,
-				url: None,
-				command_type: EmbedType::Followup,
-				colour: None,
-				fields: vec![],
-				images: None,
-				action_row: None,
-				images_url: None,
-			};
-			return self.send_embed(content).await;
+			let content = EmbedContent::new(seek_localised.title)
+				.description(seek_localised.error_no_voice)
+				.command_type(EmbedType::Followup);
+			return self.send_embed(vec![content]).await;
 		};
 
 		let map = get_option_map_number_subcommand(command_interaction);
@@ -74,26 +62,15 @@ impl SlashCommand for SeekCommand {
 
 		let now_playing = player.get_player().await?.track;
 
-		let mut content = EmbedContent {
-			title: seek_localised.title,
-			description: "".to_string(),
-			thumbnail: None,
-			url: None,
-			command_type: EmbedType::Followup,
-			colour: None,
-			fields: vec![],
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
+		let mut content = EmbedContent::new(seek_localised.title).command_type(EmbedType::Followup);
 
-		if let Some(np) = now_playing {
+		if let Some(_) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;
 			content.description = seek_localised.success.replace("{0}", &time.to_string());
 		} else {
 			content.description = seek_localised.nothing_playing;
 		}
 
-		self.send_embed(content).await
+		self.send_embed(vec![content]).await
 	}
 }

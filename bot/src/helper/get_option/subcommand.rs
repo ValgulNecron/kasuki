@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use serenity::all::{Attachment, ChannelId, CommandInteraction, ResolvedValue, RoleId, UserId};
+use serenity::all::{
+	Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedValue, RoleId, UserId,
+};
 
 pub fn get_option_map_string_subcommand(
 	interaction: &CommandInteraction,
@@ -100,7 +102,7 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
 
 pub fn get_option_map_channel_subcommand(
 	interaction: &CommandInteraction,
-) -> HashMap<String, ChannelId> {
+) -> HashMap<String, GenericChannelId> {
 	let mut map = HashMap::new();
 
 	let binding = interaction.data.options();
@@ -112,8 +114,8 @@ pub fn get_option_map_channel_subcommand(
 			let name = option.name.to_string();
 
 			let value = match &option.value {
-				ResolvedValue::Channel(a) => a.id,
-				_ => ChannelId::new(1),
+				ResolvedValue::Channel(a) => a.id(),
+				_ => GenericChannelId::from(ChannelId::new(1)),
 			};
 
 			map.insert(name, value);

@@ -36,7 +36,7 @@ impl SlashCommand for StaffCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = &self.command_interaction;
+		let command_interaction = self.get_command_interaction();
 
 		let config = bot_data.config.clone();
 
@@ -97,6 +97,11 @@ impl SlashCommand for StaffCommand {
 			(staff_localised.gender, gender, true),
 			(staff_localised.lang, lang, true),
 		];
+
+		if let Some(home_town) = staff.home_town {
+			fields.push((staff_localised.hometown, home_town, true))
+		}
+
 		if !va.is_empty() {
 			fields.push((staff_localised.va, va, true))
 		}
@@ -131,21 +136,15 @@ impl SlashCommand for StaffCommand {
 				.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
 		);
 
-		let embed_content = EmbedContent {
-			title: name,
-			description: convert_anilist_flavored_to_discord_flavored_markdown(
+		let embed_content = EmbedContent::new(name)
+			.description(convert_anilist_flavored_to_discord_flavored_markdown(
 				staff.description.unwrap_or_default(),
-			),
-			thumbnail: staff.image.unwrap().large,
-			url: staff.site_url,
-			command_type: EmbedType::First,
-			colour: None,
-			fields,
-			images: None,
-			action_row: None,
-			images_url: None,
-		};
-		self.send_embed(embed_content).await
+			))
+			.thumbnail(staff.image.unwrap().large)
+			.url(staff.site_url)
+			.command_type(EmbedType::First)
+			.fields(fields);
+		self.send_embed(vec![embed_content]).await
 	}
 }
 

@@ -1,17 +1,12 @@
-use crate::command::command_trait::{Command, SlashCommand};
-use crate::config::Config;
+use crate::command::command_trait::{
+	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,
+};
 use crate::event_handler::BotData;
-use crate::helper::create_default_embed::get_default_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateAttachment,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
-};
-use std::sync::Arc;
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
 use uuid::Uuid;
 
 pub struct AnimeRandomImageCommand {
@@ -33,57 +28,36 @@ impl SlashCommand for AnimeRandomImageCommand {
 	async fn run_slash(&self) -> Result<()> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		send(
-			&self.ctx,
-			&self.command_interaction,
-			bot_data.config.clone(),
-		)
-		.await
+		let command_interaction = self.get_command_interaction();
+		let config = bot_data.config.clone();
+
+		// Retrieve the type of image to fetch from the command interaction
+		let map = get_option_map_string_subcommand(&command_interaction);
+
+		let image_type = map
+			.get(&String::from("image_type"))
+			.ok_or(anyhow!("No image type specified"))?;
+
+		// Retrieve the guild ID from the command interaction
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		let random_image_localised =
+			load_localization_random_image(guild_id, config.db.clone()).await?;
+
+		self.defer().await?;
+
+		let content = random_image_content(image_type, random_image_localised.title, "sfw").await?;
+
+		self.send_embed(vec![content]).await
 	}
 }
 
-async fn send(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, config: Arc<Config>,
-) -> Result<()> {
-	// Retrieve the type of image to fetch from the command interaction
-	let map = get_option_map_string_subcommand(command_interaction);
-
-	let image_type = map
-		.get(&String::from("image_type"))
-		.ok_or(anyhow!("No image type specified"))?;
-
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	// Load the localized random image strings
-	let random_image_localised =
-		load_localization_random_image(guild_id, config.db.clone()).await?;
-
-	// Create a deferred response to the command interaction
-	let builder_message = Defer(CreateInteractionResponseMessage::new());
-
-	// Send the deferred response
-	command_interaction
-		.create_response(&ctx.http, builder_message)
-		.await?;
-
-	// Send the random image as a response to the command interaction
-	send_embed(
-		ctx,
-		command_interaction,
-		image_type,
-		random_image_localised.title,
-		"sfw",
-	)
-	.await
-}
-pub async fn send_embed(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction, image_type: &String,
-	title: String, endpoint: &str,
-) -> Result<()> {
+pub async fn random_image_content<'a>(
+	image_type: &str, title: String, endpoint: &'a str,
+) -> Result<EmbedContent<'static, 'static>> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
@@ -110,24 +84,16 @@ pub async fn send_embed(
 
 	let filename = format!("{}.gif", uuid_name);
 
-	// Construct the embed for the response
-	let builder_embed = get_default_embed(None)
-		.image(format!("attachment://{}", &filename))
-		.title(title);
-
 	// Construct the attachment for the image
 	let bytes = bytes.as_bytes().to_vec();
-	let attachment = CreateAttachment::bytes(bytes, filename);
+	let attachment = CreateAttachment::bytes(bytes, filename.clone());
 
-	// Construct the follow-up response containing the embed and the attachment
-	let builder_message = CreateInteractionResponseFollowup::new()
-		.embed(builder_embed)
-		.files(vec![attachment]);
+	let content = EmbedContent::new(title)
+		.command_type(EmbedType::Followup)
+		.images(Some(vec![EmbedImage {
+			attachment,
+			image: filename,
+		}]));
 
-	// Send the follow-up response
-	command_interaction
-		.create_followup(&ctx.http, builder_message)
-		.await?;
-
-	Ok(())
+	Ok(content)
 }

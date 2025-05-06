@@ -7,6 +7,7 @@ use serenity::all::{
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
+use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
@@ -14,6 +15,8 @@ pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, user_id: &str,
 	prev_id: &str, db_config: DbConfig,
 ) -> Result<()> {
+	let bot_data = ctx.data::<BotData>().clone();
+	let connection = bot_data.db_connection.clone();
 	// Retrieve the guild ID from the component interaction
 	let guild_id = match component_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -35,16 +38,12 @@ pub async fn update(
 	let id = if user_id == "0" {
 		None
 	} else {
-		match user_id.parse() {
-			Ok(id) => Some(id),
-			Err(_) => None,
-		}
+		user_id.parse().ok()
 	};
 
 	// Get the list of users
-	let list_user = list_user_localised.clone();
 	let (builder_message, len, last_id): (String, usize, Option<UserId>) =
-		get_the_list(guild, ctx, id, db_config).await?;
+		get_the_list(guild, ctx, id, connection).await?;
 
 	let old_embed_title = component_interaction
 		.message
