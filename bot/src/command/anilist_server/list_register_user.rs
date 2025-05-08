@@ -94,17 +94,17 @@ impl Command for ListRegisterUser {
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, ctx, None, connection).await?;
-		let mut content = EmbedContent::new(list_user_localised.title)
+		let mut embed_content = EmbedContent::new(list_user_localised.title)
 			.description(desc)
 			.command_type(EmbedType::Followup);
 		if len >= MEMBER_LIST_LIMIT as usize {
-			content.action_row = vec![CreateActionRow::Buttons(Cow::from(vec![
+			embed_content.action_row = vec![CreateActionRow::Buttons(Cow::from(vec![
 				CreateButton::new(format!("user_{}_0", last_id.unwrap()))
 					.label(list_user_localised.next),
 			]))];
 		}
 
-		Ok(vec![content]).await
+		Ok(vec![embed_content]).await
 	}
 }
 
