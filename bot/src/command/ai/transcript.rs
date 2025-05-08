@@ -223,7 +223,7 @@ impl Command for TranscriptCommand {
 			format!("{}/v1/audio/transcriptions/", api_base_url)
 		};
 
-		let client = reqwest::Client::new();
+		let client = bot_data.http_client.clone();
 		let mut headers = HeaderMap::new();
 		headers.insert(
 			AUTHORIZATION,

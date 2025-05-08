@@ -10,6 +10,8 @@
 //!
 //! # See Also
 //! - [`Command`](crate::command::command_trait::Command): The trait this struct implements.
+
+use std::sync::Arc;
 use crate::command::command_trait::{
 	Command, CommandRun, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType,
 };
@@ -17,6 +19,7 @@ use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::{Result, anyhow};
+use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -189,7 +192,7 @@ impl Command for QuestionCommand {
 			.clone()
 			.unwrap_or_default();
 
-		let text = question(prompt, api_key, api_base_url, model).await?;
+		let text = question(prompt, api_key, api_base_url, model, bot_data.http_client.clone()).await?;
 
 		let embed_content = EmbedContent::new(String::new())
 			.description(text)
@@ -253,13 +256,13 @@ impl Command for QuestionCommand {
 /// log = "0.4"
 /// ```
 async fn question(
-	text: &String, api_key: String, api_base_url: String, model: String,
+	text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>
 ) -> Result<String> {
 	let api_url = api_base_url.to_string();
 
 	let api_url = question_api_url(api_url);
 
-	let client = reqwest::Client::new();
+	let client = http_client.clone();
 
 	let mut headers = HeaderMap::new();
 

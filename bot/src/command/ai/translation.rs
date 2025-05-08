@@ -78,6 +78,8 @@
 //!
 //! # Logging
 //! - The `trace` macro is used for logging during different stages of command execution.
+
+use std::sync::Arc;
 use crate::command::ai::question::question_api_url;
 use crate::command::command_trait::EmbedContent;
 use crate::command::command_trait::{
@@ -355,7 +357,7 @@ impl Command for TranslationCommand {
 				.clone()
 				.unwrap_or_default();
 
-			translation(lang, text.to_string(), api_key, api_base_url, model).await?
+			translation(lang, text.to_string(), api_key, api_base_url, model, bot_data.http_client.clone()).await?
 		} else {
 			String::from(text)
 		};
@@ -423,7 +425,7 @@ impl Command for TranslationCommand {
 /// - The API response is parsed to extract the translated text from the JSON structure, specifically under `choices[0]["message"]["content"]`.
 /// - Any escaped newlines in the response are replaced with actual line breaks for better readability.
 pub async fn translation(
-	lang: String, text: String, api_key: String, api_url: String, model: String,
+	lang: String, text: String, api_key: String, api_url: String, model: String, http_client: Arc<reqwest::Client>
 ) -> Result<String> {
 	let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
@@ -432,7 +434,7 @@ pub async fn translation(
             {}
             ", lang, text);
 
-	let client = reqwest::Client::new();
+	let client = http_client.clone();
 
 	let mut headers = HeaderMap::new();
 
