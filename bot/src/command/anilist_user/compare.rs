@@ -1,3 +1,4 @@
+//! Represents a command to compare two AniList user profiles based on their anime and manga statistics.
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -6,7 +7,7 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType, };
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -15,23 +16,129 @@ use crate::structure::run::anilist::user::{
 	UserStatusStatistic, UserTagStatistic,
 };
 
+/// A struct representing the "CompareCommand" which is used to encapsulate the 
+/// context and interaction data for a specific command execution in a Discord bot.
+///
+/// This struct is designed to work with the Serenity library and contains the necessary 
+/// components for handling a command interaction.
+///
+/// # Fields
+///
+/// * `ctx` - The context of the Serenity framework, which provides access to the bot's state,
+///   including data and functionality needed to interact with Discord's API.
+///
+/// * `command_interaction` - Represents the interaction object associated with a command.
+///   This contains data related to the user's input, as well as methods to respond
+///   to the interaction.
 pub struct CompareCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
 impl Command for CompareCommand {
+	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
+	///
+	/// # Returns
+	/// A reference to the `SerenityContext` contained within the current structure.
+	///
+	/// # Example
+	/// ```rust
+	/// let ctx = instance.get_ctx();
+	/// // Now you can use `ctx` to interact with the Serenity bot context.
+	/// ```
+	///
+	/// # Note
+	/// This function borrows the context immutably. If you need a mutable reference, consider using a different method or refactor accordingly.
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
 	}
 
+	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
+	///
+	/// # Returns
+	///
+	/// A reference to the `CommandInteraction` structure stored within the instance.
+	///
+	/// # Example
+	/// ```rust
+	/// let interaction = instance.get_command_interaction();
+	/// // Use the interaction as needed
+	/// ```
+	///
+	/// # Remarks
+	/// This method provides read-only access to the `CommandInteraction` and does not allow any modifications.
+	///
+	/// # Safety
+	/// Ensure that the returned reference is not used after the lifetime of the associated instance.
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl SlashCommand for CompareCommand {
-	async fn run_slash(&self) -> Result<()> {
+	/// Asynchronously retrieves a comparison of anime and manga statistics between two users.
+	///
+	/// The method fetches user data based on provided usernames, compares their anime and manga 
+	/// statistics, and formats the data into a detailed description. The description is then wrapped 
+	/// into an embed content structure for further usage, such as displaying within a bot interface.
+	///
+	/// # Returns
+	/// * `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing embed content formatted with the comparison
+	///   details if successful.
+	/// * `Err(anyhow::Error)` - An error if any of the fetching, processing, or formatting operations fail.
+	///
+	/// # Logic Overview
+	/// 1. **Input Processing**:
+	///    - Extracts the "username" and "username2" values from the command interaction.
+	///    - Provides empty strings as default if either value is missing.
+	///
+	/// 2. **User Data Fetching**:
+	///    - Calls `get_user` asynchronously to fetch user statistics for both usernames from the AniList cache.
+	///
+	/// 3. **Data Comparison**:
+	///    - Compares various aspects of both users' anime and manga statistics:
+	///        - Affinity (a measure of similarity in statistics).
+	///        - Total anime watched and manga read (count-wise).
+	///        - Total minutes watched for anime and chapters read for manga.
+	///        - Comparison of tags and genres for both anime and manga.
+	///
+	/// 4. **Localization and Description**:
+	///    - Retrieves localized strings for the comparison descriptions using the guild ID.
+	///    - Constructs a dynamic, localized description comparing both users in terms of their anime and manga activity.
+	///
+	/// 5. **Embed Content Generation**:
+	///    - Creates an `EmbedContent` object with a detailed description of the comparison and sets the command type.
+	///
+	/// # Example Usage
+	/// ```
+	/// // Assuming `self` refers to an appropriate struct implementing the `get_contents` method
+	/// let contents = self.get_contents().await?;
+	/// println!("{:?}", contents); // Outputs the embed contents detailing user comparison
+	/// ```
+	///
+	/// # Errors
+	/// The function may return errors in the following scenarios:
+	/// * Failure to fetch user data using the `get_user` function.
+	/// * Issues with fetching or accessing localization data.
+	/// * Any mismatch or unavailability of required user statistics such as anime or manga data.
+	///
+	/// # Dependencies
+	/// This function relies on several helper functions for fetching, computing, and formatting data:
+	/// * `get_user` - Fetch user data.
+	/// * `get_affinity` - Calculate the affinity/similarity between two users.
+	/// * `load_localization_compare` - Load localized strings for the comparison.
+	/// * `diff` - Compute difference details for tags and genres.
+	/// * `get_tag`, `get_genre` - Extract tags and genres from statistics.
+	///
+	/// # Returns Description
+	/// The resulting `EmbedContent` contains:
+	/// * A description comparing the two users in terms of:
+	///     - Anime stats: count, minutes watched, tags, and genres.
+	///     - Manga stats: count, chapters read, tags, and genres.
+	///
+	/// # Note
+	/// This method assumes both users' statistics are readily accessible and contain all necessary fields
+	/// for comparisons. If certain fields (e.g., `tags`, `genres`) are missing, appropriate error handling
+	/// should be implemented to ensure a graceful failure or fallback logic.
+	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -169,7 +276,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-			.as_str(),
+				.as_str(),
 		);
 
 		// Get the genres of the anime watched by the two users and add the comparison to the description string
@@ -186,7 +293,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-			.as_str(),
+				.as_str(),
 		);
 
 		let manga = statistics.manga.unwrap();
@@ -277,7 +384,7 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-			.as_str(),
+				.as_str(),
 		);
 
 		// Get the genres of the manga read by the two users and add the comparison to the description string
@@ -294,36 +401,64 @@ impl SlashCommand for CompareCommand {
 				&username,
 				&username2,
 			)
-			.as_str(),
+				.as_str(),
 		);
 
-		let content = EmbedContent::new("".to_string())
+		let embed_content = EmbedContent::new("".to_string())
 			.description(desc)
 			.command_type(EmbedType::First);
 
-		self.send_embed(vec![content]).await
+		Ok(vec![embed_content])
 	}
 }
 
-/// Calculates the affinity between two users based on their anime and manga statistics.
+/// Calculates the affinity score between two users based on their anime and manga preferences.
 ///
-/// The affinity is calculated based on the following factors:
-/// - The Jaccard index of the tags of the anime watched by the users.
-/// - The Jaccard index of the genres of the anime watched by the users.
-/// - The affinity between the anime watched by the users.
-/// - The affinity between the manga read by the users.
+/// This function computes a similarity score (affinity) between two users by comparing their watched anime 
+/// and read manga statistics. The score is based on the Jaccard index of tags and genres, combined with 
+/// additional affinity measures for anime and manga preferences.
 ///
-/// The total affinity is the sum of the Jaccard indices and the anime and manga affinities, divided by 2, and multiplied by 100.
-///
-/// # Arguments
-///
-/// * `s1` - The statistics of the first user.
-/// * `s2` - The statistics of the second user.
+/// # Parameters
+/// - `s1` (`UserStatisticTypes`): A data structure containing anime and manga statistics for the first user.
+/// - `s2` (`UserStatisticTypes`): A data structure containing anime and manga statistics for the second user.
 ///
 /// # Returns
+/// - `f64`: The affinity score between the two users as a percentage.
 ///
-/// A `f64` representing the affinity between the two users.
-
+/// # Process
+/// 1. Extracts the anime and manga data (`tags` and `genres`) for both users.
+/// 2. Calculates the affinity based on the Jaccard index for the tags of the users' watched anime and read manga.
+/// 3. Adds the Jaccard index calculated for genres of watched anime and read manga.
+/// 4. Integrates an additional affinity score for anime (`other_affinity_anime`) and manga (`other_affinity_manga`).
+/// 5. Combines the calculated values, averages certain measures, and multiplies the result by 100 to return a percentage.
+///
+/// # Notes
+/// - If any of the anime or manga data for either user is `None`, the function will panic due to the use of `unwrap()`.
+/// - This implementation assumes the existence of helper functions: 
+///   - `jaccard_index`
+///   - `tag_string`
+///   - `genre_string`
+///   - `other_affinity_anime`
+///   - `other_affinity_manga`
+///
+/// # Example
+/// ```rust
+/// let user1_stats = UserStatisticTypes {
+///     anime: Some(anime_data1),
+///     manga: Some(manga_data1),
+/// };
+/// let user2_stats = UserStatisticTypes {
+///     anime: Some(anime_data2),
+///     manga: Some(manga_data2),
+/// };
+///
+/// let affinity_score = get_affinity(user1_stats, user2_stats);
+/// println!("Affinity score: {:.2}%", affinity_score);
+/// ```
+///
+/// # Panics
+/// - The function panics if any of the anime or manga statistics (`tags` or `genres`) are `None`.
+/// - Ensure that `.unwrap()` usage handles non-empty values or refactor to handle errors gracefully.
 fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 	// Initialize the affinity
 	let mut affinity: f64;
@@ -368,27 +503,45 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 	((affinity / 2.0) + (affinity2 / 2.0) + affinity3) * 100.0
 }
 
-/// Calculates the affinity between two anime based on their status and statistics.
+/// Calculates the affinity between two users' anime-watching statistics
+/// based on various factors, such as anime status categories, count, minutes
+/// watched, and score statistics.
 ///
-/// The affinity is calculated based on the following factors:
-/// - The status of the anime (current, planning, completed, dropped, paused, repeating)
-/// - The count of the anime
-/// - The minutes watched
-/// - The standard deviation of the scores
-/// - The mean score
-///
-/// Each factor contributes equally to the affinity. If two anime have the same value for a factor, the affinity is increased by 1.
-/// The total affinity is the sum of all factors divided by 20.
-///
-/// # Arguments
-///
-/// * `anime` - The first anime to compare.
-/// * `anime0` - The second anime to compare.
+/// # Parameters
+/// - `anime`: A `UserStatistics` struct containing information about the 
+///   first user's anime-watching habits.
+/// - `anime0`: A `UserStatistics` struct containing information about the 
+///   second user's anime-watching habits.
 ///
 /// # Returns
+/// - A `f64` value representing the affinity score between two users, scaled 
+///   from 0.0 to 1.0. The higher the value, the more similar the two users are 
+///   in terms of their anime-watching statistics.
 ///
-/// A `f64` representing the affinity between the two anime.
-
+/// # Calculation
+/// 1. Fetch the number of anime in each status category (e.g., current, planning,
+///    completed, dropped, paused, repeating) for both users using the 
+///    `get_number_by_status` function.
+/// 2. Increase the affinity score for each matching count in the status categories
+///    between the two users.
+/// 3. Compare overall statistics for both users (e.g., total anime count, minutes 
+///    watched, standard deviation of scores, and mean score). Increase the affinity 
+///    score for each matching statistic.
+/// 4. Divide the total affinity score by 20.0 to normalize the value.
+///
+/// # Example
+/// ```rust
+/// let user1_stats = UserStatistics { statuses: Some(statuses1), count: 100, minutes_watched: 30000, standard_deviation: 1.5, mean_score: 8.0 };
+/// let user2_stats = UserStatistics { statuses: Some(statuses2), count: 100, minutes_watched: 30000, standard_deviation: 1.5, mean_score: 8.0 };
+/// let affinity = other_affinity_anime(user1_stats, user2_stats);
+/// println!("Affinity: {}", affinity);
+/// ```
+///
+/// # Notes
+/// - The `get_number_by_status` function is assumed to return a tuple containing the 
+///   counts for each anime status category (e.g., current, planning, etc.).
+/// - The affinity score is a fraction, where higher similarity in status counts and 
+///   statistics results in a higher score.
 fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 	// Retrieve the number of anime in each status category for both anime
 	let (current, planning, completed, dropped, paused, repeating) =
@@ -449,27 +602,49 @@ fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 	affinity / 20.0
 }
 
-/// Calculates the affinity between two manga based on their status and statistics.
+/// Calculates the affinity score between two sets of user manga statistics.
 ///
-/// The affinity is calculated based on the following factors:
-/// - The status of the manga (current, planning, completed, dropped, paused, repeating)
-/// - The count of the manga
-/// - The number of chapters read
-/// - The standard deviation of the scores
-/// - The mean score
+/// The affinity score is determined by comparing various fields from two `UserStatistics2` objects.
+/// The score increases by a fixed amount for each matching attribute or status category, and the final
+/// score is normalized by dividing the total affinity by 20.
 ///
-/// Each factor contributes equally to the affinity. If two manga have the same value for a factor, the affinity is increased by 1.
-/// The total affinity is the sum of all factors divided by 20.
-///
-/// # Arguments
-///
-/// * `manga` - The first manga to compare.
-/// * `manga0` - The second manga to compare.
+/// # Parameters
+/// - `manga`: The first set of user manga statistics (`UserStatistics2`).
+/// - `manga0`: The second set of user manga statistics (`UserStatistics2`).
 ///
 /// # Returns
+/// A `f64` value representing the normalized affinity score between the two users, where:
+/// - A higher score indicates greater similarity in manga affinities.
+/// - The maximum possible score is 1.0.
 ///
-/// A `f64` representing the affinity between the two manga.
-
+/// # Calculation
+/// 1. Compares the number of manga in each status category (e.g., current, planning, completed,
+///    dropped, paused, repeating) using `get_number_by_status`.
+/// 2. Increments the affinity score by 1 for each matching status category.
+/// 3. Increments the affinity score by 1 for each of the following matching attributes:
+///    - Total count of manga.
+///    - Number of chapters read.
+///    - Standard deviation of scores.
+///    - Mean score.
+/// 4. Normalizes the score by dividing the total score by 20.
+///
+/// # Assumptions
+/// - The `statuses` field in `UserStatistics2` must not be `None`.
+/// - The function assumes that `get_number_by_status` correctly splits the statuses into
+///   their respective categories (current, planning, completed, etc.).
+///
+/// # Example
+/// ```
+/// let manga1 = UserStatistics2 { /* fields populated */ };
+/// let manga2 = UserStatistics2 { /* fields populated */ };
+/// let affinity = other_affinity_manga(manga1, manga2);
+/// println!("Affinity Score: {}", affinity);
+/// ```
+///
+/// # Notes
+/// - The function assumes that `UserStatistics2` contains comparable fields such as `count`,
+///   `chapters_read`, `standard_deviation`, and `mean_score`.
+/// - To broaden the affinity metric, weights or additional factors can be introduced.
 fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 {
 	// Retrieve the number of manga in each status category for both manga
 	let (current, planning, completed, dropped, paused, repeating) =
@@ -530,20 +705,40 @@ fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 
 	affinity / 20.0
 }
 
-/// Calculates the Jaccard index between two sets of strings.
+/// Computes the Jaccard Index, which measures the similarity between two sets of strings.
 ///
-/// The Jaccard index, also known as Intersection over Union, is a measure of how similar two sets are.
-/// It is calculated as the size of the intersection divided by the size of the union of the two sets.
+/// The Jaccard Index is defined as the size of the intersection divided by the size of the union
+/// of the two sets. It ranges from 0.0 (no overlap) to 1.0 (complete overlap).
 ///
 /// # Arguments
 ///
-/// * `a` - The first set of strings.
-/// * `b` - The second set of strings.
+/// * `a` - A reference to a slice of `String` representing the first set.
+/// * `b` - A reference to a slice of `String` representing the second set.
 ///
 /// # Returns
 ///
-/// A `f64` representing the Jaccard index between the two sets.
-
+/// A `f64` value representing the Jaccard Index, which quantifies the similarity between the two sets.
+///
+/// # Example
+///
+/// ```
+/// use std::collections::HashSet;
+///
+/// let set_a = vec![String::from("apple"), String::from("banana")];
+/// let set_b = vec![String::from("banana"), String::from("cherry")];
+///
+/// let jaccard = jaccard_index(&set_a, &set_b);
+/// assert_eq!(jaccard, 1.0 / 3.0); // "banana" is in the intersection, total unique items are 3
+/// ```
+///
+/// # Complexity
+///
+/// The function has a time complexity of approximately O(n + m), where `n` and `m` are the sizes
+/// of `a` and `b` respectively, as it builds hash sets and computes the intersection and union.
+///
+/// # Notes
+///
+/// - Duplicates in the input arrays do not affect the result, as the comparison operates on sets.
 fn jaccard_index(a: &[String], b: &[String]) -> f64 {
 	let set_a: HashSet<_> = a.iter().collect();
 
@@ -556,18 +751,41 @@ fn jaccard_index(a: &[String], b: &[String]) -> f64 {
 	intersection as f64 / union as f64
 }
 
-/// Retrieves the number of anime/manga in each status category for a user.
-///
-/// The status categories are: "CURRENT", "PLANNING", "COMPLETED", "DROPPED", "PAUSED", "REPEATING".
+/// Generates a tuple containing the count of users associated with various statuses from a vector of `UserStatusStatistic` options.
 ///
 /// # Arguments
 ///
-/// * `s` - A vector of `Statuses` objects, each representing the status of a particular anime/manga.
+/// * `s` - A `Vec` containing optional `UserStatusStatistic` values that hold the count and status data.
 ///
 /// # Returns
 ///
-/// A tuple of six `i32` values, each representing the count of anime/manga in the corresponding status category.
-
+/// A tuple of six integers `(current, planning, completed, dropped, paused, repeating)` where:
+/// - `current` refers to the count of users with the "CURRENT" status.
+/// - `planning` refers to the count of users with the "PLANNING" status.
+/// - `completed` refers to the count of users with the "COMPLETED" status.
+/// - `dropped` refers to the count of users with the "DROPPED" status.
+/// - `paused` refers to the count of users with the "PAUSED" status.
+/// - `repeating` refers to the count of users with the "REPEATING" status.
+///
+/// If a status is not present in the input vector or is invalid, the corresponding count in the tuple will default to 0.
+///
+/// # Panics
+///
+/// This function will panic if any `Option<UserStatusStatistic>` in the input vector is `None`, or if the `status` field of
+/// `UserStatusStatistic` is `None`. Ensure the input data is valid and properly populated.
+///
+/// # Example
+///
+/// ```rust
+/// let statuses = vec![
+///     Some(UserStatusStatistic { status: Some("CURRENT".to_string()), count: 10 }),
+///     Some(UserStatusStatistic { status: Some("PLANNING".to_string()), count: 5 }),
+///     Some(UserStatusStatistic { status: Some("COMPLETED".to_string()), count: 15 }),
+/// ];
+///
+/// let result = get_number_by_status(statuses);
+/// assert_eq!(result, (10, 5, 15, 0, 0, 0)); // "DROPPED", "PAUSED", and "REPEATING" statuses default to 0
+/// ```
 fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, i32, i32, i32) {
 	let mut current = 0;
 
@@ -600,19 +818,45 @@ fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, 
 	(current, planning, completed, dropped, paused, repeating)
 }
 
-/// Converts a vector of `Tag` references into a vector of `String`.
-///
-/// This function iterates over each `Tag` in the vector, clones its name, and unwraps it.
-/// The result is a vector of `String` where each string is the name of a `Tag`.
+/// Converts a slice of `Option<UserTagStatistic>` into a `Vec<String>`
+/// by extracting the name of the tag from each element.
 ///
 /// # Arguments
-///
-/// * `vec` - A slice of `Tag` references.
+/// * `vec` - A slice of `Option<UserTagStatistic>`. Each element in the slice
+///   is expected to be either `None` or `Some(UserTagStatistic)` containing a nested tag name.
 ///
 /// # Returns
+/// A `Vec<String>` containing the tag names extracted from the input slice.
 ///
-/// A `Vec<String>` containing the names of the `Tag`s.
-
+/// # Panics
+/// This function will panic if:
+/// - An element in the slice is `None` (i.e., unwrap on `Option` fails).
+/// - The `tag` field in `UserTagStatistic` is `None`.
+///
+/// # Example
+/// ```rust
+/// #[derive(Clone)]
+/// struct Tag {
+///     name: String,
+/// }
+///
+/// #[derive(Clone)]
+/// struct UserTagStatistic {
+///     tag: Option<Tag>,
+/// }
+///
+/// let user_tags = vec![
+///     Some(UserTagStatistic {
+///         tag: Some(Tag { name: "tag1".to_string() }),
+///     }),
+///     Some(UserTagStatistic {
+///         tag: Some(Tag { name: "tag2".to_string() }),
+///     }),
+/// ];
+///
+/// let result = tag_string(&user_tags);
+/// assert_eq!(result, vec!["tag1".to_string(), "tag2".to_string()]);
+/// ```
 fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
 	vec.iter()
 		.map(|tag| {
@@ -623,19 +867,42 @@ fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
 		.collect()
 }
 
-/// Converts a vector of `Genre` references into a vector of `String`.
-///
-/// This function iterates over each `Genre` in the vector, clones its genre, and unwraps it.
-/// The result is a vector of `String` where each string is the genre of a `Genre`.
+/// Converts a slice of `Option<UserGenreStatistic>` into a `Vec<String>` containing the unwrapped genre strings.
 ///
 /// # Arguments
 ///
-/// * `vec` - A slice of `Genre` references.
+/// * `vec` - A slice of `Option<UserGenreStatistic>` objects. Each element of the slice is expected to be of type `Option`
+///   wrapping the `UserGenreStatistic` struct.
 ///
 /// # Returns
 ///
-/// A `Vec<String>` containing the genres of the `Genre`s.
-
+/// Returns a `Vec<String>` containing the genre strings extracted and unwrapped from the provided `vec`.
+///
+/// # Panics
+///
+/// This function will panic if:
+/// 1. Any `Option<UserGenreStatistic>` in the input slice is `None`.
+/// 2. The `genre` field inside any unwrapped `UserGenreStatistic` is `None`.
+///
+/// Ensure that all elements in the slice are properly populated with values before calling this function.
+///
+/// # Example
+///
+/// ```rust
+/// #[derive(Clone)]
+/// struct UserGenreStatistic {
+///     genre: Option<String>,
+/// }
+///
+/// let user_genres = vec![
+///     Some(UserGenreStatistic { genre: Some("Rock".to_string()) }),
+///     Some(UserGenreStatistic { genre: Some("Jazz".to_string()) }),
+///     Some(UserGenreStatistic { genre: Some("Pop".to_string()) }),
+/// ];
+///
+/// let genres = genre_string(&user_genres);
+/// assert_eq!(genres, vec!["Rock".to_string(), "Jazz".to_string(), "Pop".to_string()]);
+/// ```
 fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 	vec.iter()
 		.map(|genre| {
@@ -646,19 +913,34 @@ fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 		.collect()
 }
 
-/// Retrieves the name of the first `Tag` in a slice of `Tag`s.
-///
-/// If the slice has more than one `Tag`, it clones and unwraps the name of the first `Tag`.
-/// If the slice has one or no `Tag`s, it returns a new, empty `String`.
+/// Retrieves the name of the tag from a slice of optional `UserTagStatistic` values.
 ///
 /// # Arguments
 ///
-/// * `tags` - A slice of `Tag` references.
+/// * `tags` - A slice of `Option<UserTagStatistic>` representing a collection of user tag statistics.
 ///
 /// # Returns
 ///
-/// A `String` containing the name of the first `Tag` or an empty `String`.
-
+/// * A `String` containing the name of the tag if the first element in the slice is `Some` and contains a valid tag name.
+/// * Returns an empty `String` if the slice contains one or fewer elements or if the required data is not present.
+///
+/// # Panics
+///
+/// This function will panic if the first element of the `tags` slice is `None` or if the `tag` field or `name` field
+/// of the extracted `UserTagStatistic` struct is `None`.
+///
+/// # Examples
+///
+/// ```
+/// let tags = vec![
+///     Some(UserTagStatistic { tag: Some(Tag { name: "example".to_string() }) }),
+///     None,
+/// ];
+/// assert_eq!(get_tag(&tags), "example".to_string());
+///
+/// let empty_tags: Vec<Option<UserTagStatistic>> = vec![];
+/// assert_eq!(get_tag(&empty_tags), "".to_string());
+/// ```
 fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 	if tags.len() > 1 {
 		tags[0].clone().unwrap().tag.unwrap().name.clone()
@@ -667,19 +949,52 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 	}
 }
 
-/// Retrieves the genre of the first `Genre` in a slice of `Genre`s.
-///
-/// If the slice has more than one `Genre`, it clones and unwraps the genre of the first `Genre`.
-/// If the slice has one or no `Genre`s, it returns a new, empty `String`.
+/// Retrieves the genre from a list of optional user genre statistics.
 ///
 /// # Arguments
 ///
-/// * `genres` - A slice of `Genre` references.
+/// * `genres` - A slice of `Option<UserGenreStatistic>`, where each element may contain 
+///   a user's genre statistic or be `None`.
 ///
 /// # Returns
 ///
-/// A `String` containing the genre of the first `Genre` or an empty `String`.
-
+/// Returns a `String` representing the genre:
+/// - If there is more than one item in the `genres` slice, the function attempts to retrieve
+///   the genre from the first element. If the first element is `None` or its genre field is `None`,
+///   it returns an empty string.
+/// - If the slice has zero or one element, it returns an empty string.
+///
+/// # Panics
+///
+/// This function will panic if the `genres` slice has a length greater than 1 and the first 
+/// element is `None` (since `unwrap()` is called on `None`) or if the first element does
+/// not have a genre.
+///
+/// # Examples
+///
+/// ```
+/// let genres = vec![Some(UserGenreStatistic { genre: Some("Rock".to_string()) })];
+/// assert_eq!(get_genre(&genres), "Rock");
+///
+/// let genres: Vec<Option<UserGenreStatistic>> = vec![];
+/// assert_eq!(get_genre(&genres), "");
+///
+/// let genres = vec![None];
+/// assert_eq!(get_genre(&genres), "");
+/// ```
+///
+/// # Notes
+///
+/// - It is recommended to handle the case where the first element is `None` gracefully 
+///   instead of panicking.
+/// - The use of `unwrap()` introduces potential runtime panics if the value is not properly checked.
+///
+/// ```rust
+/// #[derive(Clone)]
+/// struct UserGenreStatistic {
+///     genre: Option<String>,
+/// }
+/// ```
 fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 	if genres.len() > 1 {
 		genres[0].clone().unwrap().genre.clone().unwrap_or_default()
@@ -688,25 +1003,52 @@ fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 	}
 }
 
-/// Compares two strings and returns a formatted string based on their equality.
+/// Compares two strings for differences and generates a message based on the comparison.
 ///
-/// This function checks if the two input strings are equal.
-/// If they are not equal, it replaces placeholders in `diff_text` with the input strings and their corresponding usernames.
-/// If they are equal, it replaces placeholders in `same` with the input strings and their corresponding usernames.
-///
-/// # Arguments
-///
-/// * `a1` - The first string to compare.
-/// * `a2` - The second string to compare.
-/// * `diff_text` - The text to return if the strings are not equal.
-/// * `same` - The text to return if the strings are equal.
-/// * `username` - The username corresponding to the first string.
-/// * `username2` - The username corresponding to the second string.
+/// # Parameters
+/// - `a1`: A reference to the first string to compare.
+/// - `a2`: A reference to the second string to compare.
+/// - `diff_text`: The template message to display if the strings are different. 
+///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`, `$2a$` for the value of `a2`) to be replaced.
+/// - `same`: The template message to display if the strings are the same. 
+///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`) to be replaced.
+/// - `username`: The name of the first user tied to `a1`.
+/// - `username2`: The name of the second user tied to `a2`.
 ///
 /// # Returns
+/// A `String` containing the formatted message based on whether the strings were identical or different.
 ///
-/// A `String` containing the formatted `diff_text` or `same` based on the equality of the input strings.
-
+/// If `a1` and `a2` differ, the `diff_text` template is used, and placeholders are replaced appropriately.  
+/// If `a1` and `a2` are identical, the `same` template is used, and placeholders are replaced appropriately.
+///
+/// # Side Effects
+/// The function logs the resulting message (after placeholder replacement) using the `trace!` macro.
+///
+/// # Example
+/// ```
+/// let a1 = "hello";
+/// let a2 = "world";
+/// let diff_text = "$1$ and $2$ have different strings: '$1a$' != '$2a$'";
+/// let same = "$1$ and $2$ have the same string: '$1a$'";
+/// let username = "Alice";
+/// let username2 = "Bob";
+///
+/// let result = diff(a1, a2, diff_text, same, username, username2);
+/// println!("{}", result); // Output: "Alice and Bob have different strings: 'hello' != 'world'"
+/// ```
+///
+/// If `a1` and `a2` were the same:
+/// ```
+/// let a1 = "hello";
+/// let a2 = "hello";
+/// let diff_text = "$1$ and $2$ have different strings: '$1a$' != '$2a$'";
+/// let same = "$1$ and $2$ have the same string: '$1a$'";
+/// let username = "Alice";
+/// let username2 = "Bob";
+///
+/// let result = diff(a1, a2, diff_text, same, username, username2);
+/// println!("{}", result); // Output: "Alice and Bob have the same string: 'hello'"
+/// ```
 fn diff(
 	a1: &str, a2: &str, diff_text: &str, same: &str, username: &str, username2: &str,
 ) -> String {
