@@ -1,4 +1,11 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
+//! The `JoinCommand` struct is responsible for handling the join command interaction
+//! from a Discord guild. When the join command is invoked, the bot attempts to join
+//! the voice channel of the user who issued the command.
+//!
+//! # Attributes
+//! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
+//! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
+use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::join::load_localization_join;
 use anyhow::{Result, anyhow};
@@ -8,35 +15,171 @@ use serenity::http::Http;
 use serenity::prelude::Mentionable;
 use std::sync::Arc;
 
+/// The `JoinCommand` struct represents a command to make a bot join a specific context or perform an action upon invocation.
+///
+/// This struct encapsulates the required context and interaction details for handling a join command in a Discord bot.
+///
+/// # Fields
+///
+/// * `ctx` - The `SerenityContext` which provides the bot with access to Discord API, cache, and other utilities needed to manage the bot's state and operations.
+/// * `command_interaction` - The `CommandInteraction` object containing details about the join command interaction, such as the user who invoked it and context around the interaction.
+///
+/// This struct is used to handle and process user commands related to joining a specific resource or session in the bot workflow.
 pub struct JoinCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
 impl Command for JoinCommand {
+	/// Retrieves a reference to the `SerenityContext` within the current instance.
+	///
+	/// # Returns
+	/// A reference to the `SerenityContext` associated with this instance.
+	///
+	/// # Usage
+	/// This method provides access to the `SerenityContext`, which contains
+	/// information and utilities for interacting with the Discord API.
+	///
+	/// # Example
+	/// ```rust
+	/// let context = instance.get_ctx();
+	/// // Use the context for Discord API operations
+	/// ```
+	///
+	/// # Notes
+	/// - This method borrows the context immutably, so the returned reference
+	/// cannot be used to make modifications to the context.
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
 	}
 
+	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
+	///
+	/// # Returns
+	/// A reference to the `CommandInteraction` object.
+	///
+	/// # Example
+	/// ```rust
+	/// let interaction = instance.get_command_interaction();
+	/// // Use the returned `CommandInteraction` reference
+	/// ```
+	///
+	/// This method allows read-only access to the `CommandInteraction` field of the structure.
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl SlashCommand for JoinCommand {
-	async fn run_slash(&self) -> Result<()> {
+	/// Fetches and returns a list of `EmbedContent` asynchronously.
+	///
+	/// This function performs the following steps:
+	/// 1. Retrieves the context (`ctx`) associated with the current state of the bot.
+	/// 2. Accesses the bot's shared data (`BotData`) from the context.
+	/// 3. Retrieves the command interaction currently being processed.
+	/// 4. Defers the interaction to indicate to the user that the bot is working and may take some time to respond.
+	/// 5. Joins the necessary information from the context, bot data, and command interaction to produce the desired embed content.
+	/// 6. Returns a vector of `EmbedContent` objects encapsulating the relevant information.
+	///
+	/// ### Returns
+	/// - `Ok(Vec<EmbedContent<'_, '_>>)` if the operation is successful, containing the embed content to be processed or displayed.
+	/// - `Err(_)` if an error occurs during any of the aforementioned steps.
+	///
+	/// ### Errors
+	/// This function returns an error if:
+	/// - Retrieving the context or bot data fails.
+	/// - The interaction cannot be deferred properly.
+	/// - An error occurs while joining the required data to generate the embed content.
+	///
+	/// ### Usage
+	/// This method is typically called when an interaction requires generation of rich embed responses that aggregate
+	/// information from various sources.
+	///
+	/// ### Example
+	/// ```rust
+	/// let embed_contents = your_instance.get_contents().await?;
+	/// for content in embed_contents {
+	///     println!("{:?}", content);
+	/// }
+	/// ```
+	///
+	/// ### Dependencies
+	/// - The `join` function must support the provided context, bot data, and command interaction to generate embed content.
+	/// - This function assumes that `defer` is called successfully to handle interaction delays appropriately.
+	///
+	/// ### Notes
+	/// - Ensure that sharing and cloning bot data is safe and that lifetime requirements align with the provided borrow checks.
+	/// - Internal logic might depend on external systems or APIs for joining the context, bot data, and interaction output.
+	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 
 		self.defer().await?;
 
-		let (_, content) = join(ctx, bot_data, command_interaction).await?;
-
-		self.send_embed(content).await
+		let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
+		
+		Ok(embed_content)
 	}
 }
 
+/// Asynchronously handles the bot's joining of a voice channel in response to a command.
+///
+/// This function determines the voice channel of the user issuing the command, connects
+/// the bot to the identified voice channel within a guild, and sets up the Lavalink player.
+/// If any issues are encountered (e.g., the user is not in a voice channel or a connection
+/// to the Lavalink service fails), the appropriate feedback is provided.
+///
+/// # Parameters
+/// - `ctx`: Reference to the Discord context, which provides access to the bot's current state.
+/// - `bot_data`: Shared reference to the bot's global data, including configurations and Lavalink.
+/// - `command_interaction`: Context for the command interaction issued by the user, including
+///   guild, channel, and user details.
+///
+/// # Returns
+/// - `Result<(bool, Vec<EmbedContent<'static, 'static>>)>`: On success, returns a tuple containing:
+///   - A boolean indicating success or failure of the operation.
+///   - A vector of `EmbedContent` objects for user feedback.
+///   On error, returns an `anyhow::Error` describing the failure.
+///
+/// # Behavior
+/// - Checks the guild context and user issuing the command to ensure they are in a valid voice channel.
+/// - Retrieves localized messages and error handling from the cache or database.
+/// - Manages connections to the Lavalink service and sets up the music player for the guild.
+/// - Responds with context-specific feedback to the user, such as success or failure embeds.
+///
+/// # Error Handling
+/// - If Lavalink is disabled or unavailable, the function returns an error.
+/// - If the user is not in a voice channel, the function provides feedback indicating this issue.
+/// - If the guild or voice state information is missing, an error is returned.
+///
+/// # Examples
+/// ```rust
+/// let result = join(&ctx, bot_data, &command_interaction).await;
+/// match result {
+///     Ok((true, embeds)) => {
+///         for embed in embeds {
+///             println!("Success: {:?}", embed);
+///         }
+///     }
+///     Ok((false, embeds)) => {
+///         for embed in embeds {
+///             println!("Failure: {:?}", embed);
+///         }
+///     }
+///     Err(err) => {
+///         eprintln!("Error: {:?}", err);
+///     }
+/// }
+/// ```
+///
+/// # Dependencies
+/// - `lavalink_rs` for managing voice and music session.
+/// - `EmbedContent` and `EmbedType` for constructing Discord embed messages.
+/// - `Context`, `BotData`, and `CommandInteraction` for handling interaction and state.
+///
+/// # Notes
+/// - This function assumes that Lavalink is properly configured and running in the bot context.
+///   If Lavalink is disabled, the function will exit with an error.
+/// - Ensure the voice permissions for the bot are properly granted in the target guild.
 pub async fn join(
 	ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction,
 ) -> Result<(bool, Vec<EmbedContent<'static, 'static>>)> {
