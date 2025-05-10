@@ -1,46 +1,56 @@
-use anyhow::Result;
-
-use serenity::all::{CommandInteraction, Context as SerenityContext};
-
-use crate::command::anilist_user::character::get_character_by_id;
-use crate::command::command_trait::{Command, Embed, SlashCommand};
-use crate::event_handler::BotData;
-use crate::structure::run::anilist::character::character_content;
-
-pub struct WaifuCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl Command for WaifuCommand {
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-}
-
-impl SlashCommand for WaifuCommand {
-	async fn run_slash(&self) -> Result<()> {
-		let ctx = self.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-
-		let config = bot_data.config.clone();
-		let db_config = config.db.clone();
-
-		let anilist_cache = bot_data.anilist_cache.clone();
-
-		// Execute the corresponding search function based on the specified type
-		// Fetch the data of the character with ID 156323 from AniList
-		let value = 156323;
-
-		let data = get_character_by_id(value, anilist_cache).await?;
-
-		let content = character_content(command_interaction, data, db_config).await?;
-
-		self.send_embed(content).await
-	}
-}
+//! A command implementation for handling "waifu" related interactions.
+//! This command uses the AniList API to fetch character data and provide responses.
+//!
+//! # Fields
+//!
+//! * `WaifuCommand`:
+//!     - `ctx`: The context of the bot, containing necessary dependencies and state.
+//!     - `command_interaction`: Interaction instance that holds information about the command invoked by the user.
+//!
+//! # Functionality
+//!
+//! This struct implements the `Command` trait, making it compatible with the command structure
+//! of the system. It provides methods to retrieve the context and interaction details and to
+//! execute the command's functionality (`get_contents`).
+//!
+//! ## Methods
+//!
+//! ### `get_ctx`
+//!
+//! Retrieves the current bot context.
+//!
+//! **Returns**:
+//! - A reference to the `SerenityContext` object which contains bot-specific data and utilities.
+//!
+//! ### `get_command_interaction`
+//!
+//! Retrieves the current command interaction.
+//!
+//! **Returns**:
+//! - A reference to the `CommandInteraction` object which holds information about the user command.
+//!
+//! ### `get_contents`
+//!
+//! Fetches the data necessary for constructing the embed response for the "waifu" command.
+//!
+//! **Process**:
+//! - Accesses the bot's context to retrieve global bot data.
+//! - Fetches AniList character information using the character ID `156323`.
+//! - Utilizes the `character_content` function to create the corresponding embed structure.
+//!
+//! **Returns**:
+//! - A `Result` containing a `Vec<EmbedContent>`, which holds the data to be displayed in the embed format, or an error if the operation fails.
+//!
+//! **Errors**:
+//! - Returns an error if the AniList API fetch or embed content creation fails.
+//!
+//! # Usage
+//!
+//! This struct is intended to be instantiated with the context and the interaction details provided by the Serenity framework.
+//! Once instantiated, it can be executed to fetch AniList character data and produce a response containing the fetched information.
+//!
+//! # Example:
+//! ```rust
+//! let waifu_command = WaifuCommand { ctx, command_interaction };
+//! let result = waifu_command.get_contents().await?;
+//! ```
