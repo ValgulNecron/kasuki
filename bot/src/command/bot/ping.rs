@@ -9,7 +9,7 @@
 //! This struct implements the `Command` trait, which provides methods for retrieving
 //! execution context, processing the command interaction, and constructing the
 //! response as embedded content.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{Result, anyhow};

@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType, SlashCommand};
+use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::swap::load_localization_swap;
@@ -18,10 +18,8 @@ impl Command for SwapCommand {
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl SlashCommand for SwapCommand {
-	async fn run_slash(&self) -> anyhow::Result<()> {
+	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 
@@ -50,10 +48,10 @@ impl SlashCommand for SwapCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let content = EmbedContent::new(swap_localised.title)
+			let embed_content = EmbedContent::new(swap_localised.title)
 				.description(swap_localised.error_no_voice)
 				.command_type(EmbedType::Followup);
-			return self.send_embed(vec![content]).await;
+			return Ok(vec![embed_content]);
 		};
 
 		let map = get_option_map_number_subcommand(command_interaction);
@@ -68,19 +66,17 @@ impl SlashCommand for SwapCommand {
 			.cloned()
 			.unwrap_or_default() as usize;
 
-		let mut content = EmbedContent::new(swap_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content = EmbedContent::new(swap_localised.title).command_type(EmbedType::Followup);
 
 		let queue = player.get_queue();
 		let queue_len = queue.get_count().await?;
 
 		if index1 > queue_len || index2 > queue_len {
-			content.description = swap_localised
+			embed_content.description = swap_localised
 				.error_max_index
 				.replace("{0}", &queue_len.to_string());
-			self.send_embed(vec![content]).await
 		} else if index1 == index2 {
-			content.description = swap_localised.error_same_index;
-			self.send_embed(vec![content]).await
+			embed_content.description = swap_localised.error_same_index;
 		} else {
 			let track1 = queue.get_track(index1 - 1).await?.unwrap();
 			let track2 = queue.get_track(index1 - 2).await?.unwrap();
@@ -88,9 +84,9 @@ impl SlashCommand for SwapCommand {
 			queue.swap(index1 - 1, track2)?;
 			queue.swap(index2 - 1, track1)?;
 
-			content.description = swap_localised.success;
-
-			self.send_embed(vec![content]).await
+			embed_content.description = swap_localised.success;
 		}
+		
+		Ok(vec![embed_content])
 	}
 }
