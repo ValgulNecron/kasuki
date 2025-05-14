@@ -44,28 +44,28 @@
 //! - Returns an error if there is no active player in the voice channel or if queue clearing fails.
 //!
 //! # Dependencies
-//! - `crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType}`: 
+//! - `crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType}`:
 //!   Traits and types for handling commands and constructing embed responses.
 //! - `crate::event_handler::BotData`: Bot-specific data storage for configuration and Lavalink.
-//! - `serenity::all::{CommandInteraction, Context as SerenityContext}`: Serenity-related types 
+//! - `serenity::all::{CommandInteraction, Context as SerenityContext}`: Serenity-related types
 //!   for handling Discord interactions.
 //!
 //! # Example
 //! ```rust
-//! let clear_command = ClearCommand { 
-//!     ctx, 
-//!     command_interaction 
+//! let clear_command = ClearCommand {
+//!     ctx,
+//!     command_interaction
 //! };
 //!
 //! clear_command.get_contents().await;
 //! ```
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType,};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::clear::load_localization_clear;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
-/// A structure representing a `ClearCommand` used to handle the `clear` command 
+/// A structure representing a `ClearCommand` used to handle the `clear` command
 /// in a Discord bot using the Serenity library.
 ///
 /// This structure holds the context of the bot and the interaction data associated
@@ -77,8 +77,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///   HTTP client, and other bot-related functions. This allows the command to interact with
 ///   Discord's API and manage server data.
 ///
-/// * `command_interaction` - The interaction data associated with the command. This contains information 
-///   such as user input, the channel where the command was invoked, and other metadata about the command 
+/// * `command_interaction` - The interaction data associated with the command. This contains information
+///   such as user input, the channel where the command was invoked, and other metadata about the command
 ///   interaction.
 ///
 /// # Example
@@ -215,7 +215,7 @@ impl Command for ClearCommand {
 			let embed_content = EmbedContent::new(clear_localised.title)
 				.description(clear_localised.error_no_voice)
 				.command_type(EmbedType::Followup);
-			
+
 			return Ok(vec![embed_content]);
 		};
 
@@ -224,7 +224,7 @@ impl Command for ClearCommand {
 		let embed_content = EmbedContent::new(clear_localised.title)
 			.description(clear_localised.success)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

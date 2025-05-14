@@ -1,5 +1,5 @@
 //! Documentation for QueueCommand and associated functionality
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
@@ -14,11 +14,11 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///
 /// # Fields
 /// - `ctx: SerenityContext`
-///   The context provided by the Serenity framework, used for interacting with the bot's state, 
+///   The context provided by the Serenity framework, used for interacting with the bot's state,
 ///   such as sending messages, accessing guild data, and interacting with other Discord API features.
 ///
 /// - `command_interaction: CommandInteraction`
-///   Represents the slash command interaction received from a user, including the command name, 
+///   Represents the slash command interaction received from a user, including the command name,
 ///   parameters, the originating user, and the channel or guild in which the command was invoked.
 ///
 /// # Example Usage
@@ -80,13 +80,13 @@ impl Command for QueueCommand {
 		&self.command_interaction
 	}
 
-	/// Asynchronous function to retrieve and prepare embed content containing the current state 
+	/// Asynchronous function to retrieve and prepare embed content containing the current state
 	/// of the music player queue for a Discord bot using Lavalink.
 	///
 	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` on success: A vector of embed content with details of the 
+	/// - `Ok(Vec<EmbedContent<'_, '_>>)` on success: A vector of embed content with details of the
 	///   music queue, including now-playing information and queued tracks.
-	/// - `Err(anyhow::Error)` on failure: If there are any errors in retrieving data, 
+	/// - `Err(anyhow::Error)` on failure: If there are any errors in retrieving data,
 	///   localization, or interactions with Lavalink.
 	///
 	/// # Errors
@@ -102,7 +102,7 @@ impl Command for QueueCommand {
 	/// 4. Constructs an embed message with:
 	///    a. A "now playing" message detailing the current track (if any).
 	///    b. A formatted list of tracks currently in the queue.
-	/// 5. If no player is present, or the bot is not in a voice channel, an appropriate error 
+	/// 5. If no player is present, or the bot is not in a voice channel, an appropriate error
 	///    message is returned.
 	///
 	/// # Localization
@@ -110,7 +110,7 @@ impl Command for QueueCommand {
 	/// based on the guild's configuration or language.
 	///
 	/// # Example Usage
-	/// This function is typically used in the command-handling flow of the bot to return music 
+	/// This function is typically used in the command-handling flow of the bot to return music
 	/// queue details to the user.
 	///
 	/// # Dependencies
@@ -235,7 +235,7 @@ impl Command for QueueCommand {
 		let embed_content = EmbedContent::new(now_playing_message)
 			.description(queue_message)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

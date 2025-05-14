@@ -1,16 +1,13 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
-use crate::structure::message::vn::user::load_localization_user;
 use crate::structure::message::vn::user::UserLocalised;
-use anyhow::{anyhow, Result};
+use crate::structure::message::vn::user::load_localization_user;
+use anyhow::{Result, anyhow};
 use moka::future::Cache;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -43,7 +40,10 @@ impl SlashCommand for VnUserCommand {
 	}
 }
 
-async fn get_content(command_interaction: &CommandInteraction, config: Arc<Config>, vndb_cache: Arc<RwLock<Cache<String, String>>>) -> Result<EmbedContent<'static,'static>> {
+async fn get_content(
+	command_interaction: &CommandInteraction, config: Arc<Config>,
+	vndb_cache: Arc<RwLock<Cache<String, String>>>,
+) -> Result<EmbedContent<'static, 'static>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -76,8 +76,8 @@ async fn get_content(command_interaction: &CommandInteraction, config: Arc<Confi
 		(user_localised.name.clone(), user.username.clone(), true),
 	];
 
-	let content = EmbedContent::new(user_localised.title.replace("$user$", &user.username))
-		.fields(fields);
+	let content =
+		EmbedContent::new(user_localised.title.replace("$user$", &user.username)).fields(fields);
 
 	Ok(content)
 }

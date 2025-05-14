@@ -1,7 +1,7 @@
-//! This module defines the `RemoveCommand`, a structure and implementation 
-//! used to handle the "remove" functionality within a bot command interaction. 
+//! This module defines the `RemoveCommand`, a structure and implementation
+//! used to handle the "remove" functionality within a bot command interaction.
 //! The "remove" command allows users to remove a track from the music queue.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::remove::load_localization_remove;
@@ -77,7 +77,7 @@ impl Command for RemoveCommand {
 	/// Asynchronously retrieves the contents for a bot interaction.
 	///
 	/// This function handles the interaction logic within the context of a bot command and
-	/// provides relevant responses based on the Lavalink player's state and queue operations. 
+	/// provides relevant responses based on the Lavalink player's state and queue operations.
 	/// It defers the response initially and processes the necessary subcommand details.
 	///
 	/// # Returns
@@ -166,7 +166,7 @@ impl Command for RemoveCommand {
 		let embed_content = EmbedContent::new(remove_localised.title)
 			.description(remove_localised.success)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

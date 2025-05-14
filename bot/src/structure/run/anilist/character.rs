@@ -1,4 +1,4 @@
-use crate::command::command_trait::{EmbedContent, EmbedType};
+use crate::command::command::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;

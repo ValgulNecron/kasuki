@@ -79,12 +79,9 @@
 //! # Logging
 //! - The `trace` macro is used for logging during different stages of command execution.
 
-use std::sync::Arc;
 use crate::command::ai::question::question_api_url;
-use crate::command::command_trait::EmbedContent;
-use crate::command::command_trait::{
-	Command, CommandRun, EmbedType, PremiumCommand, PremiumCommandType,
-};
+use crate::command::command::EmbedContent;
+use crate::command::command::{Command, CommandRun, EmbedType, PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
@@ -96,6 +93,7 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use reqwest::{Url, multipart};
 use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use std::sync::Arc;
 use tracing::trace;
 use uuid::Uuid;
 
@@ -107,14 +105,14 @@ use uuid::Uuid;
 ///
 /// # Fields
 ///
-/// * `ctx` - The context of the bot, represented by `SerenityContext`, 
+/// * `ctx` - The context of the bot, represented by `SerenityContext`,
 ///   which provides access to the bot's state and utility functions.
 ///
-/// * `command_interaction` - The specific interaction instance, 
-///   captured as `CommandInteraction`, which contains details 
+/// * `command_interaction` - The specific interaction instance,
+///   captured as `CommandInteraction`, which contains details
 ///   about the user's interaction with the bot.
 ///
-/// * `command_name` - A `String` representing the name of the command, 
+/// * `command_name` - A `String` representing the name of the command,
 ///   which indicates the specific translation action to be taken.
 ///
 pub struct TranslationCommand {
@@ -128,8 +126,8 @@ impl Command for TranslationCommand {
 	/// Returns a reference to the `SerenityContext`.
 	///
 	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored in the 
-	/// current instance. This allows access to the context object for performing 
+	/// A reference to the `SerenityContext` (`&SerenityContext`) stored in the
+	/// current instance. This allows access to the context object for performing
 	/// various operations related to Discord bot functionality.
 	///
 	/// # Example
@@ -139,7 +137,7 @@ impl Command for TranslationCommand {
 	/// ```
 	///
 	/// # Notes
-	/// - This method borrows the internal `SerenityContext` as an immutable reference, 
+	/// - This method borrows the internal `SerenityContext` as an immutable reference,
 	/// so it cannot be used to modify the context directly.
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
@@ -164,7 +162,7 @@ impl Command for TranslationCommand {
 	/// # Description
 	/// This function executes the following sequence of operations:
 	/// 1. Validates the hourly usage limit for the provided command type.
-	/// 2. Extracts options and attachments from the command interaction. 
+	/// 2. Extracts options and attachments from the command interaction.
 	/// 3. Validates the content type and file extension of the input attachment.
 	/// 4. Processes the file for transcription using an AI transcription service.
 	/// 5. Optionally translates the transcribed text to a configured target language.
@@ -239,7 +237,7 @@ impl Command for TranslationCommand {
 				"You have reached your hourly limit. Please try again later.",
 			));
 		}
-		
+
 		self.defer().await?;
 
 		let map = get_option_map_string_subcommand(command_interaction);
@@ -275,7 +273,7 @@ impl Command for TranslationCommand {
 		if !allowed_extensions.contains(&&*file_extension) {
 			return Err(anyhow!("Unsupported file extension"));
 		}
-		
+
 		let token = config
 			.ai
 			.transcription
@@ -357,7 +355,15 @@ impl Command for TranslationCommand {
 				.clone()
 				.unwrap_or_default();
 
-			translation(lang, text.to_string(), api_key, api_base_url, model, bot_data.http_client.clone()).await?
+			translation(
+				lang,
+				text.to_string(),
+				api_key,
+				api_base_url,
+				model,
+				bot_data.http_client.clone(),
+			)
+			.await?
 		} else {
 			String::from(text)
 		};
@@ -368,11 +374,11 @@ impl Command for TranslationCommand {
 		};
 		let translation_localised =
 			load_localization_translation(guild_id, config.db.clone()).await?;
-		
+
 		let embed_content = EmbedContent::new(translation_localised.title)
 			.description(text.to_string())
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }
@@ -389,7 +395,7 @@ impl Command for TranslationCommand {
 ///
 /// # Returns
 ///
-/// This function returns a `Result<String>`. On success, the function returns the translated text as a `String`. 
+/// This function returns a `Result<String>`. On success, the function returns the translated text as a `String`.
 /// On failure, it returns an error that includes details about what went wrong during the API request or response parsing.
 ///
 /// # Example
@@ -425,7 +431,8 @@ impl Command for TranslationCommand {
 /// - The API response is parsed to extract the translated text from the JSON structure, specifically under `choices[0]["message"]["content"]`.
 /// - Any escaped newlines in the response are replaced with actual line breaks for better readability.
 pub async fn translation(
-	lang: String, text: String, api_key: String, api_url: String, model: String, http_client: Arc<reqwest::Client>
+	lang: String, text: String, api_key: String, api_url: String, model: String,
+	http_client: Arc<reqwest::Client>,
 ) -> Result<String> {
 	let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language

@@ -5,7 +5,7 @@
 //! # Attributes
 //! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
 //! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::join::load_localization_join;
 use anyhow::{Result, anyhow};
@@ -116,7 +116,7 @@ impl Command for JoinCommand {
 		self.defer().await?;
 
 		let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
-		
+
 		Ok(embed_content)
 	}
 }

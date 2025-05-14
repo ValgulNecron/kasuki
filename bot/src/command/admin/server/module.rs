@@ -1,6 +1,6 @@
 //! The `ModuleCommand` struct represents a command to manage module activations in a Discord bot.
 //! It contains context and interaction details necessary for processing the command.
-use crate::command::command_trait::{Command, EmbedContent, EmbedType};
+use crate::command::command::{Command, EmbedContent, EmbedType};
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
@@ -13,7 +13,7 @@ use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
-/// A structure representing a command executed within a module, 
+/// A structure representing a command executed within a module,
 /// encapsulating the context and details of the command interaction.
 ///
 /// # Fields
@@ -21,13 +21,13 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// * `ctx` - Represents the current context of the Serenity framework, providing
 ///           access to features such as interacting with Discord's API and managing state.
 ///
-/// * `command_interaction` - Contains the information and details about the command interaction 
+/// * `command_interaction` - Contains the information and details about the command interaction
 ///                           that was executed by a user, such as the input data and the source of the interaction.
 ///
 /// # Usage
 ///
 /// The `ModuleCommand` struct is used to package all relevant
-/// information needed to handle a specific command interaction 
+/// information needed to handle a specific command interaction
 /// within a module in a bot powered by the Serenity library.
 pub struct ModuleCommand {
 	pub ctx: SerenityContext,

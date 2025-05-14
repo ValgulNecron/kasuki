@@ -33,14 +33,14 @@
 //!       Returns:
 //!       - `Result<Vec<EmbedContent<'_, '_>>>`: A vector of `EmbedContent` containing the activity list for display.
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -56,9 +56,9 @@ use std::borrow::Cow;
 ///
 /// # Fields
 ///
-/// * `ctx` - The bot's runtime context, provided by Serenity. It allows access to bot-related operations 
+/// * `ctx` - The bot's runtime context, provided by Serenity. It allows access to bot-related operations
 ///   such as retrieving data, sending messages, managing the bot state, or performing API calls.
-/// * `command_interaction` - Represents the command interaction triggered by a user. It contains details 
+/// * `command_interaction` - Represents the command interaction triggered by a user. It contains details
 ///   about the interaction, such as the command name, arguments, options, and the user who triggered the command.
 ///
 /// # Example
@@ -109,11 +109,11 @@ impl Command for ListAllActivity {
 		&self.command_interaction
 	}
 
-	/// Asynchronously retrieves and processes a list of activity data from the database 
+	/// Asynchronously retrieves and processes a list of activity data from the database
 	/// for display purposes, returning a list of embed contents.
 	///
 	/// # Returns
-	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector containing `EmbedContent` objects which 
+	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector containing `EmbedContent` objects which
 	///   represent the formatted activities.
 	///
 	/// # Workflow
@@ -128,7 +128,7 @@ impl Command for ListAllActivity {
 	///
 	/// # Intermediate Computations
 	/// - Fetches activity entries from the database using the guild ID.
-	/// - Checks if the activity list exceeds a predefined limit and, if so, prepares 
+	/// - Checks if the activity list exceeds a predefined limit and, if so, prepares
 	///   action buttons for pagination.
 	///
 	/// # Returns
@@ -162,11 +162,11 @@ impl Command for ListAllActivity {
 		let config = bot_data.config.clone();
 
 		self.defer().await?;
-		
+
 		let guild_id = command_interaction
 			.guild_id
 			.ok_or(anyhow!("Could not get the id of the guild"))?;
-		
+
 		let connection = bot_data.db_connection.clone();
 		let list = ActivityData::find()
 			.filter(Column::ServerId.eq(guild_id.to_string()))
@@ -180,17 +180,18 @@ impl Command for ListAllActivity {
 
 		let list_activity_localised_text =
 			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
-		
+
 		let mut embed_content = EmbedContent::new(list_activity_localised_text.title)
 			.description(join_activity)
 			.command_type(EmbedType::Followup);
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			embed_content = embed_content.action_row(vec![CreateActionRow::Buttons(Cow::from(vec![
-				CreateButton::new(format!("next_activity_{}", next_page))
-					.label(list_activity_localised_text.next),
-			]))]);
+			embed_content =
+				embed_content.action_row(vec![CreateActionRow::Buttons(Cow::from(vec![
+					CreateButton::new(format!("next_activity_{}", next_page))
+						.label(list_activity_localised_text.next),
+				]))]);
 		}
-		
+
 		Ok(vec![embed_content])
 	}
 }

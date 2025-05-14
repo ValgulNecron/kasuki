@@ -1,6 +1,6 @@
 //! Struct and implementation for handling the Studio command in a Discord bot using Serenity.
 //!
-//! The StudioCommand provides functionality to interact with AniList API, fetch information about a specific studio 
+//! The StudioCommand provides functionality to interact with AniList API, fetch information about a specific studio
 //! (either by ID or search query), and format the response as an embed message for the Discord bot. The command interaction
 //! makes use of cached requests to minimize API calls and provides localized content based on the user's guild settings.
 //!
@@ -26,9 +26,9 @@
 //! - **Returns**: `&CommandInteraction`
 //!
 //! #### `get_contents`
-//! This is the primary command execution logic. It fetches the studio data based on the user input, processes the results, 
+//! This is the primary command execution logic. It fetches the studio data based on the user input, processes the results,
 //! and formats it into embed content for the response.
-//! - **Returns**: 
+//! - **Returns**:
 //!   - `Ok(Vec<EmbedContent<'_, '_>>)` on success, containing the formatted embed data.
 //!   - `Err(anyhow::Error)` if any step in data fetching or processing fails.
 //!
@@ -78,7 +78,7 @@
 //!
 //! In this example, the command fetches data for a studio either by ID or search query and formats
 //! it into a detailed response, including media information, localization, and more.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use anyhow::{Result, anyhow};
 
 use crate::constant::DEFAULT_STRING;
@@ -110,7 +110,7 @@ use small_fixed_array::FixedString;
 /// # Usage
 ///
 /// The `StudioCommand` struct is utilized to represent the union of the
-/// Serenity context and the specific command interaction being processed. 
+/// Serenity context and the specific command interaction being processed.
 /// It is commonly used in managing and responding to user commands.
 ///
 /// # Example

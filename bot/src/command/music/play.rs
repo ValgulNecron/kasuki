@@ -13,7 +13,7 @@
 //!   and the guild-related state.
 //!
 //! This struct implements the `Command
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -31,7 +31,7 @@ use tracing::trace;
 ///
 /// # Fields
 ///
-/// * `ctx` - The [`SerenityContext`](https://docs.rs/serenity/latest/serenity/prelude/struct.Context.html) 
+/// * `ctx` - The [`SerenityContext`](https://docs.rs/serenity/latest/serenity/prelude/struct.Context.html)
 ///   provided by the `serenity` framework, which contains information about the bot's state and functionality.
 ///   This is required to interact with Discord services and manage the
 pub struct PlayCommand {
@@ -203,7 +203,7 @@ impl Command for PlayCommand {
 				player.skip()?;
 			}
 		}
-		
+
 		Ok(embed_content)
 	}
 }

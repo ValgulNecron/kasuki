@@ -9,10 +9,9 @@
 //! - `command_name` - The name of the command invoked by the user.
 //!
 //! # See Also
-//! - [`Command`](crate::command::command_trait::Command): The trait this struct implements.
+//! - [`Command`](crate::command::command::Command): The trait this struct implements.
 
-use std::sync::Arc;
-use crate::command::command_trait::{
+use crate::command::command::{
 	Command, CommandRun, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType,
 };
 use crate::constant::DEFAULT_STRING;
@@ -23,12 +22,13 @@ use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use std::sync::Arc;
 use tracing::trace;
-/// The `QuestionCommand` struct represents a command in the context of a bot using the Serenity framework. 
+/// The `QuestionCommand` struct represents a command in the context of a bot using the Serenity framework.
 /// It encapsulates the context, interaction details, and the command name specifically related to a user-issued command.
 ///
 /// Fields:
-/// - `ctx` (`SerenityContext`): The context in which the command is being executed, 
+/// - `ctx` (`SerenityContext`): The context in which the command is being executed,
 ///   providing access to various utilities and resources necessary for handling the command.
 ///
 /// - `command_interaction` (`CommandInteraction`): Represents the interaction object triggered by the user.
@@ -96,21 +96,21 @@ impl Command for QuestionCommand {
 	/// question API and returns the generated content encapsulated in an `EmbedContent` structure.
 	///
 	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing the result of the AI question processing in 
+	/// - `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing the result of the AI question processing in
 	///   an embedded format, ready to be presented to the user.
-	/// - `Err(anyhow::Error)` - Indicates an error occurred either due to reaching the hourly limit or 
+	/// - `Err(anyhow::Error)` - Indicates an error occurred either due to reaching the hourly limit or
 	///   during the question processing steps (e.g., API interaction failure).
 	///
 	/// # Steps
-	/// 1. **Context and Configuration Retrieval**: Obtains the bot's execution context, command 
+	/// 1. **Context and Configuration Retrieval**: Obtains the bot's execution context, command
 	/// interaction data, and associated configuration settings.
 	/// 2. **Hourly Limit Check**: Verifies if the current command has exceeded the allowed hourly usage.
 	///    - If exceeded, an error with the appropriate message is returned.
-	/// 3. **Option Map Retrieval**: Extracts command options, ensuring the "prompt" parameter is fetched 
+	/// 3. **Option Map Retrieval**: Extracts command options, ensuring the "prompt" parameter is fetched
 	///    from the command interaction. Defaults to a constant string if `prompt` is not provided.
-	/// 4. **API Interaction**: Sends the `prompt` along with the AI API key, base URL, and model 
+	/// 4. **API Interaction**: Sends the `prompt` along with the AI API key, base URL, and model
 	///    to the question service to return a generated text response.
-	/// 5. **Embed Creation**: Wraps the processed text output from the API into an `EmbedContent` 
+	/// 5. **Embed Creation**: Wraps the processed text output from the API into an `EmbedContent`
 	///    object to format it for later display as a follow-up message.
 	///
 	/// # Parameters
@@ -124,7 +124,7 @@ impl Command for QuestionCommand {
 	///
 	/// # Error Handling
 	/// - A rate-limiting error is returned if the command exceeds its hourly limit.
-	/// - API errors or missing parameters during interaction with the AI endpoint 
+	/// - API errors or missing parameters during interaction with the AI endpoint
 	///   will result in an error being propagated.
 	///
 	/// # Example Usage
@@ -146,9 +146,9 @@ impl Command for QuestionCommand {
 	/// - External AI service for question generation.
 	///
 	/// # Notes
-	/// - Ensure the API key, base URL, and model are properly configured before invoking 
+	/// - Ensure the API key, base URL, and model are properly configured before invoking
 	///   this method.
-	/// - The function automatically defers the command interaction to indicate that processing 
+	/// - The function automatically defers the command interaction to indicate that processing
 	///   is ongoing while awaiting a response from the API.
 	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
@@ -192,12 +192,19 @@ impl Command for QuestionCommand {
 			.clone()
 			.unwrap_or_default();
 
-		let text = question(prompt, api_key, api_base_url, model, bot_data.http_client.clone()).await?;
+		let text = question(
+			prompt,
+			api_key,
+			api_base_url,
+			model,
+			bot_data.http_client.clone(),
+		)
+		.await?;
 
 		let embed_content = EmbedContent::new(String::new())
 			.description(text)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }
@@ -256,7 +263,7 @@ impl Command for QuestionCommand {
 /// log = "0.4"
 /// ```
 async fn question(
-	text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>
+	text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>,
 ) -> Result<String> {
 	let api_url = api_base_url.to_string();
 

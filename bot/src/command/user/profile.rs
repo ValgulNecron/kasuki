@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand, UserCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent, SlashCommand, UserCommand};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::DbConfig;
 use crate::event_handler::BotData;

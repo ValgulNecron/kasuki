@@ -46,7 +46,7 @@
 //! - `Ok(Vec<EmbedContent<'_, '_>>)` on success:  
 //!   A vector containing embed content to be sent back as a response.
 //! - `Err(anyhow::Error)` on failure:  
-//!   An error if the Lavalink client is disabled, the bot has no active voice player, 
+//!   An error if the Lavalink client is disabled, the bot has no active voice player,
 //!   or if any other issue arises during execution.
 //!
 //! **Errors:**
@@ -78,25 +78,25 @@
 //!     }
 //! }
 //! ```
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::resume::load_localization_resume;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 ///
-/// The `ResumeCommand` struct is responsible for handling the "resume" command functionality 
-/// within a Discord bot application powered by the `serenity` library. This struct encapsulates 
+/// The `ResumeCommand` struct is responsible for handling the "resume" command functionality
+/// within a Discord bot application powered by the `serenity` library. This struct encapsulates
 /// the context of the bot and the interaction data associated with invoking the command.
 ///
 /// # Fields
 ///
 /// * `ctx` (`SerenityContext`)  
-///   Represents the context in which the bot operates, provided by the `serenity` library. 
+///   Represents the context in which the bot operates, provided by the `serenity` library.
 ///   This includes data needed to interact with Discord's API and other runtime information.
 ///
 /// * `command_interaction` (`CommandInteraction`)  
-///   Encapsulates the interaction data when a user invokes the "resume" command. This includes 
+///   Encapsulates the interaction data when a user invokes the "resume" command. This includes
 ///   metadata about the command, the user who issued it, and additional parameters.
 ///
 /// # Example
@@ -239,7 +239,7 @@ impl Command for ResumeCommand {
 		let embed_content = EmbedContent::new(resume_localised.title)
 			.description(resume_localised.success)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

@@ -5,7 +5,7 @@
 //! # Fields
 //! * `ctx` - An instance of `SerenityContext` providing access to Discord's API.
 //! * `command_interaction` - The CommandInteraction object containing information about the interaction.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::pause::load_localization_pause;
 use anyhow::anyhow;
@@ -67,14 +67,14 @@ impl Command for PauseCommand {
 	/// bot. It performs the following tasks:
 	/// - Retrieves the necessary context and bot-specific data.
 	/// - Defers the command interaction to inform the user that processing is ongoing.
-	/// - Fetches the guild ID associated with the command interaction and loads localization strings 
+	/// - Fetches the guild ID associated with the command interaction and loads localization strings
 	///   that correspond to the identified guild.
-	/// - Ensures that the Lavalink music player client is active. If disabled or unavailable, an error 
+	/// - Ensures that the Lavalink music player client is active. If disabled or unavailable, an error
 	///   is returned.
 	/// - Attempts to retrieve the player context for the guild from the Lavalink client.
-	/// - Sends an appropriate embed message if there is an error (e.g., user not connected to a voice 
+	/// - Sends an appropriate embed message if there is an error (e.g., user not connected to a voice
 	///   channel) or if the command cannot be performed.
-	/// - Pauses the currently playing track and returns a success embed message upon successful 
+	/// - Pauses the currently playing track and returns a success embed message upon successful
 	///   execution.
 	///
 	/// # Returns
@@ -90,12 +90,12 @@ impl Command for PauseCommand {
 	/// - Any Lavalink operation (e.g., pausing the player) fails.
 	///
 	/// # Usage
-	/// This function is typically called when handling a bot command to pause the music currently 
+	/// This function is typically called when handling a bot command to pause the music currently
 	/// playing in the user's voice channel.
 	///
 	/// # Dependencies
 	/// - This function relies on the `anyhow` crate for error handling.
-	/// - Expects a valid Lavalink client and localized configuration strings to be available in the 
+	/// - Expects a valid Lavalink client and localized configuration strings to be available in the
 	///   bot's context.
 	///
 	/// # Example
@@ -153,7 +153,7 @@ impl Command for PauseCommand {
 		let embed_content = EmbedContent::new(pause_localised.title)
 			.description(pause_localised.success)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

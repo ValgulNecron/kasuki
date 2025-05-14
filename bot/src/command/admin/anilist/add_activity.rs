@@ -1,4 +1,4 @@
-//! This module defines functionality for the `AddActivityCommand` which handles adding 
+//! This module defines functionality for the `AddActivityCommand` which handles adding
 //! activities related to an anime to a database with support for localization and discord webhook notifications.
 //!
 //! The key components include:
@@ -30,7 +30,7 @@
 //!
 //! ## `resize_image`
 //!
-//! Asynchronously resizes an image to a 128x128 square while preserving its aspect ratio. When resizing, 
+//! Asynchronously resizes an image to a 128x128 square while preserving its aspect ratio. When resizing,
 //! it determines the appropriate crop region based on the dimensions of the original image.
 //!
 //! Parameters:
@@ -76,8 +76,8 @@ use anyhow::{Result, anyhow};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, EmbedType};
-use crate::command::command_trait::{CommandRun, EmbedContent};
+use crate::command::command::{Command, EmbedType};
+use crate::command::command::{CommandRun, EmbedContent};
 use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
@@ -120,13 +120,13 @@ use tracing::trace;
 /// # Fields
 ///
 /// * `ctx` - The `SerenityContext`, providing access to the state and resources of the running bot.
-/// * `command_interaction` - The `CommandInteraction` containing the interaction information 
+/// * `command_interaction` - The `CommandInteraction` containing the interaction information
 ///   (e.g., user input and metadata) for the "Add Activity" command.
 ///
 /// # Usage
 ///
-/// This struct is typically used to store the necessary data for executing an "Add Activity" 
-/// command initiated by a user in a Discord server. It can later be processed to perform the 
+/// This struct is typically used to store the necessary data for executing an "Add Activity"
+/// command initiated by a user in a Discord server. It can later be processed to perform the
 /// required operation.
 ///
 /// # Example
@@ -232,7 +232,7 @@ impl Command for AddActivityCommand {
 	/// - `self`: Reference to the implementing struct.
 	///
 	/// # Asynchronous Behavior
-	/// - Because this function performs multiple asynchronous tasks (e.g., HTTP requests, database interactions), 
+	/// - Because this function performs multiple asynchronous tasks (e.g., HTTP requests, database interactions),
 	///   it must be used inside an async runtime.
 	///
 	/// # Possible Errors
@@ -440,11 +440,11 @@ async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
 	Ok(buffer)
 }
 
-/// Calculates the cropping parameters required to extract a square crop 
+/// Calculates the cropping parameters required to extract a square crop
 /// from a rectangular image defined by its width and height.
 ///
 /// The function determines the largest square that fits within the given
-/// dimensions and centers the square within the rectangle. It returns 
+/// dimensions and centers the square within the rectangle. It returns
 /// the coordinates of the top-left corner of the square and its size.
 ///
 /// # Parameters
@@ -545,7 +545,7 @@ async fn check_if_activity_exist(anime_id: i32, server_id: String, config: DbCon
 	row.is_some()
 }
 
-/// Retrieves the name of a media title by combining its English and Romaji representations, 
+/// Retrieves the name of a media title by combining its English and Romaji representations,
 /// or returning whichever is available.
 ///
 /// This function attempts to format the provided `MediaTitle` into a human-readable name.
@@ -619,7 +619,7 @@ pub fn get_name(title: MediaTitle) -> String {
 	title
 }
 
-/// Asynchronously retrieves or creates a Discord webhook for a given channel, sets its properties based on the provided inputs, 
+/// Asynchronously retrieves or creates a Discord webhook for a given channel, sets its properties based on the provided inputs,
 /// and updates the webhook's avatar with a decoded base64 image.
 ///
 /// # Arguments
@@ -748,19 +748,19 @@ async fn get_webhook(
 
 /// Asynchronously fetches minimal anime information by anime ID.
 ///
-/// This function interacts with the AniList GraphQL API to retrieve the basic 
-/// data for a specific anime, using its ID. The function also utilizes a cache 
+/// This function interacts with the AniList GraphQL API to retrieve the basic
+/// data for a specific anime, using its ID. The function also utilizes a cache
 /// for improved efficiency by avoiding redundant API calls.
 ///
 /// # Arguments
 ///
 /// * `id` - An `i32` representing the ID of the anime to fetch.
-/// * `cache` - An `Arc<RwLock<Cache<String, String>>>` used to store and retrieve 
+/// * `cache` - An `Arc<RwLock<Cache<String, String>>>` used to store and retrieve
 ///             cached responses for API queries.
 ///
 /// # Returns
 ///
-/// A `Result<Media>` which, on success, contains the minimal details of the 
+/// A `Result<Media>` which, on success, contains the minimal details of the
 /// requested anime encapsulated in a `Media` object. On failure, it returns an error.
 ///
 /// # Errors
@@ -793,7 +793,7 @@ async fn get_webhook(
 ///
 /// # Debugging
 ///
-/// For logging purposes, the anime `id` will be traced to assist in identifying 
+/// For logging purposes, the anime `id` will be traced to assist in identifying
 /// any potential issues during the request execution.
 pub async fn get_minimal_anime_by_id(
 	id: i32, cache: Arc<RwLock<Cache<String, String>>>,
@@ -892,7 +892,7 @@ async fn get_minimal_anime_by_search(
 /// to optimize repeated requests.
 ///
 /// ## Parameters
-/// - `anime`: A `String` containing either an anime ID (if it can be parsed to an `i32`) 
+/// - `anime`: A `String` containing either an anime ID (if it can be parsed to an `i32`)
 ///   or an anime name.
 /// - `cache`: An `Arc<RwLock<Cache<String, String>>>` instance used for caching request results
 ///   to improve performance and reduce redundant API calls.

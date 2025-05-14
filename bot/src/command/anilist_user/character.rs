@@ -1,5 +1,5 @@
-//! The `CharacterCommand` struct represents a command for working with anime or manga 
-//! characters from the AniList API. It handles fetching character data based on a user 
+//! The `CharacterCommand` struct represents a command for working with anime or manga
+//! characters from the AniList API. It handles fetching character data based on a user
 //! provided name or ID and constructs appropriate embedded content.
 //!
 //! # Fields
@@ -12,7 +12,7 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -30,12 +30,12 @@ use tokio::sync::RwLock;
 
 /// A struct representing a command that interacts with a user in the context of a Discord bot.
 ///
-/// The `CharacterCommand` struct is used to encapsulate the context and the command interaction 
+/// The `CharacterCommand` struct is used to encapsulate the context and the command interaction
 /// needed to execute a command within a Discord bot, using the `serenity` library.
 ///
 /// # Fields
 ///
-/// * `ctx` - The context of the bot, represented by `SerenityContext`. 
+/// * `ctx` - The context of the bot, represented by `SerenityContext`.
 ///   This includes access to bot state, configurations, and allows interaction with the Discord API.
 ///
 /// * `command_interaction` - Represents the interaction payload, which contains all the information
@@ -173,11 +173,9 @@ impl Command for CharacterCommand {
 		let embed_content =
 			character::character_content(command_interaction, data, config.db.clone()).await?;
 
-		
 		Ok(embed_content)
 	}
 }
-
 
 /// Retrieves a specific character from the AniList API based on the provided character ID.
 ///
@@ -186,7 +184,7 @@ impl Command for CharacterCommand {
 /// * `value` - The ID of the character as an `i32` that needs to be fetched.
 /// * `anilist_cache` - A shared and thread-safe reference to a cache object wrapped in an `Arc<RwLock<Cache<String, String>>>`.
 ///
-/// The function constructs a GraphQL query with the provided character ID, sends the request to the AniList API, 
+/// The function constructs a GraphQL query with the provided character ID, sends the request to the AniList API,
 /// and fetches the relevant character information. The cache object is utilized to optimize and reduce the number
 /// of direct requests to the API by caching results.
 ///
@@ -195,8 +193,8 @@ impl Command for CharacterCommand {
 ///
 /// # Returns
 ///
-/// Upon success, returns a `Result<Character>` where `Character` contains all the fetched character details. 
-/// In case of an error during request execution or if the response does not contain the necessary data, 
+/// Upon success, returns a `Result<Character>` where `Character` contains all the fetched character details.
+/// In case of an error during request execution or if the response does not contain the necessary data,
 /// an `Err(anyhow)` is returned.
 ///
 /// # Errors

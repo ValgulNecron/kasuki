@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent, SlashCommand};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::message::user::command_usage::load_localization_command_usage;

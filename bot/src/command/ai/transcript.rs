@@ -1,5 +1,5 @@
 //! Documentation for `TranscriptCommand` implementation and associated functionality.
-use crate::command::command_trait::{
+use crate::command::command::{
 	Command, CommandRun, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType,
 };
 use crate::constant::DEFAULT_STRING;
@@ -191,7 +191,6 @@ impl Command for TranscriptCommand {
 		};
 		let transcript_localised =
 			load_localization_transcript(guild_id, config.db.clone()).await?;
-
 
 		let response = reqwest::get(content.to_string()).await?;
 		let buffer = response.bytes().await?;

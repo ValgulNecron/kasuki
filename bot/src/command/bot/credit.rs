@@ -52,7 +52,7 @@
 //! - Propagates errors using `anyhow::Result` in cases where localization data fails to load or any other runtime issue occurs.
 use anyhow::Result;
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::credit::load_localization_credit;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -116,14 +116,14 @@ impl Command for CreditCommand {
 	/// a title and a concatenated description of all credits.
 	///
 	/// # Returns
-	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector containing a single `EmbedContent` object if successful, or 
+	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector containing a single `EmbedContent` object if successful, or
 	/// an error if something went wrong during data retrieval or processing.
 	///
 	/// # Steps:
 	/// 1. Context (`ctx`) is retrieved using `self.get_ctx()`.
 	/// 2. The `BotData` instance is fetched, including its configuration details.
 	/// 3. The `guild_id` is extracted from the command interaction; defaults to `"0"` if none exists.
-	/// 4. Localized credit information is fetched asynchronously by calling `load_localization_credit`, 
+	/// 4. Localized credit information is fetched asynchronously by calling `load_localization_credit`,
 	/// passing the `guild_id` and database configuration.
 	/// 5. Concatenate descriptions from all retrieved credits into a single string.
 	/// 6. Create an `EmbedContent` instance with the retrieved title and constructed description, setting the
@@ -172,7 +172,7 @@ impl Command for CreditCommand {
 		let embed_content = EmbedContent::new(credit_localised.title)
 			.description(desc)
 			.command_type(EmbedType::First);
-		
+
 		Ok(vec![embed_content])
 	}
 }

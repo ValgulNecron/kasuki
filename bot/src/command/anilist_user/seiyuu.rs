@@ -1,5 +1,5 @@
-//! The `SeiyuuCommand` struct serves as the implementation of a specific Discord bot command 
-//! that retrieves and displays information about a seiyuu (Japanese voice actor) from AniList. 
+//! The `SeiyuuCommand` struct serves as the implementation of a specific Discord bot command
+//! that retrieves and displays information about a seiyuu (Japanese voice actor) from AniList.
 //! This struct complies with the `Command` trait.
 //!
 //! # Fields
@@ -9,9 +9,7 @@ use anyhow::{Result, anyhow};
 use bytes::Bytes;
 use std::io::Cursor;
 
-use crate::command::command_trait::{
-	Command, CommandRun, EmbedContent, EmbedImage, EmbedType,
-};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -31,15 +29,15 @@ use uuid::Uuid;
 ///
 /// # Fields
 ///
-/// * `ctx` - The context of the Serenity framework containing the Discord bot's state, session, and cache data. 
+/// * `ctx` - The context of the Serenity framework containing the Discord bot's state, session, and cache data.
 /// It provides access to utilities and contextual information required for handling commands or events.
 ///
-/// * `command_interaction` - The interaction instance representing a specific command 
+/// * `command_interaction` - The interaction instance representing a specific command
 /// issued by a user, containing details about the command and the interaction state.
 ///
 /// # Usage
-/// This struct is typically used to encapsulate the necessary context and interaction 
-/// details for processing a command related to seiyuu. It can contain additional methods 
+/// This struct is typically used to encapsulate the necessary context and interaction
+/// details for processing a command related to seiyuu. It can contain additional methods
 /// or logic to handle the command's functionality effectively.
 pub struct SeiyuuCommand {
 	pub ctx: SerenityContext,
@@ -219,7 +217,7 @@ impl Command for SeiyuuCommand {
 				},
 				None => continue,
 			})
-				.await?;
+			.await?;
 
 			let bytes = match response.bytes().await {
 				Ok(bytes) => bytes,
@@ -306,11 +304,10 @@ impl Command for SeiyuuCommand {
 		let embed_content = EmbedContent::new(seiyuu_localised.title)
 			.command_type(EmbedType::Followup)
 			.images(Some(vec![image]));
-		
+
 		Ok(vec![embed_content])
 	}
 }
-
 
 /// Retrieves a list of characters from a `CharacterConnection`.
 ///
@@ -358,10 +355,10 @@ fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>
 /// - `staff`: A `StaffImage` instance containing optional image fields.
 ///
 /// # Returns
-/// A `String` representing the URL of the large staff image. 
+/// A `String` representing the URL of the large staff image.
 ///
 /// # Panics
-/// This function will panic if the `large` field within the `StaffImage` instance is `None`. 
+/// This function will panic if the `large` field within the `StaffImage` instance is `None`.
 /// Ensure that the `large` field is `Some` before calling this function.
 ///
 /// # Example

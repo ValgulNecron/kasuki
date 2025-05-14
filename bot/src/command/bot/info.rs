@@ -1,5 +1,5 @@
 //! Module implementing the `InfoCommand` structure and its functionality.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::database::prelude::UserColor;
 use crate::event_handler::BotData;
@@ -72,11 +72,11 @@ impl Command for InfoCommand {
 	/// Retrieves a vector of `EmbedContent` containing detailed information about the bot.
 	///
 	/// This asynchronous function prepares a rich embed structure with metadata about the bot,
-	/// such as its name, ID, creation date, shard and server details, user count, library details, 
+	/// such as its name, ID, creation date, shard and server details, user count, library details,
 	/// and various links for external resources like GitHub, official website, and Discord.
 	///
 	/// #### Additional Actions:
-	/// - Buttons for actions such as visiting the GitHub repository, joining the official Discord, 
+	/// - Buttons for actions such as visiting the GitHub repository, joining the official Discord,
 	///   or adding the bot to a server are included in the embed's components.
 	///
 	/// # Returns

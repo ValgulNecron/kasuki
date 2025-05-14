@@ -5,7 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -116,7 +116,7 @@ impl Command for UserCommand {
 	/// - If a username is provided, fetches user data from AniList for the given username.
 	/// - If no username is provided, retrieves the user ID of the command invoker to query the database
 	///   for a registered user and fetches user data from AniList based on the AniList ID in the database.
-	/// - Fetches user details from AniList, formats the response, and generates content suitable for an embed. 
+	/// - Fetches user details from AniList, formats the response, and generates content suitable for an embed.
 	///
 	/// # Returns
 	/// - `Ok(Vec<EmbedContent<'_, '_>>)` containing the generated embed content if successful.
@@ -170,8 +170,9 @@ impl Command for UserCommand {
 		if let Some(value) = user {
 			let data: User = get_user(value, anilist_cache.clone()).await?;
 
-			let embed_content = user::user_content(command_interaction, data, config.db.clone()).await?;
-			
+			let embed_content =
+				user::user_content(command_interaction, data, config.db.clone()).await?;
+
 			return Ok(embed_content);
 		}
 
@@ -189,8 +190,9 @@ impl Command for UserCommand {
 		// Fetch the user's data from AniList and send it as a response
 		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
 
-		let embed_content = user::user_content(command_interaction, data, config.db.clone()).await?;
-		
+		let embed_content =
+			user::user_content(command_interaction, data, config.db.clone()).await?;
+
 		Ok(embed_content)
 	}
 }
@@ -198,12 +200,12 @@ impl Command for UserCommand {
 /// Asynchronously retrieves user data from the AniList API based on the provided input value.
 ///
 /// This function accepts either a user ID (numerical value) or a username (string) and
-/// attempts to fetch the associated user's data. It uses relevant GraphQL queries 
+/// attempts to fetch the associated user's data. It uses relevant GraphQL queries
 /// (`UserQueryId` for IDs and `UserQuerySearch` for usernames) to retrieve the information.
 ///
 /// # Arguments
 ///
-/// * `value` - A string slice representing the user input. It can either be a user ID (if 
+/// * `value` - A string slice representing the user input. It can either be a user ID (if
 ///             it's parsable to an integer) or a username.
 /// * `anilist_cache` - An `Arc`-wrapped, `RwLock`-protected cache (`Cache<String, String>`) to
 ///                     store and retrieve AniList API results.

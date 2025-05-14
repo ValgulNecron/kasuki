@@ -82,7 +82,7 @@
 use anyhow::{Result, anyhow};
 
 use crate::command::anime::random_image::random_image_content;
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
@@ -90,14 +90,14 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// A struct representing the command to fetch a random NSFW anime image.
 ///
-/// This struct contains the necessary context and interaction details 
+/// This struct contains the necessary context and interaction details
 /// required to execute the command.
 ///
 /// # Fields
 ///
-/// * `ctx` - An instance of `SerenityContext` providing the framework context 
+/// * `ctx` - An instance of `SerenityContext` providing the framework context
 /// that includes information about the bot and Discord.
-/// * `command_interaction` - An instance of `CommandInteraction` that contains 
+/// * `command_interaction` - An instance of `CommandInteraction` that contains
 /// data about the specific command invoked by a user within Discord.
 ///
 /// # Example
@@ -115,7 +115,7 @@ pub struct AnimeRandomNsfwImageCommand {
 impl Command for AnimeRandomNsfwImageCommand {
 	/// Retrieves a reference to the current Serenity context.
 	///
-	/// The Serenity context (`SerenityContext`) provides access to the Discord bot's 
+	/// The Serenity context (`SerenityContext`) provides access to the Discord bot's
 	/// runtime environment and allows interaction with the Discord API.
 	///
 	/// # Returns

@@ -7,7 +7,7 @@ use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, EmbedContent, EmbedType};
+use crate::command::command::{Command, EmbedContent, EmbedType};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -158,7 +158,7 @@ impl Command for LevelCommand {
 		if let Some(banner_image) = &user.banner_image {
 			embed_content = embed_content.images_url(Some(banner_image.clone()));
 		}
-		
+
 		Ok(vec![embed_content])
 	}
 }

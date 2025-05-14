@@ -1,13 +1,13 @@
 //! Documentation for the GuildCommand struct and its implementation.
 //!
 //! # Overview
-//! The `GuildCommand` struct and its `Command` trait implementation are designed 
-//! to handle Discord bot commands within a guild (server) context. This implementation 
-//! retrieves detailed information about a guild and constructs response embeds 
+//! The `GuildCommand` struct and its `Command` trait implementation are designed
+//! to handle Discord bot commands within a guild (server) context. This implementation
+//! retrieves detailed information about a guild and constructs response embeds
 //! containing guild-specific attributes and statistics.
 //!
 //! ## Struct: GuildCommand
-//! The `GuildCommand` struct holds the context and interaction information necessary 
+//! The `GuildCommand` struct holds the context and interaction information necessary
 //! to process the command.
 //!
 //! ### Fields
@@ -18,7 +18,7 @@
 //!
 //! ## Trait: Command
 //!
-//! The `GuildCommand` struct implements the `Command` trait, which defines the 
+//! The `GuildCommand` struct implements the `Command` trait, which defines the
 //! structure and behavior for executing guild-related commands.
 //!
 //! ### Methods
@@ -51,24 +51,24 @@
 //!        - Roles and channels count
 //!        - NSFW level
 //!        - Verification level
-//!    - Optional elements like the guild's avatar and banner are also 
+//!    - Optional elements like the guild's avatar and banner are also
 //!      included if available.
 //! 3. **Return Value**:
-//!    - Returns a vector containing a single `EmbedContent` object filled with 
+//!    - Returns a vector containing a single `EmbedContent` object filled with
 //!      the guild's data.
 //!
 //! ##### Returns:
 //! - `Ok(Vec<EmbedContent<'_, '_>>)` containing the embed with guild information.
-//! - `Err(anyhow::Error)` if any error occurs during command execution (e.g., 
+//! - `Err(anyhow::Error)` if any error occurs during command execution (e.g.,
 //! failure to fetch guild details).
 //!
 //! ## Error Handling
-//! If required information, such as guild ID or metadata, cannot be fetched, 
-//! the method returns an error (`anyhow::Error`). This allows for graceful failure 
+//! If required information, such as guild ID or metadata, cannot be fetched,
+//! the method returns an error (`anyhow::Error`). This allows for graceful failure
 //! with meaningful error messages.
 //!
 //! ## Example Use Case
-//! When a user invokes a command to display guild details, the bot uses this 
+//! When a user invokes a command to display guild details, the bot uses this
 //! implementation to gather and format relevant guild information in an embed.
 //!
 //! ## Dependencies:
@@ -77,11 +77,11 @@
 //! - `EmbedContent`: A custom type used to construct rich embed responses.
 //!
 //! ## Note:
-//! This implementation assumes that the bot is running with appropriate scopes 
+//! This implementation assumes that the bot is running with appropriate scopes
 //! and permissions to access guild data such as its metadata, channels, and roles.
 use anyhow::{Result, anyhow};
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent,};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::event_handler::BotData;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -89,18 +89,18 @@ use serenity::nonmax::NonMaxU64;
 
 /// A structure representing a command within a guild context on Discord.
 ///
-/// This structure is used to encapsulate the context and interaction data 
+/// This structure is used to encapsulate the context and interaction data
 /// associated with a command executed in a Discord guild.
 ///
 /// # Fields
 ///
-/// * `ctx` - Represents the context of the command, providing access to the 
-///           bot's state and utility functions. This is an instance of 
+/// * `ctx` - Represents the context of the command, providing access to the
+///           bot's state and utility functions. This is an instance of
 ///           `SerenityContext`, which enables interaction with the Discord API.
 ///
-/// * `command_interaction` - Represents the interaction data associated with 
-///                           the executed command. This holds information 
-///                           about the command, the user who invoked it, 
+/// * `command_interaction` - Represents the interaction data associated with
+///                           the executed command. This holds information
+///                           about the command, the user who invoked it,
 ///                           and other relevant interaction details.
 pub struct GuildCommand {
 	pub ctx: SerenityContext,
@@ -166,7 +166,7 @@ impl Command for GuildCommand {
 	///    - NSFW level
 	///    - Banner image
 	///    - Avatar image
-	/// 5. Constructs an embed with the guild's information and fields, and optionally 
+	/// 5. Constructs an embed with the guild's information and fields, and optionally
 	///    includes the guild banner and avatar if available.
 	///
 	/// # Returns

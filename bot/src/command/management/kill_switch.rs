@@ -58,7 +58,7 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::database::kill_switch::{ActiveModel, Column};
 use crate::database::prelude::KillSwitch;
 use crate::event_handler::BotData;
@@ -252,7 +252,7 @@ impl Command for KillSwitchCommand {
 		let embed_content = EmbedContent::new(module.clone())
 			.description(desc)
 			.command_type(EmbedType::First);
-		
+
 		Ok(vec![embed_content])
 	}
 }

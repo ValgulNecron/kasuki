@@ -1,9 +1,9 @@
-//! This module defines the `GenerateImagePfPCommand` structure and related functionality 
+//! This module defines the `GenerateImagePfPCommand` structure and related functionality
 //! for handling a command interaction that generates server profile picture images.
 use anyhow::{Result, anyhow};
 use std::borrow::Cow;
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedImage};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage};
 use crate::config::DbConfig;
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
@@ -47,7 +47,7 @@ impl Command for GenerateImagePfPCommand {
 	///
 	/// # Description
 	/// This method provides access to the `SerenityContext` associated with the current object.
-	/// The `SerenityContext` is typically used within the Serenity framework for managing and interacting 
+	/// The `SerenityContext` is typically used within the Serenity framework for managing and interacting
 	/// with Discord bot-related state and events.
 	///
 	/// # Returns
@@ -74,11 +74,11 @@ impl Command for GenerateImagePfPCommand {
 	/// ```
 	///
 	/// # Notes
-	/// This function borrows the `CommandInteraction` immutably, ensuring that the returned reference 
+	/// This function borrows the `CommandInteraction` immutably, ensuring that the returned reference
 	/// cannot be used to modify the underlying data.
 	///
 	/// # Usage
-	/// This is commonly used to access the `CommandInteraction` for inspection or to retrieve details 
+	/// This is commonly used to access the `CommandInteraction` for inspection or to retrieve details
 	/// relevant to a command execution process.
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
@@ -86,13 +86,13 @@ impl Command for GenerateImagePfPCommand {
 
 	/// Asynchronously retrieves and compiles embed content for a given command interaction.
 	///
-	/// This function fetches the necessary data from the bot's context and configuration, 
-	/// processes the command interaction to generate an `EmbedContent` object, and wraps 
+	/// This function fetches the necessary data from the bot's context and configuration,
+	/// processes the command interaction to generate an `EmbedContent` object, and wraps
 	/// it in a `Vec` for ease of use.
 	///
 	/// # Returns
 	///
-	/// A `Result` containing a vector of `EmbedContent` instances if the operation is 
+	/// A `Result` containing a vector of `EmbedContent` instances if the operation is
 	/// successful, or an error if something goes wrong during the process.
 	///
 	/// # Errors
@@ -111,12 +111,12 @@ impl Command for GenerateImagePfPCommand {
 	///
 	/// - `ctx`: Used for accessing the application context, including shared data.
 	/// - `bot_data`: Acquired from the context, containing the bot's configuration and database.
-	/// - `get_content`: An asynchronous function responsible for processing the interaction and 
+	/// - `get_content`: An asynchronous function responsible for processing the interaction and
 	///   generating embed content.
 	///
 	/// # Notes
 	///
-	/// - The function assumes the presence of `BotData` in the shared context and that `config.db` 
+	/// - The function assumes the presence of `BotData` in the shared context and that `config.db`
 	///   is properly set up to support the `get_content` function.
 	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
@@ -124,33 +124,34 @@ impl Command for GenerateImagePfPCommand {
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
 
-		let embed_content = get_content(ctx, command_interaction, "local", config.db.clone()).await?;
-		
-		Ok(vec![embed_content])	
+		let embed_content =
+			get_content(ctx, command_interaction, "local", config.db.clone()).await?;
+
+		Ok(vec![embed_content])
 	}
 }
 
 /// Asynchronously retrieves and processes the content for an image embed.
 ///
-/// This function is used to fetch an image from the database for a specific server 
-/// (guild) and generate a corresponding embed content, including the localized title 
+/// This function is used to fetch an image from the database for a specific server
+/// (guild) and generate a corresponding embed content, including the localized title
 /// and the image itself, ready to be sent as a response to a Discord command interaction.
 ///
 /// # Arguments
 ///
 /// * `ctx` - A reference to the `SerenityContext` used to interact with the Discord API.
-/// * `command_interaction` - The `CommandInteraction` that triggered this function, 
+/// * `command_interaction` - The `CommandInteraction` that triggered this function,
 ///   containing details about the guild, the command, and the user.
-/// * `image_type` - A string slice specifying the type of image to retrieve (e.g., 
+/// * `image_type` - A string slice specifying the type of image to retrieve (e.g.,
 ///   profile picture, banner, etc.).
 /// * `db_config` - The `DbConfig` containing database connection details.
 ///
 /// # Returns
 ///
-/// * `Ok(EmbedContent<'static, 'static>)` - On success, returns the generated 
+/// * `Ok(EmbedContent<'static, 'static>)` - On success, returns the generated
 ///   `EmbedContent` which contains the localized title and the image as an attachment
 ///   for the embed.
-/// * `Err` - Returns an error if any part of this process fails, such as database 
+/// * `Err` - Returns an error if any part of this process fails, such as database
 ///   retrieval, base64 decoding of the image, or response creation.
 ///
 /// # Errors

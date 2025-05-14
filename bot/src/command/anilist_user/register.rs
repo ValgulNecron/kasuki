@@ -1,14 +1,14 @@
-//! The `RegisterCommand` struct is responsible for handling the "register" command interaction 
-//! within a Discord bot. It is part of a bot infrastructure that integrates with the AniList API 
+//! The `RegisterCommand` struct is responsible for handling the "register" command interaction
+//! within a Discord bot. It is part of a bot infrastructure that integrates with the AniList API
 //! and a database for user registrations.
 //!
-//! This command allows users to register their AniList account with the bot, storing a mapping 
+//! This command allows users to register their AniList account with the bot, storing a mapping
 //! between their Discord ID and AniList ID in the database.
 //!
 //! # Fields
-//! - `ctx`: The `SerenityContext` that represents the current bot state and provides access to shared 
+//! - `ctx`: The `SerenityContext` that represents the current bot state and provides access to shared
 //!          data like the database connection, configuration, etc.
-//! - `command_interaction`: The command interaction event received from Discord, containing details 
+//! - `command_interaction`: The command interaction event received from Discord, containing details
 //!                          about the invoked command (i.e., the user, arguments, and guild information).
 //!
 //! This struct implements the `Command` trait, defining the behavior and response of the "register" command.
@@ -20,7 +20,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
@@ -40,7 +40,7 @@ use crate::structure::run::anilist::user::{User, get_color, get_user_url};
 ///   utilities required to interact with Discord's API.
 ///
 /// * `command_interaction` - A `CommandInteraction` instance that contains detailed
-///   information about the specific slash command interaction, including the user's 
+///   information about the specific slash command interaction, including the user's
 ///   input, command arguments, and the originating context of the interaction.
 ///
 /// # Usage
@@ -151,13 +151,13 @@ impl Command for RegisterCommand {
 			anilist_id: Set(user_data.id),
 			..Default::default()
 		})
-			.on_conflict(
-				sea_orm::sea_query::OnConflict::column(Column::AnilistId)
-					.update_column(Column::AnilistId)
-					.to_owned(),
-			)
-			.exec(&*connection)
-			.await?;
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::column(Column::AnilistId)
+				.update_column(Column::AnilistId)
+				.to_owned(),
+		)
+		.exec(&*connection)
+		.await?;
 
 		// Construct the description for the embed
 		let desc = register_localised

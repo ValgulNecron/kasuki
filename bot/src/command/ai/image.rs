@@ -1,5 +1,5 @@
-//! The `ImageCommand` structure and implementation encapsulate the logic for generating AI-based images 
-//! via a bot command interaction with Discord's serenity library. This includes calling a configurable AI service 
+//! The `ImageCommand` structure and implementation encapsulate the logic for generating AI-based images
+//! via a bot command interaction with Discord's serenity library. This includes calling a configurable AI service
 //! and handling the resulting image data. It also supports saving the generated images to a server or local path.
 //!
 //! # Fields
@@ -17,7 +17,7 @@
 //! Returns a reference to the interaction object to parse user inputs or access server-specific data.
 //!
 //! ## `get_contents`
-//! Main logic for the command. Processes user inputs, interacts with the AI image generation API, and 
+//! Main logic for the command. Processes user inputs, interacts with the AI image generation API, and
 //! uploads the generated image(s) as a follow-up response.
 //!
 //! # Helper Functions
@@ -51,16 +51,16 @@
 //! - **Outputs**: A tuple containing a vector of `CreateAttachment` objects and corresponding filenames.
 //!
 //! # API Interaction
-//! Uses the `reqwest` library to make HTTP POST requests to the AI service, specifying the desired image parameters 
+//! Uses the `reqwest` library to make HTTP POST requests to the AI service, specifying the desired image parameters
 //! like prompt, size, and style. Ensures proper authentication and header configuration.
 //!
 //! # Error Handling
-//! Returns Result types for most methods to ensure graceful handling of issues like API errors, byte processing failures, 
+//! Returns Result types for most methods to ensure graceful handling of issues like API errors, byte processing failures,
 //! or limits breached on user commands.
 use bytes::Bytes;
 use std::sync::Arc;
 
-use crate::command::command_trait::{
+use crate::command::command::{
 	Command, CommandRun, EmbedContent, EmbedImage, EmbedType, PremiumCommand, PremiumCommandType,
 };
 use crate::config::Config;
@@ -202,7 +202,7 @@ impl Command for ImageCommand {
 	/// This function depends on the following:
 	/// - `BotData` for shared bot configurations and HTTP client.
 	/// - External services (e.g., AI API and image storage services) for image generation and saving.
-	/// - Utility functions: `get_option_map_integer_subcommand`, `get_value`, `get_image_from_response`, 
+	/// - Utility functions: `get_option_map_integer_subcommand`, `get_value`, `get_image_from_response`,
 	///   `image_with_n_equal_1`, `image_with_n_greater_than_1`, and `image_saver` for intermediary operations.
 	///
 	/// # Parameters
@@ -474,7 +474,7 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 ///
 /// # Parameters
 ///
-/// - `filename`: A string representing the file name for the attachment. 
+/// - `filename`: A string representing the file name for the attachment.
 /// - `bytes`: A vector of `Bytes` where the first element's byte data will be used to
 ///   create the attachment. It is expected that the vector contains at least one element,
 ///   as this function accesses `bytes[0]`.
@@ -510,7 +510,7 @@ async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> Create
 
 /// Processes a vector of images and generates attachments with unique filenames.
 ///
-/// This asynchronous function takes a filename and a vector of `Bytes`, 
+/// This asynchronous function takes a filename and a vector of `Bytes`,
 /// and associates each byte slice with a unique filename by appending an index.
 /// It then creates a list of `CreateAttachment` objects and corresponding filenames.
 ///
@@ -541,12 +541,12 @@ async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> Create
 ///
 /// # Note
 ///
-/// Ensure that the function is called with a vector of `Bytes` that contains at least one element, 
+/// Ensure that the function is called with a vector of `Bytes` that contains at least one element,
 /// as the function assumes the presence of valid byte data.
 ///
 /// # Errors
 ///
-/// No specific errors are handled within this function. It is assumed that the input 
+/// No specific errors are handled within this function. It is assumed that the input
 /// byte data is correctly formatted and suitable for attachment creation.
 ///
 async fn image_with_n_greater_than_1<'a>(
@@ -693,12 +693,12 @@ async fn get_image_from_response(
 
 /// The `Root` struct is used to represent the root structure of a deserialized JSON object.
 ///
-/// This struct leverages the `serde` library for serializing and deserializing data and derives 
+/// This struct leverages the `serde` library for serializing and deserializing data and derives
 /// the `Debug` and `Deserialize` traits for debugging and JSON deserialization purposes.
 ///
 /// # Fields
 ///
-/// * `data` - A vector containing `Data` elements, representing the data section of the JSON object. 
+/// * `data` - A vector containing `Data` elements, representing the data section of the JSON object.
 ///   This field is annotated with `#[serde(rename = "data")]`, which means it maps to a JSON key named "data".
 ///
 /// # Example JSON Representation
@@ -720,7 +720,7 @@ async fn get_image_from_response(
 ///
 /// # Dependencies
 ///
-/// The struct requires the `serde` crate along with the `serde_derive` procedural macros for the `Deserialize` 
+/// The struct requires the `serde` crate along with the `serde_derive` procedural macros for the `Deserialize`
 /// attribute. Use the following in your Cargo.toml:
 ///
 /// ```toml
@@ -764,7 +764,7 @@ struct Data {
 /// Represents an AI-related error with detailed information.
 ///
 /// This struct is used to define the structure of an error message
-/// for an AI-related operation, containing specific details about 
+/// for an AI-related operation, containing specific details about
 /// the error type, message, optional parameter, and code.
 ///
 /// # Fields

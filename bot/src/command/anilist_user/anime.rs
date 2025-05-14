@@ -66,7 +66,7 @@
 //!     },
 //! }
 //! ```
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -90,7 +90,7 @@ use small_fixed_array::FixedString;
 ///           client state, allowing the command to perform various operations
 ///           in the Discord API, such as sending messages or managing guilds.
 ///
-/// - `command_interaction` - The `CommandInteraction`, which contains 
+/// - `command_interaction` - The `CommandInteraction`, which contains
 ///                           information about the specific command interaction.
 ///                           This includes the user who invoked the command,
 ///                           the guild or channel it was invoked in, as well as
@@ -238,7 +238,7 @@ impl Command for AnimeCommand {
 		let embed_content =
 			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
 				.await?;
-		
+
 		Ok(embed_content)
 	}
 }

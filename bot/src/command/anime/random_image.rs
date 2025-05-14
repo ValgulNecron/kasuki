@@ -46,9 +46,7 @@
 //!
 //! # Errors
 //! - Returns an error if the image type is omitted, the API request fails, or the image URL cannot be retrieved.
-use crate::command::command_trait::{
-	Command, CommandRun, EmbedContent, EmbedImage, EmbedType,
-};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
@@ -195,8 +193,9 @@ impl Command for AnimeRandomImageCommand {
 
 		self.defer().await?;
 
-		let embed_content = random_image_content(image_type, random_image_localised.title, "sfw").await?;
-		
+		let embed_content =
+			random_image_content(image_type, random_image_localised.title, "sfw").await?;
+
 		Ok(vec![embed_content])
 	}
 }

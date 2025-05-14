@@ -1,7 +1,7 @@
 //! The `LangCommand` struct handles the execution of a user command related
-//! to changing the language settings for a guild (server). This struct 
+//! to changing the language settings for a guild (server). This struct
 //! includes the context and command interaction necessary to process the command.
-use crate::command::command_trait::{Command, EmbedContent, EmbedType};
+use crate::command::command::{Command, EmbedContent, EmbedType};
 use crate::database::guild_lang;
 use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
@@ -18,7 +18,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///
 /// # Fields
 ///
-/// * `ctx` (`SerenityContext`) - The context of the current Discord bot, including runtime data, 
+/// * `ctx` (`SerenityContext`) - The context of the current Discord bot, including runtime data,
 /// such as HTTP, cache, and shard states, required for executing actions or responding to events.
 ///
 /// * `command_interaction` (`CommandInteraction`) - The interaction data for the command being executed,
@@ -42,7 +42,7 @@ impl Command for LangCommand {
 	/// ```
 	///
 	/// # Notes
-	/// This method provides access to the context (`self.ctx`) which is typically used 
+	/// This method provides access to the context (`self.ctx`) which is typically used
 	/// for interacting with Discord through the Serenity library.
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx

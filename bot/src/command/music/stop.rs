@@ -38,7 +38,7 @@
 //!
 //!   4. **Stopping Music Playback**:
 //!      Stops the currently playing track (if
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::stop::load_localization_stop;
 use anyhow::anyhow;
@@ -162,7 +162,8 @@ impl Command for StopCommand {
 				.command_type(EmbedType::Followup);
 			return Ok(vec![embed_content]);
 		};
-		let mut embed_content = EmbedContent::new(stop_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content =
+			EmbedContent::new(stop_localised.title).command_type(EmbedType::Followup);
 
 		let now_playing = player.get_player().await?.track;
 

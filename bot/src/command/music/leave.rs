@@ -2,7 +2,7 @@
 //! implementation of the `Command` trait. The purpose of the `LeaveCommand` is to handle
 //! the "leave" command functionality, primarily for managing the bot's disconnection
 //! from voice channels in a guild context.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::leave::load_localization_leave;
 use anyhow::anyhow;
@@ -48,7 +48,7 @@ impl Command for LeaveCommand {
 	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
 	///
 	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored within the instance. 
+	/// A reference to the `SerenityContext` (`&SerenityContext`) stored within the instance.
 	/// This can be used to interact with the Discord API, send messages, retrieve guild information, etc.
 	///
 	/// # Examples
@@ -143,7 +143,7 @@ impl Command for LeaveCommand {
 		let embed_content = EmbedContent::new(leave_localised.title)
 			.description(leave_localised.success)
 			.command_type(EmbedType::Followup);
-		
+
 		Ok(vec![embed_content])
 	}
 }

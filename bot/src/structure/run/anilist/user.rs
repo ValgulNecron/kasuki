@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::command::command_trait::{EmbedContent, EmbedType};
+use crate::command::command::{EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::structure::message::anilist_user::user::{UserLocalised, load_localization_user};

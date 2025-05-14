@@ -40,7 +40,7 @@
 //! When a user sends a `/skip` command:
 //! - If a song is currently playing, the bot skips the track and sends a success message.
 //! - If no song is playing or the Lavalink client is unavailable, the bot sends an error message.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::music::skip::load_localization_skip;
 use anyhow::anyhow;
@@ -194,7 +194,8 @@ impl Command for SkipCommand {
 				.command_type(EmbedType::Followup);
 			return Ok(vec![embed_content]);
 		};
-		let mut embed_content = EmbedContent::new(skip_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content =
+			EmbedContent::new(skip_localised.title).command_type(EmbedType::Followup);
 
 		let now_playing = player.get_player().await?.track;
 

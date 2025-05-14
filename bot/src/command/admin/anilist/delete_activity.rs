@@ -1,8 +1,8 @@
-//! This module implements functionality to manage the deletion of activities related to anime 
+//! This module implements functionality to manage the deletion of activities related to anime
 //! within a Discord bot using the Serenity and SeaORM libraries. It defines the `DeleteActivityCommand`,
 //! enabling the ability to delete activities associated with an anime, and the helper function `remove_activity` to handle database operations.
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::config::DbConfig;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
@@ -20,7 +20,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// to process a delete activity command issued by a user.
 ///
 /// # Fields
-/// * `ctx` - The context of the bot provided by the Serenity framework. 
+/// * `ctx` - The context of the bot provided by the Serenity framework.
 ///           This includes data such as the client cache, HTTP instance, and event handlers.
 /// * `command_interaction` - The interaction data representing the slash command
 ///                            or user input used to trigger the delete activity command.

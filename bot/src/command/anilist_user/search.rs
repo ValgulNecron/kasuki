@@ -1,6 +1,6 @@
-//! The `SearchCommand` is designed to handle the search functionality for AniList-related data types 
-//! in a Discord bot. It determines the type of search based on the provided user input 
-//! (e.g., searching for anime, characters, manga, etc.), delegates the task to the respective command, 
+//! The `SearchCommand` is designed to handle the search functionality for AniList-related data types
+//! in a Discord bot. It determines the type of search based on the provided user input
+//! (e.g., searching for anime, characters, manga, etc.), delegates the task to the respective command,
 //! and aggregates the response.
 //!
 //! # Fields
@@ -85,7 +85,7 @@ use crate::command::anilist_user::manga::MangaCommand;
 use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
-use crate::command::command_trait::{Command, CommandRun, EmbedContent,};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::helper::get_option::command::get_option_map_string;
 
 /// A struct representing a search command within a Discord bot context.
@@ -212,53 +212,39 @@ impl Command for SearchCommand {
 			.ok_or(anyhow!("No type specified"))?;
 
 		// Execute the corresponding search function based on the specified type
-		let dyn_cmd:  dyn Command  = match search_type.as_str() {
-			"anime" => {
-				AnimeCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+		let dyn_cmd: dyn Command = match search_type.as_str() {
+			"anime" => AnimeCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"character" => {
-				CharacterCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"character" => CharacterCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"ln" => {
-				LnCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"ln" => LnCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"manga" => {
-				MangaCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"manga" => MangaCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"staff" => {
-				StaffCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"staff" => StaffCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"user" => {
-				UserCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"user" => UserCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
-			"studio" => {
-				StudioCommand {
-					ctx: ctx.clone(),
-					command_interaction: command_interaction.clone(),
-				}
+			"studio" => StudioCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
 			},
 			// Return an error if the specified type is not one of the expected types
-			_ => return(Err(anyhow!("Type does not exist."))),
+			_ => return (Err(anyhow!("Type does not exist."))),
 		};
-		
+
 		dyn_cmd.get_contents().await
 	}
 }

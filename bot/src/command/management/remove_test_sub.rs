@@ -4,7 +4,7 @@
 //!
 //! # Fields
 //! - `ctx`
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
@@ -16,7 +16,7 @@ use serenity::all::{
 use small_fixed_array::FixedString;
 use tracing::error;
 
-/// The `RemoveTestSubCommand` struct defines a structure for a specific subcommand 
+/// The `RemoveTestSubCommand` struct defines a structure for a specific subcommand
 /// in handling interactions within a Discord bot using the Serenity library.
 ///
 /// # Fields
@@ -25,11 +25,11 @@ use tracing::error;
 ///   This context contains information about the bot's state, shard, cache, and other
 ///   utilities required to interact with Discord's API.
 ///
-/// * `command_interaction` - Represents the interaction data for the specific command 
-///   triggered by a user. It provides details such as user input, interaction ID, 
+/// * `command_interaction` - Represents the interaction data for the specific command
+///   triggered by a user. It provides details such as user input, interaction ID,
 ///   and any parameters passed in the command.
 ///
-/// This structure can be used for implementing logic specific to handling a "remove test" 
+/// This structure can be used for implementing logic specific to handling a "remove test"
 /// subcommand within the bot's interaction system.
 pub struct RemoveTestSubCommand {
 	pub ctx: SerenityContext,
@@ -103,7 +103,7 @@ impl Command for RemoveTestSubCommand {
 			command_interaction.guild_id.unwrap().to_string(),
 			config.db.clone(),
 		)
-			.await?;
+		.await?;
 
 		// defer the response
 		let builder_message = Defer(CreateInteractionResponseMessage::new());

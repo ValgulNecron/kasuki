@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand, UserCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::config::DbConfig;
 use crate::event_handler::BotData;
@@ -18,24 +18,23 @@ impl Command for BannerCommand {
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl SlashCommand for BannerCommand {
-	async fn run_slash(&self) -> Result<()> {
-		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
+	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 		let command_interaction = self.get_command_interaction();
+
+		let user = get_user_command(ctx, command_interaction).await?;
 
 		let db_config = config.db.clone();
 
 		let banner = match user.banner_url() {
 			Some(url) => url,
 			None => {
-				no_banner(command_interaction, &user.name, db_config).await?;
+				let embed_content = no_banner(command_interaction, &user.name, db_config).await?;
 
-				return Ok(());
+				return Ok(embed_content);
 			},
 		};
 
@@ -48,9 +47,10 @@ impl SlashCommand for BannerCommand {
 
 		let banner_localised = load_localization_banner(guild_id, db_config).await?;
 
-		let content = EmbedContent::new(banner_localised.title.replace("$user$", username))
+		let embed_content = EmbedContent::new(banner_localised.title.replace("$user$", username))
 			.images_url(Some(banner));
-		self.send_embed(vec![content]).await
+
+		Ok(vec![embed_content])
 	}
 }
 

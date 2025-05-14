@@ -1,7 +1,7 @@
 //! Documentation for the `GivePremiumSubCommand` struct and its implementation.
 //!
-//! This module defines the `GivePremiumSubCommand` struct, which implements the `Command` trait. 
-//! This command is used to assign a premium subscription to a specified user. It interacts with 
+//! This module defines the `GivePremiumSubCommand` struct, which implements the `Command` trait.
+//! This command is used to assign a premium subscription to a specified user. It interacts with
 //! Serenity's context and Discord's HTTP API to perform the operation.
 //!
 //! # Structs
@@ -66,7 +66,7 @@
 //!
 //! # Notes
 //!
-//! - The `get_contents` method assumes the presence of a bot configuration containing SKU information 
+//! - The `get_contents` method assumes the presence of a bot configuration containing SKU information
 //!   and a localization database for success messages.
 //! - This implementation uses Discord's test entitlement creation API for granting the subscription.
 //!
@@ -76,7 +76,7 @@
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
 use anyhow::{Result, anyhow};
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
@@ -90,7 +90,7 @@ use small_fixed_array::FixedString;
 ///
 /// # Fields
 ///
-/// * `ctx` - The context instance (`SerenityContext`) of the bot, 
+/// * `ctx` - The context instance (`SerenityContext`) of the bot,
 ///           which provides access to the Discord API and bot state.
 /// * `command_interaction` - The command interaction instance (`CommandInteraction`)
 ///                           that contains the details and data of the command invoked.
@@ -145,7 +145,7 @@ impl Command for GivePremiumSubCommand {
 		&self.command_interaction
 	}
 
-	/// Asynchronously retrieves the contents required for creating a response that indicates the 
+	/// Asynchronously retrieves the contents required for creating a response that indicates the
 	/// successful processing of a subscription-based entitlement for a user.
 	///
 	/// This function performs the following tasks:
@@ -231,7 +231,7 @@ impl Command for GivePremiumSubCommand {
 			command_interaction.guild_id.unwrap().to_string(),
 			config.db.clone(),
 		)
-			.await?;
+		.await?;
 
 		let embed_content = EmbedContent::new(String::default()).description(
 			localization
@@ -239,7 +239,7 @@ impl Command for GivePremiumSubCommand {
 				.replace("{user}", &user.to_string())
 				.replace("{subscription}", &subscription),
 		);
-		
+
 		Ok(vec![embed_content])
 	}
 }

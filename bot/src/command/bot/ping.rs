@@ -9,7 +9,7 @@
 //! This struct implements the `Command` trait, which provides methods for retrieving
 //! execution context, processing the command interaction, and constructing the
 //! response as embedded content.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{Result, anyhow};
@@ -33,7 +33,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// # Purpose
 ///
 /// This struct encapsulates the required data for handling a "ping" command,
-/// which is typically used to measure the bot's responsiveness or provide a 
+/// which is typically used to measure the bot's responsiveness or provide a
 /// simple acknowledgment response.
 pub struct PingCommand {
 	pub ctx: SerenityContext,
@@ -44,7 +44,7 @@ impl Command for PingCommand {
 	/// Retrieves a reference to the `SerenityContext` instance associated with the current object.
 	///
 	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`), which can be used 
+	/// A reference to the `SerenityContext` (`&SerenityContext`), which can be used
 	/// to interact with the Discord API or handle various bot operations.
 	///
 	/// # Example
@@ -173,7 +173,7 @@ impl Command for PingCommand {
 					.replace("$status$", &stage),
 			)
 			.command_type(EmbedType::First);
-		
+
 		Ok(vec![embed_content])
 	}
 }

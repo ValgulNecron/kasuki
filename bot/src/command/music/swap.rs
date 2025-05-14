@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::swap::load_localization_swap;
@@ -66,7 +66,8 @@ impl Command for SwapCommand {
 			.cloned()
 			.unwrap_or_default() as usize;
 
-		let mut embed_content = EmbedContent::new(swap_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content =
+			EmbedContent::new(swap_localised.title).command_type(EmbedType::Followup);
 
 		let queue = player.get_queue();
 		let queue_len = queue.get_count().await?;
@@ -86,7 +87,7 @@ impl Command for SwapCommand {
 
 			embed_content.description = swap_localised.success;
 		}
-		
+
 		Ok(vec![embed_content])
 	}
 }

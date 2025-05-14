@@ -63,7 +63,7 @@
 //! # Notes
 //! - This command only functions within a guild context where Lavalink is properly configured.
 //! - If no track is currently playing in the guild, the command will notify the user accordingly.
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::seek::load_localization_seek;
@@ -222,7 +222,8 @@ impl Command for SeekCommand {
 
 		let now_playing = player.get_player().await?.track;
 
-		let mut embed_content = EmbedContent::new(seek_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content =
+			EmbedContent::new(seek_localised.title).command_type(EmbedType::Followup);
 
 		if let Some(_) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;

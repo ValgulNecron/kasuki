@@ -1,4 +1,4 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;

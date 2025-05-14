@@ -55,7 +55,7 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::background_task::update_random_stats::update_random_stats;
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
@@ -70,15 +70,15 @@ use anyhow::{Result, anyhow};
 /// A `RandomCommand` struct that encapsulates the context and interaction details for a command
 /// in a Discord bot using the Serenity library.
 ///
-/// This struct is designed to handle a specific command interaction by bundling the necessary 
-/// context (`SerenityContext`) and the interaction details (`CommandInteraction`) into a single 
+/// This struct is designed to handle a specific command interaction by bundling the necessary
+/// context (`SerenityContext`) and the interaction details (`CommandInteraction`) into a single
 /// entity.
 ///
 /// # Fields
-/// - `ctx`: The context of the current Discord bot session and environment. This provides 
-///   access to the bot's data, such as cache, HTTP client, and other utilities for responding 
+/// - `ctx`: The context of the current Discord bot session and environment. This provides
+///   access to the bot's data, such as cache, HTTP client, and other utilities for responding
 ///   to events or commands.
-/// - `command_interaction`: The interaction data for the specific command. This contains 
+/// - `command_interaction`: The interaction data for the specific command. This contains
 ///   information about the command invocation, including the user's input, options, and other
 ///   metadata required to handle and respond to the command.
 ///

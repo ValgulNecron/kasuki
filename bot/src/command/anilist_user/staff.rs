@@ -6,7 +6,7 @@
 //! to be formatted into Discord Embed responses.
 use std::sync::Arc;
 
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
@@ -26,7 +26,7 @@ use tokio::sync::RwLock;
 /// A structure representing a staff command within the bot application.
 ///
 /// This structure is designed to encapsulate the relevant context and interaction
-/// details for a given command issued by staff members. It provides an organized way 
+/// details for a given command issued by staff members. It provides an organized way
 /// to handle and process staff-specific commands in conjunction with the Discord API.
 ///
 /// # Fields
@@ -35,15 +35,15 @@ use tokio::sync::RwLock;
 ///           such as the shard manager, cache, and HTTP functionalities required to handle
 ///           the interactions.
 /// * `command_interaction` - A `CommandInteraction` object representing the interaction details.
-///                           It contains information about the command issued by the user, 
+///                           It contains information about the command issued by the user,
 ///                           such as the command name, arguments, and other metadata.
 ///
 /// # Example
 ///
 /// ```rust
-/// let staff_command = StaffCommand { 
-///     ctx: serenity_context, 
-///     command_interaction: interaction 
+/// let staff_command = StaffCommand {
+///     ctx: serenity_context,
+///     command_interaction: interaction
 /// };
 /// // Proceed to use `staff_command` for handling the interaction
 /// ```
@@ -247,14 +247,14 @@ impl Command for StaffCommand {
 			.url(staff.site_url)
 			.command_type(EmbedType::First)
 			.fields(fields);
-		
+
 		Ok(vec![embed_content])
 	}
 }
 
 /// Retrieves staff details from the AniList API based on the provided command interaction.
 ///
-/// This function uses either the staff ID or staff search query provided in the command 
+/// This function uses either the staff ID or staff search query provided in the command
 /// interaction to fetch the corresponding staff information from AniList.
 ///
 /// # Arguments
@@ -262,7 +262,7 @@ impl Command for StaffCommand {
 /// * `command_interaction` - A reference to the [`CommandInteraction`] object that contains
 ///   details about the command executed, including options or parameters.
 ///
-/// * `anilist_cache` - A thread-safe reference to an AniList cache of type [`Cache`], 
+/// * `anilist_cache` - A thread-safe reference to an AniList cache of type [`Cache`],
 ///   used to store and retrieve previously retrieved data to minimize unnecessary API calls.
 ///
 /// # Returns
@@ -275,11 +275,11 @@ impl Command for StaffCommand {
 /// # How It Works
 ///
 /// 1. Options from the `command_interaction` are parsed into a map.
-/// 2. The function checks for the presence of the `staff_name` option. If not found, 
+/// 2. The function checks for the presence of the `staff_name` option. If not found,
 ///    it returns an error.
-/// 3. If the provided staff name can be parsed into an integer (`i32`), it treats the input 
+/// 3. If the provided staff name can be parsed into an integer (`i32`), it treats the input
 ///    as a staff ID and fetches the data using the `StaffQuerryId` query.
-/// 4. If the input cannot be parsed into an integer, it assumes the input is a name and 
+/// 4. If the input cannot be parsed into an integer, it assumes the input is a name and
 ///    fetches the relevant staff data using the `StaffQuerrySearch` query.
 /// 5. Makes use of the `make_request_anilist` function to send GraphQL requests for data fetching.
 /// 6. Extracts and returns the staff information upon successful query execution.
@@ -351,7 +351,7 @@ async fn get_staff(
 
 /// Generates a formatted string representation of a date, given an optional `FuzzyDate` object.
 ///
-/// This function takes an `Option<FuzzyDate>` as input and converts it into a string representation. 
+/// This function takes an `Option<FuzzyDate>` as input and converts it into a string representation.
 /// If the `Option` is `None`, it returns an empty string. Otherwise, the components of the `FuzzyDate`
 /// (day, month, and year) are combined into a string in the format `MM/DD/YYYY`, with optional components
 /// included as available. For example:

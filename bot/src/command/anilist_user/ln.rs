@@ -5,7 +5,7 @@
 //! * `ctx` - The Serenity context used for accessing Discord API and application data.
 //! * `command_interaction` - The interaction object representing the command invocation by the user.
 //!
-use crate::command::command_trait::{Command, EmbedContent};
+use crate::command::command::{Command, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -77,7 +77,7 @@ impl Command for LnCommand {
 		&self.command_interaction
 	}
 
-	/// An asynchronous function that retrieves a list of embed content for a media item from AniList 
+	/// An asynchronous function that retrieves a list of embed content for a media item from AniList
 	/// based on the command interaction provided. This supports both media ID and name-based lookups.
 	///
 	/// # Returns
@@ -168,8 +168,7 @@ impl Command for LnCommand {
 		let embed_content =
 			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
 				.await?;
-		
+
 		Ok(embed_content)
 	}
 }
-

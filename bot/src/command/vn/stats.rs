@@ -1,14 +1,11 @@
-use crate::command::command_trait::{Command, Embed, EmbedContent, SlashCommand};
+use crate::command::command::{Command, CommandRun, EmbedContent, SlashCommand};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
 use anyhow::Result;
 use moka::future::Cache;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext
-	,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 

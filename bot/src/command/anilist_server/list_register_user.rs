@@ -9,7 +9,7 @@
 //!
 //! * `ctx`: The [`SerenityContext`] instance, representing the Discord bot's context.
 //! * `command
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
@@ -89,7 +89,8 @@ impl Command for ListRegisterUser {
 			Some(id) => id,
 			None => return Err(anyhow!("Failed to get the id of the guild")),
 		};
-		let list_user_localised = load_localization_list_user(guild_id.to_string(), config.db.clone()).await?;
+		let list_user_localised =
+			load_localization_list_user(guild_id.to_string(), config.db.clone()).await?;
 		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =

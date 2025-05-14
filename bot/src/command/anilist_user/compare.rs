@@ -7,7 +7,7 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType, };
+use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -16,10 +16,10 @@ use crate::structure::run::anilist::user::{
 	UserStatusStatistic, UserTagStatistic,
 };
 
-/// A struct representing the "CompareCommand" which is used to encapsulate the 
+/// A struct representing the "CompareCommand" which is used to encapsulate the
 /// context and interaction data for a specific command execution in a Discord bot.
 ///
-/// This struct is designed to work with the Serenity library and contains the necessary 
+/// This struct is designed to work with the Serenity library and contains the necessary
 /// components for handling a command interaction.
 ///
 /// # Fields
@@ -76,8 +76,8 @@ impl Command for CompareCommand {
 
 	/// Asynchronously retrieves a comparison of anime and manga statistics between two users.
 	///
-	/// The method fetches user data based on provided usernames, compares their anime and manga 
-	/// statistics, and formats the data into a detailed description. The description is then wrapped 
+	/// The method fetches user data based on provided usernames, compares their anime and manga
+	/// statistics, and formats the data into a detailed description. The description is then wrapped
 	/// into an embed content structure for further usage, such as displaying within a bot interface.
 	///
 	/// # Returns
@@ -276,7 +276,7 @@ impl Command for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		// Get the genres of the anime watched by the two users and add the comparison to the description string
@@ -293,7 +293,7 @@ impl Command for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		let manga = statistics.manga.unwrap();
@@ -384,7 +384,7 @@ impl Command for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		// Get the genres of the manga read by the two users and add the comparison to the description string
@@ -401,7 +401,7 @@ impl Command for CompareCommand {
 				&username,
 				&username2,
 			)
-				.as_str(),
+			.as_str(),
 		);
 
 		let embed_content = EmbedContent::new("".to_string())
@@ -414,8 +414,8 @@ impl Command for CompareCommand {
 
 /// Calculates the affinity score between two users based on their anime and manga preferences.
 ///
-/// This function computes a similarity score (affinity) between two users by comparing their watched anime 
-/// and read manga statistics. The score is based on the Jaccard index of tags and genres, combined with 
+/// This function computes a similarity score (affinity) between two users by comparing their watched anime
+/// and read manga statistics. The score is based on the Jaccard index of tags and genres, combined with
 /// additional affinity measures for anime and manga preferences.
 ///
 /// # Parameters
@@ -434,7 +434,7 @@ impl Command for CompareCommand {
 ///
 /// # Notes
 /// - If any of the anime or manga data for either user is `None`, the function will panic due to the use of `unwrap()`.
-/// - This implementation assumes the existence of helper functions: 
+/// - This implementation assumes the existence of helper functions:
 ///   - `jaccard_index`
 ///   - `tag_string`
 ///   - `genre_string`
@@ -508,24 +508,24 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 /// watched, and score statistics.
 ///
 /// # Parameters
-/// - `anime`: A `UserStatistics` struct containing information about the 
+/// - `anime`: A `UserStatistics` struct containing information about the
 ///   first user's anime-watching habits.
-/// - `anime0`: A `UserStatistics` struct containing information about the 
+/// - `anime0`: A `UserStatistics` struct containing information about the
 ///   second user's anime-watching habits.
 ///
 /// # Returns
-/// - A `f64` value representing the affinity score between two users, scaled 
-///   from 0.0 to 1.0. The higher the value, the more similar the two users are 
+/// - A `f64` value representing the affinity score between two users, scaled
+///   from 0.0 to 1.0. The higher the value, the more similar the two users are
 ///   in terms of their anime-watching statistics.
 ///
 /// # Calculation
 /// 1. Fetch the number of anime in each status category (e.g., current, planning,
-///    completed, dropped, paused, repeating) for both users using the 
+///    completed, dropped, paused, repeating) for both users using the
 ///    `get_number_by_status` function.
 /// 2. Increase the affinity score for each matching count in the status categories
 ///    between the two users.
-/// 3. Compare overall statistics for both users (e.g., total anime count, minutes 
-///    watched, standard deviation of scores, and mean score). Increase the affinity 
+/// 3. Compare overall statistics for both users (e.g., total anime count, minutes
+///    watched, standard deviation of scores, and mean score). Increase the affinity
 ///    score for each matching statistic.
 /// 4. Divide the total affinity score by 20.0 to normalize the value.
 ///
@@ -538,9 +538,9 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 /// ```
 ///
 /// # Notes
-/// - The `get_number_by_status` function is assumed to return a tuple containing the 
+/// - The `get_number_by_status` function is assumed to return a tuple containing the
 ///   counts for each anime status category (e.g., current, planning, etc.).
-/// - The affinity score is a fraction, where higher similarity in status counts and 
+/// - The affinity score is a fraction, where higher similarity in status counts and
 ///   statistics results in a higher score.
 fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 	// Retrieve the number of anime in each status category for both anime
@@ -953,7 +953,7 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 ///
 /// # Arguments
 ///
-/// * `genres` - A slice of `Option<UserGenreStatistic>`, where each element may contain 
+/// * `genres` - A slice of `Option<UserGenreStatistic>`, where each element may contain
 ///   a user's genre statistic or be `None`.
 ///
 /// # Returns
@@ -966,7 +966,7 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 ///
 /// # Panics
 ///
-/// This function will panic if the `genres` slice has a length greater than 1 and the first 
+/// This function will panic if the `genres` slice has a length greater than 1 and the first
 /// element is `None` (since `unwrap()` is called on `None`) or if the first element does
 /// not have a genre.
 ///
@@ -985,7 +985,7 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 ///
 /// # Notes
 ///
-/// - It is recommended to handle the case where the first element is `None` gracefully 
+/// - It is recommended to handle the case where the first element is `None` gracefully
 ///   instead of panicking.
 /// - The use of `unwrap()` introduces potential runtime panics if the value is not properly checked.
 ///
@@ -1008,9 +1008,9 @@ fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 /// # Parameters
 /// - `a1`: A reference to the first string to compare.
 /// - `a2`: A reference to the second string to compare.
-/// - `diff_text`: The template message to display if the strings are different. 
+/// - `diff_text`: The template message to display if the strings are different.
 ///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`, `$2a$` for the value of `a2`) to be replaced.
-/// - `same`: The template message to display if the strings are the same. 
+/// - `same`: The template message to display if the strings are the same.
 ///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`) to be replaced.
 /// - `username`: The name of the first user tied to `a1`.
 /// - `username2`: The name of the second user tied to `a2`.

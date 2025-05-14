@@ -1,7 +1,7 @@
 //! This module defines the `MangaCommand` structure and its implementation for fetching manga
 //! information using the AniList GraphQL API. It forms part of a bot system based on the Serenity library
 //! for managing commands and interactions.
-use crate::command::command_trait::{Command, EmbedContent};
+use crate::command::command::{Command, EmbedContent};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -19,12 +19,12 @@ use small_fixed_array::FixedString;
 ///
 /// # Fields
 ///
-/// * `ctx` - The context associated with the Serenity framework, 
+/// * `ctx` - The context associated with the Serenity framework,
 ///           providing access to resources and services for handling the bot's operation.
-/// * `command_interaction` - The interaction data received from a user when they trigger the command, 
+/// * `command_interaction` - The interaction data received from a user when they trigger the command,
 ///                           containing information such as arguments and metadata.
 ///
-/// This structure is typically utilized in scenarios where a manga-related command is executed in a Discord server, 
+/// This structure is typically utilized in scenarios where a manga-related command is executed in a Discord server,
 /// allowing access to both the context and interaction details for processing the command effectively.
 pub struct MangaCommand {
 	pub ctx: SerenityContext,
@@ -52,7 +52,7 @@ impl Command for MangaCommand {
 	/// Returns a reference to the `CommandInteraction` associated with the current instance.
 	///
 	/// # Returns
-	/// A reference to the `CommandInteraction` object (`&CommandInteraction`) that is 
+	/// A reference to the `CommandInteraction` object (`&CommandInteraction`) that is
 	/// stored in the instance of the structure.
 	///
 	/// # Example
@@ -170,8 +170,7 @@ impl Command for MangaCommand {
 		let embed_content =
 			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
 				.await?;
-		
+
 		Ok(embed_content)
 	}
 }
-
