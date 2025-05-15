@@ -1,8 +1,8 @@
 use crate::command::embed_content::{CommandType, ComponentTypeV1, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents};
 use anyhow::{anyhow, Result};
-use serenity::all::{Button, CommandInteraction, ComponentType};
+use serenity::all::{Button, CommandInteraction, ComponentType, SkuId};
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::builder::{CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreateMessage};
+use serenity::builder::{CreateActionRow, CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreateMessage};
 use serenity::prelude::Context as SerenityContext;
 use crate::helper::create_default_embed::get_default_embed;
 
@@ -95,10 +95,34 @@ impl<T: Command> CommandRun for T {
 												button_builder = button_builder.style(style);
 											}
 											
-											row_builder.push(button_builder);
+											row_builder.push(CreateActionRow::buttons(button_builder));
 										}
-										(None, Some(id), None) => {}
-										(None, None, Some(sku_id)) => {}
+										(None, Some(id), None) => {
+											let mut button_builder = CreateButton::new(id)
+												.label(button.label)
+												.disabled(button.disabled);
+											if let Some(emoji) = button.emoji {
+												button_builder = button_builder.emoji(emoji);
+											}
+											if let Some(style) = button.style {
+												button_builder = button_builder.style(style);
+											}
+
+											row_builder.push(CreateActionRow::buttons(button_builder));
+										}
+										(None, None, Some(sku_id)) => {
+											let mut button_builder = CreateButton::new_premium(SkuId::new(sku_id.parse::<u64>()?)).label(button.label)
+												.disabled(button.disabled);
+											if let Some(emoji) = button.emoji {
+												button_builder = button_builder.emoji(emoji);
+											}
+											if let Some(style) = button.style {
+												button_builder = button_builder.style(style);
+											}
+
+											row_builder.push(CreateActionRow::buttons(button_builder));
+										}
+										_ => return Err(anyhow!("This button configuration is not supported"))
 									}
 								}
 								ComponentTypeV1::SelectMenu(select_menu) => {}
