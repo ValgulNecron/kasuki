@@ -8,7 +8,7 @@ pub struct EmbedsContents {
 	pub command_type: CommandType,
 	pub embed_contents: Vec<EmbedContent>,
 	pub action_row: Vec<ComponentVersion>,
-	pub images: Vec<CommandFiles>,
+	pub files: Vec<CommandFiles>,
 }
 
 impl EmbedsContents {
@@ -17,7 +17,7 @@ impl EmbedsContents {
 			command_type,
 			embed_contents,
 			action_row: Vec::new(),
-			images: Vec::new(),
+			files: Vec::new(),
 		}
 	}
 
@@ -26,8 +26,8 @@ impl EmbedsContents {
 		self
 	}
 
-	pub fn add_image(&mut self, image: CommandFiles) -> &mut Self {
-		self.images.push(image);
+	pub fn add_file(&mut self, file: CommandFiles) -> &mut Self {
+		self.files.push(file);
 		self
 	}
 
@@ -46,8 +46,8 @@ impl EmbedsContents {
 		self
 	}
 
-	pub fn add_images(&mut self, images: Vec<CommandFiles>) -> &mut Self {
-		self.images.extend(images);
+	pub fn add_files(&mut self, files: Vec<CommandFiles>) -> &mut Self {
+		self.files.extend(files);
 		self
 	}
 }
@@ -95,7 +95,8 @@ pub struct EmbedContent {
 	pub colour: Option<Colour>,
 	pub fields: Vec<(String, String, bool)>,
 	pub images_url: Option<String>,
-	pub footer: Option<String>,
+	pub footer: Option<CreateFooter>,
+	pub author: Option<CreateAuthor>,
 }
 
 impl EmbedContent {
@@ -109,6 +110,7 @@ impl EmbedContent {
 			fields: Vec::new(),
 			images_url: None,
 			footer: None,
+			author: None,
 		}
 	}
 
@@ -142,8 +144,60 @@ impl EmbedContent {
 		self
 	}
 
-	pub fn footer(mut self, footer: String) -> Self {
+	pub fn footer(mut self, footer: CreateFooter) -> Self {
 		self.footer = Some(footer);
+		self
+	}
+
+	pub fn author(mut self, author: CreateAuthor) -> Self {
+		self.author = Some(author);
+		self
+	}
+}
+
+#[derive(Clone)]
+pub struct CreateFooter {
+	pub text: String,
+	pub icon_url: Option<String>,
+}
+
+impl CreateFooter {
+	pub fn new(text: String) -> Self {
+		Self {
+			text,
+			icon_url: None,
+		}
+	}
+	
+	pub fn icon_url(mut self, icon_url: String) -> Self {
+		self.icon_url = Some(icon_url);
+		self
+	}
+}
+
+#[derive(Clone)]
+pub struct CreateAuthor {
+	pub name: String,
+	pub icon_url: Option<String>,
+	pub url: Option<String>,
+}
+
+impl CreateAuthor {
+	pub fn new(name: String) -> Self {
+		Self {
+			name,
+			icon_url: None,
+			url: None,
+		}
+	}
+	
+	pub fn icon_url(mut self, icon_url: String) -> Self {
+		self.icon_url = Some(icon_url);
+		self
+	}
+	
+	pub fn url(mut self, url: String) -> Self {
+		self.url = Some(url);
 		self
 	}
 }
