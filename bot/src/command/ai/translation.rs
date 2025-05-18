@@ -80,8 +80,9 @@
 //! - The `trace` macro is used for logging during different stages of command execution.
 
 use crate::command::ai::question::question_api_url;
-use crate::command::command::EmbedContent;
-use crate::command::command::{Command, CommandRun, EmbedType, PremiumCommand, PremiumCommandType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
@@ -94,7 +95,6 @@ use reqwest::{Url, multipart};
 use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
-use tracing::trace;
 use uuid::Uuid;
 
 ///
@@ -219,7 +219,7 @@ impl Command for TranslationCommand {
 	///
 	/// # Thread Safety
 	/// This function is marked as asynchronous (`async`) and is designed to be executed within an asynchronous runtime. Ensure that concurrency considerations are respected when invoking this function across multiple tasks.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -375,11 +375,12 @@ impl Command for TranslationCommand {
 		let translation_localised =
 			load_localization_translation(guild_id, config.db.clone()).await?;
 
-		let embed_content = EmbedContent::new(translation_localised.title)
-			.description(text.to_string())
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(translation_localised.title).description(text.to_string());
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

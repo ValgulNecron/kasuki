@@ -12,7 +12,8 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -141,7 +142,7 @@ impl Command for CharacterCommand {
 	///     Err(e) => eprintln!("Error fetching character content: {}", e),
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -170,10 +171,10 @@ impl Command for CharacterCommand {
 			data.data.unwrap().character.unwrap()
 		};
 
-		let embed_content =
+		let embed_contents =
 			character::character_content(command_interaction, data, config.db.clone()).await?;
 
-		Ok(embed_content)
+		Ok(embed_contents)
 	}
 }
 

@@ -7,7 +7,8 @@ use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::{Command, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -53,7 +54,7 @@ impl Command for LevelCommand {
 	}
 
 	///
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -149,17 +150,18 @@ impl Command for LevelCommand {
 					.replace("$actual$", actual.to_string().as_str())
 					.replace("$next$", next_xp.to_string().as_str()),
 			)
-			.thumbnail(Some(user.clone().avatar.unwrap().large.clone().unwrap()))
-			.url(Some(get_user_url(&user.id)))
-			.command_type(EmbedType::First)
-			.colour(Some(get_color(user.clone())));
+			.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
+			.url(get_user_url(&user.id))
+			.colour(get_color(user.clone()));
 
 		// Add the user's banner image to the embed if it exists
 		if let Some(banner_image) = &user.banner_image {
-			embed_content = embed_content.images_url(Some(banner_image.clone()));
+			embed_content = embed_content.images_url(banner_image.clone());
 		}
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

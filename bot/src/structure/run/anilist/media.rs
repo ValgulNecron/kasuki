@@ -1,4 +1,4 @@
-use crate::command::command::{EmbedContent, EmbedType};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::constant::UNKNOWN;
 use crate::database::anime_song::Column::AnilistId;
@@ -579,7 +579,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig, bot_data: Arc<BotData>,
-) -> Result<Vec<EmbedContent<'static, 'static>>> {
+) -> Result<EmbedsContents> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
 	if is_adult && !get_nsfw(command_interaction, ctx).await {
@@ -740,17 +740,18 @@ pub async fn media_content<'a>(
 		None => return Err(anyhow!("No title")),
 	};
 
-	let mut content = EmbedContent::new(embed_title(&title))
-		.url(Some(get_url(&data.clone())))
-		.command_type(EmbedType::First)
+	let mut embed_content = EmbedContent::new(embed_title(&title))
+		.url(get_url(&data.clone()))
 		.fields(fields)
-		.images_url(Some(get_banner(&data.clone())));
+		.images_url(get_banner(&data.clone()));
 
 	if let Some(image) = data.cover_image {
 		if let Some(extra_large) = image.extra_large {
-			content.thumbnail = Some(extra_large);
+			embed_content = embed_content.images_url(extra_large);
 		}
 	}
 
-	Ok(vec![content])
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
 }

@@ -76,8 +76,9 @@ use anyhow::{Result, anyhow};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command::{Command, EmbedType};
-use crate::command::command::{CommandRun, EmbedContent};
+use crate::command::command::Command;
+use crate::command::command::CommandRun;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
@@ -257,7 +258,7 @@ impl Command for AddActivityCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let command_interaction = self.get_command_interaction();
 		let ctx = self.get_ctx();
 
@@ -300,10 +301,11 @@ impl Command for AddActivityCommand {
 						.fail_desc
 						.replace("$anime$", anime_name.as_str()),
 				)
-				.url(Some(url))
-				.command_type(EmbedType::Followup);
+				.url(url);
 
-			return Ok(vec![embed_content]);
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		}
 
 		let channel_id = command_interaction.channel_id;
@@ -321,12 +323,12 @@ impl Command for AddActivityCommand {
 		};
 
 		let image_url = media.cover_image.ok_or(
-			anyhow!("No cover image for this media".to_string()),
-		)?.extra_large.
-			unwrap_or(
-				"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-					.to_string()
-		);
+            anyhow!("No cover image for this media".to_string()),
+        )?.extra_large.
+            unwrap_or(
+                "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+                    .to_string()
+            );
 		let bytes = get(image_url.clone()).await?.bytes().await?;
 		let buf = resize_image(&bytes).await?;
 		let base64 = STANDARD.encode(buf.into_inner());
@@ -372,10 +374,11 @@ impl Command for AddActivityCommand {
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
 			)
-			.url(Some(url))
-			.command_type(EmbedType::Followup);
+			.url(url);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

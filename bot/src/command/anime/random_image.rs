@@ -46,7 +46,8 @@
 //!
 //! # Errors
 //! - Returns an error if the image type is omitted, the API request fails, or the image URL cannot be retrieved.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
@@ -169,7 +170,7 @@ impl Command for AnimeRandomImageCommand {
 	/// ### Requirements:
 	/// - Async runtime must be active for the method to execute.
 	/// - Proper error handling must be in place to manage all possible failures.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -193,10 +194,10 @@ impl Command for AnimeRandomImageCommand {
 
 		self.defer().await?;
 
-		let embed_content =
+		let embed_contents =
 			random_image_content(image_type, random_image_localised.title, "sfw").await?;
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }
 
@@ -272,9 +273,9 @@ impl Command for AnimeRandomImageCommand {
 /// - `serde` and `serde_json` for JSON parsing
 /// - `uuid` for generating unique filenames
 /// ```
-pub async fn random_image_content<'a>(
-	image_type: &str, title: String, endpoint: &'a str,
-) -> Result<EmbedContent<'static, 'static>> {
+pub async fn random_image_content(
+	image_type: &str, title: String, endpoint: &str,
+) -> Result<EmbedsContents> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
@@ -303,14 +304,14 @@ pub async fn random_image_content<'a>(
 
 	// Construct the attachment for the image
 	let bytes = bytes.as_bytes().to_vec();
-	let attachment = CreateAttachment::bytes(bytes, filename.clone());
+	let file = CommandFiles::new(filename.clone(), bytes);
 
-	let content = EmbedContent::new(title)
-		.command_type(EmbedType::Followup)
-		.images(Some(vec![EmbedImage {
-			attachment,
-			image: filename,
-		}]));
+	let embed_content =
+		EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
 
-	Ok(content)
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
+		.add_file(file)
+		.clone();
+
+	Ok(embed_contents)
 }

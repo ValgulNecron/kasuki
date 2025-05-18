@@ -7,7 +7,7 @@ use serenity::all::{
 pub struct EmbedsContents {
 	pub command_type: CommandType,
 	pub embed_contents: Vec<EmbedContent>,
-	pub action_row: Vec<ComponentVersion>,
+	pub action_row: Option<ComponentVersion>,
 	pub files: Vec<CommandFiles>,
 }
 
@@ -16,13 +16,13 @@ impl EmbedsContents {
 		Self {
 			command_type,
 			embed_contents,
-			action_row: Vec::new(),
+			action_row: None,
 			files: Vec::new(),
 		}
 	}
 
-	pub fn add_action_row(&mut self, action_row: ComponentVersion) -> &mut Self {
-		self.action_row.push(action_row);
+	pub fn action_row(mut self, action_row: ComponentVersion) -> Self {
+		self.action_row = Some(action_row);
 		self
 	}
 
@@ -38,11 +38,6 @@ impl EmbedsContents {
 
 	pub fn add_embed_contents(&mut self, embed_contents: Vec<EmbedContent>) -> &mut Self {
 		self.embed_contents.extend(embed_contents);
-		self
-	}
-
-	pub fn add_action_rows(&mut self, action_rows: Vec<ComponentVersion>) -> &mut Self {
-		self.action_row.extend(action_rows);
 		self
 	}
 
@@ -168,7 +163,7 @@ impl CreateFooter {
 			icon_url: None,
 		}
 	}
-	
+
 	pub fn icon_url(mut self, icon_url: String) -> Self {
 		self.icon_url = Some(icon_url);
 		self
@@ -190,12 +185,12 @@ impl CreateAuthor {
 			url: None,
 		}
 	}
-	
+
 	pub fn icon_url(mut self, icon_url: String) -> Self {
 		self.icon_url = Some(icon_url);
 		self
 	}
-	
+
 	pub fn url(mut self, url: String) -> Self {
 		self.url = Some(url);
 		self
@@ -219,34 +214,23 @@ impl ComponentVersion {
 }
 
 #[derive(Clone)]
-pub struct ComponentVersion1 {
-	pub action_row: Vec<Vec<ComponentTypeV1>>,
-}
-
-impl ComponentVersion1 {
-	pub fn new(action_row: Vec<Vec<ComponentTypeV1>>) -> Self {
-		Self { action_row }
-	}
-}
-
-#[derive(Clone)]
-pub enum ComponentTypeV1 {
-	Button(ButtonV1),
+pub enum ComponentVersion1 {
+	Buttons(Vec<ButtonV1>),
 	SelectMenu(SelectMenuV1),
 	InputText(InputTextV1),
 }
 
-impl ComponentTypeV1 {
-	pub fn button(button: ButtonV1) -> Self {
-		ComponentTypeV1::Button(button)
+impl ComponentVersion1 {
+	pub fn buttons(buttons: Vec<ButtonV1>) -> Self {
+		ComponentVersion1::Buttons(buttons)
 	}
 
 	pub fn select_menu(select_menu: SelectMenuV1) -> Self {
-		ComponentTypeV1::SelectMenu(select_menu)
+		ComponentVersion1::SelectMenu(select_menu)
 	}
 
 	pub fn input_text(input_text: InputTextV1) -> Self {
-		ComponentTypeV1::InputText(input_text)
+		ComponentVersion1::InputText(input_text)
 	}
 }
 
@@ -308,7 +292,7 @@ impl ButtonV1 {
 #[derive(Clone)]
 pub struct SelectMenuV1 {
 	pub placeholder: String,
-	pub custom_id: Option<String>,
+	pub custom_id: String,
 	pub min_values: Option<u8>,
 	pub max_values: Option<u8>,
 	pub disabled: Option<bool>,
@@ -316,20 +300,15 @@ pub struct SelectMenuV1 {
 }
 
 impl SelectMenuV1 {
-	pub fn new(placeholder: String, select_menu_kind: SelectMenuKindV1) -> Self {
+	pub fn new(placeholder: String, select_menu_kind: SelectMenuKindV1, custom_id: String) -> Self {
 		SelectMenuV1 {
 			placeholder,
-			custom_id: None,
+			custom_id,
 			min_values: None,
 			max_values: None,
 			disabled: None,
 			select_menu_kind,
 		}
-	}
-
-	pub fn custom_id(mut self, custom_id: String) -> Self {
-		self.custom_id = Some(custom_id);
-		self
 	}
 
 	pub fn min_values(mut self, min_values: u8) -> Self {

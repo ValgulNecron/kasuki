@@ -9,7 +9,8 @@ use anyhow::{Result, anyhow};
 use bytes::Bytes;
 use std::io::Cursor;
 
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -21,7 +22,7 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
+use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment, EmbedImage};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 
@@ -116,7 +117,7 @@ impl Command for SeiyuuCommand {
 	/// ```rust
 	/// let embed_contents = self.get_contents().await?;
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -294,18 +295,16 @@ impl Command for SeiyuuCommand {
 
 		rgba8_image.write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)?;
 
-		let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
+		let image_url = format!("attachment://{}", image_path.clone());
+		let image = CommandFiles::new(image_path.clone(), bytes);
 
-		let image = EmbedImage {
-			attachment,
-			image: image_path.clone(),
-		};
+		let embed_content = EmbedContent::new(seiyuu_localised.title).images_url(image_url);
 
-		let embed_content = EmbedContent::new(seiyuu_localised.title)
-			.command_type(EmbedType::Followup)
-			.images(Some(vec![image]));
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
+			.add_files(vec![image])
+			.clone();
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }
 

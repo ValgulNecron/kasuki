@@ -25,7 +25,8 @@ use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::character::get_character_by_id;
-use crate::command::command::{Command, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::structure::run::anilist::character::character_content;
 
@@ -135,7 +136,7 @@ impl Command for WaifuCommand {
 	///
 	/// # Returns
 	/// `Result<Vec<EmbedContent>, Error>`: The formatted embed content or an error if retrieval or processing fails.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

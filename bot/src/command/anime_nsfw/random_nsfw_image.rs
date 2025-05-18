@@ -82,7 +82,8 @@
 use anyhow::{Result, anyhow};
 
 use crate::command::anime::random_image::random_image_content;
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
@@ -188,7 +189,7 @@ impl Command for AnimeRandomNsfwImageCommand {
 	///   - `get_option_map_string_subcommand`: Extracts command options.
 	///   - `load_localization_random_image_nsfw`: Loads localized strings for NSFW random images.
 	///   - `random_image_content`: Constructs the `EmbedContent` object.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -215,9 +216,9 @@ impl Command for AnimeRandomNsfwImageCommand {
 		self.defer().await?;
 
 		// Send the random NSFW image as a response to the command interaction
-		let embed_content =
+		let embed_contents =
 			random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await?;
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }

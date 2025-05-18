@@ -9,8 +9,11 @@
 //!
 //! * `ctx`: The [`SerenityContext`] instance, representing the Discord bot's context.
 //! * `command
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
-use crate::constant::MEMBER_LIST_LIMIT;
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{
+	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+};
+use crate::constant::{ACTIVITY_LIST_LIMIT, MEMBER_LIST_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -76,7 +79,7 @@ impl Command for ListRegisterUser {
 	///
 	/// # Returns:
 	/// -
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -95,14 +98,23 @@ impl Command for ListRegisterUser {
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, ctx, None, connection).await?;
-		let mut embed_content = EmbedContent::new(list_user_localised.title)
-			.description(desc)
-			.command_type(EmbedType::Followup);
+		let mut embed_content = EmbedContent::new(list_user_localised.title).description(desc);
+
+		let action_row;
 		if len >= MEMBER_LIST_LIMIT as usize {
-			embed_content.action_row = vec![CreateActionRow::Buttons(Cow::from(vec![
-				CreateButton::new(format!("user_{}_0", last_id.unwrap()))
-					.label(list_user_localised.next),
-			]))];
+			let buttons = vec![
+				ButtonV1::new(list_user_localised.next)
+					.custom_id(format!("user_{}_0", last_id.unwrap())),
+			];
+			let v1 = ComponentVersion1::buttons(buttons);
+			action_row = Some(ComponentVersion::V1(v1));
+		} else {
+			action_row = None
+		}
+
+		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		if let Some(action_row) = action_row {
+			embed_contents = embed_contents.action_row(action_row);
 		}
 
 		Ok(vec![embed_content]).await

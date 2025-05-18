@@ -1,5 +1,9 @@
 //! Module implementing the `InfoCommand` structure and its functionality.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{
+	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, CreateFooter, EmbedContent,
+	EmbedsContents,
+};
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::database::prelude::UserColor;
 use crate::event_handler::BotData;
@@ -130,7 +134,7 @@ impl Command for InfoCommand {
 	/// - **Official Website Link**: A button linking to the bot's official webpage.
 	/// - **Official Discord Server**: A button linking to join the community server.
 	/// - **Invitation Links**: Buttons for adding stable and beta versions of the bot.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -192,52 +196,43 @@ impl Command for InfoCommand {
 
 		let lib = LIBRARY.to_string();
 
-		let mut buttons = Cow::from(vec![]);
-
-		let mut components = vec![];
+		let mut buttons = vec![];
 
 		// Add buttons for various actions
 
-		buttons.to_mut().push(
-			CreateButton::new_link("https://github.com/ValgulNecron/kasuki")
-				.style(ButtonStyle::Primary)
-				.label(info_localised.button_see_on_github),
+		buttons.push(
+			ButtonV1::new(info_localised.button_see_on_github)
+				.url("https://github.com/ValgulNecron/kasuki".to_string())
+				.style(ButtonStyle::Primary),
 		);
 
-		buttons.to_mut().push(
-			CreateButton::new_link("https://kasuki.valgul.moe/")
-				.style(ButtonStyle::Primary)
-				.label(info_localised.button_official_website),
+		buttons.push(
+			ButtonV1::new(info_localised.button_official_website)
+				.url("https://kasuki.moe/".to_string())
+				.style(ButtonStyle::Primary),
 		);
 
-		buttons.to_mut().push(
-			CreateButton::new_link("https://discord.gg/h4hYxMURQx")
-				.style(ButtonStyle::Primary)
-				.label(info_localised.button_official_discord),
+		buttons.push(
+			ButtonV1::new(info_localised.button_official_discord)
+				.url("https://discord.gg/JwdYfnXaeK".to_string())
+				.style(ButtonStyle::Primary),
 		);
 
-		components.push(CreateActionRow::Buttons(buttons.clone()));
+		buttons.push(
+			ButtonV1::new(info_localised.button_add_the_bot)
+				.url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot".to_string())
+				.style(ButtonStyle::Success),
+        );
 
-		buttons.to_mut().clear();
-
-		buttons.to_mut().push(
-			CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot")
-				.style(ButtonStyle::Primary)
-				.label(info_localised.button_add_the_bot)
-		);
-
-		buttons.to_mut().push(
-			CreateButton::new_link("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot")
-				.style(ButtonStyle::Primary)
-				.label(info_localised.button_add_the_beta_bot)
-		);
-
-		components.push(CreateActionRow::Buttons(buttons));
+		buttons.push(
+			ButtonV1::new(info_localised.button_add_the_beta_bot)
+				.url("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot".to_string())
+				.style(ButtonStyle::Secondary),
+        );
 
 		let embed_content = EmbedContent::new(info_localised.title)
 			.description(info_localised.desc)
-			.thumbnail(Some(avatar))
-			.command_type(EmbedType::First)
+			.thumbnail(avatar)
 			.fields(vec![
 				(info_localised.bot_name, bot_name, true),
 				(info_localised.bot_id, bot_id, true),
@@ -254,9 +249,11 @@ impl Command for InfoCommand {
 					true,
 				),
 			])
-			.action_row(components)
-			.footer(Some(info_localised.footer));
+			.footer(CreateFooter::new(info_localised.footer));
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content])
+			.action_row(ComponentVersion::V1(ComponentVersion1::Buttons(buttons)));
+
+		Ok(embed_contents)
 	}
 }

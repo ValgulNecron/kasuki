@@ -60,9 +60,9 @@
 use bytes::Bytes;
 use std::sync::Arc;
 
-use crate::command::command::{
-	Command, CommandRun, EmbedContent, EmbedImage, EmbedType, PremiumCommand, PremiumCommandType,
-};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -77,7 +77,7 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use serenity::all::{
-	AttachmentData, CommandInteraction, Context as SerenityContext, CreateAttachment,
+	AttachmentData, CommandInteraction, Context as SerenityContext, CreateAttachment, EmbedImage,
 };
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -216,7 +216,7 @@ impl Command for ImageCommand {
 	/// 2. Prepares and sends a generation request to the AI service.
 	/// 3. Processes the response, saves images, and organizes them into an embed.
 	/// 4. Returns the embed for further interaction or display as a follow-up.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		if self
@@ -291,56 +291,52 @@ impl Command for ImageCommand {
 		)
 		.await?;
 
-		let images = if n == 1 {
+		let image_localised = image_localised.await?;
+		let embed_content = EmbedContent::new(image_localised.title).description(String::new());
+
+		let mut embed_contents = vec![];
+		let mut command_files = vec![];
+
+		if n == 1 {
 			let attachment = image_with_n_equal_1(filename.clone(), bytes.clone()).await;
 			let name = filename;
-			vec![EmbedImage {
-				attachment,
-				image: name,
-			}]
+
+			command_files.push(CommandFiles::new(name.clone(), attachment));
+			embed_contents.push(
+				embed_content
+					.clone()
+					.images_url(format!("attachment://{}", name.clone())),
+			);
 		} else {
-			let (images, filenames) = image_with_n_greater_than_1(filename, bytes).await;
-			images
-				.into_iter()
-				.zip(filenames.into_iter())
-				.map(|(attachment, filename)| EmbedImage {
-					attachment,
-					image: filename,
-				})
-				.collect()
+			let attachements = image_with_n_greater_than_1(filename, bytes).await;
+			for attachement in attachements {
+				let name = attachement.1;
+				let bytes = attachement.0;
+				command_files.push(CommandFiles::new(name.clone(), bytes));
+				embed_contents.push(
+					embed_content
+						.clone()
+						.images_url(format!("attachment://{}", name.clone())),
+				);
+
+				let image_config = bot_data.config.image.clone();
+				image_saver(
+					guild_id.to_string(),
+					name.to_string(),
+					bytes,
+					image_config.save_server.unwrap_or_default(),
+					image_config.token.unwrap_or_default(),
+					image_config.save_image,
+				)
+				.await?;
+			}
 		};
 
-		for image in images.clone() {
-			let bytes = match image.attachment.data.clone() {
-				AttachmentData::Bytes(bytes) => bytes,
-				AttachmentData::File(_) => Err(anyhow!("File not supported"))?,
-				AttachmentData::Path(path) => Bytes::from({
-					let mut file = File::open(path).await?;
-					let mut bytes = vec![];
-					file.read_exact(&mut bytes).await?;
-					bytes
-				}),
-			};
-			let filename = image.attachment.filename.clone();
-			let image_config = bot_data.config.image.clone();
-			image_saver(
-				guild_id.to_string(),
-				filename.to_string(),
-				Vec::from(bytes),
-				image_config.save_server.unwrap_or_default(),
-				image_config.token.unwrap_or_default(),
-				image_config.save_image,
-			)
-			.await?;
-		}
+		let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents)
+			.add_files(command_files)
+			.clone();
 
-		let image_localised = image_localised.await?;
-		let embed_content = EmbedContent::new(image_localised.title)
-			.description(String::new())
-			.command_type(EmbedType::Followup)
-			.images(Some(images));
-
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }
 
@@ -502,10 +498,10 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 ///     // Use the `attachment` as needed.
 /// }
 /// ```
-async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> CreateAttachment<'a> {
+async fn image_with_n_equal_1(filename: String, bytes: Vec<Bytes>) -> Vec<u8> {
 	let bytes = bytes[0].as_bytes().to_vec();
 
-	CreateAttachment::bytes(bytes, filename)
+	bytes
 }
 
 /// Processes a vector of images and generates attachments with unique filenames.
@@ -551,17 +547,14 @@ async fn image_with_n_equal_1<'a>(filename: String, bytes: Vec<Bytes>) -> Create
 ///
 async fn image_with_n_greater_than_1<'a>(
 	filename: String, bytes: Vec<Bytes>,
-) -> (Vec<CreateAttachment<'a>>, Vec<String>) {
-	let attachments: (Vec<CreateAttachment>, Vec<String>) = bytes
+) -> Vec<(Vec<u8>, String)> {
+	let attachments: Vec<(Vec<u8>, String)> = bytes
 		.iter()
 		.enumerate()
 		.map(|(index, byte)| {
 			let filename = format!("{}_{}.png", filename, index);
 			let byte = byte.as_bytes().to_vec();
-			(
-				CreateAttachment::bytes(byte, filename.clone()),
-				format!("{}_{}.png", filename, index),
-			)
+			(byte, format!("{}_{}.png", filename, index))
 		})
 		.collect();
 

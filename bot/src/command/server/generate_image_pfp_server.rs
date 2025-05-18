@@ -3,7 +3,7 @@
 use anyhow::{Result, anyhow};
 use std::borrow::Cow;
 
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedImage};
+use crate::command::command::{Command, EmbedContent, EmbedImage};
 use crate::config::DbConfig;
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;

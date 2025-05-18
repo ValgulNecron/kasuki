@@ -1,7 +1,8 @@
 //! The `LangCommand` struct handles the execution of a user command related
 //! to changing the language settings for a guild (server). This struct
 //! includes the context and command interaction necessary to process the command.
-use crate::command::command::{Command, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::guild_lang;
 use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
@@ -116,7 +117,7 @@ impl Command for LangCommand {
 	///
 	/// ## Panics
 	/// None. Any failures are propagated using the `Result` type.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -143,9 +144,10 @@ impl Command for LangCommand {
 		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
 
 		let embed_content = EmbedContent::new(lang_localised.title.clone())
-			.description(lang_localised.desc.replace("$lang$", lang.as_str()))
-			.command_type(EmbedType::First);
+			.description(lang_localised.desc.replace("$lang$", lang.as_str()));
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

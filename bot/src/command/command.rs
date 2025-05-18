@@ -1,10 +1,15 @@
-use crate::command::embed_content::{CommandType, ComponentTypeV1, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents};
-use anyhow::{anyhow, Result};
-use serenity::all::{Button, CommandInteraction, ComponentType, SkuId};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::builder::{CreateActionRow, CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreateMessage};
-use serenity::prelude::Context as SerenityContext;
+use crate::command::embed_content::{
+	CommandType, ComponentVersion, ComponentVersion1, EmbedsContents,
+};
 use crate::helper::create_default_embed::get_default_embed;
+use anyhow::{Result, anyhow};
+use serenity::all::CreateInteractionResponse::Defer;
+use serenity::all::{CommandInteraction, SkuId};
+use serenity::builder::{
+	CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter,
+	CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
+};
+use serenity::prelude::Context as SerenityContext;
 
 pub trait Command {
 	fn get_ctx(&self) -> &SerenityContext;
@@ -33,7 +38,7 @@ impl<T: Command> CommandRun for T {
 			let mut embed = get_default_embed(embed_content.colour)
 				.title(embed_content.title)
 				.fields(embed_content.fields);
-			
+
 			if let Some(desc) = embed_content.description {
 				embed = embed.description(desc);
 			}
@@ -60,10 +65,10 @@ impl<T: Command> CommandRun for T {
 				}
 				embed = embed.author(author_footer);
 			}
-			
+
 			embeds.push(embed);
 		}
-		
+
 		let mut files = vec![];
 		for file in contents.files {
 			let mut file_builder = CreateAttachment::bytes(file.data, file.filename);
@@ -72,93 +77,69 @@ impl<T: Command> CommandRun for T {
 			}
 			files.push(file_builder);
 		}
-		
+
 		let mut components = vec![];
-		for component in contents.action_row {
-			let mut component_builder = match component{
-				ComponentVersion::V1(v1) => {
-					let mut rows_builder = vec![];
-					for rows in v1.action_row {
-						let mut row_builder = vec![];
-						for row in rows {
-							match row {
-								ComponentTypeV1::Button(button) => {
-									match (button.url, button.custom_id, button.sku_id ){
-										(Some(url), None, None) => {
-											let mut button_builder = CreateButton::new_link(url)
-												.label(button.label)
-												.disabled(button.disabled);
-											if let Some(emoji) = button.emoji {
-												button_builder = button_builder.emoji(emoji);
-											}
-											if let Some(style) = button.style {
-												button_builder = button_builder.style(style);
-											}
-											
-											row_builder.push(CreateActionRow::buttons(button_builder));
-										}
-										(None, Some(id), None) => {
-											let mut button_builder = CreateButton::new(id)
-												.label(button.label)
-												.disabled(button.disabled);
-											if let Some(emoji) = button.emoji {
-												button_builder = button_builder.emoji(emoji);
-											}
-											if let Some(style) = button.style {
-												button_builder = button_builder.style(style);
-											}
-
-											row_builder.push(CreateActionRow::buttons(button_builder));
-										}
-										(None, None, Some(sku_id)) => {
-											let mut button_builder = CreateButton::new_premium(SkuId::new(sku_id.parse::<u64>()?)).label(button.label)
-												.disabled(button.disabled);
-											if let Some(emoji) = button.emoji {
-												button_builder = button_builder.emoji(emoji);
-											}
-											if let Some(style) = button.style {
-												button_builder = button_builder.style(style);
-											}
-
-											row_builder.push(CreateActionRow::buttons(button_builder));
-										}
-										_ => return Err(anyhow!("This button configuration is not supported"))
-									}
-								}
-								ComponentTypeV1::SelectMenu(select_menu) => {}
-								ComponentTypeV1::InputText(input_text) => {}
+		if let Some(action_row) = contents.action_row {
+			match action_row {
+				ComponentVersion::V1(v1) => match v1 {
+					ComponentVersion1::Buttons(buttons) => {
+						for button in buttons {
+							let mut button_builder =
+								match (button.custom_id, button.url, button.sku_id) {
+									(Some(id), None, None) => CreateButton::new(id),
+									(None, Some(url), None) => CreateButton::new_link(url),
+									(None, None, Some(sku_id)) => {
+										CreateButton::new_premium(SkuId::new(sku_id.parse()?))
+									},
+									_ => {
+										return Err(anyhow!("Invalid button"));
+									},
+								};
+							if let Some(emoji) = button.emoji {
+								button_builder = button_builder.emoji(emoji);
 							}
+							if let Some(style) = button.style {
+								button_builder = button_builder.style(style);
+							}
+							button_builder = button_builder.label(button.label);
+							button_builder = button_builder.disabled(button.disabled);
+							components.push(button_builder)
 						}
-					}
-				}
+					},
+					ComponentVersion1::SelectMenu(select_menu) => {},
+					ComponentVersion1::InputText(input_text) => {},
+				},
 				ComponentVersion::V2(v2) => {
 					return Err(anyhow!("Component V2 is not supported yet"));
-				}
+				},
 			};
 		}
-		
-		
+
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
-		
+
 		match contents.command_type {
-			CommandType::First => {	
+			CommandType::First => {
 				let builder = CreateInteractionResponseMessage::new()
 					.embeds(embeds)
 					.files(files)
 					.components(components);
 				let builder = CreateInteractionResponse::Message(builder);
-				command_interaction.create_response(&ctx.http, builder).await?;
-			}
+				command_interaction
+					.create_response(&ctx.http, builder)
+					.await?;
+			},
 			CommandType::Followup => {
 				let builder = CreateInteractionResponseFollowup::new()
 					.embeds(embeds)
 					.files(files)
 					.components(components);
-				command_interaction.create_followup(&ctx.http, builder).await?;
-			}
+				command_interaction
+					.create_followup(&ctx.http, builder)
+					.await?;
+			},
 		}
-		
+
 		Ok(())
 	}
 

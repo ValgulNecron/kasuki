@@ -78,9 +78,10 @@
 //!
 //! In this example, the command fetches data for a studio either by ID or search query and formats
 //! it into a detailed response, including media information, localization, and more.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::Command;
 use anyhow::{Result, anyhow};
 
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
@@ -208,7 +209,7 @@ impl Command for StudioCommand {
 	/// - The studio data is fetched via AniList's GraphQL API using either the studio's ID or name.
 	/// - Embed descriptions are dynamically constructed using localization strings and studio metadata.
 	/// - If there is no guild ID specified in the command interaction, a default guild ID of "0" is assigned.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -305,9 +306,10 @@ impl Command for StudioCommand {
 
 		let embed_content = EmbedContent::new(name)
 			.description(desc)
-			.url(Some(studio.site_url.unwrap_or_default()))
-			.command_type(EmbedType::First);
+			.url(studio.site_url.unwrap_or_default());
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

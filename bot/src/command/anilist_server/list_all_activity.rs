@@ -33,7 +33,10 @@
 //!       Returns:
 //!       - `Result<Vec<EmbedContent<'_, '_>>>`: A vector of `EmbedContent` containing the activity list for display.
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{
+	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::activity_data::Column;
@@ -155,7 +158,7 @@ impl Command for ListAllActivity {
 	///
 	/// # Note
 	/// This function is asynchronous and should be awaited in an appropriate async runtime environment.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -181,17 +184,25 @@ impl Command for ListAllActivity {
 		let list_activity_localised_text =
 			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
 
-		let mut embed_content = EmbedContent::new(list_activity_localised_text.title)
-			.description(join_activity)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(list_activity_localised_text.title).description(join_activity);
+		let action_row;
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			embed_content =
-				embed_content.action_row(vec![CreateActionRow::Buttons(Cow::from(vec![
-					CreateButton::new(format!("next_activity_{}", next_page))
-						.label(list_activity_localised_text.next),
-				]))]);
+			let buttons = vec![
+				ButtonV1::new(list_activity_localised_text.next)
+					.custom_id(format!("next_activity_{}", next_page)),
+			];
+			let v1 = ComponentVersion1::buttons(buttons);
+			action_row = Some(ComponentVersion::V1(v1));
+		} else {
+			action_row = None
 		}
 
-		Ok(vec![embed_content])
+		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		if let Some(action_row) = action_row {
+			embed_contents = embed_contents.action_row(action_row);
+		}
+
+		Ok(embed_contents)
 	}
 }

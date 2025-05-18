@@ -20,7 +20,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
@@ -114,7 +115,7 @@ impl Command for RegisterCommand {
 	/// # Workflow
 	/// 1. The function retrieves context and bot-specific resources (e.g., cache, database connection).
 	///
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -124,6 +125,8 @@ impl Command for RegisterCommand {
 		let config = bot_data.config.clone();
 
 		let map = get_option_map_string(command_interaction);
+
+		self.defer().await?;
 
 		let value = map
 			.get(&FixedString::from_str_trunc("username"))
@@ -168,11 +171,12 @@ impl Command for RegisterCommand {
 
 		let embed_content = EmbedContent::new(user_data.clone().name)
 			.description(desc)
-			.thumbnail(Some(user_data.clone().avatar.unwrap().large.unwrap()))
-			.url(Some(get_user_url(&user_data.id)))
-			.command_type(EmbedType::First)
-			.colour(Some(get_color(user_data.clone())));
+			.thumbnail(user_data.clone().avatar.unwrap().large.unwrap())
+			.url(get_user_url(&user_data.id))
+			.colour(get_color(user_data.clone()));
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

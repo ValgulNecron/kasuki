@@ -76,12 +76,13 @@
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
 use anyhow::{Result, anyhow};
 
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
 use small_fixed_array::FixedString;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 
 /// A struct representing the `GivePremiumSubCommand`.
 ///
@@ -187,7 +188,7 @@ impl Command for GivePremiumSubCommand {
 	/// # Note
 	/// - This function assumes that the bot's configuration and HTTP client are correctly implemented and operational.
 	/// - The guild ID must be available for localization purposes, and the subscription ID must correspond to an active SKU.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -239,7 +240,9 @@ impl Command for GivePremiumSubCommand {
 				.replace("{user}", &user.to_string())
 				.replace("{subscription}", &subscription),
 		);
+		
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }

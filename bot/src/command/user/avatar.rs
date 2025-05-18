@@ -2,13 +2,13 @@
 //!
 //! It takes a Serenity context and a command interaction as input and processes
 //! the command to provide appropriate responses based on the user's avatar.
-use crate::command::command::{Command, EmbedContent};
-use crate::config::Config;
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::structure::message::user::avatar::load_localization_avatar;
 use anyhow::Result;
-use serenity::all::{CommandInteraction, CommandType, Context as SerenityContext, User};
+use serenity::all::{CommandInteraction, Context as SerenityContext, User};
 
 /// A structure representing a command to fetch or handle avatar-related operations within a Discord bot.
 ///
@@ -41,7 +41,7 @@ impl Command for AvatarCommand {
 	/// This method performs the following tasks:
 	/// 1. Resolves the user associated with the current command interaction by using `get_user_command`.
 	/// 2. Retrieves the bot's shared context
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -76,27 +76,28 @@ impl Command for AvatarCommand {
 		};
 
 		let title = avatar_localised.title.replace("$user$", username.as_str());
-		let content1: EmbedContent<'static, 'static> =
-			EmbedContent::new(title).images_url(Some(avatar_url));
+		let content1 = EmbedContent::new(title).images_url(avatar_url);
 
-		let content2: Option<EmbedContent<'static, 'static>> = match server_avatar {
+		let content2: Option<EmbedContent> = match server_avatar {
 			Some(server_avatar) => {
 				let title = avatar_localised
 					.server_title
 					.replace("$user$", username.as_str());
-				let content2 = EmbedContent::new(title).images_url(Some(server_avatar));
+				let content2 = EmbedContent::new(title).images_url(server_avatar);
 
 				Some(content2)
 			},
 			None => None,
 		};
 
-		let mut embed_content: Vec<EmbedContent<'static, 'static>> = vec![content1];
+		let mut embed_content: Vec<EmbedContent> = vec![content1];
 		if let Some(content2) = content2 {
 			embed_content.push(content2);
 		}
 
-		Ok(embed_content)
+		let embed_contents = EmbedsContents::new(CommandType::First, embed_content);
+
+		Ok(embed_contents)
 	}
 }
 

@@ -2,7 +2,8 @@
 //! within a Discord bot using the Serenity and SeaORM libraries. It defines the `DeleteActivityCommand`,
 //! enabling the ability to delete activities associated with an anime, and the helper function `remove_activity` to handle database operations.
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
@@ -116,7 +117,7 @@ impl Command for DeleteActivityCommand {
 	/// - Fetching anime media information from AniList.
 	/// - Database operations for managing activity records.
 	/// - Localization functions for internationalization and localized user feedback.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let command_interaction = self.get_command_interaction();
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -159,10 +160,11 @@ impl Command for DeleteActivityCommand {
 					.success_desc
 					.replace("$anime$", anime_name.as_str()),
 			)
-			.url(Some(url))
-			.command_type(EmbedType::Followup);
+			.url(url);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

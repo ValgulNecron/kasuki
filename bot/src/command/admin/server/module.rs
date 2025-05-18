@@ -1,6 +1,7 @@
 //! The `ModuleCommand` struct represents a command to manage module activations in a Discord bot.
 //! It contains context and interaction details necessary for processing the command.
-use crate::command::command::{Command, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
@@ -126,7 +127,7 @@ impl Command for ModuleCommand {
 	///
 	/// # Return Type
 	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A `Result` containing a `Vec` of embed content or an error.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -187,11 +188,11 @@ impl Command for ModuleCommand {
 			&module_localised.off
 		};
 
-		let embed_content = EmbedContent::new(module.clone())
-			.description(desc.clone())
-			.command_type(EmbedType::First);
+		let embed_content = EmbedContent::new(module.clone()).description(desc.clone());
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

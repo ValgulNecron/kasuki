@@ -1,7 +1,7 @@
 //! Documentation for `TranscriptCommand` implementation and associated functionality.
-use crate::command::command::{
-	Command, CommandRun, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType,
-};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
@@ -13,8 +13,8 @@ use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use reqwest::{Url, multipart};
 use serde_json::Value;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tracing::trace;
 use uuid::Uuid;
+
 /// Structure representing a transcript command in a Discord bot.
 ///
 /// A `TranscriptCommand` encapsulates the details needed to process and execute
@@ -126,7 +126,7 @@ impl Command for TranscriptCommand {
 	///     println!("Embed Description: {}", content.description());
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -250,10 +250,11 @@ impl Command for TranscriptCommand {
 		let res_result: Result<Value, reqwest::Error> = response.json().await;
 		let res = res_result?;
 		let text = res["text"].as_str().unwrap_or("");
-		let embed_content = EmbedContent::new(transcript_localised.title)
-			.description(text.to_string())
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(transcript_localised.title).description(text.to_string());
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

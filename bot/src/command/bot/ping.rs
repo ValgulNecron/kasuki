@@ -9,11 +9,12 @@
 //! This struct implements the `Command` trait, which provides methods for retrieving
 //! execution context, processing the command interaction, and constructing the
 //! response as embedded content.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command,};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::{Result, anyhow};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 
 /// A struct representing a PingCommand in the bot's command handling system.
 ///
@@ -118,7 +119,7 @@ impl Command for PingCommand {
 	/// - `ShardManager` for managing bot shards.
 	/// - `EmbedContent` for creating embeddable content for Discord messages.
 	/// - `anyhow` crate for error handling.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -171,9 +172,10 @@ impl Command for PingCommand {
 					.replace("$shard$", shard_id.to_string().as_str())
 					.replace("$latency$", latency.as_str())
 					.replace("$status$", &stage),
-			)
-			.command_type(EmbedType::First);
+			);
+		
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content])
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }

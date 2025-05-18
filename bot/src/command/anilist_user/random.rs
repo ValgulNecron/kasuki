@@ -55,7 +55,8 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::background_task::update_random_stats::update_random_stats;
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
@@ -206,7 +207,7 @@ impl Command for RandomCommand {
 	/// - `make_request_anilist`: Executes AniList GraphQL queries.
 	/// - `convert_anilist_flavored_to_discord_flavored_markdown`: Converts descriptions to be compatible with Discord markdown styling.
 	/// - `EmbedContent`: A custom structure to build and format the Discord embed messages.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -319,11 +320,10 @@ impl Command for RandomCommand {
 			.replace("$genres$", genres.as_str())
 			.replace("$desc$", desc.as_str());
 
-		let embed_content = EmbedContent::new(title)
-			.description(full_desc)
-			.url(Some(url))
-			.command_type(EmbedType::Followup);
+		let embed_content = EmbedContent::new(title).description(full_desc).url(url);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

@@ -5,7 +5,8 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -153,7 +154,7 @@ impl Command for UserCommand {
 	/// - `get_user`: Function used to fetch AniList user data.
 	/// - `user::user_content`: Function used to generate embed content for AniList user data.
 	///
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

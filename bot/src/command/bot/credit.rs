@@ -52,7 +52,8 @@
 //! - Propagates errors using `anyhow::Result` in cases where localization data fails to load or any other runtime issue occurs.
 use anyhow::Result;
 
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::credit::load_localization_credit;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -147,7 +148,7 @@ impl Command for CreditCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -169,10 +170,10 @@ impl Command for CreditCommand {
 			desc += x.desc.as_str()
 		}
 
-		let embed_content = EmbedContent::new(credit_localised.title)
-			.description(desc)
-			.command_type(EmbedType::First);
+		let embed_content = EmbedContent::new(credit_localised.title).description(desc);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

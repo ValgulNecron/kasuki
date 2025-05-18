@@ -1,4 +1,4 @@
-use crate::command::command::{EmbedContent, EmbedType};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
@@ -82,7 +82,7 @@ pub struct FuzzyDate {
 }
 pub async fn character_content<'a>(
 	command_interaction: &'a CommandInteraction, character: Character, db_config: DbConfig,
-) -> Result<Vec<EmbedContent<'static, 'static>>> {
+) -> Result<EmbedsContents> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -179,17 +179,18 @@ pub async fn character_content<'a>(
 
 	let character_name = format!("{}/{}", user_pref, native);
 
-	let mut content = EmbedContent::new(character_name)
+	let mut embeds_content = EmbedContent::new(character_name)
 		.description(desc)
-		.url(Some(character.site_url.unwrap_or_default()))
-		.command_type(EmbedType::First)
+		.url(character.site_url.unwrap_or_default())
 		.fields(fields);
 
 	if let Some(image) = character.image {
 		if let Some(large) = image.large {
-			content.images_url = Some(large);
+			embeds_content = embeds_content.images_url(large);
 		}
 	}
 
-	Ok(vec![content])
+	let embeds_contents = EmbedsContents::new(CommandType::First, vec![embeds_content]);
+
+	Ok(embeds_contents)
 }

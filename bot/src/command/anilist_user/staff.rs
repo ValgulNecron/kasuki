@@ -6,7 +6,8 @@
 //! to be formatted into Discord Embed responses.
 use std::sync::Arc;
 
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
@@ -136,7 +137,7 @@ impl Command for StaffCommand {
 	/// # Note
 	/// This function assumes that staff data and localization data are well-formed and available.
 	/// Unavailable or malformed data will be replaced with fallback values (e.g., "Unknown").
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -243,12 +244,13 @@ impl Command for StaffCommand {
 			.description(convert_anilist_flavored_to_discord_flavored_markdown(
 				staff.description.unwrap_or_default(),
 			))
-			.thumbnail(staff.image.unwrap().large)
-			.url(staff.site_url)
-			.command_type(EmbedType::First)
+			.thumbnail(staff.image.unwrap().large.unwrap_or_default())
+			.url(staff.site_url.unwrap_or_default())
 			.fields(fields);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

@@ -1,7 +1,8 @@
 //! This module defines the `MangaCommand` structure and its implementation for fetching manga
 //! information using the AniList GraphQL API. It forms part of a bot system based on the Serenity library
 //! for managing commands and interactions.
-use crate::command::command::{Command, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -122,7 +123,7 @@ impl Command for MangaCommand {
 	///
 	/// - `self`: Represents the instance containing the context to execute the function.
 	/// - Returns a `Result` object with the success payload `Vec<EmbedContent<'_, '_>>`.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

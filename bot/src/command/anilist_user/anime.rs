@@ -66,7 +66,8 @@
 //!     },
 //! }
 //! ```
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -169,7 +170,7 @@ impl Command for AnimeCommand {
 	/// `MediaQuerryId`, `MediaQuerrySearch`, and various utility functions (e.g., `make_request_anilist`, `media_content`).
 	///
 	/// Ensure that all relevant dependencies are properly defined and that the context contains the necessary data for execution.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -235,10 +236,10 @@ impl Command for AnimeCommand {
 			}
 		};
 
-		let embed_content =
+		let embed_contents =
 			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
 				.await?;
 
-		Ok(embed_content)
+		Ok(embed_contents)
 	}
 }

@@ -4,7 +4,7 @@
 //!
 //! # Fields
 //! - `ctx`
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command,};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
@@ -15,6 +15,7 @@ use serenity::all::{
 };
 use small_fixed_array::FixedString;
 use tracing::error;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 
 /// The `RemoveTestSubCommand` struct defines a structure for a specific subcommand
 /// in handling interactions within a Discord bot using the Serenity library.
@@ -77,7 +78,7 @@ impl Command for RemoveTestSubCommand {
 	/// Asynchronously retrieves and processes the contents related to user entitlements.
 	///
 	/// This function performs the following
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -119,9 +120,10 @@ impl Command for RemoveTestSubCommand {
 		}
 
 		let embed_content = EmbedContent::new(String::new())
-			.description(localization.success.replace("{user}", &user.to_string()))
-			.command_type(EmbedType::Followup);
+			.description(localization.success.replace("{user}", &user.to_string()));
+		
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }

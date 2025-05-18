@@ -81,7 +81,7 @@
 //! and permissions to access guild data such as its metadata, channels, and roles.
 use anyhow::{Result, anyhow};
 
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, EmbedContent};
 use crate::event_handler::BotData;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{CommandInteraction, Context as SerenityContext};

@@ -58,7 +58,7 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command,};
 use crate::database::kill_switch::{ActiveModel, Column};
 use crate::database::prelude::KillSwitch;
 use crate::event_handler::BotData;
@@ -72,6 +72,7 @@ use sea_orm::QueryFilter;
 use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 
 /// A struct representing a kill switch command to be executed within the context of a Discord bot.
 ///
@@ -193,7 +194,7 @@ impl Command for KillSwitchCommand {
 	/// # Notes
 	/// Ensure that the database setup is correct and the necessary tables (`KillSwitch`) exist with the expected schema.
 	/// The localization function (`load_localization_kill_switch`) must support fallback behaviors for missing translations.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -250,9 +251,10 @@ impl Command for KillSwitchCommand {
 		};
 
 		let embed_content = EmbedContent::new(module.clone())
-			.description(desc)
-			.command_type(EmbedType::First);
+			.description(desc);
+		
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }

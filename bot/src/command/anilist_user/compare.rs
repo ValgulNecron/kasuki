@@ -7,7 +7,8 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -138,7 +139,7 @@ impl Command for CompareCommand {
 	/// This method assumes both users' statistics are readily accessible and contain all necessary fields
 	/// for comparisons. If certain fields (e.g., `tags`, `genres`) are missing, appropriate error handling
 	/// should be implemented to ensure a graceful failure or fallback logic.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -404,11 +405,11 @@ impl Command for CompareCommand {
 			.as_str(),
 		);
 
-		let embed_content = EmbedContent::new("".to_string())
-			.description(desc)
-			.command_type(EmbedType::First);
+		let embed_content = EmbedContent::new("".to_string()).description(desc);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

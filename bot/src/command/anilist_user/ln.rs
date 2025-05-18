@@ -5,7 +5,8 @@
 //! * `ctx` - The Serenity context used for accessing Discord API and application data.
 //! * `command_interaction` - The interaction object representing the command invocation by the user.
 //!
-use crate::command::command::{Command, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -121,7 +122,7 @@ impl Command for LnCommand {
 	///     // Process your embed contents (e.g., send a response to Discord, log results, etc.)
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

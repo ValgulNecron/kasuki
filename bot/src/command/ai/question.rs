@@ -11,9 +11,9 @@
 //! # See Also
 //! - [`Command`](crate::command::command::Command): The trait this struct implements.
 
-use crate::command::command::{
-	Command, CommandRun, EmbedContent, EmbedType, PremiumCommand, PremiumCommandType,
-};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -24,6 +24,7 @@ use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use tracing::trace;
+
 /// The `QuestionCommand` struct represents a command in the context of a bot using the Serenity framework.
 /// It encapsulates the context, interaction details, and the command name specifically related to a user-issued command.
 ///
@@ -150,7 +151,7 @@ impl Command for QuestionCommand {
 	///   this method.
 	/// - The function automatically defers the command interaction to indicate that processing
 	///   is ongoing while awaiting a response from the API.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -201,11 +202,11 @@ impl Command for QuestionCommand {
 		)
 		.await?;
 
-		let embed_content = EmbedContent::new(String::new())
-			.description(text)
-			.command_type(EmbedType::Followup);
+		let embed_content = EmbedContent::new(String::new()).description(text);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

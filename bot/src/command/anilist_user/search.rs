@@ -85,7 +85,8 @@ use crate::command::anilist_user::manga::MangaCommand;
 use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
 use crate::command::anilist_user::user::UserCommand;
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::helper::get_option::command::get_option_map_string;
 
 /// A struct representing a search command within a Discord bot context.
@@ -200,7 +201,7 @@ impl Command for SearchCommand {
 	///   - `StaffCommand`
 	///   - `UserCommand`
 	///   - `StudioCommand`
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 

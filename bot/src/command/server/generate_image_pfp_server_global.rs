@@ -40,7 +40,7 @@
 //! This code is typically used as part of an event handler where the bot processes user
 //! interactions and responds with the appropriate image or embed content. The structure
 //! contributes to handling the `"global"` image generation command.
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, EmbedContent};
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
 use anyhow::Result;
