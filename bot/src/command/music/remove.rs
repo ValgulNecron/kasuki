@@ -1,7 +1,8 @@
 //! This module defines the `RemoveCommand`, a structure and implementation
 //! used to handle the "remove" functionality within a bot command interaction.
 //! The "remove" command allows users to remove a track from the music queue.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::remove::load_localization_remove;
@@ -124,7 +125,7 @@ impl Command for RemoveCommand {
 	///
 	/// This function is typically called in the context of handling a "remove" subcommand
 	/// that modifies the music playback queue in a guild's voice session.
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -152,9 +153,11 @@ impl Command for RemoveCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content = EmbedContent::new(remove_localised.title)
-				.description(remove_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+				.description(remove_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
 
 		let map = get_option_map_number_subcommand(command_interaction);
@@ -163,10 +166,11 @@ impl Command for RemoveCommand {
 
 		player.get_queue().remove(index)?;
 
-		let embed_content = EmbedContent::new(remove_localised.title)
-			.description(remove_localised.success)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(remove_localised.title).description(remove_localised.success);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

@@ -6,10 +6,11 @@ use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, SkuId};
 use serenity::builder::{
-	CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter,
+	CreateActionRow, CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter,
 	CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use serenity::prelude::Context as SerenityContext;
+use std::borrow::Cow;
 
 pub trait Command {
 	fn get_ctx(&self) -> &SerenityContext;
@@ -78,11 +79,12 @@ impl<T: Command> CommandRun for T {
 			files.push(file_builder);
 		}
 
-		let mut components = vec![];
+		let mut component = None;
 		if let Some(action_row) = contents.action_row {
 			match action_row {
 				ComponentVersion::V1(v1) => match v1 {
 					ComponentVersion1::Buttons(buttons) => {
+						let mut components = vec![];
 						for button in buttons {
 							let mut button_builder =
 								match (button.custom_id, button.url, button.sku_id) {
@@ -105,15 +107,22 @@ impl<T: Command> CommandRun for T {
 							button_builder = button_builder.disabled(button.disabled);
 							components.push(button_builder)
 						}
+						component = Some(CreateActionRow::Buttons(Cow::Owned(components)))
 					},
-					ComponentVersion1::SelectMenu(select_menu) => {},
-					ComponentVersion1::InputText(input_text) => {},
+					ComponentVersion1::SelectMenu(select_menu) => {
+						return Err(anyhow!("Component V1 SelectMenu is not supported yet"));
+					},
+					ComponentVersion1::InputText(input_text) => {
+						return Err(anyhow!("Component V1 InputText is not supported yet"));
+					},
 				},
 				ComponentVersion::V2(v2) => {
 					return Err(anyhow!("Component V2 is not supported yet"));
 				},
 			};
-		}
+		};
+
+		let component = component.unwrap();
 
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
@@ -123,7 +132,7 @@ impl<T: Command> CommandRun for T {
 				let builder = CreateInteractionResponseMessage::new()
 					.embeds(embeds)
 					.files(files)
-					.components(components);
+					.components(Cow::Owned(vec![component]));
 				let builder = CreateInteractionResponse::Message(builder);
 				command_interaction
 					.create_response(&ctx.http, builder)
@@ -133,7 +142,7 @@ impl<T: Command> CommandRun for T {
 				let builder = CreateInteractionResponseFollowup::new()
 					.embeds(embeds)
 					.files(files)
-					.components(components);
+					.components(Cow::Owned(vec![component]));
 				command_interaction
 					.create_followup(&ctx.http, builder)
 					.await?;

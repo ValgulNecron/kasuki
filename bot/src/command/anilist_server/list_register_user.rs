@@ -1,14 +1,6 @@
-//! `ListRegisterUser` is a structure that implements the [`Command`] trait and is responsible for
-//! listing registered users in a Discord guild, fetching their associated AniList user IDs,
-//! and displaying them via Discord Slash commands.
-//!
-//! This implementation fetches guild members, queries the associated registered users in the database,
-//! and formats the data to be shown in an embed response.
-//!
-//! # Fields
-//!
-//! * `ctx`: The [`SerenityContext`] instance, representing the Discord bot's context.
-//! * `command
+//! `ListRegisterUser` is a struct that handles the functionality of listing registered users
+//! in a Discord guild. It implements the `Command` trait to define specific behaviors
+//! for interacting with Discord and retrieving necessary data.
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
 	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
@@ -32,53 +24,84 @@ use std::borrow::Cow;
 use std::sync::Arc;
 use tracing::trace;
 
-/// A structure that encapsulates context and interaction details for listing registered users.
+/// A structure representing a user registration process in a system utilizing the Serenity framework.
+/// This structure encapsulates the context and interaction required to handle a user's command.
 ///
-/// The `ListRegisterUser` struct is used to handle command interactions within the Serenity framework.
-/// It provides access to the command interaction data and the bot's context, making it useful for
-/// implementing functionality that involves listing
+/// # Fields
+///
+/// * `ctx` - Represents the `SerenityContext`, providing access to the bot's state and functionality,
+///           such as interacting with Discord's API or accessing data shared across commands.
+///
+/// * `command_interaction` - Represents the `CommandInteraction`, which contains all the details
+///                           about the user's interaction/command invocation, including the command
+///                           name, options, and the interaction's associated metadata.
+///
+/// # Usage
+/// This struct is designed to be used within the context of a Discord bot built with Serenity.
+/// It combines the necessary context and command interaction data to facilitate processes such as
+/// user
 pub struct ListRegisterUser {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
 impl Command for ListRegisterUser {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
+	/// Retrieves a reference to the `SerenityContext` instance.
+	///
+	/// This method provides access to the `SerenityContext` associated
+	/// with the current instance. The `SerenityContext` contains
+	/// various components and shared data crucial for operating with
+	/// the Serenity library, such as HTTP interaction, shard information,
+	/// and cache.
 	///
 	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`).
+	///
+	/// A reference to the `SerenityContext` stored in the current instance.
 	///
 	/// # Example
+	///
 	/// ```rust
 	/// let context = instance.get_ctx();
-	/// // You can now use the context to interact with the Discord API.
+	/// // Use the context for further operations
 	/// ```
-	///
-	/// This method provides access to
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
 	}
 
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
+	/// Retrieves a reference to the `CommandInteraction` associated with the instance.
 	///
 	/// # Returns
-	/// A reference to the `CommandInteraction` instance stored within the object.
+	/// A reference to the `CommandInteraction` stored within the current instance.
 	///
-	/// # Example
-	/// ```rust
-	///
+	/// # Examples
+	/// ```
+	/// let interaction = instance.get_command_interaction();
+	/// // Use `interaction` as needed
+	/// ```
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
 
-	/// Asynchronously retrieves a list of `EmbedContent` with user-related information.
+	/// Asynchronously fetches and prepares the contents to be embedded in the response.
 	///
-	/// This function interacts with a Discord guild to fetch a list of users and their associated data.
-	/// It defers the initial response to indicate processing and fetches necessary information
-	/// like guild configuration, localization data, and user lists.
+	/// # Returns
+	/// * `Result<EmbedsContents>` - A result containing the `EmbedsContents` on success or an error on failure.
 	///
-	/// # Returns:
-	/// -
+	/// This method performs the following steps:
+	/// 1. Retrieves the application context and bot data.
+	/// 2. Extracts the guild ID from the interaction; returns an error if absent.
+	/// 3. Loads user localization for the given guild ID.
+	/// 4. Fetches partial guild information with counts using the guild's ID.
+	/// 5. Generates a description, count of users, and last user ID from the list of users.
+	/// 6. Constructs an embed with the above-generated details.
+	/// 7. If the number of users exceeds or equals the limit, adds a "Next" button for pagination.
+	/// 8. Wraps the embed content and optional components into `EmbedsContents`.
+	///
+	/// # Errors
+	/// Returns an error in the following situations:
+	/// - The guild interaction fails to provide a guild ID.
+	/// - Custom errors from localization loading.
+	/// - Failures in fetching partial guild data or other external
 	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -117,25 +140,54 @@ impl Command for ListRegisterUser {
 			embed_contents = embed_contents.action_row(action_row);
 		}
 
-		Ok(vec![embed_content]).await
+		Ok(embed_contents)
 	}
 }
 
-/// A struct representing a collection of data associated with a user.
+/// The `Data` struct serves as a container for user-related information and associated metadata.
 ///
 /// # Fields
-/// - `user` (`User`): A structure representing the user data.
-/// - `anilist` (`String`): A string representing the AniList username or identifier corresponding to the user.
+///
+/// * `user` - Represents the user information stored as a `User` struct.
+/// This typically includes user-specific details such as username, email, or ID.
+///
+/// * `anilist` - A `String` field that holds the AniList-related data, such as profile URL or ID.
+/// This is useful to associate the user with their AniList account or data from the AniList API.
+///
+/// # Example
+///
+/// ```rust
+/// struct User {
+///     pub username: String,
+/// }
+///
+/// let user = User {
+///     username: String::from("example_user"),
+/// };
+///
+/// let data = Data {
+///     user,
+///     anilist: String::
 struct Data {
 	pub user: User,
 	pub anilist: String,
 }
 
-/// Asynchronously retrieves a list of AniList-linked users from a partial guild and returns them in a formatted string.
+/// Asynchronously retrieves a formatted list of AniList user links for the members of a given Discord guild.
 ///
-/// # Parameters
-/// - `guild`: The partial guild object representing the guild from which to fetch members.
-/// - `ctx`: A
+/// This function iterates through the members of the provided Discord guild, checks if they are registered
+/// in the application's database, and retrieves their AniList IDs if applicable. The collected information
+/// is formatted into a Markdown-compatible string of user links and returns additional metadata such as the
+/// number of processed users and the ID of the last processed member.
+///
+/// # Arguments
+///
+/// * `guild` - A partial representation of the Discord guild (server) to process.
+/// * `ctx` - A reference to the SerenityContext, used to interact with Discord's API.
+/// * `last_id` - An optional identifier of the last processed user to continue from (useful for paginated requests).
+/// * `connection` - A thread-safe reference to the application's database connection.
+///
+///
 pub async fn get_the_list(
 	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
 	connection: Arc<DatabaseConnection>,

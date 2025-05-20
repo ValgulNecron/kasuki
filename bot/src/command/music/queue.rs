@@ -1,5 +1,6 @@
 //! Documentation for QueueCommand and associated functionality
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
@@ -132,7 +133,7 @@ impl Command for QueueCommand {
 	/// - The function ensures the bot's state and player's context are properly validated before
 	///   attempting to retrieve or format the music queue.
 	/// - A maximum of 9 tracks are included in the queue message to limit excessive output.
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -160,9 +161,11 @@ impl Command for QueueCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content = EmbedContent::new(queue_localised.title)
-				.description(queue_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+				.description(queue_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
 		let queue = player.get_queue();
 		let player_data = player.get_player().await?;
@@ -232,10 +235,10 @@ impl Command for QueueCommand {
 			queue_localised.nothing_playing.clone()
 		};
 
-		let embed_content = EmbedContent::new(now_playing_message)
-			.description(queue_message)
-			.command_type(EmbedType::Followup);
+		let embed_content = EmbedContent::new(now_playing_message).description(queue_message);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

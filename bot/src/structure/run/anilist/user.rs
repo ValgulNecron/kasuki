@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::command::command::{EmbedContent, EmbedType};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::structure::message::anilist_user::user::{UserLocalised, load_localization_user};
@@ -182,7 +182,7 @@ impl Display for UserStatisticsSort {
 
 pub async fn user_content<'a>(
 	command: &'a CommandInteraction, user: User, db_config: DbConfig,
-) -> Result<Vec<EmbedContent<'static, 'static>>> {
+) -> Result<EmbedsContents> {
 	let guild_id = match command.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -213,20 +213,21 @@ pub async fn user_content<'a>(
 		}
 	}
 
-	let mut content = EmbedContent::new(user.name.clone())
-		.url(Some(get_user_url(&user.id)))
-		.command_type(EmbedType::First)
-		.colour(Some(get_color(user.clone())))
+	let mut embed_content = EmbedContent::new(user.name.clone())
+		.url(get_user_url(&user.id))
+		.colour(get_color(user.clone()))
 		.fields(field)
-		.images_url(Some(get_banner(&user.id)));
+		.images_url(get_banner(&user.id));
 
 	if let Some(avatar) = user.avatar {
 		if let Some(large) = avatar.large {
-			content.thumbnail = Some(large)
+			embed_content.thumbnail = Some(large)
 		}
 	}
 
-	Ok(vec![content])
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
 }
 
 pub fn get_user_url(user_id: &i32) -> String {

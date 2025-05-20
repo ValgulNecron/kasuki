@@ -78,7 +78,8 @@
 //!     }
 //! }
 //! ```
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::resume::load_localization_resume;
 use anyhow::anyhow;
@@ -201,7 +202,7 @@ impl Command for ResumeCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -229,17 +230,20 @@ impl Command for ResumeCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content = EmbedContent::new(resume_localised.title)
-				.description(resume_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+				.description(resume_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
 
 		player.set_pause(false).await?;
 
-		let embed_content = EmbedContent::new(resume_localised.title)
-			.description(resume_localised.success)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(resume_localised.title).description(resume_localised.success);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

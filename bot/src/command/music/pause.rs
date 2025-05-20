@@ -5,7 +5,8 @@
 //! # Fields
 //! * `ctx` - An instance of `SerenityContext` providing access to Discord's API.
 //! * `command_interaction` - The CommandInteraction object containing information about the interaction.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::pause::load_localization_pause;
 use anyhow::anyhow;
@@ -115,7 +116,7 @@ impl Command for PauseCommand {
 	/// - [`EmbedContent`]: Represents the content of embed messages sent to the user.
 	/// - [`EmbedType`]: Type of the embed message (e.g., follow-up, error).
 	///
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -144,16 +145,17 @@ impl Command for PauseCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content = EmbedContent::new(pause_localised.title)
-				.description(pause_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+				.description(pause_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+			return Ok(embed_contents);
 		};
 		player.set_pause(true).await?;
 
-		let embed_content = EmbedContent::new(pause_localised.title)
-			.description(pause_localised.success)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(pause_localised.title).description(pause_localised.success);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		Ok(embed_contents)
 	}
 }

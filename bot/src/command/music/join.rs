@@ -5,7 +5,8 @@
 //! # Attributes
 //! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
 //! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::join::load_localization_join;
 use anyhow::{Result, anyhow};
@@ -108,7 +109,7 @@ impl Command for JoinCommand {
 	/// ### Notes
 	/// - Ensure that sharing and cloning bot data is safe and that lifetime requirements align with the provided borrow checks.
 	/// - Internal logic might depend on external systems or APIs for joining the context, bot data, and interaction output.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -182,7 +183,7 @@ impl Command for JoinCommand {
 /// - Ensure the voice permissions for the bot are properly granted in the target guild.
 pub async fn join(
 	ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction,
-) -> Result<(bool, Vec<EmbedContent<'static, 'static>>)> {
+) -> Result<(bool, EmbedsContents)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -224,20 +225,17 @@ pub async fn join(
 		match user_channel_id {
 			Some(channel) => channel,
 			None => {
-				return Ok((
-					false,
-					vec![
-						EmbedContent::new(join_localised.title)
-							.description(join_localised.error_no_voice)
-							.command_type(EmbedType::Followup),
-					],
-				));
+				let embed_content = EmbedContent::new(join_localised.title)
+					.description(join_localised.error_no_voice);
+				let embed_contents =
+					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+				return Ok((false, embed_contents));
 			},
 		}
 	};
 
 	// Create the embed content outside the non-Send guild reference scope
-	let mut content = EmbedContent::new(join_localised.title).command_type(EmbedType::Followup);
+	let mut embed_content = EmbedContent::new(join_localised.title);
 
 	if lava_client
 		.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
@@ -259,23 +257,31 @@ pub async fn join(
 					)
 					.await?;
 
-				content = content.description(
+				embed_content = embed_content.description(
 					join_localised
 						.success
 						.replace("{0}", &connect_to.mention().to_string()),
 				);
-				(true, content)
+				let embed_contents =
+					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+				(true, embed_contents)
 			},
 			Err(why) => {
-				content = content.description(
+				embed_content = embed_content.description(
 					join_localised
 						.error_joining
 						.replace("{0}", &why.to_string()),
 				);
-				(false, content)
+				let embed_contents =
+					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+				(false, embed_contents)
 			},
 		};
-		return Ok((result, vec![return_data]));
+		return Ok((result, return_data));
 	};
-	Ok((false, vec![content]))
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok((false, embed_contents))
 }

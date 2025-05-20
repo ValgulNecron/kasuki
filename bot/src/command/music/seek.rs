@@ -63,7 +63,8 @@
 //! # Notes
 //! - This command only functions within a guild context where Lavalink is properly configured.
 //! - If no track is currently playing in the guild, the command will notify the user accordingly.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::structure::message::music::seek::load_localization_seek;
@@ -182,7 +183,7 @@ impl Command for SeekCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -210,10 +211,12 @@ impl Command for SeekCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let embed_content = EmbedContent::new(seek_localised.title)
-				.description(seek_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+			let embed_content =
+				EmbedContent::new(seek_localised.title).description(seek_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
 
 		let map = get_option_map_number_subcommand(command_interaction);
@@ -222,16 +225,18 @@ impl Command for SeekCommand {
 
 		let now_playing = player.get_player().await?.track;
 
-		let mut embed_content =
-			EmbedContent::new(seek_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content = EmbedContent::new(seek_localised.title);
 
 		if let Some(_) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;
-			embed_content.description = seek_localised.success.replace("{0}", &time.to_string());
+			embed_content =
+				embed_content.description(seek_localised.success.replace("{0}", &time.to_string()));
 		} else {
-			embed_content.description = seek_localised.nothing_playing;
+			embed_content = embed_content.description(seek_localised.nothing_playing);
 		}
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

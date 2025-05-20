@@ -3,7 +3,8 @@
 use anyhow::{Result, anyhow};
 use std::borrow::Cow;
 
-use crate::command::command::{Command, EmbedContent, EmbedImage};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::config::DbConfig;
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
@@ -118,16 +119,16 @@ impl Command for GenerateImagePfPCommand {
 	///
 	/// - The function assumes the presence of `BotData` in the shared context and that `config.db`
 	///   is properly set up to support the `get_content` function.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
 
-		let embed_content =
+		let embed_contents =
 			get_content(ctx, command_interaction, "local", config.db.clone()).await?;
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }
 
@@ -183,7 +184,7 @@ impl Command for GenerateImagePfPCommand {
 pub async fn get_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &CommandInteraction, image_type: &str,
 	db_config: DbConfig,
-) -> Result<EmbedContent<'static, 'static>> {
+) -> Result<EmbedsContents> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -228,10 +229,12 @@ pub async fn get_content<'a>(
 
 	let image_path = format!("{}.png", uuid);
 
-	Ok(
-		EmbedContent::new(pfp_server_image_localised_text.title).images(Some(vec![EmbedImage {
-			attachment: CreateAttachment::bytes(image_data, Cow::from(image_path.clone())),
-			image: image_path,
-		}])),
-	)
+	let embed_content = EmbedContent::new(pfp_server_image_localised_text.title)
+		.images_url(format!("attachment://{}", image_path.clone()));
+	let file = CommandFiles::new(image_path, image_data);
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content])
+		.add_file(file)
+		.clone();
+
+	Ok(embed_contents)
 }

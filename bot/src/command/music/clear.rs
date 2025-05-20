@@ -59,7 +59,8 @@
 //!
 //! clear_command.get_contents().await;
 //! ```
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::clear::load_localization_clear;
 use anyhow::anyhow;
@@ -184,7 +185,7 @@ impl Command for ClearCommand {
 	/// 4. Attempt to retrieve the player for the given guild.
 	/// 5. On success, clear the player's queue and respond with a localized success message.
 	/// 6. Handle errors and provide appropriate localized failure messages.
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -213,18 +214,19 @@ impl Command for ClearCommand {
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content = EmbedContent::new(clear_localised.title)
-				.description(clear_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
+				.description(clear_localised.error_no_voice);
 
-			return Ok(vec![embed_content]);
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
 
 		player.get_queue().clear()?;
 
-		let embed_content = EmbedContent::new(clear_localised.title)
-			.description(clear_localised.success)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(clear_localised.title).description(clear_localised.success);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		Ok(embed_contents)
 	}
 }

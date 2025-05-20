@@ -13,7 +13,8 @@
 //!   and the guild-related state.
 //!
 //! This struct implements the `Command
-use crate::command::command::{Command, CommandRun, EmbedContent};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -87,7 +88,7 @@ impl Command for PlayCommand {
 	/// 3. Extract the guild ID from the command interaction and fetch localization settings.
 	/// 4. Validate and utilize the Lavalink client for music-related functionalities.
 	/// 5. Retrieve the search query input
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -120,7 +121,7 @@ impl Command for PlayCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			embed_content[0] = embed_content[0]
+			embed_content.embed_contents[0] = embed_content.embed_contents[0]
 				.clone()
 				.description(play_localised.error_no_voice);
 			return Ok(embed_content);
@@ -155,7 +156,7 @@ impl Command for PlayCommand {
 			},
 
 			_ => {
-				embed_content[0] = embed_content[0]
+				embed_content.embed_contents[0] = embed_content.embed_contents[0]
 					.clone()
 					.description(format!("{:?}", loaded_tracks));
 				return Ok(embed_content);
@@ -163,28 +164,30 @@ impl Command for PlayCommand {
 		};
 
 		if let Some(info) = playlist_info {
-			embed_content[0] = embed_content[0]
+			embed_content.embed_contents[0] = embed_content.embed_contents[0]
 				.clone()
 				.description(play_localised.added_playlist.replace("{0}", &info.name));
 		} else {
 			let track = &tracks[0].track;
 
 			if let Some(uri) = &track.info.uri {
-				embed_content[0] = embed_content[0].clone().description(
-					play_localised
-						.added_to_queue
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", uri),
-				);
+				embed_content.embed_contents[0] =
+					embed_content.embed_contents[0].clone().description(
+						play_localised
+							.added_to_queue
+							.replace("{0}", &track.info.author)
+							.replace("{1}", &track.info.title)
+							.replace("{2}", uri),
+					);
 			} else {
-				embed_content[0] = embed_content[0].clone().description(
-					play_localised
-						.added_to_queue
-						.replace("{0}", &track.info.author)
-						.replace("{1}", &track.info.title)
-						.replace("{2}", ""),
-				);
+				embed_content.embed_contents[0] =
+					embed_content.embed_contents[0].clone().description(
+						play_localised
+							.added_to_queue
+							.replace("{0}", &track.info.author)
+							.replace("{1}", &track.info.title)
+							.replace("{2}", ""),
+					);
 			}
 
 			return Ok(embed_content);

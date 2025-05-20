@@ -40,7 +40,8 @@
 //! When a user sends a `/skip` command:
 //! - If a song is currently playing, the bot skips the track and sends a success message.
 //! - If no song is playing or the Lavalink client is unavailable, the bot sends an error message.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::skip::load_localization_skip;
 use anyhow::anyhow;
@@ -161,7 +162,7 @@ impl Command for SkipCommand {
 	/// - Async context for LavaLink and interaction deferral handling.
 	/// - Localization logic for guild-specific messaging.
 	///
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -189,23 +190,27 @@ impl Command for SkipCommand {
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let embed_content = EmbedContent::new(skip_localised.title)
-				.description(skip_localised.error_no_voice)
-				.command_type(EmbedType::Followup);
-			return Ok(vec![embed_content]);
+			let embed_content =
+				EmbedContent::new(skip_localised.title).description(skip_localised.error_no_voice);
+
+			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+			return Ok(embed_contents);
 		};
-		let mut embed_content =
-			EmbedContent::new(skip_localised.title).command_type(EmbedType::Followup);
+		let mut embed_content = EmbedContent::new(skip_localised.title);
 
 		let now_playing = player.get_player().await?.track;
 
 		if let Some(np) = now_playing {
 			player.skip()?;
-			embed_content.description = skip_localised.success.replace("{0}", &np.info.title);
+			embed_content =
+				embed_content.description(skip_localised.success.replace("{0}", &np.info.title));
 		} else {
-			embed_content.description = skip_localised.nothing_to_skip;
+			embed_content = embed_content.description(skip_localised.nothing_to_skip);
 		}
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

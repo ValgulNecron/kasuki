@@ -312,7 +312,7 @@ impl Command for ImageCommand {
 			for attachement in attachements {
 				let name = attachement.1;
 				let bytes = attachement.0;
-				command_files.push(CommandFiles::new(name.clone(), bytes));
+				command_files.push(CommandFiles::new(name.clone(), bytes.clone()));
 				embed_contents.push(
 					embed_content
 						.clone()

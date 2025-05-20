@@ -58,7 +58,8 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
-use crate::command::command::{Command,};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::kill_switch::{ActiveModel, Column};
 use crate::database::prelude::KillSwitch;
 use crate::event_handler::BotData;
@@ -72,7 +73,6 @@ use sea_orm::QueryFilter;
 use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 
 /// A struct representing a kill switch command to be executed within the context of a Discord bot.
 ///
@@ -250,9 +250,8 @@ impl Command for KillSwitchCommand {
 			module_localised.off
 		};
 
-		let embed_content = EmbedContent::new(module.clone())
-			.description(desc);
-		
+		let embed_content = EmbedContent::new(module.clone()).description(desc);
+
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		Ok(embed_contents)

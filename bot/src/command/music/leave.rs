@@ -2,7 +2,8 @@
 //! implementation of the `Command` trait. The purpose of the `LeaveCommand` is to handle
 //! the "leave" command functionality, primarily for managing the bot's disconnection
 //! from voice channels in a guild context.
-use crate::command::command::{Command, CommandRun, EmbedContent, EmbedType};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::music::leave::load_localization_leave;
 use anyhow::anyhow;
@@ -106,7 +107,7 @@ impl Command for LeaveCommand {
 	///     println!("Embed Title: {}", content.title());
 	/// }
 	/// ```
-	async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -140,10 +141,11 @@ impl Command for LeaveCommand {
 			manager.remove(guild_id).await?;
 		}
 
-		let embed_content = EmbedContent::new(leave_localised.title)
-			.description(leave_localised.success)
-			.command_type(EmbedType::Followup);
+		let embed_content =
+			EmbedContent::new(leave_localised.title).description(leave_localised.success);
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

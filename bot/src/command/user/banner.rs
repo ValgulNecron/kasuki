@@ -27,7 +27,13 @@ impl Command for BannerCommand {
 		let config = bot_data.config.clone();
 		let command_interaction = self.get_command_interaction();
 
-		let user = get_user_command(ctx, command_interaction).await?;
+		let user = match command_interaction.data.kind.0 {
+			1 => get_user_command(ctx, command_interaction).await?,
+			2 => get_user_command_user(ctx, command_interaction).await,
+			_ => {
+				return Err(anyhow::anyhow!("Invalid command type"));
+			},
+		};
 
 		let db_config = config.db.clone();
 
@@ -58,43 +64,9 @@ impl Command for BannerCommand {
 	}
 }
 
-impl UserCommand for BannerCommand {
-	async fn run_user(&self) -> Result<()> {
-		let user = get_user_command_user(&self.ctx, &self.command_interaction).await;
-		let ctx = self.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let config = bot_data.config.clone();
-		let command_interaction = self.get_command_interaction();
-
-		let db_config = config.db.clone();
-
-		let banner = match user.banner_url() {
-			Some(url) => url,
-			None => {
-				no_banner(command_interaction, &user.name, db_config).await?;
-
-				return Ok(());
-			},
-		};
-
-		let username = user.name.as_str();
-
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-
-		let banner_localised = load_localization_banner(guild_id, db_config).await?;
-
-		let content = EmbedContent::new(banner_localised.title.replace("$user$", username))
-			.images_url(Some(banner));
-		self.send_embed(vec![content]).await
-	}
-}
-
 pub async fn no_banner(
 	command_interaction: &CommandInteraction, username: &str, db_config: DbConfig,
-) -> Result<Vec<EmbedContent<'static, 'static>>> {
+) -> Result<Vec<EmbedContent>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -102,8 +74,8 @@ pub async fn no_banner(
 
 	let banner_localised = load_localization_banner(guild_id, db_config).await?;
 
-	let content = EmbedContent::new(banner_localised.no_banner_title)
+	let embed_content = EmbedContent::new(banner_localised.no_banner_title)
 		.description(banner_localised.no_banner.replace("$user$", username));
 
-	Ok(vec![content])
+	Ok(vec![embed_content])
 }

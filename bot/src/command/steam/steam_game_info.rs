@@ -95,7 +95,8 @@ use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::command::command::{Command, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
@@ -231,7 +232,7 @@ impl Command for SteamGameInfoCommand {
 	///
 	/// - Ensure the `BotData` context is configured correctly with necessary Steam API credentials and application data.
 	/// - This function assumes certain responses from the Steam API match the expected schema; modifications to the schema may require code updates.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let data = get_steam_game(
@@ -404,14 +405,15 @@ impl Command for SteamGameInfoCommand {
 				game.short_description.unwrap_or_default(),
 			))
 			.fields(fields)
-			.url(Some(format!(
+			.url(format!(
 				"https://store.steampowered.com/app/{}",
 				game.steam_appid.unwrap()
-			)))
-			.images_url(Some(game.header_image.unwrap()))
-			.command_type(EmbedType::Followup);
+			))
+			.images_url(game.header_image.unwrap());
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 

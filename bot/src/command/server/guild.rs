@@ -81,7 +81,8 @@
 //! and permissions to access guild data such as its metadata, channels, and roles.
 use anyhow::{Result, anyhow};
 
-use crate::command::command::{Command, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -185,7 +186,7 @@ impl Command for GuildCommand {
 	///     // Perform further operations with embed data
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -300,14 +301,16 @@ impl Command for GuildCommand {
 
 		// Add the guild's avatar to the embed if it exists
 		if guild_avatar.is_some() {
-			embed_content = embed_content.thumbnail(Some(guild_avatar.unwrap()))
+			embed_content = embed_content.thumbnail(guild_avatar.unwrap())
 		}
 
 		// Add the guild's banner to the embed if it exists
 		if guild_banner.is_some() {
-			embed_content = embed_content.images_url(Some(guild_banner.unwrap()))
+			embed_content = embed_content.images_url(guild_banner.unwrap())
 		}
 
-		Ok(vec![embed_content])
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }

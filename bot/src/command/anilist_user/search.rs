@@ -213,39 +213,67 @@ impl Command for SearchCommand {
 			.ok_or(anyhow!("No type specified"))?;
 
 		// Execute the corresponding search function based on the specified type
-		let dyn_cmd: dyn Command = match search_type.as_str() {
-			"anime" => AnimeCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+		let embed_contents = match search_type.as_str() {
+			"anime" => {
+				AnimeCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"character" => CharacterCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"character" => {
+				CharacterCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"ln" => LnCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"ln" => {
+				LnCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"manga" => MangaCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"manga" => {
+				MangaCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"staff" => StaffCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"staff" => {
+				StaffCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"user" => UserCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"user" => {
+				UserCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
-			"studio" => StudioCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
+			"studio" => {
+				StudioCommand {
+					ctx: ctx.clone(),
+					command_interaction: command_interaction.clone(),
+				}
+				.get_contents()
+				.await
 			},
 			// Return an error if the specified type is not one of the expected types
 			_ => return (Err(anyhow!("Type does not exist."))),
 		};
 
-		dyn_cmd.get_contents().await
+		embed_contents
 	}
 }

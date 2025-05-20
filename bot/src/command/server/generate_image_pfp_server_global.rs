@@ -40,7 +40,8 @@
 //! This code is typically used as part of an event handler where the bot processes user
 //! interactions and responds with the appropriate image or embed content. The structure
 //! contributes to handling the `"global"` image generation command.
-use crate::command::command::{Command, EmbedContent};
+use crate::command::command::Command;
+use crate::command::embed_content::EmbedsContents;
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
 use anyhow::Result;
@@ -126,15 +127,15 @@ impl Command for GenerateGlobalImagePfPCommand {
 	/// # Dependencies
 	/// - This function depends on the presence of a proper context, bot data,
 	///   and a valid database connection in the configuration.
-	async fn get_contents(&self) -> Result<Vec<EmbedContent<'_, '_>>> {
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
 
-		let embed_content =
+		let embed_contents =
 			get_content(ctx, command_interaction, "global", config.db.clone()).await?;
 
-		Ok(vec![embed_content])
+		Ok(embed_contents)
 	}
 }
