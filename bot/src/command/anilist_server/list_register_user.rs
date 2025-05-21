@@ -5,7 +5,7 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
 	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
 };
-use crate::constant::{ACTIVITY_LIST_LIMIT, MEMBER_LIST_LIMIT};
+use crate::constant::{ MEMBER_LIST_LIMIT};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -17,10 +17,9 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton, PartialGuild,
+	CommandInteraction, Context as SerenityContext, PartialGuild,
 	User, UserId,
 };
-use std::borrow::Cow;
 use std::sync::Arc;
 use tracing::trace;
 
@@ -121,7 +120,7 @@ impl Command for ListRegisterUser {
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, ctx, None, connection).await?;
-		let mut embed_content = EmbedContent::new(list_user_localised.title).description(desc);
+		let embed_content = EmbedContent::new(list_user_localised.title).description(desc);
 
 		let action_row;
 		if len >= MEMBER_LIST_LIMIT as usize {

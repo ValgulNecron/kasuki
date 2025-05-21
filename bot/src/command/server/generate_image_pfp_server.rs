@@ -1,7 +1,6 @@
 //! This module defines the `GenerateImagePfPCommand` structure and related functionality
 //! for handling a command interaction that generates server profile picture images.
 use anyhow::{Result, anyhow};
-use std::borrow::Cow;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
@@ -18,8 +17,7 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateAttachment,
-	CreateInteractionResponseMessage,
+	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
 use uuid::Uuid;
 

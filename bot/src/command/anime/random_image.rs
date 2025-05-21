@@ -53,7 +53,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::anime::random_image::load_localization_random_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use uuid::Uuid;
 
 /// `AnimeRandomImageCommand` is a structure that represents a command to fetch a random anime image.

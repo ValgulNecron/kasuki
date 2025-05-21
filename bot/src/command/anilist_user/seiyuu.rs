@@ -22,7 +22,7 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment, EmbedImage};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 

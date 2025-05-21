@@ -77,10 +77,8 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use serenity::all::{
-	AttachmentData, CommandInteraction, Context as SerenityContext, CreateAttachment, EmbedImage,
+	CommandInteraction, Context as SerenityContext,  
 };
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -298,7 +296,7 @@ impl Command for ImageCommand {
 		let mut command_files = vec![];
 
 		if n == 1 {
-			let attachment = image_with_n_equal_1(filename.clone(), bytes.clone()).await;
+			let attachment = image_with_n_equal_1(bytes.clone()).await;
 			let name = filename;
 
 			command_files.push(CommandFiles::new(name.clone(), attachment));
@@ -498,7 +496,7 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 ///     // Use the `attachment` as needed.
 /// }
 /// ```
-async fn image_with_n_equal_1(filename: String, bytes: Vec<Bytes>) -> Vec<u8> {
+async fn image_with_n_equal_1(bytes: Vec<Bytes>) -> Vec<u8> {
 	let bytes = bytes[0].as_bytes().to_vec();
 
 	bytes

@@ -11,10 +11,7 @@ use crate::get_url;
 use crate::structure::message::bot::info::load_localization_info;
 use anyhow::{Result, anyhow};
 use sea_orm::EntityTrait;
-use serenity::all::{
-	ButtonStyle, CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
-};
-use std::borrow::Cow;
+use serenity::all::{ButtonStyle, CommandInteraction, Context as SerenityContext};
 
 /// The `InfoCommand` struct is used to encapsulate information needed to execute a command
 /// within a Discord bot using the `serenity` library. This struct provides the necessary

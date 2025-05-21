@@ -47,10 +47,7 @@ use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateActionRow, CreateButton,
-};
-use std::borrow::Cow;
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// Represents a structure to list all activity within a Discord bot command context.
 ///

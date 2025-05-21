@@ -122,27 +122,29 @@ impl<T: Command> CommandRun for T {
 			};
 		};
 
-		let component = component.unwrap();
-
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 
 		match contents.command_type {
 			CommandType::First => {
-				let builder = CreateInteractionResponseMessage::new()
+				let mut builder = CreateInteractionResponseMessage::new()
 					.embeds(embeds)
-					.files(files)
-					.components(Cow::Owned(vec![component]));
+					.files(files);
+				if let Some(component) = component {
+					builder = builder.components(Cow::Owned(vec![component]));
+				}
 				let builder = CreateInteractionResponse::Message(builder);
 				command_interaction
 					.create_response(&ctx.http, builder)
 					.await?;
 			},
 			CommandType::Followup => {
-				let builder = CreateInteractionResponseFollowup::new()
+				let mut builder = CreateInteractionResponseFollowup::new()
 					.embeds(embeds)
-					.files(files)
-					.components(Cow::Owned(vec![component]));
+					.files(files);
+				if let Some(component) = component {
+					builder = builder.components(Cow::Owned(vec![component]));
+				}
 				command_interaction
 					.create_followup(&ctx.http, builder)
 					.await?;
