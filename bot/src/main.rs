@@ -181,7 +181,7 @@ async fn main() {
 		user_blacklist_server_image: Arc::new(Default::default()),
 		db_connection: Arc::new(connection),
 		manager: Arc::clone(&manager),
-		http_client: reqwest::Client::new(),
+		http_client: Arc::from(reqwest::Client::new()),
 		shard_manager: Arc::new(Default::default()),
 		lavalink: Arc::new(Default::default()),
 	});

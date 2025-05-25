@@ -27,7 +27,7 @@ use crate::command::anime_nsfw::random_nsfw_image::AnimeRandomNsfwImageCommand;
 use crate::command::bot::credit::CreditCommand;
 use crate::command::bot::info::InfoCommand;
 use crate::command::bot::ping::PingCommand;
-use crate::command::command_trait::SlashCommand;
+use crate::command::command::CommandRun;
 use crate::command::guess_kind::guess_command_kind;
 use crate::command::management::give_premium_sub::GivePremiumSubCommand;
 use crate::command::management::kill_switch::KillSwitchCommand;

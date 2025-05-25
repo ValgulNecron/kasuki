@@ -1,9 +1,14 @@
+//! A module for handling the `LevelCommand` and calculating user level
+//! progress based on anime and manga statistics. Additionally, this module
+//! supports fetching user data from AniList and database, processing and
+//! preparing data for the embed visualization.
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command_trait::{Command, Embed, EmbedContent, EmbedType};
+use crate::command::command::Command;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -16,23 +21,40 @@ use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use small_fixed_array::FixedString;
 
+/// Represents a level command within a Discord bot context.
+///
+/// The `LevelCommand` struct encapsulates the necessary context and interaction
+/// data for processing a command related to leveling functionality in a Discord bot.
+///
+/// # Fields
+///
+/// * `ctx` - The bot's context (`SerenityContext`) which provides access to
+///   various
 pub struct LevelCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
 impl Command for LevelCommand {
+	///
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
 	}
 
+	/// Retrieves a reference to the stored `CommandInteraction`.
+	///
+	/// This method provides access to the `CommandInteraction` instance
+	/// associated with the current object. The returned reference allows
+	/// the caller to inspect the command interaction but not modify it.
+	///
+	/// # Returns
+	/// A reference
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl LevelCommand {
-	pub async fn run_slash(self) -> Result<()> {
+	///
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -118,7 +140,7 @@ impl LevelCommand {
 		// Calculate the level and progress
 		let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-		let mut content = EmbedContent::new(user.clone().name)
+		let mut embed_content = EmbedContent::new(user.clone().name)
 			.description(
 				level_localised
 					.desc
@@ -128,152 +150,100 @@ impl LevelCommand {
 					.replace("$actual$", actual.to_string().as_str())
 					.replace("$next$", next_xp.to_string().as_str()),
 			)
-			.thumbnail(Some(user.clone().avatar.unwrap().large.clone().unwrap()))
-			.url(Some(get_user_url(&user.id)))
-			.command_type(EmbedType::First)
-			.colour(Some(get_color(user.clone())));
+			.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
+			.url(get_user_url(&user.id))
+			.colour(get_color(user.clone()));
 
 		// Add the user's banner image to the embed if it exists
 		if let Some(banner_image) = &user.banner_image {
-			content = content.images_url(Some(banner_image.clone()));
+			embed_content = embed_content.images_url(banner_image.clone());
 		}
 
-		self.send_embed(vec![content]).await
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 }
 
-pub static LEVELS: Lazy<[(u32, f64, f64); 102]> = Lazy::new(|| {
-	[
-		(0, 0.0, xp_required_for_level(1)),
-		(1, xp_required_for_level(1), xp_required_for_level(2)),
-		(2, xp_required_for_level(2), xp_required_for_level(3)),
-		(3, xp_required_for_level(3), xp_required_for_level(4)),
-		(4, xp_required_for_level(4), xp_required_for_level(5)),
-		(5, xp_required_for_level(5), xp_required_for_level(6)),
-		(6, xp_required_for_level(6), xp_required_for_level(7)),
-		(7, xp_required_for_level(7), xp_required_for_level(8)),
-		(8, xp_required_for_level(8), xp_required_for_level(9)),
-		(9, xp_required_for_level(9), xp_required_for_level(10)),
-		(10, xp_required_for_level(10), xp_required_for_level(11)),
-		(11, xp_required_for_level(11), xp_required_for_level(12)),
-		(12, xp_required_for_level(12), xp_required_for_level(13)),
-		(13, xp_required_for_level(13), xp_required_for_level(14)),
-		(14, xp_required_for_level(14), xp_required_for_level(15)),
-		(15, xp_required_for_level(15), xp_required_for_level(16)),
-		(16, xp_required_for_level(16), xp_required_for_level(17)),
-		(17, xp_required_for_level(17), xp_required_for_level(18)),
-		(18, xp_required_for_level(18), xp_required_for_level(19)),
-		(19, xp_required_for_level(19), xp_required_for_level(20)),
-		(20, xp_required_for_level(20), xp_required_for_level(21)),
-		(21, xp_required_for_level(21), xp_required_for_level(22)),
-		(22, xp_required_for_level(22), xp_required_for_level(23)),
-		(23, xp_required_for_level(23), xp_required_for_level(24)),
-		(24, xp_required_for_level(24), xp_required_for_level(25)),
-		(25, xp_required_for_level(25), xp_required_for_level(26)),
-		(26, xp_required_for_level(26), xp_required_for_level(27)),
-		(27, xp_required_for_level(27), xp_required_for_level(28)),
-		(28, xp_required_for_level(28), xp_required_for_level(29)),
-		(29, xp_required_for_level(29), xp_required_for_level(30)),
-		(30, xp_required_for_level(30), xp_required_for_level(31)),
-		(31, xp_required_for_level(31), xp_required_for_level(32)),
-		(32, xp_required_for_level(32), xp_required_for_level(33)),
-		(33, xp_required_for_level(33), xp_required_for_level(34)),
-		(34, xp_required_for_level(34), xp_required_for_level(35)),
-		(35, xp_required_for_level(35), xp_required_for_level(36)),
-		(36, xp_required_for_level(36), xp_required_for_level(37)),
-		(37, xp_required_for_level(37), xp_required_for_level(38)),
-		(38, xp_required_for_level(38), xp_required_for_level(39)),
-		(39, xp_required_for_level(39), xp_required_for_level(40)),
-		(40, xp_required_for_level(40), xp_required_for_level(41)),
-		(41, xp_required_for_level(41), xp_required_for_level(42)),
-		(42, xp_required_for_level(42), xp_required_for_level(43)),
-		(43, xp_required_for_level(43), xp_required_for_level(44)),
-		(44, xp_required_for_level(44), xp_required_for_level(45)),
-		(45, xp_required_for_level(45), xp_required_for_level(46)),
-		(46, xp_required_for_level(46), xp_required_for_level(47)),
-		(47, xp_required_for_level(47), xp_required_for_level(48)),
-		(48, xp_required_for_level(48), xp_required_for_level(49)),
-		(49, xp_required_for_level(49), xp_required_for_level(50)),
-		(50, xp_required_for_level(50), xp_required_for_level(51)),
-		(51, xp_required_for_level(51), xp_required_for_level(52)),
-		(52, xp_required_for_level(52), xp_required_for_level(53)),
-		(53, xp_required_for_level(53), xp_required_for_level(54)),
-		(54, xp_required_for_level(54), xp_required_for_level(55)),
-		(55, xp_required_for_level(55), xp_required_for_level(56)),
-		(56, xp_required_for_level(56), xp_required_for_level(57)),
-		(57, xp_required_for_level(57), xp_required_for_level(58)),
-		(58, xp_required_for_level(58), xp_required_for_level(59)),
-		(59, xp_required_for_level(59), xp_required_for_level(60)),
-		(60, xp_required_for_level(60), xp_required_for_level(61)),
-		(61, xp_required_for_level(61), xp_required_for_level(62)),
-		(62, xp_required_for_level(62), xp_required_for_level(63)),
-		(63, xp_required_for_level(63), xp_required_for_level(64)),
-		(64, xp_required_for_level(64), xp_required_for_level(65)),
-		(65, xp_required_for_level(65), xp_required_for_level(66)),
-		(66, xp_required_for_level(66), xp_required_for_level(67)),
-		(67, xp_required_for_level(67), xp_required_for_level(68)),
-		(68, xp_required_for_level(68), xp_required_for_level(69)),
-		(69, xp_required_for_level(69), xp_required_for_level(70)),
-		(70, xp_required_for_level(70), xp_required_for_level(71)),
-		(71, xp_required_for_level(71), xp_required_for_level(72)),
-		(72, xp_required_for_level(72), xp_required_for_level(73)),
-		(73, xp_required_for_level(73), xp_required_for_level(74)),
-		(74, xp_required_for_level(74), xp_required_for_level(75)),
-		(75, xp_required_for_level(75), xp_required_for_level(76)),
-		(76, xp_required_for_level(76), xp_required_for_level(77)),
-		(77, xp_required_for_level(77), xp_required_for_level(78)),
-		(78, xp_required_for_level(78), xp_required_for_level(79)),
-		(79, xp_required_for_level(79), xp_required_for_level(80)),
-		(80, xp_required_for_level(80), xp_required_for_level(81)),
-		(81, xp_required_for_level(81), xp_required_for_level(82)),
-		(82, xp_required_for_level(82), xp_required_for_level(83)),
-		(83, xp_required_for_level(83), xp_required_for_level(84)),
-		(84, xp_required_for_level(84), xp_required_for_level(85)),
-		(85, xp_required_for_level(85), xp_required_for_level(86)),
-		(86, xp_required_for_level(86), xp_required_for_level(87)),
-		(87, xp_required_for_level(87), xp_required_for_level(88)),
-		(88, xp_required_for_level(88), xp_required_for_level(89)),
-		(89, xp_required_for_level(89), xp_required_for_level(90)),
-		(90, xp_required_for_level(90), xp_required_for_level(91)),
-		(91, xp_required_for_level(91), xp_required_for_level(92)),
-		(92, xp_required_for_level(92), xp_required_for_level(93)),
-		(93, xp_required_for_level(93), xp_required_for_level(94)),
-		(94, xp_required_for_level(94), xp_required_for_level(95)),
-		(95, xp_required_for_level(95), xp_required_for_level(96)),
-		(96, xp_required_for_level(96), xp_required_for_level(97)),
-		(97, xp_required_for_level(97), xp_required_for_level(98)),
-		(98, xp_required_for_level(98), xp_required_for_level(99)),
-		(99, xp_required_for_level(99), xp_required_for_level(100)),
-		(100, xp_required_for_level(100), f64::MAX),
-		(101, f64::MAX, f64::MAX),
-	]
-});
+/// A constant that represents the maximum possible value for an XP (experience points) system,
+pub const MAX_XP: f64 = f64::MAX;
+///
+pub const TOTAL_LEVELS: usize = 200;
 
+/// A static variable `LEVELS` initialized lazily at runtime using the `generate_levels` function.
+///
+/// This static contains an array of tuples, where each tuple represents a level's details.
+pub static LEVELS: Lazy<[(u32, f64, f64); TOTAL_LEVELS]> = Lazy::new(generate_levels);
+
+/// Generates an array containing information about player levels and their respective XP requirements.
+///
+/// This function initializes an array where each element represents a level and contains three values:
+/// - The level number (`u32`)
+/// - The XP required to reach that level (`f64`)
+/// - The XP required to reach the
+fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
+	let mut levels = [(0, 0.0, 0.0); TOTAL_LEVELS];
+	for level in 0..=100 {
+		let required_xp = xp_required_for_level(level);
+		let next_level_xp = if level < 100 {
+			xp_required_for_level(level + 1)
+		} else {
+			MAX_XP
+		};
+		levels[level as usize] = (level, required_xp, next_level_xp);
+	}
+	levels[101] = (101, MAX_XP, MAX_XP);
+	levels
+}
+
+/// Determines the level of a user based on their experience points (XP)
+/// and provides additional information about their progression within the level.
+///
+/// # Parameters
+/// - `xp` (`f64`): The total experience points of the user.
+///
+/// # Returns
+/// A tuple containing:
+///
 fn get_level(xp: f64) -> (u32, f64, f64) {
-	for &(level, required_xp, next_level_required_xp) in LEVELS.iter().rev() {
+	for &(level, required_xp, next_level_xp) in LEVELS.iter().rev() {
 		if xp >= required_xp {
-			let level_progress = xp - required_xp;
-
-			let level_progress_total = next_level_required_xp - required_xp;
-
-			return (level, level_progress, level_progress_total);
+			let xp_in_current_level = xp - required_xp;
+			let xp_for_next_level = next_level_xp - required_xp;
+			return (level, xp_in_current_level, xp_for_next_level);
 		}
 	}
-
-	(0, 0.0, 20.0)
+	(0, 0.0, 100.0) // Default fallback
 }
 
+/// Calculates the experience points (XP) required to reach a given level.
+///
+/// # Parameters
+/// - `level`: The target level for which the required XP is being calculated.
+///   Level must be a non-negative integer (`u32`).
+///
+/// # Returns
+/// A `f64
 fn xp_required_for_level(level: u32) -> f64 {
+	/// Represents the base experience points (XP) value used as a reference for calculation purposes in the system.
+	///
+	/// # Constant
+	/// `BASE_XP` is a floating-point number initialized with a value of `100.0`.
+	///
+	/// # Usage
+	/// This value serves as the foundational XP value that other calculations or adjustments
+	/// (e
+	const BASE_XP: f64 = 100.0;
+	///
+	const GROWTH_RATE: f64 = 1.12;
+
 	match level {
-		0..=9 => (level as f64).powf(3f64),
-		10..=29 => (level as f64).powf(4f64),
-		30..=39 => (level as f64).powf(5f64),
-		40..=49 => (level as f64).powf(6f64),
-		50..=59 => (level as f64).powf(7f64),
-		60..=69 => (level as f64).powf(8f64),
-		70..=79 => (level as f64).powf(9f64),
-		80..=89 => (level as f64).powf(10f64),
-		90..=100 => (level as f64).powf(11f64),
-		_ => f64::MAX,
+		0 => 0.0,
+		1 => BASE_XP,
+		2..=25 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64),
+		26..=50 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.2,
+		51..=75 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.5,
+		76..=100 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 2.0,
+		_ => MAX_XP,
 	}
 }

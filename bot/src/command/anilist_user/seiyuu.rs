@@ -1,10 +1,16 @@
+//! The `SeiyuuCommand` struct serves as the implementation of a specific Discord bot command
+//! that retrieves and displays information about a seiyuu (Japanese voice actor) from AniList.
+//! This struct complies with the `Command` trait.
+//!
+//! # Fields
+//! - `ctx`: The Serenity context, used to interact with and manage the Discord bot's state and data.
+//! - `command_interaction`: Represents the specific command interaction that triggered the command.
 use anyhow::{Result, anyhow};
 use bytes::Bytes;
 use std::io::Cursor;
 
-use crate::command::command_trait::{
-	Command, Embed, EmbedContent, EmbedImage, EmbedType, SlashCommand,
-};
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -16,27 +22,102 @@ use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVa
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
-use serenity::all::{CommandInteraction, Context as SerenityContext, CreateAttachment};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 
+/// A structure representing a command to handle interactions related to seiyuu (voice actors) using the Serenity library.
+///
+/// # Fields
+///
+/// * `ctx` - The context of the Serenity framework containing the Discord bot's state, session, and cache data.
+/// It provides access to utilities and contextual information required for handling commands or events.
+///
+/// * `command_interaction` - The interaction instance representing a specific command
+/// issued by a user, containing details about the command and the interaction state.
+///
+/// # Usage
+/// This struct is typically used to encapsulate the necessary context and interaction
+/// details for processing a command related to seiyuu. It can contain additional methods
+/// or logic to handle the command's functionality effectively.
 pub struct SeiyuuCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
 impl Command for SeiyuuCommand {
+	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
+	///
+	/// This function provides read-only access to the `SerenityContext` stored within
+	/// the instance of the struct. The `SerenityContext` is essential for interacting
+	/// with Discord through the Serenity library, enabling actions such as sending messages,
+	/// managing channels, and more.
+	///
+	/// # Returns
+	///
+	/// A reference to the `SerenityContext` (`&SerenityContext`).
+	///
+	/// # Example
+	///
+	/// ```rust
+	/// let context = instance.get_ctx();
+	/// // Use `context` for further operations
+	/// ```
 	fn get_ctx(&self) -> &SerenityContext {
 		&self.ctx
 	}
 
+	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
+	///
+	/// # Returns
+	/// A reference to the `CommandInteraction` object stored within the instance.
+	///
+	/// # Example
+	/// ```rust
+	/// let command_interaction = instance.get_command_interaction();
+	/// // Use command_interaction as needed
+	/// ```
+	///
+	/// # Notes
+	/// This function provides a read-only reference to the underlying `CommandInteraction`.
 	fn get_command_interaction(&self) -> &CommandInteraction {
 		&self.command_interaction
 	}
-}
 
-impl SlashCommand for SeiyuuCommand {
-	async fn run_slash(&self) -> Result<()> {
+	/// Retrieves embed contents for a Discord interaction, performing operations to fetch, process,
+	/// and format data related to staff and their associated characters from a remote API.
+	///
+	/// ### Functionality
+	/// - Parses interaction input to extract the staff name or ID.
+	/// - Communicates with the Anilist API to retrieve detailed staff information, including their characters.
+	/// - Processes the fetched data into images and combined layouts for graphical representation.
+	/// - Creates and returns a structured embed message with the processed data.
+	///
+	/// ### Considerations
+	/// - Staff can be searched by name or ID. Adjusts the query and parsing based on input.
+	/// - Handles cases where the input does not match any staff, returning relevant error messages.
+	/// - Utilizes caching mechanisms to optimize data fetching and prevent redundant API calls.
+	/// - Dynamically creates combined images of the staff and their associated characters for better visualization.
+	///
+	/// ### Returns
+	/// - `Vec<EmbedContent<'_, '_>>`: A vector containing embedded content with images and metadata.
+	/// - Returns an `Err` if any step encounters an issue (e.g., missing data, API call failure).
+	///
+	/// ### Errors
+	/// - `No staff name specified`: When the input lacks a valid staff name or ID.
+	/// - `No staff found`: When the search query yields no results.
+	/// - `No image found`: When no image is available in the retrieved staff data.
+	/// - Other errors depend on network requests, data parsing, or image processing failures.
+	///
+	/// ### Dependencies
+	/// - External API: Makes requests to Anilist API for staff and character details.
+	/// - Libraries: Uses image processing (`image` crate) and web requests (`reqwest` crate).
+	///
+	/// ### Example Usage
+	/// ```rust
+	/// let embed_contents = self.get_contents().await?;
+	/// ```
+	async fn get_contents(&self) -> Result<EmbedsContents> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -214,50 +295,77 @@ impl SlashCommand for SeiyuuCommand {
 
 		rgba8_image.write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)?;
 
-		let attachment = CreateAttachment::bytes(bytes, image_path.to_string());
+		let image_url = format!("attachment://{}", image_path.clone());
+		let image = CommandFiles::new(image_path.clone(), bytes);
 
-		let image = EmbedImage {
-			attachment,
-			image: image_path.clone(),
-		};
+		let embed_content = EmbedContent::new(seiyuu_localised.title).images_url(image_url);
 
-		let content = EmbedContent::new(seiyuu_localised.title)
-			.command_type(EmbedType::Followup)
-			.images(Some(vec![image]));
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
+			.add_files(vec![image])
+			.clone();
 
-		self.send_embed(vec![content]).await
+		Ok(embed_contents)
 	}
 }
 
-/// Retrieves the characters associated with a staff member from the AniList API.
+/// Retrieves a list of characters from a `CharacterConnection`.
 ///
-/// This function takes a `StaffImageWrapper` object, which contains data about a staff member fetched from the AniList API,
-/// and returns a vector of `StaffImageNodes` objects, each of which represents a character associated with the staff member.
+/// This function takes a `CharacterConnection` as input and extracts
+/// the `nodes` field, which is an `Option` containing a vector of
+/// characters. It then unwraps the `Option` and returns the vector of
+/// `Option<Character>`. If the `nodes` field is `None`, this function
+/// will panic due to the use of `unwrap()`.
 ///
 /// # Arguments
 ///
-/// * `staff` - A `StaffImageWrapper` object containing data about a staff member.
+/// * `character` - A `CharacterConnection` object that holds a
+///   connection to character nodes.
 ///
 /// # Returns
 ///
-/// A `Vec<StaffImageNodes>` that contains the characters associated with the staff member.
+/// A `Vec<Option<Character>>` containing the character nodes from the
+/// given `CharacterConnection`.
+///
+/// # Panics
+///
+/// This function will panic if the `nodes` field of the `CharacterConnection`
+/// is `None`. To prevent panics, ensure that the `nodes` field is always
+/// populated before calling this function.
+///
+/// # Example
+///
+/// ```rust
+/// let character_connection = CharacterConnection {
+///     nodes: Some(vec![Some(Character::new("Hero")), None]),
+/// };
+/// let characters = get_characters_image(character_connection);
+/// assert_eq!(characters.len(), 2);
+/// assert!(characters[0].is_some());
+/// assert!(characters[1].is_none());
+/// ```
 
 fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>> {
 	character.nodes.unwrap()
 }
 
-/// Retrieves the image of a staff member from the AniList API.
+/// Retrieves the URL of the large staff image.
 ///
-/// This function takes a `StaffImageWrapper` object, which contains data about a staff member fetched from the AniList API,
-/// and returns a string that represents the URL of the staff member's image.
-///
-/// # Arguments
-///
-/// * `staff` - A `StaffImageWrapper` object containing data about a staff member.
+/// # Parameters
+/// - `staff`: A `StaffImage` instance containing optional image fields.
 ///
 /// # Returns
+/// A `String` representing the URL of the large staff image.
 ///
-/// A `String` that represents the URL of the staff member's image.
+/// # Panics
+/// This function will panic if the `large` field within the `StaffImage` instance is `None`.
+/// Ensure that the `large` field is `Some` before calling this function.
+///
+/// # Example
+/// ```
+/// let staff_image = StaffImage { large: Some(String::from("example.com/large_image.jpg")) };
+/// let image_url = get_staff_image(staff_image);
+/// assert_eq!(image_url, "example.com/large_image.jpg");
+/// ```
 
 fn get_staff_image(staff: StaffImage) -> String {
 	staff.large.unwrap()

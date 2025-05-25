@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use moka::future::Cache;
@@ -86,9 +86,11 @@ pub async fn get_character(
 		json.to_string(),
 		vndb_cache,
 	)
-	.await?;
+	.await
+	.context(format!("Failed to make request to VNDB API for character: {}", value))?;
 
-	let response: CharacterRoot = serde_json::from_str(&response)?;
+	let response: CharacterRoot = serde_json::from_str(&response)
+		.context(format!("Failed to parse VNDB API response for character: {}", value))?;
 
 	Ok(response)
 }

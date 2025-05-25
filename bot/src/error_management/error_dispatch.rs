@@ -8,12 +8,16 @@ use tracing::error;
 use crate::constant::COLOR;
 use crate::event_handler::BotData;
 
-const ERROR_MESSAGE: &str = "**There was an error while processing the command**\
-    \n**This error is most likely an input error** \
-    **like searching for non existent anime, requesting nsfw image to the ai, etc.**\n \
-    **but in some case it's a server or programming error**.\
-    **in this case report it to me and I will try to fix it the fastest I can** \
-    \n\n\n";
+const ERROR_MESSAGE: &str = "**Error Processing Command**\n\n\
+    This error could be due to one of the following reasons:\n\n\
+    **1. Input Error** - The most common cause\n\
+    • Searching for non-existent content\n\
+    • Requesting NSFW content where not allowed\n\
+    • Using invalid parameters\n\n\
+    **2. Server or Programming Error**\n\
+    • If you believe this is a bug, please report it to the developer\n\
+    • Include the error details below in your report\n\n\
+    **Error Details:**\n";
 
 pub async fn command_dispatching(
 	message: String, command_interaction: &CommandInteraction, ctx: &Context,

@@ -47,7 +47,7 @@ pub struct BotData {
 	pub user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
-	pub http_client: Client,
+	pub http_client: Arc<Client>,
 	pub shard_manager: Arc<
 		RwLock<
 			Option<Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>,

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
 	guild_id: String, path: &str, db_config: DbConfig,
 ) -> Result<T> {
-	let json_content = read_file_as_string(path)?;
+	let json_content = read_file_as_string(path).context(format!("Failed to read file: {}", path))?;
 
 	let json: &'a str = Box::leak(json_content.into_boxed_str());
 

@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 
-use crate::command::command_trait::UserCommand;
+use crate::command::command::CommandRun;
 use crate::command::user::avatar::AvatarCommand;
 use crate::command::user::banner::BannerCommand;
 use crate::command::user::profile::ProfileCommand;
