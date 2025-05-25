@@ -7,12 +7,12 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use markdown_converter::vndb::convert_vndb_markdown;
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLock;
-use tracing::trace;
+use tracing::{debug, info, instrument, trace, warn};
 
 pub struct VnCharacterCommand {
 	pub ctx: SerenityContext,
@@ -28,7 +28,12 @@ impl Command for VnCharacterCommand {
 		&self.command_interaction
 	}
 
+	#[instrument(name = "vn_character_command", skip(self), fields(
+		user_id = ?self.command_interaction.user.id,
+		guild_id = ?self.command_interaction.guild_id,
+	))]
 	async fn get_contents(&self) -> Result<EmbedsContents> {
+		info!("Processing VN character command");
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -36,25 +41,50 @@ impl Command for VnCharacterCommand {
 		let vndb_cache = bot_data.vndb_cache.clone();
 
 		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
+			Some(id) => {
+				debug!("Command executed in guild: {}", id);
+				id.to_string()
+			},
+			None => {
+				debug!("Command executed in DM");
+				String::from("0")
+			},
 		};
 
 		let map = get_option_map_string_subcommand(command_interaction);
 
-		trace!("{:?}", map);
+		debug!("Command options: {:?}", map);
 
+		// Extract the character name from the command options
+		// If no name is provided, default to an empty string
 		let character = map
 			.get(&String::from("name"))
 			.cloned()
 			.unwrap_or(String::new());
 
-		let character_localised = load_localization_character(guild_id, config.db.clone()).await?;
+		debug!("Loading character localization for guild: {}", guild_id);
+		let character_localised = load_localization_character(guild_id.clone(), config.db.clone()).await
+			.context(format!("Failed to load character localization for guild: {}", guild_id))?;
+		debug!("Character localization loaded successfully");
 
-		let character = get_character(character.clone(), vndb_cache).await?;
+		info!("Fetching character information for: {}", character);
+		let character = get_character(character.clone(), vndb_cache).await
+			.context(format!("Failed to get character information for: {}", character))?;
 
-		let character = character.results[0].clone();
+		debug!("Found {} character results", character.results.len());
+		if character.results.is_empty() {
+			warn!("No character results found for the query");
+		}
 
+		// Get the first character from the results
+		// This is safe because we've already checked if the results array is empty
+		let character = character.results.get(0)
+			.context(format!("No character results found for: {}", character.clone().results.len()))?
+			.clone();
+		info!("Processing character: {}", character.name);
+
+		// Initialize an empty vector to store the embed fields
+		// Each field will be a tuple of (name, value, inline)
 		let mut fields = vec![];
 
 		if let Some(blood_type) = character.blood_type {
@@ -130,34 +160,60 @@ impl Command for VnCharacterCommand {
 		fields.push((character_localised.traits.clone(), traits, true));
 		let char_desc = character.description.clone().unwrap_or_default();
 
+		// Extract the sexual content rating from the character image
+		// If no image is available, default to 2.0 (unsafe)
 		let sexual = match character.image.clone() {
 			Some(image) => image.sexual,
 			None => 2.0,
 		};
 
+		// Extract the violence content rating from the character image
+		// If no image is available, default to 2.0 (unsafe)
 		let violence = match character.image.clone() {
 			Some(image) => image.violence,
 			None => 2.0,
 		};
 
+		// Extract the image URL from the character image
+		// If no image is available, set to None
 		let url: Option<String> = match character.image {
 			Some(image) => Some(image.url.clone()),
 			None => None,
 		};
 
+		// Create the embed content with the character information
+		// The description is converted from VNDB markdown format to Discord markdown
+		debug!("Building embed content for character: {}", character.name);
 		let mut embed_content = EmbedContent::new(character.name.clone())
 			.description(String::from(convert_vndb_markdown(&char_desc)))
 			.fields(fields)
 			.url(format!("https://vndb.org/{}", character.id));
 
+		// Check if the character image is safe to display
+		// Images are considered safe if:
+		// - Sexual content rating is <= 1.5 (low to moderate)
+		// - Violence rating is <= 1.0 (low)
 		if (sexual <= 1.5) && (violence <= 1.0) {
-			if let Some(url) = url {
+			debug!("Character image is safe to display (sexual: {}, violence: {})", sexual, violence);
+			if let Some(url) = url.clone() {
+				debug!("Adding image URL to embed: {}", url);
 				embed_content = embed_content.images_url(url);
+			} else {
+				debug!("No image URL available for character");
 			}
+		} else {
+			// Skip adding the image if it's not safe to display
+			warn!("Character image not displayed due to content rating (sexual: {}, violence: {})", sexual, violence);
 		}
 
+		// Create the final embed contents with the CommandType::First flag
+		// This indicates that this is the first (and only) page of the embed
+		debug!("Creating final embed contents");
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
+		// Return the embed contents wrapped in Ok
+		// This indicates that the command was processed successfully
+		info!("VN character command processed successfully");
 		Ok(embed_contents)
 	}
 }
