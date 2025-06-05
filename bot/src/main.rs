@@ -77,7 +77,7 @@ async fn main() {
 		process::exit(2);
 	}
 
-	// Initialize the logger with the specified log level.
+	// Initialize the logger with the specified log level and configuration.
 	// If an error occurs, print the error and return.
 	let _guard = match init_logger(log, max_log_retention_days) {
 		Ok(guard) => guard,

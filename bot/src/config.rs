@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Clone)]
 
@@ -9,6 +10,7 @@ pub struct Config {
 	pub image: ImageConfig,
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
+	pub task_intervals: TaskIntervalConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -90,6 +92,21 @@ pub struct AICfgTranscription {
 	pub ai_transcription_model: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+
+pub struct TaskIntervalConfig {
+	pub ping_update: u64,
+	pub before_server_image: u64,
+	pub server_image_update: u64,
+	pub game_update: u64,
+	pub cache_update: u64,
+	pub bot_info: u64,
+	pub blacklisted_user_update: u64,
+	pub activity_check: u64,
+	pub random_stats_update: u64,
+	pub anisong_update: u64,
+}
+
 impl Default for Config {
 	fn default() -> Self {
 		Config {
@@ -142,6 +159,18 @@ impl Default for Config {
 					ai_transcription_base_url: None,
 					ai_transcription_model: None,
 				},
+			},
+			task_intervals: TaskIntervalConfig {
+				ping_update: 600,
+				before_server_image: 1_800,
+				server_image_update: 21_600,
+				game_update: 86_400,
+				cache_update: 259_200,
+				bot_info: 1_800,
+				blacklisted_user_update: 3600,
+				activity_check: 1,
+				random_stats_update: 86_400,
+				anisong_update: 604_800,
 			},
 		}
 	}

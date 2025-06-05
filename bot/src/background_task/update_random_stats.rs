@@ -9,7 +9,8 @@ use tokio::sync::RwLock;
 use tokio::time::interval;
 use tracing::info;
 
-use crate::constant::{RANDOM_STATS_PATH, TIME_BETWEEN_RANDOM_STATS_UPDATE};
+use crate::config::TaskIntervalConfig;
+use crate::constant::RANDOM_STATS_PATH;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use crate::structure::run::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
@@ -41,12 +42,15 @@ impl Default for RandomStat {
 ///
 /// * `anilist_cache` - A cache for storing Anilist API responses.
 
-pub async fn update_random_stats_launcher(anilist_cache: Arc<RwLock<Cache<String, String>>>) {
+pub async fn update_random_stats_launcher(
+	anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	task_intervals: TaskIntervalConfig,
+) {
 	// Log the start of the random stats update task.
 	info!("Starting random stats update");
 
-	// Create an interval that ticks every `TIME_BETWEEN_ACTIVITY_CHECK` seconds.
-	let mut interval = interval(Duration::from_secs(TIME_BETWEEN_RANDOM_STATS_UPDATE));
+	// Create an interval that ticks every `random_stats_update` seconds.
+	let mut interval = interval(Duration::from_secs(task_intervals.random_stats_update));
 
 	// Run the update task indefinitely.
 	loop {

@@ -49,7 +49,7 @@ This document contains a comprehensive list of actionable improvement tasks for 
 - [ ] Implement graceful shutdown for background tasks
 - [ ] Add health monitoring for background tasks
 - [ ] Improve error recovery in background tasks
-- [ ] Implement configurable task intervals
+- [x] Implement configurable task intervals
 
 ### Database
 - [ ] Optimize database schema for better performance
@@ -72,7 +72,7 @@ This document contains a comprehensive list of actionable improvement tasks for 
 ### Code Quality
 - [ ] Refactor large functions into smaller, more focused ones
 - [ ] Reduce code duplication across similar commands
-- [ ] Implement more comprehensive logging
+- [ ] Implement more comprehensive logging, this means adding more logs to the function and making the already existing one better
 - [ ] Add more comments explaining complex logic
 - [ ] Run clippy with pedantic settings and address warnings
 
@@ -92,6 +92,6 @@ This document contains a comprehensive list of actionable improvement tasks for 
 
 - [ ] Address the "need a rework" file in the project root
 - [ ] Complete implementation of unsupported component types (SelectMenu, InputText)
-- [ ] Fix commented-out code (e.g., update_anisong_db in background_launcher.rs)
+- [x] Fix commented-out code (e.g., update_anisong_db in background_launcher.rs)
 - [x] Review and update error messages for clarity
 - [ ] Standardize naming conventions across the codebase

@@ -16,7 +16,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) {
 	let semaphore = Arc::new(Semaphore::new(10)); // Limit to 10 concurrent tasks
 	let mut futures = Vec::new();
 	let mut i = 1;
-	let max_count: i64 = 100_000_000;
+	let max_count: i64 = 100_000; // Reduced from 100_000_000 to a more reasonable value
 
 	while i <= max_count {
 		let permit = semaphore.clone().acquire_owned().await.unwrap();
