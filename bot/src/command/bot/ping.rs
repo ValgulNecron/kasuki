@@ -120,7 +120,7 @@ impl Command for PingCommand {
 	/// - `ShardManager` for managing bot shards.
 	/// - `EmbedContent` for creating embeddable content for Discord messages.
 	/// - `anyhow` crate for error handling.
- #[instrument(name = "ping_command", skip(self), fields(
+	#[instrument(name = "ping_command", skip(self), fields(
 		user_id = ?self.command_interaction.user.id,
 		guild_id = ?self.command_interaction.guild_id,
 	))]
@@ -147,7 +147,8 @@ impl Command for PingCommand {
 
 		// Load the localized ping strings
 		debug!("Loading ping localization for guild: {}", guild_id);
-		let ping_localised = load_localization_ping(guild_id, config.db.clone()).await
+		let ping_localised = load_localization_ping(guild_id, config.db.clone())
+			.await
 			.map_err(|e| {
 				error!("Failed to load ping localization: {}", e);
 				e
@@ -185,7 +186,7 @@ impl Command for PingCommand {
 				None => {
 					error!("Failed to get shard info for shard {}", shard_id);
 					return Err(anyhow!("failed to get the shard info"));
-				}
+				},
 			};
 
 			// Format the latency as a string
@@ -218,7 +219,8 @@ impl Command for PingCommand {
 
 		trace!("Formatted ping description: {}", description);
 
-		let embed_content = EmbedContent::new(ping_localised.title.clone()).description(description);
+		let embed_content =
+			EmbedContent::new(ping_localised.title.clone()).description(description);
 		debug!("Embed content created with title: {}", ping_localised.title);
 
 		debug!("Creating final embed contents with CommandType::First");

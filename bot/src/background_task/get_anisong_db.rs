@@ -2,7 +2,7 @@
 use crate::database::prelude::AnimeSong;
 use anyhow::{Context, Result};
 use futures::future::join_all;
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::Deserialize;
@@ -10,6 +10,9 @@ use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tracing::{debug, error, info, trace, warn};
+use governor::{clock, state, Quota, RateLimiter};
+use std::num::NonZeroU32;
+use std::time::Duration;
 
 /// Fetches anime song data from anisongdb.com and stores it in the database.
 ///
@@ -44,7 +47,10 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 	// Create a semaphore to limit concurrent API requests
 	// This prevents overwhelming the API server and potential rate limiting
 	// The value 10 was chosen as a balance between throughput and server load
-	let semaphore = Arc::new(Semaphore::new(10)); 
+	let semaphore = Arc::new(Semaphore::new(1));
+	let limiter = Arc::new(RateLimiter::direct(Quota::per_second(
+		NonZeroU32::new(20).unwrap() // 20 requests/sec
+	).allow_burst(NonZeroU32::new(5).unwrap())));
 
 	// Collection to store all the spawned task futures
 	let mut futures = Vec::new();
@@ -55,7 +61,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 	// Set an upper bound for ANN IDs to prevent infinite processing
 	// 100,000 is a reasonable limit based on the current ANN database size
 	// This was reduced from 100,000,000 in previous versions for efficiency
-	let max_count: i64 = 100_000; 
+	let max_count: i64 = 100_000;
 
 	debug!("Will process anime songs with IDs from 1 to {}", max_count);
 
@@ -64,8 +70,10 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 		// Acquire a permit from the semaphore before spawning a new task
 		// This ensures we never have more than 10 concurrent requests
 		// The acquire_owned() method is used because the permit needs to be moved into the task
-		let permit = semaphore.clone().acquire_owned().await
-			.context(format!("Failed to acquire semaphore permit for ANN ID {}", i))?;
+		let permit = semaphore.clone().acquire_owned().await.context(format!(
+			"Failed to acquire semaphore permit for ANN ID {}",
+			i
+		))?;
 
 		// Clone the shared resources for use in the spawned task
 		let client = client.clone();
@@ -75,20 +83,22 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 
 		// Spawn a new task to process this ANN ID concurrently
 		// This allows us to make progress on other IDs while waiting for API responses
+		let limiter_c = limiter.clone();
+
 		let future = tokio::spawn(async move {
 			// Keep the permit alive for the duration of the task
 			// When this variable is dropped at the end of the task, the permit is released
 			// allowing another task to acquire it
-			let _permit = permit; 
+			let _permit = permit;
 
 			// Call the helper function to process this specific ANN ID
-			match process_anisong(client, connection, ann_id).await {
+			match process_anisong(client, connection, ann_id, limiter_c).await {
 				Ok(raw_anisong) => raw_anisong,
 				Err(e) => {
 					error!("Error processing anime song for ANN ID {}: {}", ann_id, e);
 					// Return an empty vector on error to maintain consistent return type
 					Vec::new()
-				}
+				},
 			}
 		});
 
@@ -103,45 +113,90 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 		/// By defining this function inside the main function, we can access the
 		/// outer function's context while keeping the code modular and focused.
 		async fn process_anisong(
-			client: Arc<Client>, 
-			connection: Arc<DatabaseConnection>, 
-			ann_id: i64
+			client: Arc<Client>, connection: Arc<DatabaseConnection>, ann_id: i64, limiter: Arc<RateLimiter<
+				state::NotKeyed,
+				state::InMemoryState,
+				clock::DefaultClock
+			>>,
+
 		) -> Result<Vec<RawAniSongDB>> {
 			debug!("Requesting anime song data for ANN ID: {}", ann_id);
+			let mut retries = 0;
+			let max_retries = 5;
+			let mut raw_anisong: Vec<RawAniSongDB>;
+			loop {
+				limiter.until_ready().await;
+				// Make the API request to anisongdb.com
+				// We use POST with JSON payload to request songs for a specific ANN ID
+				// The ignore_duplicate parameter is set to false to get all songs
+				let response = client
+					.post("https://anisongdb.com/api/annId_request")
+					.header("Content-Type", "application/json")
+					.header("Accept", "application/json")
+					.json(&json!({
+						"annId": ann_id,
+						"ignore_duplicate": false,
+					}))
+					.send()
+					.await
+					.context(format!(
+						"Failed to request anime song data for ANN ID {}",
+						ann_id
+					))?;
 
-			// Make the API request to anisongdb.com
-			// We use POST with JSON payload to request songs for a specific ANN ID
-			// The ignore_duplicate parameter is set to false to get all songs
-			let response = client
-				.post("https://anisongdb.com/api/annId_request")
-				.header("Content-Type", "application/json")
-				.header("Accept", "application/json")
-				.json(&json!({
-					"annId": ann_id,
-					"ignore_duplicate": false,
-				}))
-				.send()
-				.await
-				.context(format!("Failed to request anime song data for ANN ID {}", ann_id))?;
+				trace!(
+					"Received response for ANN ID: {}, status: {}",
+					ann_id,
+					response.status()
+				);
+				trace!(?response);
 
-			trace!("Received response for ANN ID: {}, status: {}", ann_id, response.status());
-			trace!(?response);
+				match response.status() {
+					StatusCode::TOO_MANY_REQUESTS => {
+						let delay = response.headers()
+							.get("retry-after")
+							.and_then(|h| h.to_str().ok())
+							.and_then(|s| s.parse().ok())
+							.unwrap_or_else(|| 2u64.pow(retries));
+						tokio::time::sleep(Duration::from_secs(delay)).await;
+						retries += 1;
+						if retries > max_retries {
+							warn!(
+								"Exceeded maximum number of retries for ANN ID {}. Giving up.",
+								ann_id
+							);
+							return Err(anyhow::anyhow!(
+								"Exceeded maximum number of retries for ANN ID {}. Giving up.",
+								ann_id
+							));
+						}
+						continue
+					},
+					_ => {}
+				}
 
-			// Extract the response body as text
-			// This is a separate step from JSON parsing to help with debugging
-			// If JSON parsing fails, we can still log the raw text
-			let json = response.text().await
-				.context(format!("Failed to parse response text for ANN ID {}", ann_id))?;
+				// Extract the response body as text
+				// This is a separate step from JSON parsing to help with debugging
+				// If JSON parsing fails, we can still log the raw text
+				let json = response.text().await.context(format!(
+					"Failed to parse response text for ANN ID {}",
+					ann_id
+				))?;
 
-			trace!("Successfully parsed response text for ANN ID: {}", ann_id);
+				trace!("Successfully parsed response text for ANN ID: {}", ann_id);
 
-			// Parse the JSON text into our RawAniSongDB struct
-			// The API returns an array of songs, even for a single ANN ID
-			// because one anime can have multiple songs (OP, ED, etc.)
-			let raw_anisong: Vec<RawAniSongDB> = serde_json::from_str(&json)
-				.context(format!("Failed to parse JSON for ANN ID {}", ann_id))?;
-
-			debug!("Successfully parsed {} anime songs for ANN ID: {}", raw_anisong.len(), ann_id);
+				// Parse the JSON text into our RawAniSongDB struct
+				// The API returns an array of songs, even for a single ANN ID
+				// because one anime can have multiple songs (OP, ED, etc.)
+				raw_anisong = serde_json::from_str(&json)
+					.context(format!("Failed to parse JSON for ANN ID {}", ann_id))?;
+				break
+			}
+			debug!(
+				"Successfully parsed {} anime songs for ANN ID: {}",
+				raw_anisong.len(),
+				ann_id
+			);
 
 			// Track statistics for logging and reporting
 			let mut processed_count = 0;
@@ -154,14 +209,19 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 				// Skip songs without an Anilist ID since we need it for linking
 				// to other parts of the application that use Anilist as reference
 				if anisong.linked_ids.anilist.is_none() {
-					trace!("Skipping anime song with ANN ID {} due to missing Anilist ID", anisong.ann_id);
+					trace!(
+						"Skipping anime song with ANN ID {} due to missing Anilist ID",
+						anisong.ann_id
+					);
 					continue;
 				}
 
 				// Unwrap is safe here because we checked for None above
 				let anilist_id = anisong.linked_ids.anilist.unwrap();
-				debug!("Processing anime song: '{}' (ANN ID: {}, Anilist ID: {})", 
-					anisong.song_name, anisong.ann_id, anilist_id);
+				debug!(
+					"Processing anime song: '{}' (ANN ID: {}, Anilist ID: {})",
+					anisong.song_name, anisong.ann_id, anilist_id
+				);
 
 				// Prepare the database model from the API response
 				// We transform the raw API data into our database schema format
@@ -227,17 +287,21 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 					// Execute the query on the database connection
 					.exec(&*connection)
 					.await
-					.context(format!("Failed to insert anime song '{}' for ANN ID {}", 
+					.context(format!("Failed to insert anime song '{}' for ANN ID {}",
 						anisong.song_name, anisong.ann_id))?;
 
 				success_count += 1;
-				trace!("Successfully inserted/updated anime song: '{}' for anime: '{}'", 
-					anisong.song_name, anisong.anime_en_name);
+				trace!(
+					"Successfully inserted/updated anime song: '{}' for anime: '{}'",
+					anisong.song_name, anisong.anime_en_name
+				);
 			}
 
 			if processed_count > 0 {
-				debug!("Processed {} anime songs for ANN ID {}, successfully inserted/updated: {}", 
-					processed_count, ann_id, success_count);
+				debug!(
+					"Processed {} anime songs for ANN ID {}, successfully inserted/updated: {}",
+					processed_count, ann_id, success_count
+				);
 			}
 
 			// Return the raw anime song data for potential further processing
@@ -245,36 +309,49 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 			Ok(raw_anisong)
 		}
 
- 	// Add this task to our collection of futures
- 	futures.push(future);
 
- 	// Move to the next ANN ID
- 	i += 1;
- }
+		// Add this task to our collection of futures
+		futures.push(future);
 
- // Wait for all futures to complete and collect results
- // join_all runs all futures to completion and collects their results
- // This is more efficient than awaiting each future individually
- info!("Waiting for all {} anime song processing tasks to complete", futures.len());
- let results = join_all(futures).await;
+		// Move to the next ANN ID
+		i += 1;
+	}
 
- // Count total processed and successful operations
- // This aggregates the results from all tasks:
- // 1. Filter out tasks that failed (using filter_map and as_ref().ok())
- // 2. Flatten the Vec<Vec<RawAniSongDB>> into a single iterator
- // 3. Count the total number of items
- let total_processed = results.iter().filter_map(|r| r.as_ref().ok()).flatten().count();
+	// Wait for all futures to complete and collect results
+	// join_all runs all futures to completion and collects their results
+	// This is more efficient than awaiting each future individually
+	info!(
+		"Waiting for all {} anime song processing tasks to complete",
+		futures.len()
+	);
+	let results = join_all(futures).await;
 
- // Log the final results
- info!("Anisong database update task completed. Processed {} anime song entries.", total_processed);
- debug!("Task success rate: {}/{} ({:.1}%)", 
- 	results.iter().filter(|r| r.is_ok()).count(),
- 	results.len(),
- 	(results.iter().filter(|r| r.is_ok()).count() as f64 / results.len() as f64) * 100.0);
+	// Count total processed and successful operations
+	// This aggregates the results from all tasks:
+	// 1. Filter out tasks that failed (using filter_map and as_ref().ok())
+	// 2. Flatten the Vec<Vec<RawAniSongDB>> into a single iterator
+	// 3. Count the total number of items
+	let total_processed = results
+		.iter()
+		.filter_map(|r| r.as_ref().ok())
+		.flatten()
+		.count();
 
- // Return the total number of processed items
- // This allows the caller to track the progress over time
- Ok(total_processed)
+	// Log the final results
+	info!(
+		"Anisong database update task completed. Processed {} anime song entries.",
+		total_processed
+	);
+	debug!(
+		"Task success rate: {}/{} ({:.1}%)",
+		results.iter().filter(|r| r.is_ok()).count(),
+		results.len(),
+		(results.iter().filter(|r| r.is_ok()).count() as f64 / results.len() as f64) * 100.0
+	);
+
+	// Return the total number of processed items
+	// This allows the caller to track the progress over time
+	Ok(total_processed)
 }
 
 #[derive(Debug, Deserialize, Clone)]

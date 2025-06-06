@@ -105,7 +105,7 @@ pub struct TaskIntervalConfig {
 	pub activity_check: u64,
 	pub random_stats_update: u64,
 	pub anisong_update: u64,
-	pub bot_info_update: u64
+	pub bot_info_update: u64,
 }
 
 impl Default for Config {

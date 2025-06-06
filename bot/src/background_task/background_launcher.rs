@@ -23,8 +23,8 @@ use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
 use crate::event_handler::BotData;
 use crate::get_url;
-use anyhow::{Context as AnyhowContext, Result};
 use crate::structure::steam_game_id_struct::get_game;
+use anyhow::{Context as AnyhowContext, Result};
 /// Main function responsible for launching and managing all background tasks.
 ///
 /// This function orchestrates the initialization and execution of various background tasks
@@ -32,29 +32,29 @@ use crate::structure::steam_game_id_struct::get_game;
 /// concurrent execution without blocking the main thread.
 ///
 /// # Architecture Overview
-/// 
+///
 /// The background tasks are organized in the following categories:
-/// 
+///
 /// 1. **Data Management Tasks**:
 ///    - `update_anisong_db`: Updates the anisong database periodically
 ///    - `update_random_stats_launcher`: Updates random statistics for anime/manga
-/// 
+///
 /// 2. **Bot Status Tasks**:
 ///    - `ping_manager_thread`: Monitors and records shard latency
 ///    - `update_bot_info`: Keeps bot information up-to-date
-/// 
+///
 /// 3. **User Interaction Tasks**:
 ///    - `launch_activity_management_thread`: Manages anime activity tracking
 ///    - `launch_game_management_thread`: Tracks and updates game information
-/// 
+///
 /// 4. **Security Tasks**:
 ///    - `update_user_blacklist`: Maintains a list of blacklisted users
-/// 
+///
 /// 5. **Visual Tasks** (launched after a delay):
 ///    - `launch_server_image_management_thread`: Generates and updates server images
 ///
 /// # Task Scheduling
-/// 
+///
 /// Each task has its own configurable interval defined in `TaskIntervalConfig`.
 /// This allows for fine-tuning the frequency of each background operation based on
 /// its resource requirements and importance.
@@ -83,7 +83,8 @@ pub async fn thread_management_launcher(
 	let mut shutdown_receivers = Vec::new();
 
 	// Log task interval configuration for debugging
-	debug!("Task intervals configuration: anisong_update={}s, random_stats_update={}s, activity_check={}s, game_update={}s, ping_update={}s, bot_info_update={}s, blacklisted_user_update={}s, server_image_update={}s, before_server_image={}s",
+	debug!(
+		"Task intervals configuration: anisong_update={}s, random_stats_update={}s, activity_check={}s, game_update={}s, ping_update={}s, bot_info_update={}s, blacklisted_user_update={}s, server_image_update={}s, before_server_image={}s",
 		task_intervals.anisong_update,
 		task_intervals.random_stats_update,
 		task_intervals.activity_check,
@@ -99,7 +100,10 @@ pub async fn thread_management_launcher(
 	info!("Launching data management background tasks");
 
 	// Launch anisong database update task
-	debug!("Spawning anisong database update task (interval: {}s)", task_intervals.anisong_update);
+	debug!(
+		"Spawning anisong database update task (interval: {}s)",
+		task_intervals.anisong_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let connection_c = connection.clone();
 	let mut anisong_shutdown_rx = shutdown_signal.subscribe();
@@ -116,7 +120,10 @@ pub async fn thread_management_launcher(
 	shutdown_receivers.push(anisong_task);
 
 	// Launch random stats update task
-	debug!("Spawning random stats update task (interval: {}s)", task_intervals.random_stats_update);
+	debug!(
+		"Spawning random stats update task (interval: {}s)",
+		task_intervals.random_stats_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let anilist_cache_c = anilist_cache.clone();
 	let mut random_stats_shutdown_rx = shutdown_signal.subscribe();
@@ -136,9 +143,12 @@ pub async fn thread_management_launcher(
 	info!("Launching user interaction background tasks");
 
 	// Launch activity management thread
-	debug!("Spawning activity management task (interval: {}s)", task_intervals.activity_check);
+	debug!(
+		"Spawning activity management task (interval: {}s)",
+		task_intervals.activity_check
+	);
 	let task_intervals_c = task_intervals.clone();
-	let ctx_c =ctx.clone();
+	let ctx_c = ctx.clone();
 	let anilist_cache_c = anilist_cache.clone();
 	let db_config_c = db_config.clone();
 	let mut activity_shutdown_rx = shutdown_signal.subscribe();
@@ -160,7 +170,10 @@ pub async fn thread_management_launcher(
 	shutdown_receivers.push(activity_task);
 
 	// Launch game management thread
-	debug!("Spawning game management task (interval: {}s)", task_intervals.game_update);
+	debug!(
+		"Spawning game management task (interval: {}s)",
+		task_intervals.game_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let mut game_shutdown_rx = shutdown_signal.subscribe();
 	let game_task = tokio::spawn(async move {
@@ -179,7 +192,10 @@ pub async fn thread_management_launcher(
 	info!("Launching bot status monitoring background tasks");
 
 	// Launch ping manager thread
-	debug!("Spawning ping manager task (interval: {}s)", task_intervals.ping_update);
+	debug!(
+		"Spawning ping manager task (interval: {}s)",
+		task_intervals.ping_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let ctx_c = ctx.clone();
 	let db_config_c = db_config.clone();
@@ -200,7 +216,10 @@ pub async fn thread_management_launcher(
 	shutdown_receivers.push(ping_task);
 
 	// Launch bot info update task
-	debug!("Spawning bot info update task (interval: {}s)", task_intervals.bot_info_update);
+	debug!(
+		"Spawning bot info update task (interval: {}s)",
+		task_intervals.bot_info_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let mut bot_info_shutdown_rx = shutdown_signal.subscribe();
 	let ctx_c = ctx.clone();
@@ -221,7 +240,10 @@ pub async fn thread_management_launcher(
 	info!("Launching security background tasks");
 
 	// Launch user blacklist update task
-	debug!("Spawning user blacklist update task (interval: {}s)", task_intervals.blacklisted_user_update);
+	debug!(
+		"Spawning user blacklist update task (interval: {}s)",
+		task_intervals.blacklisted_user_update
+	);
 	let task_intervals_c = task_intervals.clone();
 	let mut blacklist_shutdown_rx = shutdown_signal.subscribe();
 	let blacklist_task = tokio::spawn(async move {
@@ -237,19 +259,28 @@ pub async fn thread_management_launcher(
 	shutdown_receivers.push(blacklist_task);
 
 	// === VISUAL TASKS (with delay) ===
-	info!("Scheduling visual tasks with delay of {}s", task_intervals.before_server_image);
+	info!(
+		"Scheduling visual tasks with delay of {}s",
+		task_intervals.before_server_image
+	);
 
 	// Wait before launching server image management
 	// This delay ensures other critical tasks are running before starting image generation
-	debug!("Waiting {}s before launching server image management task", task_intervals.before_server_image);
+	debug!(
+		"Waiting {}s before launching server image management task",
+		task_intervals.before_server_image
+	);
 	sleep(Duration::from_secs(task_intervals.before_server_image)).await;
 
 	let image_config = bot_data.config.image.clone();
 
 	// Launch server image management thread
-	debug!("Spawning server image management task (interval: {}s)", task_intervals.server_image_update);
+	debug!(
+		"Spawning server image management task (interval: {}s)",
+		task_intervals.server_image_update
+	);
 	let task_intervals_c = task_intervals.clone();
-	let ctx_c =ctx.clone();
+	let ctx_c = ctx.clone();
 	let mut server_image_shutdown_rx = shutdown_signal.subscribe();
 	let server_image_task = tokio::spawn(async move {
 		tokio::select! {
@@ -269,7 +300,10 @@ pub async fn thread_management_launcher(
 	shutdown_receivers.push(server_image_task);
 
 	info!("All background tasks have been successfully launched");
-	debug!("Registered {} background tasks with shutdown handlers", shutdown_receivers.len());
+	debug!(
+		"Registered {} background tasks with shutdown handlers",
+		shutdown_receivers.len()
+	);
 
 	// Return the JoinHandles so they're not dropped
 	// This keeps the tasks running until they receive a shutdown signal
@@ -289,7 +323,10 @@ pub async fn thread_management_launcher(
 ///
 async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig) {
 	info!("Launching the anisongdb update background task");
-	debug!("Anisong database will update every {} seconds", task_intervals.anisong_update);
+	debug!(
+		"Anisong database will update every {} seconds",
+		task_intervals.anisong_update
+	);
 
 	let mut interval = tokio::time::interval(Duration::from_secs(task_intervals.anisong_update));
 	let mut update_count = 0;
@@ -308,12 +345,18 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 		trace!("Calling get_anisong function with database connection");
 		match get_anisong(db.clone()).await {
 			Ok(count) => {
-				info!("Anisong database update cycle #{} completed successfully", update_count);
+				info!(
+					"Anisong database update cycle #{} completed successfully",
+					update_count
+				);
 				debug!("Updated {} anisong records in the database", count);
 
 				// Reset failure counter on success
 				if consecutive_failures > 0 {
-					debug!("Reset consecutive failure counter from {} to 0", consecutive_failures);
+					debug!(
+						"Reset consecutive failure counter from {} to 0",
+						consecutive_failures
+					);
 					consecutive_failures = 0;
 				}
 			},
@@ -334,13 +377,22 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 
 				// Continue with the next scheduled update despite the error
 				if consecutive_failures >= 3 {
-					warn!("Multiple consecutive anisong update failures detected. Consider checking the database connection or API availability.");
+					warn!(
+						"Multiple consecutive anisong update failures detected. Consider checking the database connection or API availability."
+					);
 				}
-			}
+			},
 		}
 
-		debug!("Next anisong database update scheduled in {} seconds", task_intervals.anisong_update);
-		trace!("Update cycle #{} completed at {}", update_count, chrono::Utc::now());
+		debug!(
+			"Next anisong database update scheduled in {} seconds",
+			task_intervals.anisong_update
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
+		);
 	}
 }
 
@@ -373,7 +425,9 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 /// * `db_config` - Database configuration for connecting to the database
 /// * `task_intervals` - Configuration for how frequently to check and record latency
 ///
-async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig, task_intervals: TaskIntervalConfig) -> Result<()> {
+async fn ping_manager_thread(
+	ctx: SerenityContext, db_config: DbConfig, task_intervals: TaskIntervalConfig,
+) -> Result<()> {
 	// Log the initialization of the ping monitoring thread
 	info!("Launching the ping thread!");
 
@@ -405,8 +459,12 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig, task_int
 
 	// Establish a connection to the database for recording ping history
 	// This connection is reused for all database operations to avoid repeatedly connecting
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await
-		.context(format!("Failed to connect to database with config: {:?}", db_config))?;
+	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+		.await
+		.context(format!(
+			"Failed to connect to database with config: {:?}",
+			db_config
+		))?;
 
 	// Main monitoring loop - runs indefinitely
 	loop {
@@ -459,7 +517,10 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig, task_int
 			})
 			.exec(&connection)
 			.await
-			.context(format!("Failed to insert ping history for shard {} with latency {}", shard_id, latency));
+			.context(format!(
+				"Failed to insert ping history for shard {} with latency {}",
+				shard_id, latency
+			));
 
 			match result {
 				Ok(_) => {
@@ -468,7 +529,10 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig, task_int
 				},
 				Err(e) => {
 					// Log failures at error level for investigation
-					error!("Failed to update ping history for shard {}: {:#}", shard_id, e);
+					error!(
+						"Failed to update ping history for shard {}: {:#}",
+						shard_id, e
+					);
 					// Continue with other shards despite this error
 				},
 			}
@@ -490,13 +554,18 @@ async fn ping_manager_thread(ctx: SerenityContext, db_config: DbConfig, task_int
 /// * `apps` - An `Arc` wrapped `RwLock` containing a `HashMap` of `String` keys and `u128` values.
 ///
 
-async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>, task_intervals: TaskIntervalConfig) {
+async fn launch_game_management_thread(
+	apps: Arc<RwLock<HashMap<String, u128>>>, task_intervals: TaskIntervalConfig,
+) {
 	// Create an interval for periodic updates
 	let mut interval = interval(Duration::from_secs(task_intervals.game_update));
 
 	// Log a message indicating that the steam management thread is being launched
 	info!("Launching the steam management thread!");
-	debug!("Game update interval configured for {} seconds", task_intervals.game_update);
+	debug!(
+		"Game update interval configured for {} seconds",
+		task_intervals.game_update
+	);
 	trace!("Initial game data cache state: empty");
 
 	let mut update_count = 0;
@@ -511,25 +580,39 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>,
 		update_count += 1;
 
 		let current_time = chrono::Utc::now();
-		info!("Starting game data update cycle #{} at {}", update_count, current_time);
+		info!(
+			"Starting game data update cycle #{} at {}",
+			update_count, current_time
+		);
 
 		// Get current cache size for comparison
 		let current_size = {
 			let apps_read = apps.read().await;
 			let size = apps_read.len();
 			debug!("Current game data cache size: {} entries", size);
-			trace!("Game data cache memory usage estimate: ~{} bytes", size * std::mem::size_of::<(String, u128)>());
+			trace!(
+				"Game data cache memory usage estimate: ~{} bytes",
+				size * std::mem::size_of::<(String, u128)>()
+			);
 			size
 		};
 
- 	// Get the game with the provided apps and wait for the result
- 	trace!("Calling get_game function with apps cache");
- 	match get_game(apps.clone()).await.context("Failed to update game data") {
+		// Get the game with the provided apps and wait for the result
+		trace!("Calling get_game function with apps cache");
+		match get_game(apps.clone())
+			.await
+			.context("Failed to update game data")
+		{
 			Ok(new_entries) => {
 				let new_size = apps.read().await.len();
-				info!("Game data update cycle #{} completed successfully", update_count);
-				debug!("Updated game data cache size: {} entries (added {} new entries)", 
-					new_size, new_entries);
+				info!(
+					"Game data update cycle #{} completed successfully",
+					update_count
+				);
+				debug!(
+					"Updated game data cache size: {} entries (added {} new entries)",
+					new_size, new_entries
+				);
 
 				// Calculate and log change statistics
 				let size_diff = new_size as i64 - current_size as i64;
@@ -537,8 +620,10 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>,
 					debug!("Game data cache size changed by {} entries", size_diff);
 
 					if size_diff < 0 && size_diff.abs() as usize > (current_size / 2) {
-						warn!("Large decrease in game data cache size detected ({}%). This might indicate an API issue.", 
-							(size_diff.abs() as f64 / current_size as f64) * 100.0);
+						warn!(
+							"Large decrease in game data cache size detected ({}%). This might indicate an API issue.",
+							(size_diff.abs() as f64 / current_size as f64) * 100.0
+						);
 					}
 				} else {
 					trace!("Game data cache size unchanged");
@@ -546,7 +631,10 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>,
 
 				// Reset failure counter on success
 				if consecutive_failures > 0 {
-					debug!("Reset consecutive failure counter from {} to 0", consecutive_failures);
+					debug!(
+						"Reset consecutive failure counter from {} to 0",
+						consecutive_failures
+					);
 					consecutive_failures = 0;
 				}
 
@@ -555,7 +643,10 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>,
 			Err(e) => {
 				consecutive_failures += 1;
 				error!("Game data update cycle #{} failed: {}", update_count, e);
-				warn!("This is consecutive failure #{} for game data updates", consecutive_failures);
+				warn!(
+					"This is consecutive failure #{} for game data updates",
+					consecutive_failures
+				);
 
 				// Log more details about the error for debugging
 				debug!("Error type: {}", std::any::type_name_of_val(&e));
@@ -563,27 +654,44 @@ async fn launch_game_management_thread(apps: Arc<RwLock<HashMap<String, u128>>>,
 
 				// Provide more context based on error patterns
 				if e.to_string().contains("timeout") {
-					warn!("API timeout detected. The external service might be experiencing high load or connectivity issues.");
+					warn!(
+						"API timeout detected. The external service might be experiencing high load or connectivity issues."
+					);
 				} else if e.to_string().contains("rate") {
-					warn!("Possible rate limiting detected. Consider increasing the update interval.");
+					warn!(
+						"Possible rate limiting detected. Consider increasing the update interval."
+					);
 				}
 
 				// Suggest action after multiple failures
 				if consecutive_failures >= 3 {
-					warn!("Multiple consecutive game data update failures detected. Consider checking API availability or credentials.");
+					warn!(
+						"Multiple consecutive game data update failures detected. Consider checking API availability or credentials."
+					);
 
 					if current_size == 0 && last_successful_size > 0 {
-						warn!("Game data cache is empty after previously containing {} entries. This may impact functionality.", 
-							last_successful_size);
+						warn!(
+							"Game data cache is empty after previously containing {} entries. This may impact functionality.",
+							last_successful_size
+						);
 					}
 				}
-			}
+			},
 		}
 
-		debug!("Next game data update scheduled in {} seconds", task_intervals.game_update);
-		trace!("Update cycle #{} completed at {}", update_count, chrono::Utc::now());
-		trace!("Elapsed time for this cycle: {} ms", 
-			(chrono::Utc::now() - current_time).num_milliseconds());
+		debug!(
+			"Next game data update scheduled in {} seconds",
+			task_intervals.game_update
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
+		);
+		trace!(
+			"Elapsed time for this cycle: {} ms",
+			(chrono::Utc::now() - current_time).num_milliseconds()
+		);
 	}
 }
 
@@ -607,7 +715,10 @@ async fn launch_activity_management_thread(
 
 	// Log a message indicating that the activity management thread is being launched
 	info!("Launching the activity management thread!");
-	debug!("Activity check interval configured for {} seconds", task_intervals.activity_check);
+	debug!(
+		"Activity check interval configured for {} seconds",
+		task_intervals.activity_check
+	);
 
 	let mut update_count = 0;
 
@@ -645,7 +756,10 @@ async fn launch_server_image_management_thread(
 ) {
 	// Log a message indicating that the server image management thread is being launched
 	info!("Launching the server image management thread!");
-	debug!("Server image update interval configured for {} seconds", task_intervals.server_image_update);
+	debug!(
+		"Server image update interval configured for {} seconds",
+		task_intervals.server_image_update
+	);
 
 	let mut update_count = 0;
 
@@ -675,7 +789,7 @@ async fn launch_server_image_management_thread(
 ///
 /// This blacklist mechanism provides a way to quickly block abusive users without
 /// requiring a bot restart or code deployment. It's an important security feature that:
-/// 
+///
 /// 1. Allows for rapid response to abuse
 /// 2. Centralizes the blacklist management
 /// 3. Enables updates without service interruption
@@ -701,14 +815,19 @@ async fn launch_server_image_management_thread(
 /// * `blacklist_lock` - Thread-safe shared storage for the blacklist
 /// * `task_intervals` - Configuration for how frequently to update the blacklist
 ///
-async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_intervals: TaskIntervalConfig) {
+async fn update_user_blacklist(
+	blacklist_lock: Arc<RwLock<Vec<String>>>, task_intervals: TaskIntervalConfig,
+) {
 	// Set up a periodic interval for blacklist updates
 	// This determines how frequently we'll check for changes to the blacklist
 	let mut interval =
 		tokio::time::interval(Duration::from_secs(task_intervals.blacklisted_user_update));
 
 	info!("Launching user blacklist update thread");
-	debug!("Blacklist update interval configured for {} seconds", task_intervals.blacklisted_user_update);
+	debug!(
+		"Blacklist update interval configured for {} seconds",
+		task_intervals.blacklisted_user_update
+	);
 	trace!("Initial blacklist state: empty");
 
 	let mut update_count = 0;
@@ -735,7 +854,10 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 		update_count += 1;
 
 		let current_time = chrono::Utc::now();
-		info!("Starting blacklist update cycle #{} at {}", update_count, current_time);
+		info!(
+			"Starting blacklist update cycle #{} at {}",
+			update_count, current_time
+		);
 
 		// Get current blacklist size for comparison
 		let current_size = {
@@ -744,8 +866,14 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 			debug!("Current blacklist size: {} users", size);
 
 			if size > 0 {
-				trace!("First 5 blacklisted users: {:?}", 
-					current_blacklist.iter().take(5).cloned().collect::<Vec<String>>());
+				trace!(
+					"First 5 blacklisted users: {:?}",
+					current_blacklist
+						.iter()
+						.take(5)
+						.cloned()
+						.collect::<Vec<String>>()
+				);
 			}
 
 			size
@@ -761,49 +889,78 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 			Ok(response) => {
 				let status = response.status();
 				if status.is_success() {
-					debug!("Successfully received blacklist response with status: {}", status);
+					debug!(
+						"Successfully received blacklist response with status: {}",
+						status
+					);
 					trace!("Response headers: {:?}", response.headers());
 					response
 				} else {
 					consecutive_failures += 1;
 					error!("Failed to get blacklist: HTTP status {}", status);
-					warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
+					warn!(
+						"This is consecutive failure #{} for blacklist updates",
+						consecutive_failures
+					);
 
 					// Provide more context based on status code
 					match status.as_u16() {
-						404 => warn!("Blacklist file not found. The repository structure might have changed."),
-						403 => warn!("Access forbidden. GitHub might be rate limiting the requests."),
+						404 => warn!(
+							"Blacklist file not found. The repository structure might have changed."
+						),
+						403 => {
+							warn!("Access forbidden. GitHub might be rate limiting the requests.")
+						},
 						429 => warn!("Too many requests. Definitely being rate limited."),
 						500..=599 => warn!("Server error. GitHub might be experiencing issues."),
 						_ => debug!("Unexpected status code: {}", status),
 					}
 
-					debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-					trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
+					debug!(
+						"Next blacklist update scheduled in {} seconds",
+						task_intervals.blacklisted_user_update
+					);
+					trace!(
+						"Update cycle #{} failed at {}",
+						update_count,
+						chrono::Utc::now()
+					);
 					continue;
 				}
 			},
 			Err(e) => {
 				consecutive_failures += 1;
 				error!("Failed to get blacklist: {}", e);
-				warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
+				warn!(
+					"This is consecutive failure #{} for blacklist updates",
+					consecutive_failures
+				);
 
 				// Log more details about the error for debugging
 				debug!("Error type: {}", std::any::type_name_of_val(&e));
 
 				// Provide more context based on error type
 				if e.is_timeout() {
-					warn!("Request timed out. GitHub might be slow or network connectivity issues.");
+					warn!(
+						"Request timed out. GitHub might be slow or network connectivity issues."
+					);
 				} else if e.is_connect() {
 					warn!("Connection failed. Check network connectivity.");
 				} else if e.is_request() {
 					warn!("Request creation failed. This might be a bug in the code.");
 				}
 
-				debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-				trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
+				debug!(
+					"Next blacklist update scheduled in {} seconds",
+					task_intervals.blacklisted_user_update
+				);
+				trace!(
+					"Update cycle #{} failed at {}",
+					update_count,
+					chrono::Utc::now()
+				);
 				continue;
-			}
+			},
 		};
 
 		// Parse the JSON response into a serde_json Value with proper error handling
@@ -813,7 +970,10 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 				debug!("Successfully parsed blacklist JSON");
 				// Reset failure counter on success
 				if consecutive_failures > 0 {
-					debug!("Reset consecutive failure counter from {} to 0", consecutive_failures);
+					debug!(
+						"Reset consecutive failure counter from {} to 0",
+						consecutive_failures
+					);
 					consecutive_failures = 0;
 				}
 
@@ -822,12 +982,22 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 			Err(e) => {
 				consecutive_failures += 1;
 				error!("Failed to parse blacklist JSON: {}", e);
-				warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
+				warn!(
+					"This is consecutive failure #{} for blacklist updates",
+					consecutive_failures
+				);
 				debug!("Error type: {}", std::any::type_name_of_val(&e));
-				debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-				trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
+				debug!(
+					"Next blacklist update scheduled in {} seconds",
+					task_intervals.blacklisted_user_update
+				);
+				trace!(
+					"Update cycle #{} failed at {}",
+					update_count,
+					chrono::Utc::now()
+				);
 				continue;
-			}
+			},
 		};
 
 		// Extract user IDs from the JSON array at the "user_id" key
@@ -876,7 +1046,10 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 		trace!("Write lock acquired");
 
 		// Clear the existing blacklist to remove any users who are no longer blacklisted
-		trace!("Clearing existing blacklist with {} entries", blacklist.len());
+		trace!(
+			"Clearing existing blacklist with {} entries",
+			blacklist.len()
+		);
 		blacklist.clear();
 
 		// Shrink the capacity to match the new size
@@ -890,26 +1063,46 @@ async fn update_user_blacklist(blacklist_lock: Arc<RwLock<Vec<String>>>, task_in
 
 		// Log the result of the update
 		let new_size = blacklist.len();
-		info!("Blacklist update cycle #{} completed successfully", update_count);
+		info!(
+			"Blacklist update cycle #{} completed successfully",
+			update_count
+		);
 
 		if new_size != current_size {
 			let diff = new_size as i64 - current_size as i64;
-			info!("Blacklist size changed: {} → {} users ({:+} users)", 
-				current_size, new_size, diff);
+			info!(
+				"Blacklist size changed: {} → {} users ({:+} users)",
+				current_size, new_size, diff
+			);
 
 			if diff > 10 {
-				warn!("Large increase in blacklisted users (+{}). Verify this is intentional.", diff);
+				warn!(
+					"Large increase in blacklisted users (+{}). Verify this is intentional.",
+					diff
+				);
 			} else if diff < -10 {
-				warn!("Large decrease in blacklisted users ({}). Verify this is intentional.", diff);
+				warn!(
+					"Large decrease in blacklisted users ({}). Verify this is intentional.",
+					diff
+				);
 			}
 		} else {
 			debug!("Blacklist size unchanged: {} users", new_size);
 		}
 
-		debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-		trace!("Update cycle #{} completed at {}", update_count, chrono::Utc::now());
-		trace!("Elapsed time for this cycle: {} ms", 
-			(chrono::Utc::now() - current_time).num_milliseconds());
+		debug!(
+			"Next blacklist update scheduled in {} seconds",
+			task_intervals.blacklisted_user_update
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
+		);
+		trace!(
+			"Elapsed time for this cycle: {} ms",
+			(chrono::Utc::now() - current_time).num_milliseconds()
+		);
 
 		// The lock is automatically released when `blacklist` goes out of scope
 		trace!("Write lock released");
@@ -932,7 +1125,10 @@ async fn update_bot_info(
 	let mut update_interval = tokio::time::interval(Duration::from_secs(task_intervals.bot_info));
 
 	info!("Launching bot info update thread");
-	debug!("Bot info update interval configured for {} seconds", task_intervals.bot_info);
+	debug!(
+		"Bot info update interval configured for {} seconds",
+		task_intervals.bot_info
+	);
 
 	let mut update_count = 0;
 
@@ -958,12 +1154,18 @@ async fn update_bot_info(
 		// Retrieve the current bot information
 		let current_bot_info = match context.http.get_current_application_info().await {
 			Ok(info) => {
-				debug!("Successfully retrieved bot info for application: {}", info.name);
+				debug!(
+					"Successfully retrieved bot info for application: {}",
+					info.name
+				);
 				info
 			},
 			Err(e) => {
 				error!("Failed to get bot info in cycle #{}: {:?}", update_count, e);
-				debug!("Next bot info update scheduled in {} seconds", task_intervals.bot_info);
+				debug!(
+					"Next bot info update scheduled in {} seconds",
+					task_intervals.bot_info
+				);
 				continue;
 			},
 		};
@@ -973,7 +1175,13 @@ async fn update_bot_info(
 		let mut bot_info_lock = bot_info.write().await;
 
 		*bot_info_lock = Some(current_bot_info);
-		info!("Bot info update cycle #{} completed successfully", update_count);
-		debug!("Next bot info update scheduled in {} seconds", task_intervals.bot_info);
+		info!(
+			"Bot info update cycle #{} completed successfully",
+			update_count
+		);
+		debug!(
+			"Next bot info update scheduled in {} seconds",
+			task_intervals.bot_info
+		);
 	}
 }

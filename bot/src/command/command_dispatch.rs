@@ -70,7 +70,7 @@ use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::error::Error;
 use std::time::Instant;
-use tracing::{debug, error, info, trace, warn, instrument};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 /// Dispatches a command to the appropriate handler based on the command name.
 ///
@@ -98,7 +98,7 @@ use tracing::{debug, error, info, trace, warn, instrument};
 /// Commands follow a hierarchical naming convention:
 /// - First level: Category (e.g., "user", "admin", "bot")
 /// - Second level: Subcategory or specific command (e.g., "avatar", "info")
-/// 
+///
 /// Example: "user_avatar" for the user avatar command
 ///
 /// # Arguments
@@ -117,8 +117,10 @@ use tracing::{debug, error, info, trace, warn, instrument};
 pub async fn dispatch_command(
 	ctx: &SerenityContext, command_interaction: &CommandInteraction,
 ) -> Result<()> {
-	info!("Dispatching command from user: {} (ID: {})", 
-		command_interaction.user.name, command_interaction.user.id);
+	info!(
+		"Dispatching command from user: {} (ID: {})",
+		command_interaction.user.name, command_interaction.user.id
+	);
 
 	// Extract bot data from context for command usage tracking
 	let bot_data = ctx.data::<BotData>().clone();
@@ -131,7 +133,10 @@ pub async fn dispatch_command(
 	// This is used for logging and usage statistics
 	let full_command_name = format!("{} {}", kind, name);
 
-	debug!("Command details: type={}, name={}, full_name={}", kind, name, full_command_name);
+	debug!(
+		"Command details: type={}, name={}, full_name={}",
+		kind, name, full_command_name
+	);
 
 	// Log whether the command was executed in a guild or DM
 	// This is important for commands that behave differently in these contexts
@@ -162,7 +167,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("user_avatar command execution took {:?}", command_start.elapsed());
+			debug!(
+				"user_avatar command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"user_banner" => {
@@ -174,7 +182,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("user_banner command execution took {:?}", command_start.elapsed());
+			debug!(
+				"user_banner command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"user_profile" => {
@@ -186,7 +197,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("user_profile command execution took {:?}", command_start.elapsed());
+			debug!(
+				"user_profile command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"user_command_usage" => {
@@ -198,7 +212,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("user_command_usage command execution took {:?}", command_start.elapsed());
+			debug!(
+				"user_command_usage command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 
@@ -213,7 +230,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("admin_general_lang command execution took {:?}", command_start.elapsed());
+			debug!(
+				"admin_general_lang command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"admin_general_module" => {
@@ -225,7 +245,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("admin_general_module command execution took {:?}", command_start.elapsed());
+			debug!(
+				"admin_general_module command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 
@@ -238,7 +261,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("admin_anilist_add_anime_activity command execution took {:?}", command_start.elapsed());
+			debug!(
+				"admin_anilist_add_anime_activity command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"admin_anilist_delete_anime_activity" => {
@@ -250,7 +276,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("admin_anilist_delete_anime_activity command execution took {:?}", command_start.elapsed());
+			debug!(
+				"admin_anilist_delete_anime_activity command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 
@@ -265,7 +294,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("steam_game command execution took {:?}", command_start.elapsed());
+			debug!(
+				"steam_game command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 
@@ -281,7 +313,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("ai_image command execution took {:?}", command_start.elapsed());
+			debug!(
+				"ai_image command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"ai_question" => {
@@ -483,7 +518,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("bot_credit command execution took {:?}", command_start.elapsed());
+			debug!(
+				"bot_credit command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"bot_info" => {
@@ -495,7 +533,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("bot_info command execution took {:?}", command_start.elapsed());
+			debug!(
+				"bot_info command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"bot_ping" => {
@@ -507,7 +548,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("bot_ping command execution took {:?}", command_start.elapsed());
+			debug!(
+				"bot_ping command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 
@@ -623,7 +667,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("music_play command execution took {:?}", command_start.elapsed());
+			debug!(
+				"music_play command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"music_pause" => {
@@ -667,7 +714,10 @@ pub async fn dispatch_command(
 			}
 			.run_slash()
 			.await;
-			debug!("music_queue command execution took {:?}", command_start.elapsed());
+			debug!(
+				"music_queue command execution took {:?}",
+				command_start.elapsed()
+			);
 			result?
 		},
 		"music_clear" => {
@@ -724,21 +774,31 @@ pub async fn dispatch_command(
 			warn!("This could indicate a mismatch between registered commands and implementation");
 			debug!("Command options: {:?}", command_interaction.data.options());
 			error!("Available commands do not include: {}", name);
-			return Err(anyhow::anyhow!("Command not found: {}", full_command_name))
-				.context(format!("No handler implemented for command: {}", full_command_name));
+			return Err(anyhow::anyhow!("Command not found: {}", full_command_name)).context(
+				format!("No handler implemented for command: {}", full_command_name),
+			);
 		},
 	};
 
 	// Calculate and log the total execution time
 	let execution_time = start_time.elapsed();
-	debug!("Command {} execution took {:?}", full_command_name, execution_time);
+	debug!(
+		"Command {} execution took {:?}",
+		full_command_name, execution_time
+	);
 
 	// Log performance warning for slow commands
 	if execution_time.as_millis() > 1000 {
-		warn!("Command {} took over 1 second to execute: {:?}", full_command_name, execution_time);
+		warn!(
+			"Command {} took over 1 second to execute: {:?}",
+			full_command_name, execution_time
+		);
 	}
 
-	debug!("Incrementing command usage statistics for: {}", full_command_name);
+	debug!(
+		"Incrementing command usage statistics for: {}",
+		full_command_name
+	);
 	bot_data
 		.increment_command_use_per_command(
 			full_command_name.clone(),
@@ -754,11 +814,18 @@ pub async fn dispatch_command(
 pub async fn check_if_module_is_on(
 	guild_id: String, module: &str, db_config: DbConfig,
 ) -> Result<bool> {
-	debug!("Checking if module '{}' is enabled for guild {}", module, guild_id);
+	debug!(
+		"Checking if module '{}' is enabled for guild {}",
+		module, guild_id
+	);
 
 	debug!("Connecting to database to check module activation");
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await
-		.context(format!("Failed to connect to database to check module activation for guild {}", guild_id))?;
+	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+		.await
+		.context(format!(
+			"Failed to connect to database to check module activation for guild {}",
+			guild_id
+		))?;
 	debug!("Successfully connected to database");
 
 	debug!("Querying module activation status for guild {}", guild_id);
@@ -766,7 +833,10 @@ pub async fn check_if_module_is_on(
 		.filter(database::module_activation::Column::GuildId.eq(guild_id.clone()))
 		.one(&connection)
 		.await
-		.context(format!("Failed to query module activation status for guild {}", guild_id))?;
+		.context(format!(
+			"Failed to query module activation status for guild {}",
+			guild_id
+		))?;
 
 	let row = match row {
 		Some(row) => {
@@ -774,7 +844,10 @@ pub async fn check_if_module_is_on(
 			row
 		},
 		None => {
-			info!("No module configuration found for guild {}, using defaults", guild_id);
+			info!(
+				"No module configuration found for guild {}, using defaults",
+				guild_id
+			);
 			Model {
 				guild_id: guild_id.clone(),
 				ai_module: true,
@@ -785,33 +858,58 @@ pub async fn check_if_module_is_on(
 				vn_module: true,
 				updated_at: Default::default(),
 			}
-		}
+		},
 	};
 
 	debug!("Checking activation status for module '{}'", module);
 	let state = check_activation_status(module, row).await;
-	debug!("Module '{}' activation status from database: {}", module, state);
+	debug!(
+		"Module '{}' activation status from database: {}",
+		module, state
+	);
 
 	debug!("Checking kill switch status for module '{}'", module);
-	let kill_switch_state = check_kill_switch_status(module, db_config, guild_id.clone()).await
-		.context(format!("Failed to check kill switch status for module '{}' in guild {}", module, guild_id))?;
+	let kill_switch_state = check_kill_switch_status(module, db_config, guild_id.clone())
+		.await
+		.context(format!(
+			"Failed to check kill switch status for module '{}' in guild {}",
+			module, guild_id
+		))?;
 
 	let final_state = state && kill_switch_state;
-	debug!("Kill switch status for module '{}': {}", module, kill_switch_state);
-	debug!("Final activation status for module '{}': {}", module, final_state);
+	debug!(
+		"Kill switch status for module '{}': {}",
+		module, kill_switch_state
+	);
+	debug!(
+		"Final activation status for module '{}': {}",
+		module, final_state
+	);
 
-	info!("Module '{}' is {} for guild {}", module, if final_state { "enabled" } else { "disabled" }, guild_id);
+	info!(
+		"Module '{}' is {} for guild {}",
+		module,
+		if final_state { "enabled" } else { "disabled" },
+		guild_id
+	);
 	Ok(final_state)
 }
 
 async fn check_kill_switch_status(
 	module: &str, db_config: DbConfig, guild_id: String,
 ) -> Result<bool> {
-	debug!("Checking kill switch status for module '{}' in guild {}", module, guild_id);
+	debug!(
+		"Checking kill switch status for module '{}' in guild {}",
+		module, guild_id
+	);
 
 	debug!("Connecting to database for kill switch check");
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await
-		.context(format!("Failed to connect to database for kill switch check for module '{}' in guild {}", module, guild_id))?;
+	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+		.await
+		.context(format!(
+			"Failed to connect to database for kill switch check for module '{}' in guild {}",
+			module, guild_id
+		))?;
 	debug!("Successfully connected to database for kill switch check");
 
 	debug!("Querying kill switch status for guild {}", guild_id);
@@ -819,15 +917,24 @@ async fn check_kill_switch_status(
 		.filter(database::kill_switch::Column::GuildId.eq(guild_id.clone()))
 		.one(&connection)
 		.await
-		.context(format!("Failed to query kill switch status for module '{}' in guild {}", module, guild_id))?;
+		.context(format!(
+			"Failed to query kill switch status for module '{}' in guild {}",
+			module, guild_id
+		))?;
 
 	let row = match row {
 		Some(row) => {
-			debug!("Found existing kill switch configuration for guild {}", guild_id);
+			debug!(
+				"Found existing kill switch configuration for guild {}",
+				guild_id
+			);
 			row
 		},
 		None => {
-			info!("No kill switch configuration found for guild {}, using defaults", guild_id);
+			info!(
+				"No kill switch configuration found for guild {}, using defaults",
+				guild_id
+			);
 			Model {
 				guild_id,
 				ai_module: true,
@@ -838,12 +945,15 @@ async fn check_kill_switch_status(
 				vn_module: true,
 				updated_at: Default::default(),
 			}
-		}
+		},
 	};
 
 	trace!("Kill switch row data: {:?}", row);
 
-	debug!("Determining final kill switch status for module '{}'", module);
+	debug!(
+		"Determining final kill switch status for module '{}'",
+		module
+	);
 	let status = check_activation_status(module, row).await;
 	debug!("Kill switch status for module '{}': {}", module, status);
 

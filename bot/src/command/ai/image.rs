@@ -76,9 +76,7 @@ use image::EncodableLayout;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext,  
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{error, trace};
 use uuid::Uuid;
 

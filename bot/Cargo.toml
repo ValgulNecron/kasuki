@@ -12,14 +12,14 @@ license-file = "../LICENSE"
 
 [dependencies]
 regex = "1.11.1"
-reqwest = { version = "0.12.15", features = ["json", "multipart", "blocking"] }
+reqwest = { version = "0.12.19", features = ["json", "multipart", "blocking"] }
 serde = "1.0.219"
 serde_json = "1.0.140"
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
-tokio = { version = "1.45.0", features = ["full"] }
+tokio = { version = "1.45.1", features = ["full"] }
 rand = "0.9.1"
 chrono = "0.4.41"
-uuid = { version = "1.16.0", features = ["v4"] }
+uuid = { version = "1.17.0", features = ["v4"] }
 image = "0.25.6"
 base64 = "0.22.1"
 tracing = { version = "0.1.41" }
@@ -34,10 +34,10 @@ futures = "0.3.31"
 rapidfuzz = "0.5.0"
 cynic = { version = "3.11.0", features = ["reqwest", "http-reqwest", "serde_json"] }
 moka = { version = "0.12.10", features = ["future"] }
-toml = "0.8.22"
+toml = "0.8.23"
 num-bigint = "0.4.6"
 songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "serenity-next", features = ["serenity", "rustls", "builtin-queue", "gateway", "receive", "driver"] }
-sea-orm = { version = "1.1.11", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
+sea-orm = { version = "1.2.0-rc.1", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
 tempfile = "3.20.0"
@@ -48,6 +48,7 @@ async-trait = "0.1.88"
 dashmap = "6.1.0"
 bytes = "1.10.1"
 rust-fuzzy-search = "0.1.1"
+governor = "0.10.0"
 
 [build-dependencies]
 cynic-codegen = { version = "3.11.0" }

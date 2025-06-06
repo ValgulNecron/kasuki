@@ -12,7 +12,7 @@ use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{RwLock, broadcast};
 use tracing::{error, info, warn};
 
 pub mod autocomplete;
@@ -108,11 +108,13 @@ async fn main() {
 	info!("Loading command usage statistics");
 	if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
 		info!("Command usage file found, parsing content");
-		number_of_command_use_per_command =
-			serde_json::from_str(&content).unwrap_or_else(|e| {
-				warn!("Failed to parse command usage file: {}, creating new usage tracking", e);
-				RootUsage::new()
-			});
+		number_of_command_use_per_command = serde_json::from_str(&content).unwrap_or_else(|e| {
+			warn!(
+				"Failed to parse command usage file: {}, creating new usage tracking",
+				e
+			);
+			RootUsage::new()
+		});
 	} else {
 		info!("Command usage file not found, creating new usage tracking");
 		number_of_command_use_per_command = RootUsage::new();
@@ -127,8 +129,10 @@ async fn main() {
 		.time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
 		.max_capacity(CACHE_MAX_CAPACITY)
 		.build();
-	info!("Anilist cache initialized with TTL: {}s, capacity: {}", 
-		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY);
+	info!(
+		"Anilist cache initialized with TTL: {}s, capacity: {}",
+		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY
+	);
 
 	let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
 
@@ -136,8 +140,10 @@ async fn main() {
 		.time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
 		.max_capacity(CACHE_MAX_CAPACITY)
 		.build();
-	info!("VNDB cache initialized with TTL: {}s, capacity: {}", 
-		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY);
+	info!(
+		"VNDB cache initialized with TTL: {}s, capacity: {}",
+		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY
+	);
 
 	let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
 
@@ -157,14 +163,20 @@ async fn main() {
 	info!("Configuring Discord gateway intents");
 	let gateway_intent_non_privileged =
 		GatewayIntents::non_privileged() | GatewayIntents::GUILD_VOICE_STATES;
-	info!("Non-privileged intents configured: {:?}", gateway_intent_non_privileged);
+	info!(
+		"Non-privileged intents configured: {:?}",
+		gateway_intent_non_privileged
+	);
 
 	// Get the needed privileged intent.
 	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
-	info!("Privileged intents configured: {:?}", gateway_intent_privileged);
+	info!(
+		"Privileged intents configured: {:?}",
+		gateway_intent_privileged
+	);
 
 	// Combine both intents for the client to consume.
 	let mut intent = gateway_intent_non_privileged;
@@ -192,7 +204,10 @@ async fn main() {
 
 	info!("Initializing Songbird voice client");
 	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
-	info!("Songbird configured with decode mode: {:?}", DecodeMode::Decode);
+	info!(
+		"Songbird configured with decode mode: {:?}",
+		DecodeMode::Decode
+	);
 
 	let manager = songbird::Songbird::serenity_from_config(songbird_config);
 	info!("Songbird voice client initialized successfully");
@@ -255,7 +270,7 @@ async fn main() {
 		drop(client);
 	});
 
- #[cfg(unix)]
+	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");
 		// Create a signal handler for "all" signals in unix.
@@ -307,7 +322,7 @@ async fn main() {
 		info!("Proceeding with bot shutdown");
 	}
 
- #[cfg(windows)]
+	#[cfg(windows)]
 	{
 		info!("Setting up signal handlers for Windows environment");
 		// Create a signal handler for "all" signals in windows.

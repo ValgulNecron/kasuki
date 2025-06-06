@@ -48,35 +48,49 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) -> Result<u
 	debug!("Using Steam API URL: {}", url);
 
 	// Make the HTTP request with proper error context
-	let response = reqwest::get(url).await
+	let response = reqwest::get(url)
+		.await
 		.context("Failed to connect to Steam API")?;
 
 	// Get the response status for logging
-	debug!("Received response from Steam API with status: {}", response.status());
+	debug!(
+		"Received response from Steam API with status: {}",
+		response.status()
+	);
 
 	// Get the response body with proper error context
-	let body = response.text().await
+	let body = response
+		.text()
+		.await
 		.context("Failed to read Steam API response body")?;
 
-	trace!("Successfully retrieved response body ({} bytes)", body.len());
+	trace!(
+		"Successfully retrieved response body ({} bytes)",
+		body.len()
+	);
 
 	// Parse the response body as JSON with proper error context
-	let json: Value = serde_json::from_str(&body)
-		.context("Failed to parse Steam API response as JSON")?;
+	let json: Value =
+		serde_json::from_str(&body).context("Failed to parse Steam API response as JSON")?;
 
 	debug!("Successfully parsed Steam API response as JSON");
 
 	// Ensure the expected JSON structure exists
 	if !json.get("applist").and_then(|v| v.get("apps")).is_some() {
-		return Err(anyhow::anyhow!("Steam API response missing expected 'applist.apps' structure"))
-			.context("Invalid Steam API response format")?;
+		return Err(anyhow::anyhow!(
+			"Steam API response missing expected 'applist.apps' structure"
+		))
+		.context("Invalid Steam API response format")?;
 	}
 
 	// Deserialize the JSON into a vector of App structs with proper error context
 	let apps: Vec<App> = serde_json::from_value(json["applist"]["apps"].clone())
 		.context("Failed to deserialize Steam app list from JSON")?;
 
-	debug!("Successfully deserialized {} Steam apps from JSON", apps.len());
+	debug!(
+		"Successfully deserialized {} Steam apps from JSON",
+		apps.len()
+	);
 
 	// Get the current size of the apps cache for comparison
 	let current_size = {
@@ -113,7 +127,10 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) -> Result<u
 	drop(write_guard);
 	trace!("Released write lock on apps cache");
 
-	debug!("Successfully updated Steam game cache: {} entries", new_size);
+	debug!(
+		"Successfully updated Steam game cache: {} entries",
+		new_size
+	);
 	debug!("Steam game data update process completed");
 
 	// Return the number of new entries
