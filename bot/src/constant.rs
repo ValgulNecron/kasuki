@@ -4,36 +4,8 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-/// Delay before a new thread is spawned.
-/// Delay between ping updates.
-pub const TIME_BETWEEN_PING_UPDATE: u64 = 600;
-
-/// Time before a server image is updated.
-pub const TIME_BEFORE_SERVER_IMAGE: u64 = 1_800;
-
-/// Time between server image updates.
-pub const TIME_BETWEEN_SERVER_IMAGE_UPDATE: u64 = 21_600;
-
-/// Time between steam updates.
-pub const TIME_BETWEEN_GAME_UPDATE: u64 = 86_400;
-
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
-
-/// Time between bot info update
-pub const TIME_BETWEEN_BOT_INFO: u64 = 1_800;
-
-/// time between blacklisted user update
-pub const TIME_BETWEEN_BLACKLISTED_USER_UPDATE: u64 = 3600;
-
-/// time between activity check.
-pub const TIME_BETWEEN_ACTIVITY_CHECK: u64 = 1;
-
-/// time between random stats update.
-pub const TIME_BETWEEN_RANDOM_STATS_UPDATE: u64 = 86_400;
-
-/// time between anisong db update
-pub const TIME_BETWEEN_ANISONG_UPDATE: u64 = 604_800;
 
 /// Max capacity for the cache.
 pub const CACHE_MAX_CAPACITY: u64 = 100_000;

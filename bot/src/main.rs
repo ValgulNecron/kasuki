@@ -12,8 +12,8 @@ use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
-use tracing::{error, info};
+use tokio::sync::{broadcast, RwLock};
+use tracing::{error, info, warn};
 
 pub mod autocomplete;
 mod background_task;
@@ -41,7 +41,6 @@ async fn main() {
 		Ok(config) => config,
 		Err(e) => {
 			eprintln!("Error while reading config.toml: {:?}", e);
-
 			process::exit(1);
 		},
 	};
@@ -50,7 +49,6 @@ async fn main() {
 		Ok(config) => config,
 		Err(e) => {
 			eprintln!("Error while parsing config.toml: {:?}", e);
-
 			process::exit(1);
 		},
 	};
@@ -80,41 +78,57 @@ async fn main() {
 	// Initialize the logger with the specified log level and configuration.
 	// If an error occurs, print the error and return.
 	let _guard = match init_logger(log, max_log_retention_days) {
-		Ok(guard) => guard,
+		Ok(guard) => {
+			info!("Logger initialized successfully with level: {}", log);
+			guard
+		},
 		Err(e) => {
 			eprintln!("{:?}", e);
-
 			process::exit(2);
 		},
 	};
 
+	info!("Configuration loaded successfully");
+	info!("Bot token length: {}", discord_token.len());
+	info!("Log retention days: {}", max_log_retention_days);
+
 	// Initialize the SQL database.
+	info!("Initializing database");
 	// If an error occurs, log the error and return.
 	if let Err(e) = init_db(config.clone()).await {
 		let e = e.to_string().replace("\\\\n", "\n");
-
-		error!("{}", e);
-
+		error!("Database initialization failed: {}", e);
 		process::exit(4);
 	}
+	info!("Database initialized successfully");
 
 	let number_of_command_use_per_command: RootUsage;
 
 	// populate the number_of_command_use_per_command with the content of the file
+	info!("Loading command usage statistics");
 	if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
+		info!("Command usage file found, parsing content");
 		number_of_command_use_per_command =
-			serde_json::from_str(&content).unwrap_or_else(|_| RootUsage::new());
+			serde_json::from_str(&content).unwrap_or_else(|e| {
+				warn!("Failed to parse command usage file: {}, creating new usage tracking", e);
+				RootUsage::new()
+			});
 	} else {
+		info!("Command usage file not found, creating new usage tracking");
 		number_of_command_use_per_command = RootUsage::new();
 	}
 
 	let number_of_command_use_per_command =
 		Arc::new(RwLock::new(number_of_command_use_per_command));
+	info!("Command usage statistics loaded successfully");
 
+	info!("Initializing caches");
 	let cache: Cache<String, String> = Cache::builder()
 		.time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
 		.max_capacity(CACHE_MAX_CAPACITY)
 		.build();
+	info!("Anilist cache initialized with TTL: {}s, capacity: {}", 
+		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY);
 
 	let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
 
@@ -122,34 +136,41 @@ async fn main() {
 		.time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
 		.max_capacity(CACHE_MAX_CAPACITY)
 		.build();
+	info!("VNDB cache initialized with TTL: {}s, capacity: {}", 
+		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY);
 
 	let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
 
+	info!("Connecting to database");
 	let connection = match sea_orm::Database::connect(get_url(config.db.clone())).await {
-		Ok(connection) => connection,
+		Ok(connection) => {
+			info!("Successfully connected to database");
+			connection
+		},
 		Err(e) => {
-			error!("Failed to connect to the database. {}", e);
-
+			error!("Failed to connect to the database: {}", e);
 			return;
 		},
 	};
 
 	// Get all the non-privileged intent.
+	info!("Configuring Discord gateway intents");
 	let gateway_intent_non_privileged =
 		GatewayIntents::non_privileged() | GatewayIntents::GUILD_VOICE_STATES;
+	info!("Non-privileged intents configured: {:?}", gateway_intent_non_privileged);
 
 	// Get the needed privileged intent.
 	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
         //         | GatewayIntents::MESSAGE_CONTENT
         ;
+	info!("Privileged intents configured: {:?}", gateway_intent_privileged);
 
 	// Combine both intents for the client to consume.
 	let mut intent = gateway_intent_non_privileged;
-
 	intent |= gateway_intent_privileged;
-
 	let gateway_intent = intent;
+	info!("Combined gateway intents: {:?}", gateway_intent);
 
 	// Log a message indicating the bot is starting.
 	info!("Finished preparing the environment. Starting the bot.");
@@ -157,18 +178,29 @@ async fn main() {
 	// Create a new client instance using the provided token and gateway intents.
 	// The client is built with an event handler of type `Handler`.
 	// If the client creation fails, log the error and exit the process.
+	info!("Parsing Discord token");
 	let discord_token = match Token::from_str(discord_token.as_str()) {
-		Ok(token) => token,
+		Ok(token) => {
+			info!("Discord token parsed successfully");
+			token
+		},
 		Err(e) => {
-			error!("Failed to get the token. {}", e);
-
+			error!("Failed to parse Discord token: {}", e);
 			return;
 		},
 	};
 
+	info!("Initializing Songbird voice client");
 	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
+	info!("Songbird configured with decode mode: {:?}", DecodeMode::Decode);
 
 	let manager = songbird::Songbird::serenity_from_config(songbird_config);
+	info!("Songbird voice client initialized successfully");
+
+	info!("Initializing bot data structure");
+	// Create a broadcast channel for shutdown signals
+	let (shutdown_tx, _) = broadcast::channel(1);
+	info!("Created shutdown signal channel");
 
 	let bot_data: Arc<BotData> = Arc::new(BotData {
 		number_of_command_use_per_command,
@@ -184,94 +216,142 @@ async fn main() {
 		http_client: Arc::from(reqwest::Client::new()),
 		shard_manager: Arc::new(Default::default()),
 		lavalink: Arc::new(Default::default()),
+		shutdown_signal: Arc::new(shutdown_tx),
 	});
+	info!("Bot data structure initialized successfully");
 
+	info!("Creating Discord client");
 	let mut client = Client::builder(discord_token, gateway_intent)
 		.data(bot_data.clone())
 		.voice_manager::<songbird::Songbird>(Arc::clone(&manager))
 		.event_handler(Handler)
 		.await
 		.unwrap_or_else(|e| {
-			error!("Error while creating client: {}", e);
-
+			error!("Error while creating Discord client: {}", e);
 			process::exit(5);
 		});
+	info!("Discord client created successfully");
 
 	let data = bot_data.clone();
 	// Spawn a new asynchronous task for starting the client.
 	// If the client fails to start, log the error.
 
+	info!("Setting up shard manager");
 	let bot_data = data;
 	let mut guard = bot_data.shard_manager.write().await;
 	let runner = client.shard_manager.runners.clone();
 	*guard = Some(runner);
 	drop(guard);
+	info!("Shard manager configured successfully");
 
+	info!("Starting Discord client with auto-sharding");
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
-			error!("Client error: {:?}", why);
-
+			error!("Discord client error: {:?}", why);
 			process::exit(6);
 		}
 
+		info!("Discord client shutdown gracefully");
 		drop(client);
 	});
 
-	#[cfg(unix)]
+ #[cfg(unix)]
 	{
+		info!("Setting up signal handlers for Unix environment");
 		// Create a signal handler for "all" signals in unix.
 		// If a signal is received, print a shutdown message.
 		// All signals and not only ctrl-c
 		let mut sigint =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt()).unwrap();
+		info!("Registered SIGINT handler");
 
 		let mut sigterm =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+		info!("Registered SIGTERM handler");
 
 		let mut sigquit =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit()).unwrap();
+		info!("Registered SIGQUIT handler");
 
 		let mut sigusr1 =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1()).unwrap();
+		info!("Registered SIGUSR1 handler");
 
 		let mut sigusr2 =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2()).unwrap();
+		info!("Registered SIGUSR2 handler");
+
+		info!("All Unix signal handlers registered successfully, waiting for signals");
 
 		tokio::select! {
-			_ = sigint.recv() => {},
-			_ = sigterm.recv() => {},
-			_ = sigquit.recv() => {},
-			_ = sigusr1.recv() => {},
-			_ = sigusr2.recv() => {},
+			_ = sigint.recv() => { info!("Received SIGINT signal"); },
+			_ = sigterm.recv() => { info!("Received SIGTERM signal"); },
+			_ = sigquit.recv() => { info!("Received SIGQUIT signal"); },
+			_ = sigusr1.recv() => { info!("Received SIGUSR1 signal"); },
+			_ = sigusr2.recv() => { info!("Received SIGUSR2 signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
+
+		// Send shutdown signal to all background tasks
+		info!("Sending shutdown signal to all background tasks");
+		if let Err(e) = bot_data.shutdown_signal.send(()) {
+			warn!("Failed to send shutdown signal: {}", e);
+		} else {
+			info!("Shutdown signal sent successfully");
+		}
+
+		// Wait a moment for tasks to clean up
+		info!("Waiting for background tasks to shut down gracefully");
+		tokio::time::sleep(Duration::from_secs(2)).await;
+		info!("Proceeding with bot shutdown");
 	}
 
-	#[cfg(windows)]
+ #[cfg(windows)]
 	{
+		info!("Setting up signal handlers for Windows environment");
 		// Create a signal handler for "all" signals in windows.
 		// If a signal is received, print a shutdown message.
 		// All signals and not only ctrl-c
 		let mut ctrl_break = tokio::signal::windows::ctrl_break().unwrap();
+		info!("Registered CTRL+BREAK handler");
 
 		let mut ctrl_c = tokio::signal::windows::ctrl_c().unwrap();
+		info!("Registered CTRL+C handler");
 
 		let mut ctrl_close = tokio::signal::windows::ctrl_close().unwrap();
+		info!("Registered CTRL+CLOSE handler");
 
 		let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff().unwrap();
+		info!("Registered CTRL+LOGOFF handler");
 
 		let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown().unwrap();
+		info!("Registered CTRL+SHUTDOWN handler");
+
+		info!("All Windows signal handlers registered successfully, waiting for signals");
 
 		tokio::select! {
-			_ = ctrl_break.recv() => {},
-			_ = ctrl_c.recv() => {},
-			_ = ctrl_close.recv() => {},
-			_ = ctrl_logoff.recv() => {},
-			_ = ctrl_shutdown.recv() => {},
+			_ = ctrl_break.recv() => { info!("Received CTRL+BREAK signal"); },
+			_ = ctrl_c.recv() => { info!("Received CTRL+C signal"); },
+			_ = ctrl_close.recv() => { info!("Received CTRL+CLOSE signal"); },
+			_ = ctrl_logoff.recv() => { info!("Received CTRL+LOGOFF signal"); },
+			_ = ctrl_shutdown.recv() => { info!("Received CTRL+SHUTDOWN signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
+
+		// Send shutdown signal to all background tasks
+		info!("Sending shutdown signal to all background tasks");
+		if let Err(e) = bot_data.shutdown_signal.send(()) {
+			warn!("Failed to send shutdown signal: {}", e);
+		} else {
+			info!("Shutdown signal sent successfully");
+		}
+
+		// Wait a moment for tasks to clean up
+		info!("Waiting for background tasks to shut down gracefully");
+		tokio::time::sleep(Duration::from_secs(2)).await;
+		info!("Proceeding with bot shutdown");
 	}
 }
 

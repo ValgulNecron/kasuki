@@ -54,6 +54,7 @@ pub struct BotData {
 		>,
 	>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
+	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 }
 use crate::music_events;
 use anyhow::{Context, Result};
