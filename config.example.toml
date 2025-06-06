@@ -51,3 +51,15 @@ ai_question_model = ""
 ai_transcription_token = ""
 ai_transcription_base_url = ""
 ai_transcription_model = ""
+
+[task_intervals]
+ping_update = 600
+before_server_image = 1800
+server_image_update = 21600
+game_update = 86400
+cache_update = 259200
+bot_info = 1800
+blacklisted_user_update = 3600
+activity_check = 1
+random_stats_update = 86400
+anisong_update = 604800
