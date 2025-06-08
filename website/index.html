@@ -2,1002 +2,241 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasuki - Discord Anime Bot</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #ff6b9d;
-            --primary-dark: #e05288;
-            --secondary: #8f68c9;
-            --light: #ffebf3;
-            --dark: #2a2438;
-            --text: #333344;
-            --text-light: #777788;
-            --background: #fcf8ff;
-            --card-bg: #ffffff;
-            --border-radius: 12px;
-            --shadow: 0 4px 20px rgba(255, 107, 157, 0.1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: var(--background);
-            color: var(--text);
-            line-height: 1.6;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 1rem 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        
-        .logo img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .nav-links a {
-            color: black;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
-        .add-btn {
-            background-color: white;
-            color: var(--primary);
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Mobile menu */
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-        }
-        
-        .menu-toggle span {
-            width: 25px;
-            height: 3px;
-            background-color: white;
-            margin: 2px 0;
-            border-radius: 3px;
-            transition: 0.4s;
-        }
-        
-        /* Hero Section */
-        .hero {
-            padding: 170px 0 100px;
-            text-align: center;
-            background: url('/api/placeholder/1920/500') no-repeat center center;
-            background-size: cover;
-            position: relative;
-        }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255, 107, 157, 0.85), rgba(143, 104, 201, 0.85));
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            color: white;
-        }
-        
-        .hero h2 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
-        }
-        
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary {
-            background-color: white;
-            color: var(--primary);
-        }
-        
-        .btn-secondary {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Features Section */
-        .section {
-            padding: 80px 0;
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .section-title h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--primary-dark);
-        }
-        
-        .section-title p {
-            color: var(--text-light);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        
-        .feature-card {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background-color: var(--light);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            color: var(--primary);
-            font-size: 1.5rem;
-        }
-        
-        .feature-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        /* Commands Section */
-        .commands {
-            background-color: var(--light);
-        }
-        
-        .command-tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .command-tab {
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            background-color: white;
-            color: var(--text-dark, #333344);
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            font-weight: 500;
-        }
-        
-        .command-tab.active, .command-tab:hover {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .command-content {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .command-group {
-            display: none;
-        }
-        
-        .command-group.active {
-            display: block;
-        }
-        
-        .command {
-            margin-bottom: 25px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid var(--light);
-        }
-        
-        .command:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-        
-        .command-name {
-            font-family: 'Courier New', monospace;
-            background-color: var(--dark);
-            color: #f1f1f1;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            margin-right: 10px;
-            display: inline-block;
-        }
-        
-        .command h4 {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            color: var(--text);
-            flex-wrap: wrap;
-        }
-        
-        .command p {
-            color: var(--text);
-        }
-        
-        /* Screenshots Section */
-        .screenshots {
-            text-align: center;
-        }
-        
-        .screenshot-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .screenshot {
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s;
-        }
-        
-        .screenshot:hover {
-            transform: scale(1.03);
-        }
-        
-        .screenshot img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        /* Setup Section */
-        .setup-steps {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .step {
-            display: flex;
-            margin-bottom: 40px;
-            gap: 20px;
-        }
-        
-        .step:last-child {
-            margin-bottom: 0;
-        }
-        
-        .step-number {
-            width: 50px;
-            height: 50px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        
-        .step-content h3 {
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-        
-        .step-content p {
-            color: var(--text);
-        }
-        
-        .code-block {
-            background-color: var(--dark);
-            color: #f1f1f1;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            margin: 15px 0;
-            overflow-x: auto;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 40px 0 20px;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            margin-bottom: 30px;
-        }
-        
-        .footer-column h3 {
-            margin-bottom: 20px;
-            color: var(--primary);
-            font-size: 1.2rem;
-        }
-        
-        .footer-links {
-            list-style: none;
-        }
-        
-        .footer-links li {
-            margin-bottom: 10px;
-        }
-        
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-        
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .social-links a {
-            width: 36px;
-            height: 36px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: all 0.3s;
-        }
-        
-        .social-links a:hover {
-            background-color: var(--primary);
-            transform: translateY(-3px);
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 900px) {
-            .nav-links {
-                position: fixed;
-                top: 70px;
-                right: -100%;
-                flex-direction: column;
-                background-color: var(--primary);
-                width: 70%;
-                height: calc(100vh - 70px);
-                padding: 40px;
-                transition: 0.5s;
-                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-                gap: 1.5rem;
-            }
-            
-            .nav-links.active {
-                right: 0;
-            }
-            
-            .menu-toggle {
-                display: flex;
-            }
-            
-            .menu-toggle.active span:nth-child(1) {
-                transform: rotate(-45deg) translate(-5px, 5px);
-            }
-            
-            .menu-toggle.active span:nth-child(2) {
-                opacity: 0;
-            }
-            
-            .menu-toggle.active span:nth-child(3) {
-                transform: rotate(45deg) translate(-5px, -5px);
-            }
-            
-            .hero h2 {
-                font-size: 2.2rem;
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-            
-            .hero p {
-                font-size: 1rem;
-            }
-            
-            .section-title h2 {
-                font-size: 2rem;
-            }
-            
-            .feature-card {
-                padding: 20px;
-            }
-            
-            .step {
-                flex-direction: column;
-            }
-            
-            .footer-content {
-                gap: 20px;
-            }
-        }
-    </style>
+    <!-- Favicon -->
+    <link rel="icon" href="assets/icon.png" type="image/png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Header -->
 <header>
     <div class="container">
         <nav class="navbar">
-            <div class="logo">
-                <img alt="Kasuki Logo" src="static/icon.png">
+            <a href="index.html" class="logo">
+                <img src="assets/icon.png" alt="Kasuki Logo">
                 <h1>Kasuki</h1>
-            </div>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#commands">Commands</a>
-                <a href="#screenshots">Screenshots</a>
-                <a href="#setup">Setup</a>
-                <a class="add-btn" href="https://github.com/ValgulNecron/kasuki" target="_blank">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#commands">Commands</a></li>
+                <li><a href="#screenshots">Screenshots</a></li>
+                <li><a href="#setup">Setup</a></li>
+                <li><a class="add-btn" href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer">
                     <i class="fab fa-github"></i> GitHub
-                </a>
-            </div>
-            <div class="menu-toggle">
+                </a></li>
+            </ul>
+            <button class="menu-toggle" aria-label="Toggle navigation menu">
                 <span></span>
                 <span></span>
                 <span></span>
-            </div>
+            </button>
         </nav>
     </div>
 </header>
 
-<section class="hero">
-    <div class="container">
-        <div class="hero-content">
-            <h2>Enhance Your Discord Server with Anime & Manga</h2>
-            <p>Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, and more.
-                Get instant anime and manga information, notifications, and user stats right in your server!</p>
-            <div class="hero-buttons">
-                <a class="btn btn-primary"
-                   href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot"
-                   target="_blank">
-                    <i class="fab fa-discord"></i> Add to Discord
-                </a>
-                <a class="btn btn-secondary" href="#setup">
-                    <i class="fas fa-server"></i> Self-Host Guide
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="features">
-    <div class="container">
-        <div class="section-title">
-            <h2>Powerful Features</h2>
-            <p>Kasuki comes packed with features to enhance your Discord anime experience</p>
-        </div>
-
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-tv"></i>
-                </div>
-                <h3>AniList Integration</h3>
-                <p>Access anime, manga, characters, staff, and studio information directly from AniList. Get detailed
-                    information and statistics with simple commands.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <h3>Anime Airing Notifications</h3>
-                <p>Get notified when your favorite anime episodes are about to air. Never miss an episode again!</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-                <h3>User Profiles & Comparison</h3>
-                <p>Link your AniList account to Discord and view profiles, compare anime tastes with friends, and show
-                    off your anime stats.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-microphone-alt"></i>
-                </div>
-                <h3>Seiyuu Image Generation</h3>
-                <p>Generate custom images showing voice actors alongside characters they've voiced for easy
-                    reference.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <h3>AI Features</h3>
-                <p>Generate images, get answers to questions, and access video transcription and translation using
-                    advanced AI technology.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-language"></i>
-                </div>
-                <h3>Multi-Language Support</h3>
-                <p>Kasuki supports multiple languages for both commands and responses, making it accessible to users
-                    worldwide.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section commands" id="commands">
-    <div class="container">
-        <div class="section-title">
-            <h2>Command Examples</h2>
-            <p>Explore Kasuki's wide range of commands</p>
-        </div>
-
-        <div class="command-tabs">
-            <button class="command-tab active" data-tab="anime">Anime</button>
-            <button class="command-tab" data-tab="ai">AI</button>
-            <button class="command-tab" data-tab="games">Games</button>
-            <button class="command-tab" data-tab="user">User</button>
-            <button class="command-tab" data-tab="bot">Bot</button>
-            <button class="command-tab" data-tab="server">Server</button>
-        </div>
-
-        <div class="command-content">
-            <div class="command-group anime active">
-                <div class="command">
-                    <h4><span class="command-name">/anime</span> Get Anime Information</h4>
-                    <p>Search for an anime and get detailed information including synopsis, genres, studios, and
-                        more.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/manga</span> Get Manga Information</h4>
-                    <p>Search for manga and get detailed information including synopsis, genres, authors, and more.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/ln</span> Get Light Novel Information</h4>
-                    <p>Search for light novels and get detailed information about them.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/character</span> Get Character Information</h4>
-                    <p>Search for anime and manga characters and view their details.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/anilist_user</span> View AniList User Profile</h4>
-                    <p>Display information about an AniList user including their anime and manga statistics.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/compare</span> Compare Two AniList Users</h4>
-                    <p>Compare two AniList users and see their anime/manga tastes and compatibility.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/level</span> View User's AniList Level</h4>
-                    <p>Check an AniList user's level based on their activity.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/list_activity</span> View Server Activity List</h4>
-                    <p>Get a list of all registered anime activities in your server.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/list_user</span> View Registered AniList Users</h4>
-                    <p>See a list of all registered AniList users in your server.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/random</span> Get Random Anime or Manga</h4>
-                    <p>Discover a random anime or manga when you're not sure what to watch or read next.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/random_anime random_image</span> Random Anime Images</h4>
-                    <p>Get random anime images in various categories like waifu, neko, hug, pat, and more.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/random_hanime random_himage</span> Random NSFW Anime Images</h4>
-                    <p>Get random NSFW anime images (only works in age-restricted channels).</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/register</span> Link Your AniList Account</h4>
-                    <p>Connect your AniList account to Discord for easier use of other commands.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/search</span> Unified AniList Search</h4>
-                    <p>One command that lets you search for anime, manga, light novels, characters, studios, staff, or
-                        users.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/seiyuu</span> Voice Actor Image</h4>
-                    <p>Create an image showing a voice actor (seiyuu) and four characters they've voiced.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/staff</span> Get Staff Information</h4>
-                    <p>Look up information about anime industry staff members.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/studio</span> Get Studio Information</h4>
-                    <p>Get details about animation studios including their works.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/waifu</span> Get Best Waifu</h4>
-                    <p>A fun command that reveals the "best waifu".</p>
-                </div>
-            </div>
-
-            <div class="command-group ai">
-                <div class="command">
-                    <h4><span class="command-name">/ai image</span> Generate AI Images</h4>
-                    <p>Generate custom images using AI based on your text descriptions.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/ai question</span> Ask AI Questions</h4>
-                    <p>Ask questions and get AI-generated answers (note: the AI has no conversation context).</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/ai transcript</span> Transcribe Audio/Video</h4>
-                    <p>Convert audio from videos into text transcripts. Supports videos up to 25MB.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/ai translation</span> Translate Audio/Video</h4>
-                    <p>Translate audio content from videos into different languages. Supports videos up to 25MB.</p>
-                </div>
-            </div>
-
-            <div class="command-group games">
-                <div class="command">
-                    <h4><span class="command-name">/steam game</span> Steam Game Info</h4>
-                    <p>Get detailed information about games on Steam including price, reviews, and requirements.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn game</span> Visual Novel Info</h4>
-                    <p>Get information about visual novels including rating, release date, and description.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn character</span> VN Character Info</h4>
-                    <p>Look up information about characters from visual novels.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn producer</span> VN Producer Info</h4>
-                    <p>Get details about companies and producers that create visual novels.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn staff</span> VN Staff Info</h4>
-                    <p>Find information about staff members who work on visual novels.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn user</span> VN Database User</h4>
-                    <p>View information about users from visual novel databases.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/vn stats</span> VN API Stats</h4>
-                    <p>Get statistics about the visual novel database API.</p>
-                </div>
-            </div>
-
-            <div class="command-group user">
-                <div class="command">
-                    <h4><span class="command-name">/user avatar</span> Get User Avatar</h4>
-                    <p>Display a user's Discord avatar in full size. View your own or another user's avatar.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/user banner</span> Get User Banner</h4>
-                    <p>Display a user's Discord profile banner in full size.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/user profile</span> User Profile Info</h4>
-                    <p>Show detailed profile information about a Discord user.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/user command_usage</span> Command Usage Stats</h4>
-                    <p>View statistics about which commands a user has used and how frequently.</p>
-                </div>
-            </div>
-
-            <div class="command-group bot">
-                <div class="command">
-                    <h4><span class="command-name">/bot credit</span> View Bot Credits</h4>
-                    <p>See the credits and acknowledgments for the bot's development.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/bot info</span> Bot Information</h4>
-                    <p>Get detailed information about the bot, including version, uptime, and statistics.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/bot ping</span> Check Bot Latency</h4>
-                    <p>Check the bot's response time and shard ID for troubleshooting.</p>
-                </div>
-            </div>
-
-            <div class="command-group server">
-                <div class="command">
-                    <h4><span class="command-name">/server guild</span> Server Information</h4>
-                    <p>View detailed information about your Discord server.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/server guild_image</span> Generate Server Image</h4>
-                    <p>Create a custom image using your server's icon and server members' profile pictures.</p>
-                </div>
-
-                <div class="command">
-                    <h4><span class="command-name">/server guild_image_g</span> Generate Global Server Image</h4>
-                    <p>Create a custom image using your server's icon and the global profile picture cache.</p>
+<main>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Enhance Your Discord Server with Anime & Manga</h2>
+                <p>Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, and more. Get instant anime and manga information, notifications, and user stats right in your server!</p>
+                <div class="hero-buttons">
+                    <a class="btn btn-primary" href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-discord"></i> Add to Discord
+                    </a>
+                    <a class="btn btn-secondary" href="#setup">
+                        <i class="fas fa-server"></i> Self-Host Guide
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="section screenshots" id="screenshots">
-    <div class="container">
-        <div class="section-title">
-            <h2>See Kasuki in Action</h2>
-            <p>Take a look at Kasuki's sleek interface and powerful features</p>
-        </div>
-
-        <div class="screenshot-gallery">
-            <div class="screenshot">
-                <img alt="Anime Command Screenshot" src="static/anime.png">
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p>Kasuki comes packed with features to enhance your Discord anime experience.</p>
             </div>
-            <div class="screenshot">
-                <img alt="User Profile Screenshot" src="static/user.png">
-            </div>
-            <div class="screenshot">
-                <img alt="Character Command Screenshot" src="static/character.png">
-            </div>
-            <div class="screenshot">
-                <img alt="Register Command Screenshot" src="static/autocomplete.png">
-            </div>
-            <div class="screenshot">
-                <img alt="Autocomplete Screenshot" src="static/autocomplete.png">
-            </div>
-            <div class="screenshot">
-                <img alt="Seiyuu Command Screenshot" src="static/seiyuu.png">
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="setup">
-    <div class="container">
-        <div class="section-title">
-            <h2>Self-Hosting Guide</h2>
-            <p>Follow these steps to set up your own instance of Kasuki</p>
-        </div>
-
-        <div class="setup-steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <h3>Install Docker and Docker Compose</h3>
-                    <p>Make sure you have Docker and Docker Compose installed on your system. These are required to run
-                        Kasuki in a containerized environment.</p>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-tv"></i></div>
+                    <h3>AniList Integration</h3>
+                    <p>Access anime, manga, characters, staff, and studio information directly from AniList. Get detailed information and statistics with simple commands.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                    <h3>Anime Airing Notifications</h3>
+                    <p>Get notified when your favorite anime episodes are about to air. Never miss an episode again!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-user-friends"></i></div>
+                    <h3>User Profiles & Comparison</h3>
+                    <p>Link your AniList account to Discord and view profiles, compare anime tastes with friends, and show off your anime stats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-microphone-alt"></i></div>
+                    <h3>Seiyuu Image Generation</h3>
+                    <p>Generate custom images showing voice actors alongside characters they've voiced for easy reference.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>AI Features</h3>
+                    <p>Generate images, get answers to questions, and access video transcription and translation using advanced AI technology.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-language"></i></div>
+                    <h3>Multi-Language Support</h3>
+                    <p>Kasuki supports multiple languages for both commands and responses, making it accessible to users worldwide.</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <h3>Clone the Repository</h3>
-                    <p>Clone the Kasuki repository from GitHub to your local machine.</p>
-                    <div class="code-block">
-                        git clone https://github.com/ValgulNecron/kasuki.git
+    <!-- Commands Section -->
+    <section class="section commands" id="commands">
+        <div class="container">
+            <div class="section-title">
+                <h2>Command Examples</h2>
+                <p>Explore Kasuki's wide range of commands organized by category.</p>
+            </div>
+            <div class="command-tabs">
+                <button class="command-tab active" data-tab="anime">Anime</button>
+                <button class="command-tab" data-tab="ai">AI</button>
+                <button class="command-tab" data-tab="games">Games</button>
+                <button class="command-tab" data-tab="user">User</button>
+                <button class="command-tab" data-tab="bot">Bot</button>
+                <button class="command-tab" data-tab="server">Server</button>
+            </div>
+            <div class="command-content">
+                <!-- Anime Commands -->
+                <div class="command-group anime active" data-tab="anime">
+                    <div class="command">
+                        <h4><span class="command-name">/anime</span>Get Anime Information</h4>
+                        <p>Search for an anime and get detailed information including synopsis, genres, and studios.</p>
+                    </div>
+                    <div class="command">
+                        <h4><span class="command-name">/manga</span>Get Manga Information</h4>
+                        <p>Search for manga and get detailed information including synopsis, genres, and authors.</p>
+                    </div>
+                     <div class="command">
+                        <h4><span class="command-name">/character</span>Get Character Information</h4>
+                        <p>Search for anime and manga characters and view their details.</p>
+                    </div>
+                    <div class="command">
+                        <h4><span class="command-name">/compare</span>Compare Two AniList Users</h4>
+                        <p>Compare two AniList users and see their anime/manga taste compatibility.</p>
+                    </div>
+                </div>
+                <!-- AI Commands -->
+                <div class="command-group ai" data-tab="ai">
+                     <div class="command">
+                        <h4><span class="command-name">/ai image</span>Generate AI Images</h4>
+                        <p>Generate custom images using AI based on your text descriptions.</p>
+                    </div>
+                    <div class="command">
+                        <h4><span class="command-name">/ai question</span>Ask AI Questions</h4>
+                        <p>Ask questions and get AI-generated answers (the AI has no conversation context).</p>
+                    </div>
+                </div>
+                <!-- Add other command groups here -->
+                <div class="command-group games" data-tab="games">...</div>
+                <div class="command-group user" data-tab="user">...</div>
+                <div class="command-group bot" data-tab="bot">...</div>
+                <div class="command-group server" data-tab="server">...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="section screenshots" id="screenshots">
+        <div class="container">
+            <div class="section-title">
+                <h2>See Kasuki in Action</h2>
+                <p>Take a look at Kasuki's sleek interface and powerful features.</p>
+            </div>
+            <div class="screenshot-gallery">
+                <div class="screenshot"><img src="assets/anime.png" alt="Screenshot of the anime command result"></div>
+                <div class="screenshot"><img src="assets/user.png" alt="Screenshot of a user profile command"></div>
+                <div class="screenshot"><img src="assets/character.png" alt="Screenshot of a character search result"></div>
+                <div class="screenshot"><img src="assets/autocomplete.png" alt="Screenshot showing command autocomplete"></div>
+                <div class="screenshot"><img src="assets/seiyuu.png" alt="Screenshot of the seiyuu command image"></div>
+                <div class="screenshot"><img src="https://placehold.co/600x400/2a2438/ff6b9d?text=More+Features" alt="Placeholder for another feature screenshot"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup Section -->
+    <section class="section" id="setup">
+        <div class="container">
+            <div class="section-title">
+                <h2>Self-Hosting Guide</h2>
+                <p>Follow these steps to set up your own instance of Kasuki.</p>
+            </div>
+            <div class="setup-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Install Docker & Docker Compose</h3>
+                        <p>Ensure Docker and Docker Compose are installed on your system. They are required to run Kasuki in a containerized environment.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Clone the Repository</h3>
+                        <p>Clone the Kasuki repository from GitHub to your local machine.</p>
+                        <div class="code-block">git clone https://github.com/ValgulNecron/kasuki.git</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Configure Settings</h3>
+                        <p>Copy the example configuration file and edit it to add your Discord bot token and other settings.</p>
+                        <div class="code-block">cp config.example.toml config.toml
+# Edit config.toml with your preferred text editor</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Start the Container</h3>
+                        <p>Use Docker Compose to build and start the Kasuki bot. For the latest version, add the `--pull always` flag.</p>
+                        <div class="code-block">docker compose up -d --pull always</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Invite Your Bot</h3>
+                        <p>Create an invite link for your bot in the Discord Developer Portal and add it to your server. Your bot is now ready to use!</p>
                     </div>
                 </div>
             </div>
-
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <h3>Configure Settings</h3>
-                    <p>Edit the configuration file to set up your Discord bot token and other settings.</p>
-                    <p>Copy the example config file and edit it:</p>
-                    <div class="code-block">
-                        cp config.example.toml config.toml
-                        # Edit config.toml with your preferred text editor
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <h3>Start the Docker Container</h3>
-                    <p>Use Docker Compose to build and start the Kasuki bot.</p>
-                    <div class="code-block">
-                        docker compose up -d
-                    </div>
-                    <p>To ensure you're using the latest version:</p>
-                    <div class="code-block">
-                        docker compose up -d --pull always
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">5</div>
-                <div class="step-content">
-                    <h3>Invite Bot to Your Server</h3>
-                    <p>Create an invite link for your bot in the Discord Developer Portal and add it to your server.</p>
-                    <p>Your bot should now be running and ready to use!</p>
-                </div>
-            </div>
         </div>
-    </div>
-</section>
+    </section>
+</main>
 
+<!-- Footer -->
 <footer>
     <div class="container">
         <div class="footer-content">
             <div class="footer-column">
                 <h3>Kasuki</h3>
-                <p>A Discord bot that provides anime and manga information, AI features, and more.</p>
+                <p>A Discord bot for anime and manga lovers, packed with features and AI integration.</p>
                 <div class="social-links">
-                    <a href="https://github.com/ValgulNecron/kasuki" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="#" target="_blank"><i class="fab fa-discord"></i></a>
+                    <a href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://discord.gg/your-server-invite" target="_blank" rel="noopener noreferrer" aria-label="Discord"><i class="fab fa-discord"></i></a>
                 </div>
             </div>
-
             <div class="footer-column">
                 <h3>Quick Links</h3>
                 <ul class="footer-links">
@@ -1007,252 +246,33 @@
                     <li><a href="#setup">Setup Guide</a></li>
                 </ul>
             </div>
-
             <div class="footer-column">
                 <h3>Resources</h3>
                 <ul class="footer-links">
-                    <li><a href="https://github.com/ValgulNecron/kasuki" target="_blank">GitHub Repository</a></li>
-                    <li>
-                        <a href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot"
-                           target="_blank">Add Bot to Discord</a></li>
-                    <li><a href="https://github.com/ValgulNecron/kasuki/issues" target="_blank">Report Issues</a></li>
-                    <li><a href="https://github.com/ValgulNecron/kasuki/blob/master/CONTRIBUTING.md" target="_blank">Contribute</a>
-                    </li>
+                    <li><a href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                    <li><a href="https://github.com/ValgulNecron/kasuki/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
                     <li><a href="terms.html">Terms of Service</a></li>
                     <li><a href="privacy.html">Privacy Policy</a></li>
                 </ul>
             </div>
-
-            <div class="footer-bottom">
-                <p>&copy; 2025 Kasuki Bot. All rights reserved. Created with ❤️ for the anime community.</p>
-            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span class="year">2025</span> Kasuki Bot. All rights reserved. Created with <i class="fas fa-heart" style="color: var(--primary);"></i> for the anime community.</p>
         </div>
     </div>
 </footer>
 
-<script>
-    // Mobile menu toggle
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
+<!-- UI Elements -->
+<button class="theme-toggle" aria-label="Toggle dark mode">
+    <i class="fas fa-moon"></i>
+</button>
 
-    menuToggle.addEventListener('click', () => {
-        menuToggle.classList.toggle('active');
-        navLinks.classList.toggle('active');
-    });
+<div class="image-modal" role="dialog" aria-modal="true">
+    <img src="" alt="Enlarged screenshot">
+</div>
 
-    // Close mobile menu when clicking a link
-    const navItems = document.querySelectorAll('.nav-links a');
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            menuToggle.classList.remove('active');
-            navLinks.classList.remove('active');
-        });
-    });
+<!-- JavaScript -->
+<script src="script.js"></script>
 
-    // Command tabs functionality
-    const commandTabs = document.querySelectorAll('.command-tab');
-    const commandGroups = document.querySelectorAll('.command-group');
-
-    commandTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs
-            commandTabs.forEach(t => t.classList.remove('active'));
-
-            // Add active class to clicked tab
-            tab.classList.add('active');
-
-            // Hide all command groups
-            commandGroups.forEach(group => group.classList.remove('active'));
-
-            // Show the selected command group
-            const targetGroup = document.querySelector(`.command-group.${tab.dataset.tab}`);
-            targetGroup.classList.add('active');
-        });
-    });
-
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    // Add animation on scroll
-    const animateOnScroll = () => {
-        const elements = document.querySelectorAll('.feature-card, .screenshot, .step');
-
-        elements.forEach(element => {
-            const elementPosition = element.getBoundingClientRect().top;
-            const screenPosition = window.innerHeight;
-
-            if (elementPosition < screenPosition - 100) {
-                element.style.opacity = '1';
-                element.style.transform = 'translateY(0)';
-            }
-        });
-    };
-
-    // Initialize animation styles
-    document.querySelectorAll('.feature-card, .screenshot, .step').forEach(element => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    });
-
-    // Call animation function on scroll
-    window.addEventListener('scroll', animateOnScroll);
-    // Initial call for elements that are already visible
-    animateOnScroll();
-
-    // Update copyright year automatically
-    document.querySelector('.footer-bottom p').innerHTML =
-        document.querySelector('.footer-bottom p').innerHTML.replace('2025', new Date().getFullYear());
-
-    // Add click effect to buttons
-    const buttons = document.querySelectorAll('.btn, .add-btn, .command-tab');
-    buttons.forEach(button => {
-        button.addEventListener('mousedown', () => {
-            button.style.transform = 'scale(0.95)';
-        });
-
-        button.addEventListener('mouseup', () => {
-            button.style.transform = '';
-        });
-
-        button.addEventListener('mouseleave', () => {
-            button.style.transform = '';
-        });
-    });
-
-    // Image modal functionality for screenshots
-    const screenshots = document.querySelectorAll('.screenshot img');
-
-    // Create modal elements
-    const modal = document.createElement('div');
-    modal.className = 'image-modal';
-    modal.style.display = 'none';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-    modal.style.zIndex = '1001';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    modal.style.opacity = '0';
-    modal.style.transition = 'opacity 0.3s ease';
-    modal.style.pointerEvents = 'none';
-
-    const modalImg = document.createElement('img');
-    modalImg.style.maxWidth = '90%';
-    modalImg.style.maxHeight = '90%';
-    modalImg.style.boxShadow = '0 0 30px rgba(255, 255, 255, 0.1)';
-    modalImg.style.transform = 'scale(0.9)';
-    modalImg.style.transition = 'transform 0.3s ease';
-
-    modal.appendChild(modalImg);
-    document.body.appendChild(modal);
-
-    // Add click event to screenshots
-    screenshots.forEach(screenshot => {
-        screenshot.style.cursor = 'pointer';
-
-        screenshot.addEventListener('click', () => {
-            modalImg.src = screenshot.src;
-            modal.style.opacity = '1';
-            modal.style.pointerEvents = 'auto';
-            modalImg.style.transform = 'scale(1)';
-        });
-    });
-
-    // Close modal when clicking anywhere
-    modal.addEventListener('click', () => {
-        modal.style.opacity = '0';
-        modalImg.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-            modal.style.pointerEvents = 'none';
-        }, 300);
-    });
-
-    // Implement a simple theme toggler (light/dark mode)
-    // Create toggle button
-    const themeToggle = document.createElement('button');
-    themeToggle.className = 'theme-toggle';
-    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-    themeToggle.style.position = 'fixed';
-    themeToggle.style.bottom = '20px';
-    themeToggle.style.right = '20px';
-    themeToggle.style.width = '50px';
-    themeToggle.style.height = '50px';
-    themeToggle.style.borderRadius = '50%';
-    themeToggle.style.backgroundColor = 'var(--primary)';
-    themeToggle.style.color = 'white';
-    themeToggle.style.border = 'none';
-    themeToggle.style.cursor = 'pointer';
-    themeToggle.style.boxShadow = 'var(--shadow)';
-    themeToggle.style.zIndex = '1000';
-    themeToggle.style.display = 'flex';
-    themeToggle.style.alignItems = 'center';
-    themeToggle.style.justifyContent = 'center';
-    themeToggle.style.fontSize = '1.2rem';
-    themeToggle.style.transition = 'all 0.3s ease';
-
-    document.body.appendChild(themeToggle);
-
-    // Theme toggle functionality with persistence
-    let isDarkMode = localStorage.getItem('kasuki-theme') === 'dark';
-
-    // Theme toggle button event listener
-    themeToggle.addEventListener('click', () => {
-    isDarkMode = !isDarkMode;
-    setTheme(isDarkMode);
-    });
-
-    // Function to set theme based on dark mode state
-    function setTheme(darkMode) {
-    if (darkMode) {
-        document.documentElement.style.setProperty('--background', '#1a1a2e');
-        document.documentElement.style.setProperty('--card-bg', '#212134');
-        document.documentElement.style.setProperty('--text', '#f1f1f1');
-        document.documentElement.style.setProperty('--text-light', '#b0b0b0');
-        document.documentElement.style.setProperty('--light', '#2a2a45');
-        document.documentElement.style.setProperty('--dark', '#121220');
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        themeToggle.style.backgroundColor = 'var(--secondary)';
-        localStorage.setItem('kasuki-theme', 'dark');
-    } else {
-        document.documentElement.style.setProperty('--background', '#fcf8ff');
-        document.documentElement.style.setProperty('--card-bg', '#ffffff');
-        document.documentElement.style.setProperty('--text', '#333344');
-        document.documentElement.style.setProperty('--text-light', '#777788');
-        document.documentElement.style.setProperty('--light', '#ffebf3');
-        document.documentElement.style.setProperty('--dark', '#2a2438');
-        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        themeToggle.style.backgroundColor = 'var(--primary)';
-        localStorage.setItem('kasuki-theme', 'light');
-    }
-    }
-
-    // Apply the stored theme on page load
-    document.addEventListener('DOMContentLoaded', () => {
-    setTheme(isDarkMode);
-    });
-
-    // Initialize theme on page load (for when script runs after DOM is loaded)
-    setTheme(isDarkMode);
-</script>
 </body>
 </html>
