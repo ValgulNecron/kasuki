@@ -4,25 +4,18 @@ This document contains a comprehensive list of actionable improvement tasks for 
 
 ## Architectural Improvements
 
-### Dependency Management
-- [ ] Implement a dependency injection pattern for better testability
-- [x] Create a clear dependency graph documentation
-
 ### Error Handling
-- [ ] Implement a more structured error type system with custom error types
-- [ ] Add more context to errors using anyhow::Context
-- [ ] Improve error recovery mechanisms in background tasks
+- [x] Add more context to errors using anyhow::Context
+- [x] Improve error recovery mechanisms in background tasks
 
 ### Testing
 - [ ] Increase unit test coverage across the codebase
 - [ ] Add integration tests for critical paths
 - [ ] Implement automated testing for Discord command interactions
-- [ ] Create mock implementations for external services (Anilist API, etc.)
 
 ### Documentation
 - [ ] Complete missing documentation for public functions
 - [ ] Add architecture diagrams explaining component relationships
-- [ ] Create a comprehensive API documentation
 - [ ] Document the database schema and relationships
 
 ### Performance
@@ -32,7 +25,6 @@ This document contains a comprehensive list of actionable improvement tasks for 
 - [ ] Implement connection pooling for database connections
 
 ### Security
-- [ ] Conduct a security audit of the codebase
 - [ ] Implement rate limiting for commands
 - [ ] Add input validation for all user inputs
 - [ ] Review token and credential handling
@@ -42,7 +34,6 @@ This document contains a comprehensive list of actionable improvement tasks for 
 ### Command Structure
 - [ ] Refactor command implementations to reduce code duplication
 - [ ] Standardize error handling across all commands
-- [ ] Implement command cooldowns to prevent abuse
 - [ ] Add more comprehensive permission checking
 
 ### Background Tasks
@@ -72,8 +63,8 @@ This document contains a comprehensive list of actionable improvement tasks for 
 ### Code Quality
 - [ ] Refactor large functions into smaller, more focused ones
 - [ ] Reduce code duplication across similar commands
-- [ ] Implement more comprehensive logging, this means adding more logs to the function and making the already existing one better
-- [ ] Add more comments explaining complex logic
+- [x] Implement more comprehensive logging, this means adding more logs to the function and making the already existing one better
+- [x] Add more comments explaining complex logic
 - [ ] Run clippy with pedantic settings and address warnings
 
 ### Configuration

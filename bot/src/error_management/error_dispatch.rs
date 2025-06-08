@@ -4,6 +4,7 @@ use serenity::all::{
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::error;
+use anyhow::{Context as AnyhowContext, Result as AnyhowResult};
 
 use crate::constant::COLOR;
 use crate::event_handler::BotData;
@@ -26,18 +27,26 @@ pub async fn command_dispatching(
 
 	match send_error(message.clone(), command_interaction, ctx).await {
 		Ok(_) => {},
-		Err(_) => match send_differed_error(message, command_interaction, ctx).await {
-			Ok(_) => {},
-			Err(e) => {
-				error!("{}", e);
-			},
+		Err(e) => {
+			// Log the error with context
+			error!("Failed to send error response: {:#}", e);
+
+			// Try the fallback method
+			match send_differed_error(message, command_interaction, ctx).await {
+				Ok(_) => {},
+				Err(e) => {
+					// Log the error with full context chain
+					error!("Failed to send differed error response: {:#}", e);
+					error!("Error context chain: {:?}", e.chain().collect::<Vec<_>>());
+				},
+			}
 		},
 	}
 }
 
 async fn send_error(
 	e: String, command_interaction: &CommandInteraction, ctx: &Context,
-) -> Result<(), String> {
+) -> AnyhowResult<()> {
 	let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
 
 	// censor url and token in the error message
@@ -56,14 +65,14 @@ async fn send_error(
 	command_interaction
 		.create_response(&ctx.http, builder)
 		.await
-		.map_err(|e| format!("{:#?}", e))?;
+		.context("Failed to create error response for command interaction")?;
 
 	Ok(())
 }
 
 async fn send_differed_error(
 	e: String, command_interaction: &CommandInteraction, ctx: &Context,
-) -> Result<(), String> {
+) -> AnyhowResult<()> {
 	let error_message = format!("{}\n{}", ERROR_MESSAGE, e);
 
 	// censor url and token in the error message
@@ -80,7 +89,7 @@ async fn send_differed_error(
 	let _ = command_interaction
 		.create_followup(&ctx.http, builder)
 		.await
-		.map_err(|e| format!("{:#?}", e))?;
+		.context("Failed to create followup error response for command interaction")?;
 
 	Ok(())
 }

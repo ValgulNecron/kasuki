@@ -152,9 +152,53 @@ pub async fn dispatch_command(
 	let start_time = Instant::now();
 	info!("Executing command: {}", full_command_name);
 
-	// The following match statement routes commands to their appropriate handlers
-	// Commands are organized by category (user, admin, ai, etc.)
-	// Each case instantiates the appropriate command handler and calls run_slash()
+	// =====================================================================
+	// COMMAND ROUTING SYSTEM
+	// =====================================================================
+	//
+	// The following match statement implements the command routing system.
+	// This is a critical part of the bot architecture that:
+	//
+	// 1. Maps command names to their handler implementations
+	// 2. Provides consistent execution patterns across all commands
+	// 3. Enables performance tracking and error handling
+	//
+	// COMMAND NAMING CONVENTION:
+	// --------------------------
+	// Commands follow a hierarchical naming pattern:
+	//   <category>_<subcategory>_<action>
+	//
+	// Examples:
+	//   - user_avatar: User category, avatar action
+	//   - admin_anilist_add_anime_activity: Admin category, anilist subcategory, add_anime_activity action
+	//
+	// EXECUTION PATTERN:
+	// ------------------
+	// Each command follows this execution pattern:
+	//   1. Create command handler instance with context and interaction
+	//   2. Call run_slash() to execute the command
+	//   3. Measure and log execution time
+	//   4. Handle errors consistently
+	//
+	// ORGANIZATION:
+	// -------------
+	// Commands are grouped by category in this match statement:
+	//   - USER: Profile and user information commands
+	//   - ADMIN: Server administration and configuration
+	//   - STEAM: Game information retrieval
+	//   - AI: Artificial intelligence features
+	//   - ANILIST: Anime/manga database integration
+	//   - BOT: Bot status and information
+	//   - MANAGEMENT: Bot owner administrative commands
+	//   - SERVER: Server management and customization
+	//   - VN: Visual novel database integration
+	//   - MUSIC: Audio playback and management
+	//
+	// PERFORMANCE TRACKING:
+	// --------------------
+	// Some commands include detailed performance tracking with Instant::now()
+	// This helps identify slow commands that need optimization
+	//
 	match name.as_str() {
 		// === USER COMMANDS ===
 		// Commands related to user profiles and information
@@ -769,11 +813,42 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// =====================================================================
+		// UNKNOWN COMMAND HANDLER
+		// =====================================================================
+		//
+		// This catch-all case handles any commands that don't match known patterns.
+		// This should never happen in normal operation, as Discord only allows
+		// execution of commands that have been registered with the API.
+		//
+		// However, this can occur in several scenarios:
+		//
+		// 1. COMMAND REGISTRATION MISMATCH:
+		//    The most common cause - a command was registered with Discord but
+		//    not implemented in the code, or the implementation name doesn't match
+		//    the registered name.
+		//
+		// 2. DEVELOPMENT ENVIRONMENT:
+		//    During development, commands might be registered before their
+		//    implementation is complete.
+		//
+		// 3. VERSION MISMATCH:
+		//    If the bot code was updated but commands weren't re-registered,
+		//    or if multiple bot instances share the same application ID but
+		//    have different command implementations.
+		//
+		// The error handling here provides detailed diagnostics to help identify
+		// and resolve the root cause of the unknown command.
 		_ => {
+			// Log detailed error information at different severity levels
 			error!("Unknown command requested: {}", full_command_name);
 			warn!("This could indicate a mismatch between registered commands and implementation");
 			debug!("Command options: {:?}", command_interaction.data.options());
 			error!("Available commands do not include: {}", name);
+
+			// Return a structured error with context
+			// The outer error provides a user-friendly message
+			// The context provides more technical details for debugging
 			return Err(anyhow::anyhow!("Command not found: {}", full_command_name)).context(
 				format!("No handler implemented for command: {}", full_command_name),
 			);
@@ -895,6 +970,47 @@ pub async fn check_if_module_is_on(
 	Ok(final_state)
 }
 
+/// Checks if a module is disabled by the global kill switch system.
+///
+/// The kill switch system provides an emergency override mechanism that can disable
+/// modules across the bot, regardless of individual guild settings. This is useful for:
+/// 
+/// 1. Quickly disabling problematic features without a full bot restart
+/// 2. Performing maintenance on specific modules
+/// 3. Responding to API rate limiting or service outages
+/// 
+/// # Architecture
+/// 
+/// The kill switch operates as a second layer of permission checking:
+/// - First, the regular module activation status is checked (user configuration)
+/// - Then, the kill switch status is checked (system override)
+/// - A module is only active if BOTH checks pass
+/// 
+/// # Database Structure
+/// 
+/// Kill switches are stored in a separate table from regular module activations,
+/// allowing them to be managed independently. The schema mirrors the module_activation
+/// table, but represents system-level rather than user-level settings.
+///
+/// # Arguments
+///
+/// * `module` - The name of the module to check (e.g., "ai_module", "anilist_module")
+/// * `db_config` - Database configuration for connecting to the database
+/// * `guild_id` - The ID of the guild to check the kill switch for
+///
+/// # Returns
+///
+/// * `Ok(true)` - If the module is NOT killed (allowed to run)
+/// * `Ok(false)` - If the module is killed (should not run)
+/// * `Err(Error)` - If there was an error checking the kill switch status
+///
+/// # Flow
+/// 
+/// 1. Connect to the database
+/// 2. Query the kill_switch table for the specified guild
+/// 3. If no record exists, use default values (all modules enabled)
+/// 4. Check the specific module's status in the retrieved record
+/// 5. Return the status (true = active, false = killed)
 async fn check_kill_switch_status(
 	module: &str, db_config: DbConfig, guild_id: String,
 ) -> Result<bool> {
@@ -903,6 +1019,9 @@ async fn check_kill_switch_status(
 		module, guild_id
 	);
 
+	// Connect to the database to retrieve kill switch settings
+	// This uses a separate connection to ensure we always get the latest settings
+	// even if other connections are in a transaction
 	debug!("Connecting to database for kill switch check");
 	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
 		.await
@@ -912,6 +1031,9 @@ async fn check_kill_switch_status(
 		))?;
 	debug!("Successfully connected to database for kill switch check");
 
+	// Query the kill_switch table for this guild's settings
+	// This table is separate from the module_activation table to allow
+	// system-level overrides independent of user configuration
 	debug!("Querying kill switch status for guild {}", guild_id);
 	let row = ModuleActivation::find()
 		.filter(database::kill_switch::Column::GuildId.eq(guild_id.clone()))

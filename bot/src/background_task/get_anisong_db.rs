@@ -12,7 +12,7 @@ use tokio::sync::Semaphore;
 use tracing::{debug, error, info, trace, warn};
 use governor::{clock, state, Quota, RateLimiter};
 use std::num::NonZeroU32;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// Fetches anime song data from anisongdb.com and stores it in the database.
 ///
@@ -37,20 +37,34 @@ use std::time::Duration;
 /// - Response parsing fails
 /// - Database operations fail
 pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
-	info!("Starting anisong database update task");
+	let start_time = Instant::now();
+	info!(task = "anisong_update", "Starting anisong database update task");
 
 	// Create a reusable HTTP client for all requests
 	// This is more efficient than creating a new client for each request
 	// as it can reuse connections and maintain a connection pool
 	let client = Arc::new(Client::new());
+	trace!(task = "anisong_update", "HTTP client created");
 
 	// Create a semaphore to limit concurrent API requests
 	// This prevents overwhelming the API server and potential rate limiting
 	// The value 10 was chosen as a balance between throughput and server load
 	let semaphore = Arc::new(Semaphore::new(1));
+
+	// Configure rate limiter for API requests
+	let requests_per_second = 20;
+	let burst_size = 5;
 	let limiter = Arc::new(RateLimiter::direct(Quota::per_second(
-		NonZeroU32::new(20).unwrap() // 20 requests/sec
-	).allow_burst(NonZeroU32::new(5).unwrap())));
+		NonZeroU32::new(requests_per_second).unwrap()
+	).allow_burst(NonZeroU32::new(burst_size).unwrap())));
+
+	debug!(
+		task = "anisong_update", 
+		concurrent_limit = 1,
+		requests_per_second = requests_per_second,
+		burst_size = burst_size,
+		"Rate limiting configured"
+	);
 
 	// Collection to store all the spawned task futures
 	let mut futures = Vec::new();
@@ -95,7 +109,14 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 			match process_anisong(client, connection, ann_id, limiter_c).await {
 				Ok(raw_anisong) => raw_anisong,
 				Err(e) => {
-					error!("Error processing anime song for ANN ID {}: {}", ann_id, e);
+					// Enhanced error logging with structured metadata and error chain
+					error!(
+						task = "anisong_update",
+						ann_id = ann_id,
+						error = %e,
+						error_chain = ?e.chain().collect::<Vec<_>>(),
+						"Error processing anime song"
+					);
 					// Return an empty vector on error to maintain consistent return type
 					Vec::new()
 				},
@@ -120,12 +141,31 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 			>>,
 
 		) -> Result<Vec<RawAniSongDB>> {
-			debug!("Requesting anime song data for ANN ID: {}", ann_id);
+			let process_start_time = Instant::now();
+			debug!(
+				task = "anisong_update",
+				ann_id = ann_id,
+				"Requesting anime song data"
+			);
+
 			let mut retries = 0;
 			let max_retries = 5;
 			let mut raw_anisong: Vec<RawAniSongDB>;
+
 			loop {
+				let rate_limit_start = Instant::now();
 				limiter.until_ready().await;
+				let rate_limit_duration = rate_limit_start.elapsed();
+
+				if rate_limit_duration.as_millis() > 100 {
+					// Only log if we actually had to wait for rate limiting
+					trace!(
+						task = "anisong_update",
+						ann_id = ann_id,
+						wait_ms = rate_limit_duration.as_millis(),
+						"Rate limited request"
+					);
+				}
 				// Make the API request to anisongdb.com
 				// We use POST with JSON payload to request songs for a specific ANN ID
 				// The ignore_duplicate parameter is set to false to get all songs
@@ -260,6 +300,15 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 
 				// Insert the record with conflict resolution strategy
 				// This implements an "upsert" pattern (insert or update if exists)
+				let db_start_time = Instant::now();
+				debug!(
+					task = "anisong_update",
+					ann_id = anisong.ann_id,
+					anilist_id = anilist_id,
+					song_name = anisong.song_name.as_str(),
+					"Performing database upsert operation"
+				);
+
 				let result = AnimeSong::insert(anime_song_model)
 					// Define conflict resolution based on the composite key
 					// If a record with the same AnilistId, AnnId, and AnnSongId exists:
@@ -287,8 +336,18 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 					// Execute the query on the database connection
 					.exec(&*connection)
 					.await
-					.context(format!("Failed to insert anime song '{}' for ANN ID {}",
-						anisong.song_name, anisong.ann_id))?;
+					.context(format!("Failed to insert anime song '{}' for ANN ID {} and Anilist ID {}",
+						anisong.song_name, anisong.ann_id, anilist_id))?;
+
+				let db_duration = db_start_time.elapsed();
+				trace!(
+					task = "anisong_update",
+					ann_id = anisong.ann_id,
+					anilist_id = anilist_id,
+					song_name = anisong.song_name.as_str(),
+					duration_ms = db_duration.as_millis(),
+					"Database operation completed"
+				);
 
 				success_count += 1;
 				trace!(
@@ -337,16 +396,27 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 		.flatten()
 		.count();
 
-	// Log the final results
+	// Calculate task duration
+	let task_duration = start_time.elapsed();
+	let success_count = results.iter().filter(|r| r.is_ok()).count();
+	let success_rate = (success_count as f64 / results.len() as f64) * 100.0;
+
+	// Log the final results with comprehensive metrics
 	info!(
-		"Anisong database update task completed. Processed {} anime song entries.",
-		total_processed
+		task = "anisong_update",
+		total_processed = total_processed,
+		duration_sec = task_duration.as_secs(),
+		duration_ms = task_duration.as_millis(),
+		"Anisong database update task completed"
 	);
+
 	debug!(
-		"Task success rate: {}/{} ({:.1}%)",
-		results.iter().filter(|r| r.is_ok()).count(),
-		results.len(),
-		(results.iter().filter(|r| r.is_ok()).count() as f64 / results.len() as f64) * 100.0
+		task = "anisong_update",
+		success_count = success_count,
+		total_tasks = results.len(),
+		success_rate_pct = format!("{:.1}%", success_rate),
+		items_per_second = format!("{:.2}", total_processed as f64 / task_duration.as_secs_f64()),
+		"Task performance metrics"
 	);
 
 	// Return the total number of processed items

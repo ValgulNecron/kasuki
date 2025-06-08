@@ -2,11 +2,12 @@ use dashmap::DashMap;
 use futures::channel::mpsc::UnboundedSender;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::{ConnectionTrait, DatabaseConnection, EntityTrait};
 use serde_json::Value;
 use serenity::all::{Context as SerenityContext, CurrentApplicationInfo, ShardId};
 use serenity::gateway::{ShardRunnerInfo, ShardRunnerMessage};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
@@ -331,6 +332,9 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 	let mut interval = tokio::time::interval(Duration::from_secs(task_intervals.anisong_update));
 	let mut update_count = 0;
 	let mut consecutive_failures = 0;
+	let mut in_recovery_mode = false;
+	let max_backoff_seconds = 3600; // Maximum backoff of 1 hour
+	let base_interval = task_intervals.anisong_update;
 
 	loop {
 		// Wait for the next scheduled update time
@@ -338,8 +342,47 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 		interval.tick().await;
 		update_count += 1;
 
+		// If we're in recovery mode, apply exponential backoff
+		let current_interval = if in_recovery_mode {
+			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
+			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
+
+			info!(
+				"Anisong update in recovery mode: using extended interval of {} seconds",
+				backoff_seconds
+			);
+
+			// Reset the interval with the new backoff duration
+			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
+			backoff_seconds
+		} else {
+			base_interval
+		};
+
 		info!("Starting anisong database update cycle #{}", update_count);
 		debug!("Current time: {}", chrono::Utc::now());
+
+		// Perform a database health check before attempting the update
+		let db_health_check = check_database_health(&db).await;
+		if !db_health_check {
+			consecutive_failures += 1;
+			error!(
+				"Database health check failed before anisong update cycle #{}",
+				update_count
+			);
+			warn!(
+				"This is consecutive failure #{} for anisong updates",
+				consecutive_failures
+			);
+
+			// Enter recovery mode if not already in it
+			if !in_recovery_mode && consecutive_failures >= 2 {
+				warn!("Entering recovery mode for anisong updates due to database health check failures");
+				in_recovery_mode = true;
+			}
+
+			continue; // Skip this update cycle
+		}
 
 		// Attempt to update the anisong database
 		trace!("Calling get_anisong function with database connection");
@@ -351,20 +394,34 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 				);
 				debug!("Updated {} anisong records in the database", count);
 
-				// Reset failure counter on success
-				if consecutive_failures > 0 {
-					debug!(
-						"Reset consecutive failure counter from {} to 0",
+				// Reset failure counter and recovery mode on success
+				if consecutive_failures > 0 || in_recovery_mode {
+					info!(
+						"Anisong update recovered after {} consecutive failures",
 						consecutive_failures
 					);
 					consecutive_failures = 0;
+
+					if in_recovery_mode {
+						info!("Exiting recovery mode for anisong updates");
+						in_recovery_mode = false;
+						// Reset to normal interval
+						interval = tokio::time::interval(Duration::from_secs(base_interval));
+					}
 				}
 			},
 			Err(err) => {
 				consecutive_failures += 1;
+
+				// Categorize the error for better handling
+				// This helps us apply different recovery strategies based on the error type
+				// For example, network errors might be transient and benefit from quick retries,
+				// while database errors might require more careful handling
+				let error_category = categorize_error(&err);
+
 				error!(
-					"Anisong database update cycle #{} failed: {:#}",
-					update_count, err
+					"Anisong database update cycle #{} failed ({}): {:#}",
+					update_count, error_category, err
 				);
 				warn!(
 					"This is consecutive failure #{} for anisong updates",
@@ -372,13 +429,79 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 				);
 
 				// Log more details about the error for debugging
+				// The type_name helps identify the exact error type for troubleshooting
 				debug!("Error type: {}", std::any::type_name_of_val(&err));
-				debug!("Error context: {}", err.to_string());
+				// The error chain shows the full context trail, which is valuable for nested errors
+				debug!("Error context chain: {:?}", err.chain().collect::<Vec<_>>());
 
-				// Continue with the next scheduled update despite the error
-				if consecutive_failures >= 3 {
-					warn!(
-						"Multiple consecutive anisong update failures detected. Consider checking the database connection or API availability."
+				// Apply different recovery strategies based on error category
+				// Each error type requires a different approach to recovery:
+				match error_category {
+					ErrorCategory::Network => {
+						// Network errors (connection issues, timeouts) are often transient
+						// We use exponential backoff to avoid overwhelming the network
+						warn!("Network error detected in anisong update. Will retry with exponential backoff.");
+
+						// Enter recovery mode after 2 consecutive network failures
+						// This threshold is lower than for "Other" errors because network issues
+						// are more likely to be temporary but need time to resolve
+						if !in_recovery_mode && consecutive_failures >= 2 {
+							warn!("Entering recovery mode with exponential backoff for anisong updates");
+							in_recovery_mode = true;
+						}
+					},
+					ErrorCategory::Database => {
+						// Database errors might indicate more serious issues that need attention
+						// We perform an explicit test to check if the database is still accessible
+						error!("Database error detected in anisong update. Attempting database reconnection test.");
+
+						// Test if we can still connect to the database with a simple query
+						// This helps distinguish between temporary glitches and serious connection issues
+						if let Err(e) = test_database_connection(&db).await {
+							error!("Database reconnection test failed: {:#}", e);
+
+							// If the test fails, we definitely need recovery mode
+							// Database issues often require more time to resolve or manual intervention
+							if !in_recovery_mode {
+								warn!("Entering recovery mode with exponential backoff for anisong updates due to database errors");
+								in_recovery_mode = true;
+							}
+						}
+						// Note: If the test succeeds, we don't enter recovery mode yet,
+						// as it might have been a transient database issue
+					},
+					ErrorCategory::Api => {
+						// API errors (rate limiting, service unavailable) need careful handling
+						// These often benefit from backing off to respect API limits
+						warn!("API error detected in anisong update. Will retry with exponential backoff.");
+
+						// Similar threshold to network errors, as API issues are often temporary
+						// but need time to resolve (e.g., rate limits need time to reset)
+						if !in_recovery_mode && consecutive_failures >= 2 {
+							warn!("Entering recovery mode with exponential backoff for anisong updates");
+							in_recovery_mode = true;
+						}
+					},
+					ErrorCategory::Other => {
+						// Unknown errors are harder to categorize and might be more serious
+						// We're more cautious about entering recovery mode for these
+						warn!("Unknown error detected in anisong update. Will retry normally.");
+
+						// Higher threshold (3 failures) before entering recovery mode
+						// This gives more chances for transient issues to resolve themselves
+						// without aggressive backoff, while still protecting against persistent problems
+						if !in_recovery_mode && consecutive_failures >= 3 {
+							warn!("Entering recovery mode for anisong updates due to persistent unknown errors");
+							in_recovery_mode = true;
+						}
+					},
+				}
+
+				// Additional actions for persistent failures
+				if consecutive_failures >= 5 {
+					error!(
+						"Critical: Anisong update has failed {} consecutive times. Manual intervention may be required.",
+						consecutive_failures
 					);
 				}
 			},
@@ -386,7 +509,12 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 
 		debug!(
 			"Next anisong database update scheduled in {} seconds",
-			task_intervals.anisong_update
+			if in_recovery_mode {
+				let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+				(base_interval * backoff_factor).min(max_backoff_seconds)
+			} else {
+				base_interval
+			}
 		);
 		trace!(
 			"Update cycle #{} completed at {}",
@@ -394,6 +522,190 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 			chrono::Utc::now()
 		);
 	}
+}
+
+/// Categorizes an error to determine the appropriate recovery strategy
+///
+/// This function analyzes the error message to classify errors into distinct categories,
+/// which allows for tailored recovery strategies based on the error type.
+///
+/// # Error Classification Logic
+///
+/// The function uses a simple but effective string matching approach to categorize errors:
+/// 1. It converts the error to a string representation that includes the full context
+/// 2. It checks for specific keywords that indicate different error categories
+/// 3. It returns the most specific category that matches
+///
+/// # Categories and Their Significance
+///
+/// * `Network` - Connection issues, timeouts, or other network-related problems
+///   These often benefit from retries with backoff as they may be transient
+///
+/// * `Database` - SQL errors, query failures, or database connection issues
+///   These might require special handling like connection testing or admin notification
+///
+/// * `API` - Issues with external API calls, status codes, or response parsing
+///   These often need backoff strategies to respect rate limits or service availability
+///
+/// * `Other` - Any errors that don't fit the above categories
+///   These get a more conservative recovery approach as their nature is less predictable
+///
+/// # Implementation Note
+///
+/// This approach has limitations - it relies on error messages containing certain keywords,
+/// which may change if error formatting changes. A more robust approach would be to use
+/// error types or error codes, but this would require changes to the error handling
+/// throughout the codebase.
+fn categorize_error(err: &anyhow::Error) -> ErrorCategory {
+	// Convert the error to a string that includes the full context chain
+	// The {:#} format specifier ensures we get the alternate (verbose) representation
+	let error_string = format!("{:#}", err);
+
+	// Check for network-related errors
+	// These keywords commonly appear in network failure scenarios
+	if error_string.contains("connection") || 
+	   error_string.contains("timeout") || 
+	   error_string.contains("network") ||
+	   error_string.contains("connect") {
+		// Network errors are often transient and benefit from retries with backoff
+		return ErrorCategory::Network;
+	}
+
+	// Check for database-related errors
+	// These keywords commonly appear in database failure scenarios
+	if error_string.contains("database") || 
+	   error_string.contains("sql") || 
+	   error_string.contains("query") ||
+	   error_string.contains("db") {
+		// Database errors might indicate more serious issues that need attention
+		return ErrorCategory::Database;
+	}
+
+	// Check for API-related errors
+	// These keywords commonly appear in API failure scenarios
+	if error_string.contains("api") || 
+	   error_string.contains("status") || 
+	   error_string.contains("response") ||
+	   error_string.contains("request") {
+		// API errors often relate to rate limiting or service availability
+		return ErrorCategory::Api;
+	}
+
+	// If none of the above patterns match, we classify as "Other"
+	// This is a catch-all category for errors we couldn't specifically identify
+	// We use a more conservative recovery approach for these unknown errors
+	ErrorCategory::Other
+}
+
+/// Enum representing different categories of errors for targeted recovery strategies
+///
+/// This enum defines the possible error categories that can be identified by the
+/// `categorize_error` function. Each category represents a distinct class of errors
+/// that may require different recovery approaches.
+///
+/// # Categories
+///
+/// * `Network` - Errors related to network connectivity, such as connection failures,
+///   timeouts, or DNS resolution issues. These errors are often transient and can
+///   benefit from retry strategies with exponential backoff.
+///
+/// * `Database` - Errors related to database operations, such as connection failures,
+///   query errors, or constraint violations. These may require special handling like
+///   connection testing or administrator notification.
+///
+/// * `Api` - Errors related to external API interactions, such as rate limiting,
+///   authentication failures, or service unavailability. These often need careful
+///   backoff strategies to respect API limits.
+///
+/// * `Other` - A catch-all category for errors that don't fit into the above categories.
+///   These get a more conservative recovery approach as their nature is less predictable.
+///
+/// # Usage
+///
+/// The error category is used to determine the appropriate recovery strategy in the
+/// error handling code. Different categories may have different thresholds for entering
+/// recovery mode or different backoff strategies.
+#[derive(Debug, PartialEq)]
+enum ErrorCategory {
+	/// Network-related errors (connection issues, timeouts)
+	Network,
+	/// Database-related errors (SQL errors, connection failures)
+	Database,
+	/// API-related errors (rate limiting, service unavailability)
+	Api,
+	/// Errors that don't fit into other categories
+	Other,
+}
+
+/// Implements the Display trait for ErrorCategory to provide string representations
+/// 
+/// This implementation allows ErrorCategory values to be easily included in formatted strings,
+/// log messages, and error reports. Each category is represented by a lowercase string
+/// that clearly identifies the error type.
+///
+/// # Usage
+///
+/// This is particularly useful in logging contexts where we want to include the error category
+/// in log messages. For example:
+///
+/// ```
+/// error!("Task failed ({}): {}", error_category, error_message);
+/// ```
+///
+/// The string representations are intentionally kept simple and lowercase to maintain
+/// consistency in log formatting and to make log parsing easier.
+impl Display for ErrorCategory {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		// Convert each enum variant to a simple, lowercase string representation
+		// These strings are used in log messages and error reports
+		match self {
+			ErrorCategory::Network => {
+				// Network errors are represented as "network"
+				write!(f, "network")
+			}
+			ErrorCategory::Database => {
+				// Database errors are represented as "database"
+				write!(f, "database")
+			}
+			ErrorCategory::Api => {
+				// API errors are represented as "api"
+				write!(f, "api")
+			}
+			ErrorCategory::Other => {
+				// Other/unknown errors are represented as "other"
+				write!(f, "other")
+			}
+		}
+	}
+}
+
+/// Performs a basic health check on the database connection
+async fn check_database_health(db: &Arc<DatabaseConnection>) -> bool {
+	trace!("Performing database health check");
+
+	// Try a simple query to check if the database is responsive
+	match db.execute_unprepared("SELECT 1").await {
+		Ok(_) => {
+			trace!("Database health check passed");
+			true
+		},
+		Err(e) => {
+			error!("Database health check failed: {:#}", e);
+			false
+		}
+	}
+}
+
+/// Tests the database connection by attempting a simple query
+async fn test_database_connection(db: &Arc<DatabaseConnection>) -> Result<()> {
+	debug!("Testing database connection");
+
+	db.execute_unprepared("SELECT 1")
+		.await
+		.context("Failed to execute test query during database connection test")?;
+
+	debug!("Database connection test successful");
+	Ok(())
 }
 
 /// Monitors and records the latency (ping) of each Discord gateway shard.
@@ -721,24 +1033,138 @@ async fn launch_activity_management_thread(
 	);
 
 	let mut update_count = 0;
+	let mut consecutive_failures = 0;
+	let mut in_recovery_mode = false;
+	let max_backoff_seconds = 3600; // Maximum backoff of 1 hour
+	let base_interval = task_intervals.activity_check;
 
 	// Enter a loop that waits for the next interval tick and spawns a new task to manage the bot's activity
 	loop {
 		// Wait for the next interval tick
+		trace!("Waiting for next activity management interval tick");
 		interval.tick().await;
 		update_count += 1;
 
+		// If we're in recovery mode, apply exponential backoff
+		let current_interval = if in_recovery_mode {
+			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
+			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
+
+			info!(
+				"Activity management in recovery mode: using extended interval of {} seconds",
+				backoff_seconds
+			);
+
+			// Reset the interval with the new backoff duration
+			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
+			backoff_seconds
+		} else {
+			base_interval
+		};
+
 		info!("Starting activity management cycle #{}", update_count);
+		debug!("Current time: {}", chrono::Utc::now());
 
 		// Clone the context and db_type arguments
 		let ctx = ctx.clone();
+		let anilist_cache_clone = anilist_cache.clone();
+		let db_config_clone = db_config.clone();
 
-		// Spawn a new task to manage the bot's activity
-		tokio::spawn(manage_activity(
-			ctx,
-			anilist_cache.clone(),
-			db_config.clone(),
-		));
+		// Spawn a new task to manage the bot's activity and handle errors
+		let activity_handle = tokio::spawn(async move {
+			match manage_activity(
+				ctx,
+				anilist_cache_clone,
+				db_config_clone,
+			).await {
+				Ok(_) => Ok(()),
+				Err(e) => Err(e),
+			}
+		});
+
+		// Wait for the task to complete and check for errors
+		match activity_handle.await {
+			Ok(Ok(_)) => {
+				info!("Activity management cycle #{} completed successfully", update_count);
+
+				// Reset failure counter and recovery mode on success
+				if consecutive_failures > 0 || in_recovery_mode {
+					info!(
+						"Activity management recovered after {} consecutive failures",
+						consecutive_failures
+					);
+					consecutive_failures = 0;
+
+					if in_recovery_mode {
+						info!("Exiting recovery mode for activity management");
+						in_recovery_mode = false;
+						// Reset to normal interval
+						interval = tokio::time::interval(Duration::from_secs(base_interval));
+					}
+				}
+			},
+			Ok(Err(e)) => {
+				consecutive_failures += 1;
+				error!(
+					"Activity management cycle #{} failed: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for activity management",
+					consecutive_failures
+				);
+
+				// Log more details about the error for debugging
+				debug!("Error type: {}", std::any::type_name_of_val(&e));
+				debug!("Error context chain: {:?}", e.chain().collect::<Vec<_>>());
+
+				// Enter recovery mode after multiple consecutive failures
+				if !in_recovery_mode && consecutive_failures >= 3 {
+					warn!("Entering recovery mode with exponential backoff for activity management");
+					in_recovery_mode = true;
+				}
+
+				// Additional actions for persistent failures
+				if consecutive_failures >= 5 {
+					error!(
+						"Critical: Activity management has failed {} consecutive times. Manual intervention may be required.",
+						consecutive_failures
+					);
+				}
+			},
+			Err(e) => {
+				consecutive_failures += 1;
+				error!(
+					"Activity management task #{} panicked: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for activity management",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after task panics
+				if !in_recovery_mode && consecutive_failures >= 2 {
+					warn!("Entering recovery mode with exponential backoff for activity management due to task panic");
+					in_recovery_mode = true;
+				}
+			},
+		}
+
+		debug!(
+			"Next activity management cycle scheduled in {} seconds",
+			if in_recovery_mode {
+				let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+				(base_interval * backoff_factor).min(max_backoff_seconds)
+			} else {
+				base_interval
+			}
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
+		);
 	}
 }
 
@@ -762,6 +1188,10 @@ async fn launch_server_image_management_thread(
 	);
 
 	let mut update_count = 0;
+	let mut consecutive_failures = 0;
+	let mut in_recovery_mode = false;
+	let max_backoff_seconds = 3600; // Maximum backoff of 1 hour
+	let base_interval = task_intervals.server_image_update;
 
 	// Create an interval for periodic updates
 	let mut interval = interval(Duration::from_secs(task_intervals.server_image_update));
@@ -769,13 +1199,133 @@ async fn launch_server_image_management_thread(
 	// Loop indefinitely
 	loop {
 		// Wait for the next interval tick
+		trace!("Waiting for next server image management interval tick");
 		interval.tick().await;
 		update_count += 1;
 
-		info!("Starting server image management cycle #{}", update_count);
+		// If we're in recovery mode, apply exponential backoff
+		let current_interval = if in_recovery_mode {
+			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
+			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
 
-		// Call the server_image_management function with the provided context, database type, and image configuration
-		server_image_management(&ctx, image_config.clone(), connection.clone()).await;
+			info!(
+				"Server image management in recovery mode: using extended interval of {} seconds",
+				backoff_seconds
+			);
+
+			// Reset the interval with the new backoff duration
+			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
+			backoff_seconds
+		} else {
+			base_interval
+		};
+
+		info!("Starting server image management cycle #{}", update_count);
+		debug!("Current time: {}", chrono::Utc::now());
+
+		// Create a task to handle server image management with error handling
+		let ctx_clone = ctx.clone();
+		let image_config_clone = image_config.clone();
+		let connection_clone = connection.clone();
+
+		// Wrap the server_image_management call in a task to catch any panics
+		let server_image_handle = tokio::spawn(async move {
+			// Use a timeout to prevent the task from running indefinitely
+			match tokio::time::timeout(
+				Duration::from_secs(300), // 5 minute timeout
+				server_image_management(&ctx_clone, image_config_clone, connection_clone)
+			).await {
+				Ok(result) => Ok(result),
+				Err(e) => Err(anyhow::anyhow!("Server image management task timed out after 300 seconds: {}", e)),
+			}
+		});
+
+		// Wait for the task to complete and check for errors
+		match server_image_handle.await {
+			Ok(Ok(_)) => {
+				info!("Server image management cycle #{} completed successfully", update_count);
+
+				// Reset failure counter and recovery mode on success
+				if consecutive_failures > 0 || in_recovery_mode {
+					info!(
+						"Server image management recovered after {} consecutive failures",
+						consecutive_failures
+					);
+					consecutive_failures = 0;
+
+					if in_recovery_mode {
+						info!("Exiting recovery mode for server image management");
+						in_recovery_mode = false;
+						// Reset to normal interval
+						interval = tokio::time::interval(Duration::from_secs(base_interval));
+					}
+				}
+			},
+			Ok(Err(e)) => {
+				consecutive_failures += 1;
+				error!(
+					"Server image management cycle #{} failed: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for server image management",
+					consecutive_failures
+				);
+
+				// Log more details about the error for debugging
+				debug!("Error type: {}", std::any::type_name_of_val(&e));
+
+				if let Some(err) = e.downcast_ref::<anyhow::Error>() {
+					debug!("Error context chain: {:?}", err.chain().collect::<Vec<_>>());
+				}
+
+				// Enter recovery mode after multiple consecutive failures
+				if !in_recovery_mode && consecutive_failures >= 3 {
+					warn!("Entering recovery mode with exponential backoff for server image management");
+					in_recovery_mode = true;
+				}
+
+				// Additional actions for persistent failures
+				if consecutive_failures >= 5 {
+					error!(
+						"Critical: Server image management has failed {} consecutive times. Manual intervention may be required.",
+						consecutive_failures
+					);
+				}
+			},
+			Err(e) => {
+				consecutive_failures += 1;
+				error!(
+					"Server image management task #{} panicked: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for server image management",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after task panics
+				if !in_recovery_mode && consecutive_failures >= 2 {
+					warn!("Entering recovery mode with exponential backoff for server image management due to task panic");
+					in_recovery_mode = true;
+				}
+			},
+		}
+
+		debug!(
+			"Next server image management cycle scheduled in {} seconds",
+			if in_recovery_mode {
+				let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+				(base_interval * backoff_factor).min(max_backoff_seconds)
+			} else {
+				base_interval
+			}
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
+		);
 	}
 }
 
@@ -1131,18 +1681,65 @@ async fn update_bot_info(
 	);
 
 	let mut update_count = 0;
+	let mut consecutive_failures = 0;
+	let mut in_recovery_mode = false;
+	let max_backoff_seconds = 3600; // Maximum backoff of 1 hour
+	let base_interval = task_intervals.bot_info;
 
 	loop {
 		// Wait for the update interval
+		trace!("Waiting for next bot info update interval tick");
 		update_interval.tick().await;
 		update_count += 1;
 
+		// If we're in recovery mode, apply exponential backoff
+		let current_interval = if in_recovery_mode {
+			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
+			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
+
+			info!(
+				"Bot info update in recovery mode: using extended interval of {} seconds",
+				backoff_seconds
+			);
+
+			// Reset the interval with the new backoff duration
+			update_interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
+			backoff_seconds
+		} else {
+			base_interval
+		};
+
 		info!("Starting bot info update cycle #{}", update_count);
+		debug!("Current time: {}", chrono::Utc::now());
 
 		// Check if we already have bot info
-		let has_existing_info = {
-			let current_info = bot_info.read().await;
-			current_info.is_some()
+		let has_existing_info = match bot_info.read().await {
+			Ok(guard) => guard.is_some(),
+			Err(e) => {
+				consecutive_failures += 1;
+				error!("Failed to acquire read lock on bot info: {}", e);
+				warn!(
+					"This is consecutive failure #{} for bot info updates",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after lock acquisition failures
+				if !in_recovery_mode && consecutive_failures >= 2 {
+					warn!("Entering recovery mode with exponential backoff for bot info updates due to lock acquisition failures");
+					in_recovery_mode = true;
+				}
+
+				debug!(
+					"Next bot info update scheduled in {} seconds",
+					if in_recovery_mode {
+						let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+						(base_interval * backoff_factor).min(max_backoff_seconds)
+					} else {
+						base_interval
+					}
+				);
+				continue;
+			}
 		};
 
 		if has_existing_info {
@@ -1151,20 +1748,82 @@ async fn update_bot_info(
 			info!("Fetching initial bot information");
 		}
 
-		// Retrieve the current bot information
-		let current_bot_info = match context.http.get_current_application_info().await {
-			Ok(info) => {
+		// Use a timeout to prevent the API request from hanging indefinitely
+		let api_result = tokio::time::timeout(
+			Duration::from_secs(30), // 30 second timeout
+			context.http.get_current_application_info()
+		).await;
+
+		// Handle timeout and API errors
+		let current_bot_info = match api_result {
+			Ok(Ok(info)) => {
 				debug!(
 					"Successfully retrieved bot info for application: {}",
 					info.name
 				);
 				info
 			},
-			Err(e) => {
-				error!("Failed to get bot info in cycle #{}: {:?}", update_count, e);
+			Ok(Err(e)) => {
+				consecutive_failures += 1;
+				error!(
+					"Failed to get bot info in cycle #{}: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for bot info updates",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after multiple API failures
+				if !in_recovery_mode && consecutive_failures >= 3 {
+					warn!("Entering recovery mode with exponential backoff for bot info updates due to API failures");
+					in_recovery_mode = true;
+				}
+
+				// Additional actions for persistent failures
+				if consecutive_failures >= 5 {
+					error!(
+						"Critical: Bot info update has failed {} consecutive times. Manual intervention may be required.",
+						consecutive_failures
+					);
+				}
+
 				debug!(
 					"Next bot info update scheduled in {} seconds",
-					task_intervals.bot_info
+					if in_recovery_mode {
+						let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+						(base_interval * backoff_factor).min(max_backoff_seconds)
+					} else {
+						base_interval
+					}
+				);
+				continue;
+			},
+			Err(e) => {
+				consecutive_failures += 1;
+				error!(
+					"API request for bot info timed out in cycle #{}: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for bot info updates",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after timeout failures
+				if !in_recovery_mode && consecutive_failures >= 2 {
+					warn!("Entering recovery mode with exponential backoff for bot info updates due to API timeouts");
+					in_recovery_mode = true;
+				}
+
+				debug!(
+					"Next bot info update scheduled in {} seconds",
+					if in_recovery_mode {
+						let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+						(base_interval * backoff_factor).min(max_backoff_seconds)
+					} else {
+						base_interval
+					}
 				);
 				continue;
 			},
@@ -1172,16 +1831,63 @@ async fn update_bot_info(
 
 		// Acquire a lock on bot info and update it with the current information
 		info!("Updating cached bot information");
-		let mut bot_info_lock = bot_info.write().await;
+		match bot_info.write().await {
+			Ok(mut bot_info_lock) => {
+				*bot_info_lock = Some(current_bot_info);
 
-		*bot_info_lock = Some(current_bot_info);
-		info!(
-			"Bot info update cycle #{} completed successfully",
-			update_count
-		);
+				info!(
+					"Bot info update cycle #{} completed successfully",
+					update_count
+				);
+
+				// Reset failure counter and recovery mode on success
+				if consecutive_failures > 0 || in_recovery_mode {
+					info!(
+						"Bot info update recovered after {} consecutive failures",
+						consecutive_failures
+					);
+					consecutive_failures = 0;
+
+					if in_recovery_mode {
+						info!("Exiting recovery mode for bot info updates");
+						in_recovery_mode = false;
+						// Reset to normal interval
+						update_interval = tokio::time::interval(Duration::from_secs(base_interval));
+					}
+				}
+			},
+			Err(e) => {
+				consecutive_failures += 1;
+				error!(
+					"Failed to acquire write lock on bot info in cycle #{}: {:#}",
+					update_count, e
+				);
+				warn!(
+					"This is consecutive failure #{} for bot info updates",
+					consecutive_failures
+				);
+
+				// Enter recovery mode after lock acquisition failures
+				if !in_recovery_mode && consecutive_failures >= 2 {
+					warn!("Entering recovery mode with exponential backoff for bot info updates due to lock acquisition failures");
+					in_recovery_mode = true;
+				}
+			},
+		}
+
 		debug!(
 			"Next bot info update scheduled in {} seconds",
-			task_intervals.bot_info
+			if in_recovery_mode {
+				let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32);
+				(base_interval * backoff_factor).min(max_backoff_seconds)
+			} else {
+				base_interval
+			}
+		);
+		trace!(
+			"Update cycle #{} completed at {}",
+			update_count,
+			chrono::Utc::now()
 		);
 	}
 }
