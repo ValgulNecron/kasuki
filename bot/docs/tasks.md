@@ -6,7 +6,6 @@ This document contains a comprehensive list of actionable improvement tasks for 
 
 ### Error Handling
 - [ ] Add more context to errors using anyhow::Context
-- [ ] Improve error recovery mechanisms in background tasks
 
 ### Testing
 - [ ] Increase unit test coverage across the codebase

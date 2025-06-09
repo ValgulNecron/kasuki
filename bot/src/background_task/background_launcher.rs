@@ -11,7 +11,6 @@ use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use tokio::sync::broadcast;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace, warn};
 
@@ -341,23 +340,6 @@ async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskInte
 		trace!("Waiting for next anisong update interval tick");
 		interval.tick().await;
 		update_count += 1;
-
-		// If we're in recovery mode, apply exponential backoff
-		let current_interval = if in_recovery_mode {
-			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
-			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
-
-			info!(
-				"Anisong update in recovery mode: using extended interval of {} seconds",
-				backoff_seconds
-			);
-
-			// Reset the interval with the new backoff duration
-			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
-			backoff_seconds
-		} else {
-			base_interval
-		};
 
 		info!("Starting anisong database update cycle #{}", update_count);
 		debug!("Current time: {}", chrono::Utc::now());
@@ -760,10 +742,13 @@ async fn ping_manager_thread(
 	ctx: SerenityContext, db_config: DbConfig, task_intervals: TaskIntervalConfig,
 ) -> Result<()> {
 	// Log the initialization of the ping monitoring thread
-	info!("Launching the ping thread!");
+	info!("Launching the ping monitoring thread!");
+	debug!("Ping update interval configured for {} seconds", task_intervals.ping_update);
+	trace!("Initializing ping monitoring with database config: {:?}", db_config);
 
 	// Retrieve the shard manager from the bot's context
 	// The shard manager contains information about all active shards
+	trace!("Attempting to retrieve shard manager from context");
 	let shard_manager: Arc<
 		DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>,
 	> = match ctx
@@ -774,11 +759,16 @@ async fn ping_manager_thread(
 		.await
 		.clone()
 	{
-		Some(shard_manager) => shard_manager,
+		Some(shard_manager) => {
+			debug!("Successfully retrieved shard manager");
+			shard_manager
+		},
 		None => {
 			// If the shard manager is not available (which might happen during startup),
 			// sleep for the configured interval and then retry by recursively calling this function
+			warn!("Shard manager not available, waiting for {} seconds before retry", task_intervals.ping_update);
 			tokio::time::sleep(Duration::from_secs(task_intervals.ping_update)).await;
+			debug!("Retrying shard manager retrieval");
 			Box::pin(ping_manager_thread(ctx, db_config, task_intervals)).await?;
 			return Ok(());
 		},
@@ -787,31 +777,57 @@ async fn ping_manager_thread(
 	// Set up a periodic interval for checking shard latency
 	// This determines how frequently we'll record ping data
 	let mut interval = tokio::time::interval(Duration::from_secs(task_intervals.ping_update));
+	debug!("Set up ping check interval timer for {} seconds", task_intervals.ping_update);
 
 	// Establish a connection to the database for recording ping history
 	// This connection is reused for all database operations to avoid repeatedly connecting
-	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
-		.await
-		.context(format!(
-			"Failed to connect to database with config: {:?}",
-			db_config
-		))?;
+	info!("Establishing database connection for ping history recording");
+	trace!("Using database URL from config: {}", get_url(db_config.clone()));
+
+	let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
+		Ok(conn) => {
+			info!("Successfully connected to database for ping history");
+			conn
+		},
+		Err(e) => {
+			error!("Failed to connect to database: {:#}", e);
+			return Err(e).context(format!(
+				"Failed to connect to database with config: {:?}",
+				db_config
+			));
+		}
+	};
 
 	// Main monitoring loop - runs indefinitely
+	let mut cycle_count = 0;
+	let mut total_shards_processed = 0;
+	let mut successful_updates = 0;
+	let mut failed_updates = 0;
+
 	loop {
 		// Wait for the next scheduled check based on the configured interval
 		interval.tick().await;
+		cycle_count += 1;
 
+		let current_time = chrono::Utc::now();
+		info!("Starting ping update cycle #{} at {}", cycle_count, current_time);
 		trace!("Ping update cycle started");
 
 		// Get a reference to the shard manager
 		// DashMap provides thread-safe concurrent access without explicit locking
 		let runner = &shard_manager;
+		let shard_count = runner.len();
+		debug!("Processing {} shards in this cycle", shard_count);
+
+		// Reset counters for this cycle
+		let mut cycle_successful_updates = 0;
+		let mut cycle_failed_updates = 0;
 
 		// Iterate through each shard to record its latency
 		for entry in runner.iter() {
 			// Get the shard ID (a numeric identifier for the shard)
 			let shard_id = entry.key();
+			trace!("Processing shard {}", shard_id);
 
 			// Get the shard information
 			let shard = entry.value();
@@ -830,6 +846,8 @@ async fn ping_manager_thread(
 					.as_millis()
 					.to_string();
 
+				trace!("Shard {} current latency: {}ms", shard_id, latency);
+
 				// Get the current UTC timestamp for recording when this measurement was taken
 				let now = chrono::Utc::now().naive_utc();
 
@@ -840,6 +858,7 @@ async fn ping_manager_thread(
 			// Then execute the insert operation
 			// Create a new database record with the shard ID, latency, and timestamp
 			// Then execute the insert operation with proper error context
+			trace!("Inserting ping history record for shard {} with latency {}", shard_id, latency);
 			let result = PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
 				latency: Set(latency.clone()),
@@ -857,6 +876,9 @@ async fn ping_manager_thread(
 				Ok(_) => {
 					// Log successful updates at debug level to avoid cluttering logs
 					debug!("Updated ping history for shard {}.", shard_id);
+					cycle_successful_updates += 1;
+					successful_updates += 1;
+					total_shards_processed += 1;
 				},
 				Err(e) => {
 					// Log failures at error level for investigation
@@ -864,10 +886,32 @@ async fn ping_manager_thread(
 						"Failed to update ping history for shard {}: {:#}",
 						shard_id, e
 					);
+					cycle_failed_updates += 1;
+					failed_updates += 1;
+					total_shards_processed += 1;
 					// Continue with other shards despite this error
 				},
 			}
 		}
+
+		// Log summary of this cycle
+		let cycle_end_time = chrono::Utc::now();
+		let cycle_duration = cycle_end_time.signed_duration_since(current_time);
+
+		info!(
+			"Ping update cycle #{} completed: processed {} shards ({} successful, {} failed) in {:?}",
+			cycle_count, shard_count, cycle_successful_updates, cycle_failed_updates, cycle_duration
+		);
+
+		debug!(
+			"Ping monitoring stats: total processed: {}, success rate: {:.2}%",
+			total_shards_processed,
+			if total_shards_processed > 0 {
+				(successful_updates as f64 / total_shards_processed as f64) * 100.0
+			} else {
+				0.0
+			}
+		);
 
 		trace!("Ping update cycle completed");
 	}
@@ -1063,23 +1107,6 @@ async fn launch_activity_management_thread(
 		trace!("Waiting for next activity management interval tick");
 		interval.tick().await;
 		update_count += 1;
-
-		// If we're in recovery mode, apply exponential backoff
-		let current_interval = if in_recovery_mode {
-			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
-			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
-
-			info!(
-				"Activity management in recovery mode: using extended interval of {} seconds",
-				backoff_seconds
-			);
-
-			// Reset the interval with the new backoff duration
-			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
-			backoff_seconds
-		} else {
-			base_interval
-		};
 
 		info!("Starting activity management cycle #{}", update_count);
 		debug!("Current time: {}", chrono::Utc::now());

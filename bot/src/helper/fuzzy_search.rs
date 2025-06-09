@@ -55,7 +55,11 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 
 		let item = (distance, item.to_string());
 
-		let mut distances = distances.lock()?;
+		// Handle the mutex lock error explicitly instead of using ?
+		let mut distances = match distances.lock() {
+			Ok(guard) => guard,
+			Err(poison_error) => poison_error.into_inner(), // Recover from poison error
+		};
 
 		if distances.len() < n {
 			distances.push(item.clone());
