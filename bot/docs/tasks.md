@@ -5,8 +5,8 @@ This document contains a comprehensive list of actionable improvement tasks for 
 ## Architectural Improvements
 
 ### Error Handling
-- [x] Add more context to errors using anyhow::Context
-- [x] Improve error recovery mechanisms in background tasks
+- [ ] Add more context to errors using anyhow::Context
+- [ ] Improve error recovery mechanisms in background tasks
 
 ### Testing
 - [ ] Increase unit test coverage across the codebase
@@ -63,8 +63,8 @@ This document contains a comprehensive list of actionable improvement tasks for 
 ### Code Quality
 - [ ] Refactor large functions into smaller, more focused ones
 - [ ] Reduce code duplication across similar commands
-- [x] Implement more comprehensive logging, this means adding more logs to the function and making the already existing one better
-- [x] Add more comments explaining complex logic
+- [ ] Implement more comprehensive logging, this means adding more logs to the function and making the already existing one better
+- [ ] Add more comments explaining complex logic
 - [ ] Run clippy with pedantic settings and address warnings
 
 ### Configuration

@@ -55,13 +55,13 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 
 		let item = (distance, item.to_string());
 
-		let mut distances = distances.lock()
-			.context(format!("Failed to acquire lock for item: {}", item.1))?;
+		let mut distances = distances.lock()?;
 
 		if distances.len() < n {
 			distances.push(item.clone());
 		} else {
-			let max = distances.peek()
+			let max = distances
+				.peek()
 				.context("Failed to peek at the binary heap, which should not be empty")?;
 
 			if &item.clone() < max {
@@ -102,12 +102,24 @@ mod tests {
 
 		// Check that the other results are also correct (applet and application are more similar to apple than banana or orange)
 		let result_strings: Vec<String> = results.iter().map(|(s, _)| s.clone()).collect();
-		assert!(result_strings.contains(&"applet".to_string()), "Results should contain 'applet'");
-		assert!(result_strings.contains(&"application".to_string()), "Results should contain 'application'");
+		assert!(
+			result_strings.contains(&"applet".to_string()),
+			"Results should contain 'applet'"
+		);
+		assert!(
+			result_strings.contains(&"application".to_string()),
+			"Results should contain 'application'"
+		);
 
 		// Check that less similar items are not included
-		assert!(!result_strings.contains(&"banana".to_string()), "Results should not contain 'banana'");
-		assert!(!result_strings.contains(&"orange".to_string()), "Results should not contain 'orange'");
+		assert!(
+			!result_strings.contains(&"banana".to_string()),
+			"Results should not contain 'banana'"
+		);
+		assert!(
+			!result_strings.contains(&"orange".to_string()),
+			"Results should not contain 'orange'"
+		);
 	}
 
 	#[test]
@@ -115,7 +127,8 @@ mod tests {
 		// Test with empty vector
 		let search = "test";
 		let empty_vec: Vec<&str> = Vec::new();
-		let results = distance_top_n(search, empty_vec, 3).expect("Function should not fail with empty vector");
+		let results = distance_top_n(search, empty_vec, 3)
+			.expect("Function should not fail with empty vector");
 		assert_eq!(results.len(), 0, "Empty vector should return empty results");
 
 		// Test with n = 0
@@ -125,8 +138,13 @@ mod tests {
 
 		// Test with n larger than vector size
 		let items = vec!["apple", "banana"];
-		let results = distance_top_n(search, items, 5).expect("Function should not fail with n > vector.len()");
-		assert_eq!(results.len(), 2, "Should return all items when n > vector.len()");
+		let results = distance_top_n(search, items, 5)
+			.expect("Function should not fail with n > vector.len()");
+		assert_eq!(
+			results.len(),
+			2,
+			"Should return all items when n > vector.len()"
+		);
 	}
 
 	#[test]
@@ -134,7 +152,8 @@ mod tests {
 		// Test with exact matches
 		let search = "banana";
 		let items = vec!["apple", "banana", "orange"];
-		let results = distance_top_n(search, items, 1).expect("Function should not fail with exact match");
+		let results =
+			distance_top_n(search, items, 1).expect("Function should not fail with exact match");
 
 		assert_eq!(results.len(), 1, "Should return exactly 1 result");
 		assert_eq!(results[0].0, "banana", "Should return exact match");
@@ -148,15 +167,28 @@ mod tests {
 		// Test case sensitivity
 		let search = "Apple";
 		let items = vec!["apple", "APPLE", "aPpLe", "banana"];
-		let results = distance_top_n(search, items, 3).expect("Function should not fail with case sensitivity test");
+		let results = distance_top_n(search, items, 3)
+			.expect("Function should not fail with case sensitivity test");
 
 		// All variations of "apple" should be returned before "banana"
 		assert_eq!(results.len(), 3, "Should return exactly 3 results");
 
 		let result_strings: Vec<String> = results.iter().map(|(s, _)| s.clone()).collect();
-		assert!(result_strings.contains(&"apple".to_string()), "Results should contain 'apple'");
-		assert!(result_strings.contains(&"APPLE".to_string()), "Results should contain 'APPLE'");
-		assert!(result_strings.contains(&"aPpLe".to_string()), "Results should contain 'aPpLe'");
-		assert!(!result_strings.contains(&"banana".to_string()), "Results should not contain 'banana'");
+		assert!(
+			result_strings.contains(&"apple".to_string()),
+			"Results should contain 'apple'"
+		);
+		assert!(
+			result_strings.contains(&"APPLE".to_string()),
+			"Results should contain 'APPLE'"
+		);
+		assert!(
+			result_strings.contains(&"aPpLe".to_string()),
+			"Results should contain 'aPpLe'"
+		);
+		assert!(
+			!result_strings.contains(&"banana".to_string()),
+			"Results should not contain 'banana'"
+		);
 	}
 }

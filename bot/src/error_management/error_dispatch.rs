@@ -1,10 +1,10 @@
+use anyhow::{Context as AnyhowContext, Result as AnyhowResult};
 use regex::Regex;
 use serenity::all::{
 	CommandInteraction, Context, CreateEmbed, CreateInteractionResponse,
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Timestamp,
 };
 use tracing::error;
-use anyhow::{Context as AnyhowContext, Result as AnyhowResult};
 
 use crate::constant::COLOR;
 use crate::event_handler::BotData;

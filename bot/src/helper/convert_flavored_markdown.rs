@@ -55,56 +55,56 @@ pub fn convert_steam_to_discord_flavored_markdown(value: String) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+	use super::*;
 
-    #[test]
-    fn test_convert_anilist_flavored_to_discord_flavored_markdown() {
-        // Test with empty string
-        let empty = "".to_string();
-        let result = convert_anilist_flavored_to_discord_flavored_markdown(empty);
-        assert_eq!(result, "", "Empty string should remain empty");
+	#[test]
+	fn test_convert_anilist_flavored_to_discord_flavored_markdown() {
+		// Test with empty string
+		let empty = "".to_string();
+		let result = convert_anilist_flavored_to_discord_flavored_markdown(empty);
+		assert_eq!(result, "", "Empty string should remain empty");
 
-        // Test with a string that doesn't contain markdown
-        let plain = "Hello, world!".to_string();
-        let result = convert_anilist_flavored_to_discord_flavored_markdown(plain.clone());
-        assert_eq!(result, plain, "Plain text should remain unchanged");
+		// Test with a string that doesn't contain markdown
+		let plain = "Hello, world!".to_string();
+		let result = convert_anilist_flavored_to_discord_flavored_markdown(plain.clone());
+		assert_eq!(result, plain, "Plain text should remain unchanged");
 
-        // We can't test the actual conversion logic without knowing the implementation details
-        // of the markdown_converter crate, but we can at least verify that the function
-        // calls the external function and returns a string
-        let markdown = "Some AniList markdown".to_string();
-        let result = convert_anilist_flavored_to_discord_flavored_markdown(markdown);
-        assert!(result.is_string(), "Result should be a string");
-    }
+		// We can't test the actual conversion logic without knowing the implementation details
+		// of the markdown_converter crate, but we can at least verify that the function
+		// calls the external function and returns a string
+		let markdown = "Some AniList markdown".to_string();
+		let result = convert_anilist_flavored_to_discord_flavored_markdown(markdown);
+		assert!(result.is_string(), "Result should be a string");
+	}
 
-    #[test]
-    fn test_convert_steam_to_discord_flavored_markdown() {
-        // Test with empty string
-        let empty = "".to_string();
-        let result = convert_steam_to_discord_flavored_markdown(empty);
-        assert_eq!(result, "", "Empty string should remain empty");
+	#[test]
+	fn test_convert_steam_to_discord_flavored_markdown() {
+		// Test with empty string
+		let empty = "".to_string();
+		let result = convert_steam_to_discord_flavored_markdown(empty);
+		assert_eq!(result, "", "Empty string should remain empty");
 
-        // Test with a string that doesn't contain markdown
-        let plain = "Hello, world!".to_string();
-        let result = convert_steam_to_discord_flavored_markdown(plain.clone());
-        assert_eq!(result, plain, "Plain text should remain unchanged");
+		// Test with a string that doesn't contain markdown
+		let plain = "Hello, world!".to_string();
+		let result = convert_steam_to_discord_flavored_markdown(plain.clone());
+		assert_eq!(result, plain, "Plain text should remain unchanged");
 
-        // We can't test the actual conversion logic without knowing the implementation details
-        // of the markdown_converter crate, but we can at least verify that the function
-        // calls the external function and returns a string
-        let markdown = "Some Steam markdown".to_string();
-        let result = convert_steam_to_discord_flavored_markdown(markdown);
-        assert!(result.is_string(), "Result should be a string");
-    }
+		// We can't test the actual conversion logic without knowing the implementation details
+		// of the markdown_converter crate, but we can at least verify that the function
+		// calls the external function and returns a string
+		let markdown = "Some Steam markdown".to_string();
+		let result = convert_steam_to_discord_flavored_markdown(markdown);
+		assert!(result.is_string(), "Result should be a string");
+	}
 
-    // Helper trait to check if a value is a string
-    trait IsString {
-        fn is_string(&self) -> bool;
-    }
+	// Helper trait to check if a value is a string
+	trait IsString {
+		fn is_string(&self) -> bool;
+	}
 
-    impl IsString for String {
-        fn is_string(&self) -> bool {
-            true
-        }
-    }
+	impl IsString for String {
+		fn is_string(&self) -> bool {
+			true
+		}
+	}
 }

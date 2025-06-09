@@ -22,7 +22,7 @@ use crate::structure::run::anilist::character::{
 	Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
 	CharacterQuerrySearchVariables,
 };
-use anyhow::{Result, anyhow, Context};
+use anyhow::{Context, Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -157,9 +157,11 @@ impl Command for CharacterCommand {
 			.unwrap_or(String::new());
 
 		let data: Character = if value.parse::<i32>().is_ok() {
-			let character_id = value.parse::<i32>()
+			let character_id = value
+				.parse::<i32>()
 				.context("Failed to parse character ID as integer")?;
-			get_character_by_id(character_id, anilist_cache).await
+			get_character_by_id(character_id, anilist_cache)
+				.await
 				.context(format!("Failed to get character with ID {}", character_id))?
 		} else {
 			let var = CharacterQuerrySearchVariables {
@@ -169,8 +171,12 @@ impl Command for CharacterCommand {
 			let operation = CharacterQuerrySearch::build(var);
 
 			let data: GraphQlResponse<CharacterQuerrySearch> =
-				make_request_anilist(operation, false, anilist_cache).await
-					.context(format!("Failed to make AniList API request for character search with query '{}'", value))?;
+				make_request_anilist(operation, false, anilist_cache)
+					.await
+					.context(format!(
+						"Failed to make AniList API request for character search with query '{}'",
+						value
+					))?;
 
 			data.data
 				.context("No data returned from AniList API for character search")?
@@ -179,7 +185,8 @@ impl Command for CharacterCommand {
 		};
 
 		let embed_contents =
-			character::character_content(command_interaction, data, config.db.clone()).await
+			character::character_content(command_interaction, data, config.db.clone())
+				.await
 				.context("Failed to generate character content for embed")?;
 
 		Ok(embed_contents)
@@ -245,8 +252,12 @@ pub async fn get_character_by_id(
 	let operation = CharacterQuerryId::build(var);
 
 	let data: GraphQlResponse<CharacterQuerryId> =
-		make_request_anilist(operation, false, anilist_cache).await
-			.context(format!("Failed to make AniList API request for character with ID {}", value))?;
+		make_request_anilist(operation, false, anilist_cache)
+			.await
+			.context(format!(
+				"Failed to make AniList API request for character with ID {}",
+				value
+			))?;
 
 	match data.data {
 		Some(data) => match data.character {
@@ -254,7 +265,10 @@ pub async fn get_character_by_id(
 			None => Err(anyhow!("No character found with ID {}", value)
 				.context("The character ID may not exist or may have been removed from AniList")),
 		},
-		None => Err(anyhow!("No data returned from AniList API for character with ID {}", value)
-			.context("This could indicate an issue with the AniList API or the request format")),
+		None => Err(anyhow!(
+			"No data returned from AniList API for character with ID {}",
+			value
+		)
+		.context("This could indicate an issue with the AniList API or the request format")),
 	}
 }

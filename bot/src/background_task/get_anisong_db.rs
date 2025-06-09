@@ -2,17 +2,17 @@
 use crate::database::prelude::AnimeSong;
 use anyhow::{Context, Result};
 use futures::future::join_all;
+use governor::{Quota, RateLimiter, clock, state};
 use reqwest::{Client, StatusCode};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::Deserialize;
 use serde_json::json;
+use std::num::NonZeroU32;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::Semaphore;
 use tracing::{debug, error, info, trace, warn};
-use governor::{clock, state, Quota, RateLimiter};
-use std::num::NonZeroU32;
-use std::time::{Duration, Instant};
 
 /// Fetches anime song data from anisongdb.com and stores it in the database.
 ///
@@ -38,7 +38,10 @@ use std::time::{Duration, Instant};
 /// - Database operations fail
 pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 	let start_time = Instant::now();
-	info!(task = "anisong_update", "Starting anisong database update task");
+	info!(
+		task = "anisong_update",
+		"Starting anisong database update task"
+	);
 
 	// Create a reusable HTTP client for all requests
 	// This is more efficient than creating a new client for each request
@@ -54,12 +57,13 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 	// Configure rate limiter for API requests
 	let requests_per_second = 20;
 	let burst_size = 5;
-	let limiter = Arc::new(RateLimiter::direct(Quota::per_second(
-		NonZeroU32::new(requests_per_second).unwrap()
-	).allow_burst(NonZeroU32::new(burst_size).unwrap())));
+	let limiter = Arc::new(RateLimiter::direct(
+		Quota::per_second(NonZeroU32::new(requests_per_second).unwrap())
+			.allow_burst(NonZeroU32::new(burst_size).unwrap()),
+	));
 
 	debug!(
-		task = "anisong_update", 
+		task = "anisong_update",
 		concurrent_limit = 1,
 		requests_per_second = requests_per_second,
 		burst_size = burst_size,
@@ -134,12 +138,8 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 		/// By defining this function inside the main function, we can access the
 		/// outer function's context while keeping the code modular and focused.
 		async fn process_anisong(
-			client: Arc<Client>, connection: Arc<DatabaseConnection>, ann_id: i64, limiter: Arc<RateLimiter<
-				state::NotKeyed,
-				state::InMemoryState,
-				clock::DefaultClock
-			>>,
-
+			client: Arc<Client>, connection: Arc<DatabaseConnection>, ann_id: i64,
+			limiter: Arc<RateLimiter<state::NotKeyed, state::InMemoryState, clock::DefaultClock>>,
 		) -> Result<Vec<RawAniSongDB>> {
 			let process_start_time = Instant::now();
 			debug!(
@@ -193,7 +193,8 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 
 				match response.status() {
 					StatusCode::TOO_MANY_REQUESTS => {
-						let delay = response.headers()
+						let delay = response
+							.headers()
 							.get("retry-after")
 							.and_then(|h| h.to_str().ok())
 							.and_then(|s| s.parse().ok())
@@ -210,9 +211,9 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 								ann_id
 							));
 						}
-						continue
+						continue;
 					},
-					_ => {}
+					_ => {},
 				}
 
 				// Extract the response body as text
@@ -230,7 +231,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 				// because one anime can have multiple songs (OP, ED, etc.)
 				raw_anisong = serde_json::from_str(&json)
 					.context(format!("Failed to parse JSON for ANN ID {}", ann_id))?;
-				break
+				break;
 			}
 			debug!(
 				"Successfully parsed {} anime songs for ANN ID: {}",
@@ -368,7 +369,6 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 			Ok(raw_anisong)
 		}
 
-
 		// Add this task to our collection of futures
 		futures.push(future);
 
@@ -415,7 +415,10 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 		success_count = success_count,
 		total_tasks = results.len(),
 		success_rate_pct = format!("{:.1}%", success_rate),
-		items_per_second = format!("{:.2}", total_processed as f64 / task_duration.as_secs_f64()),
+		items_per_second = format!(
+			"{:.2}",
+			total_processed as f64 / task_duration.as_secs_f64()
+		),
 		"Task performance metrics"
 	);
 

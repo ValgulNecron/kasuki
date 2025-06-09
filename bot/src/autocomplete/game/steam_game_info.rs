@@ -34,6 +34,14 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		AUTOCOMPLETE_COUNT_LIMIT as usize,
 	);
 
+	let result = match result {
+		Ok(r) => r,
+		Err(e) => {
+			debug!("Error: {:?}", e);
+			return;
+		},
+	};
+
 	debug!("Result: {:?}", result);
 
 	let mut choices: Vec<AutocompleteChoice> = Vec::new();

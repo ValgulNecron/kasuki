@@ -974,20 +974,20 @@ pub async fn check_if_module_is_on(
 ///
 /// The kill switch system provides an emergency override mechanism that can disable
 /// modules across the bot, regardless of individual guild settings. This is useful for:
-/// 
+///
 /// 1. Quickly disabling problematic features without a full bot restart
 /// 2. Performing maintenance on specific modules
 /// 3. Responding to API rate limiting or service outages
-/// 
+///
 /// # Architecture
-/// 
+///
 /// The kill switch operates as a second layer of permission checking:
 /// - First, the regular module activation status is checked (user configuration)
 /// - Then, the kill switch status is checked (system override)
 /// - A module is only active if BOTH checks pass
-/// 
+///
 /// # Database Structure
-/// 
+///
 /// Kill switches are stored in a separate table from regular module activations,
 /// allowing them to be managed independently. The schema mirrors the module_activation
 /// table, but represents system-level rather than user-level settings.
@@ -1005,7 +1005,7 @@ pub async fn check_if_module_is_on(
 /// * `Err(Error)` - If there was an error checking the kill switch status
 ///
 /// # Flow
-/// 
+///
 /// 1. Connect to the database
 /// 2. Query the kill_switch table for the specified guild
 /// 3. If no record exists, use default values (all modules enabled)
