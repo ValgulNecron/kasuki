@@ -194,7 +194,7 @@ impl Command for KillSwitchCommand {
 	/// # Notes
 	/// Ensure that the database setup is correct and the necessary tables (`KillSwitch`) exist with the expected schema.
 	/// The localization function (`load_localization_kill_switch`) must support fallback behaviors for missing translations.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

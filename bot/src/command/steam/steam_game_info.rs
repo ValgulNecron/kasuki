@@ -232,7 +232,7 @@ impl Command for SteamGameInfoCommand {
 	///
 	/// - Ensure the `BotData` context is configured correctly with necessary Steam API credentials and application data.
 	/// - This function assumes certain responses from the Steam API match the expected schema; modifications to the schema may require code updates.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let data = get_steam_game(

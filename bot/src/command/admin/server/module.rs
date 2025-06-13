@@ -127,7 +127,7 @@ impl Command for ModuleCommand {
 	///
 	/// # Return Type
 	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A `Result` containing a `Vec` of embed content or an error.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();

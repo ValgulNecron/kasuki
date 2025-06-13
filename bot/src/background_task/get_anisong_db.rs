@@ -209,7 +209,13 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 							return Err(anyhow::anyhow!(
 								"Exceeded maximum number of retries for ANN ID {}. Giving up.",
 								ann_id
-							));
+							))
+							.with_context(|| {
+								format!(
+									"Rate limited too many times when requesting data for ANN ID {}",
+									ann_id
+								)
+							});
 						}
 						continue;
 					},

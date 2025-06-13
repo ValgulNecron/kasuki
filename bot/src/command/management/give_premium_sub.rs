@@ -188,7 +188,7 @@ impl Command for GivePremiumSubCommand {
 	/// # Note
 	/// - This function assumes that the bot's configuration and HTTP client are correctly implemented and operational.
 	/// - The guild ID must be available for localization purposes, and the subscription ID must correspond to an active SKU.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

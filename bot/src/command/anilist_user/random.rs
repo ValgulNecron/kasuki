@@ -207,7 +207,7 @@ impl Command for RandomCommand {
 	/// - `make_request_anilist`: Executes AniList GraphQL queries.
 	/// - `convert_anilist_flavored_to_discord_flavored_markdown`: Converts descriptions to be compatible with Discord markdown styling.
 	/// - `EmbedContent`: A custom structure to build and format the Discord embed messages.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

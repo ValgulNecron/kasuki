@@ -2,16 +2,18 @@ use serenity::all::{
 	ButtonStyle, ChannelType, Colour, GenericChannelId, InputTextStyle, ReactionType, RoleId,
 	UserId,
 };
+use serenity::builder::CreateComponent;
+use std::borrow::Cow;
 
 #[derive(Clone)]
-pub struct EmbedsContents {
+pub struct EmbedsContents<'a> {
 	pub command_type: CommandType,
 	pub embed_contents: Vec<EmbedContent>,
-	pub action_row: Option<ComponentVersion>,
+	pub action_row: Option<ComponentVersion<'a>>,
 	pub files: Vec<CommandFiles>,
 }
 
-impl EmbedsContents {
+impl<'a> EmbedsContents<'a> {  
 	pub fn new(command_type: CommandType, embed_contents: Vec<EmbedContent>) -> Self {
 		Self {
 			command_type,
@@ -21,7 +23,7 @@ impl EmbedsContents {
 		}
 	}
 
-	pub fn action_row(mut self, action_row: ComponentVersion) -> Self {
+	pub fn action_row(mut self, action_row: ComponentVersion<'a>) -> Self {
 		self.action_row = Some(action_row);
 		self
 	}
@@ -198,17 +200,17 @@ impl CreateAuthor {
 }
 
 #[derive(Clone)]
-pub enum ComponentVersion {
+pub enum ComponentVersion<'a> {
 	V1(ComponentVersion1),
-	V2(ComponentVersion2),
+	V2(ComponentVersion2<'a>),
 }
 
-impl ComponentVersion {
+impl<'a> ComponentVersion<'a> {
 	pub fn v1(v1: ComponentVersion1) -> Self {
 		ComponentVersion::V1(v1)
 	}
 
-	pub fn v2(v2: ComponentVersion2) -> Self {
+	pub fn v2(v2: ComponentVersion2<'a>) -> Self {
 		ComponentVersion::V2(v2)
 	}
 }
@@ -364,4 +366,6 @@ pub struct InputTextV1 {
 }
 
 #[derive(Clone)]
-pub struct ComponentVersion2 {}
+pub struct ComponentVersion2<'a> {
+	pub components: Cow<'a, CreateComponent<'a>>,
+}

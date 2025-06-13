@@ -116,7 +116,7 @@ impl Command for PauseCommand {
 	/// - [`EmbedContent`]: Represents the content of embed messages sent to the user.
 	/// - [`EmbedType`]: Type of the embed message (e.g., follow-up, error).
 	///
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;

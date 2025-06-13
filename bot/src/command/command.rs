@@ -6,8 +6,9 @@ use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, SkuId};
 use serenity::builder::{
-	CreateActionRow, CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter,
-	CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
+	CreateActionRow, CreateAttachment, CreateButton, CreateComponent, CreateEmbedAuthor,
+	CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup,
+	CreateInteractionResponseMessage,
 };
 use serenity::prelude::Context as SerenityContext;
 use std::borrow::Cow;
@@ -16,8 +17,7 @@ pub trait Command {
 	fn get_ctx(&self) -> &SerenityContext;
 
 	fn get_command_interaction(&self) -> &CommandInteraction;
-
-	async fn get_contents(&self) -> Result<EmbedsContents>;
+	async fn get_contents<'a>(&'a self) -> Result<EmbedsContents<'a>>;
 }
 
 pub trait CommandRun {
@@ -33,7 +33,7 @@ pub trait CommandRun {
 }
 
 impl<T: Command> CommandRun for T {
-	async fn send_embed(&self, contents: EmbedsContents) -> Result<()> {
+	async fn send_embed(&self, contents: EmbedsContents<'_>) -> Result<()> {
 		let mut embeds = vec![];
 		for embed_content in contents.embed_contents {
 			let mut embed = get_default_embed(embed_content.colour)
@@ -107,7 +107,9 @@ impl<T: Command> CommandRun for T {
 							button_builder = button_builder.disabled(button.disabled);
 							components.push(button_builder)
 						}
-						component = Some(CreateActionRow::Buttons(Cow::Owned(components)))
+						component = Some(CreateComponent::ActionRow(CreateActionRow::Buttons(
+							Cow::Owned(components),
+						)))
 					},
 					ComponentVersion1::SelectMenu(select_menu) => {
 						return Err(anyhow!("Component V1 SelectMenu is not supported yet"));

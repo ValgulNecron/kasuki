@@ -131,7 +131,7 @@ impl Command for InfoCommand {
 	/// - **Official Website Link**: A button linking to the bot's official webpage.
 	/// - **Official Discord Server**: A button linking to join the community server.
 	/// - **Invitation Links**: Buttons for adding stable and beta versions of the bot.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

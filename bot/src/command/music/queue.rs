@@ -133,7 +133,7 @@ impl Command for QueueCommand {
 	/// - The function ensures the bot's state and player's context are properly validated before
 	///   attempting to retrieve or format the music queue.
 	/// - A maximum of 9 tracks are included in the queue message to limit excessive output.
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;

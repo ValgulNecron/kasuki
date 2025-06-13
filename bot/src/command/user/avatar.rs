@@ -41,7 +41,7 @@ impl Command for AvatarCommand {
 	/// This method performs the following tasks:
 	/// 1. Resolves the user associated with the current command interaction by using `get_user_command`.
 	/// 2. Retrieves the bot's shared context
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

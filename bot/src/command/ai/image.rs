@@ -212,7 +212,7 @@ impl Command for ImageCommand {
 	/// 2. Prepares and sends a generation request to the AI service.
 	/// 3. Processes the response, saves images, and organizes them into an embed.
 	/// 4. Returns the embed for further interaction or display as a follow-up.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		if self

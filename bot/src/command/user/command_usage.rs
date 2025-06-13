@@ -144,7 +144,7 @@ impl Command for CommandUsageCommand {
 	/// let embed_contents = self.get_contents().await?;
 	/// // Use the returned embed_contents to send a followup message to the user.
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();

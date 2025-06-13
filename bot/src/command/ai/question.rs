@@ -151,7 +151,7 @@ impl Command for QuestionCommand {
 	///   this method.
 	/// - The function automatically defers the command interaction to indicate that processing
 	///   is ongoing while awaiting a response from the API.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();

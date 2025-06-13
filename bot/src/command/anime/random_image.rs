@@ -170,7 +170,7 @@ impl Command for AnimeRandomImageCommand {
 	/// ### Requirements:
 	/// - Async runtime must be active for the method to execute.
 	/// - Proper error handling must be in place to manage all possible failures.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -182,6 +182,8 @@ impl Command for AnimeRandomImageCommand {
 		let image_type = map
 			.get(&String::from("image_type"))
 			.ok_or(anyhow!("No image type specified"))?;
+		
+		let image_type = image_type.clone();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id = match command_interaction.guild_id {
@@ -193,11 +195,8 @@ impl Command for AnimeRandomImageCommand {
 			load_localization_random_image(guild_id, config.db.clone()).await?;
 
 		self.defer().await?;
-
-		let embed_contents =
-			random_image_content(image_type, random_image_localised.title, "sfw").await?;
-
-		Ok(embed_contents)
+			
+		random_image_content(image_type, random_image_localised.title, "sfw").await
 	}
 }
 
@@ -273,9 +272,9 @@ impl Command for AnimeRandomImageCommand {
 /// - `serde` and `serde_json` for JSON parsing
 /// - `uuid` for generating unique filenames
 /// ```
-pub async fn random_image_content(
-	image_type: &str, title: String, endpoint: &str,
-) -> Result<EmbedsContents> {
+pub async fn random_image_content<'a>(
+	image_type: String, title: String, endpoint: &'a str,
+) -> Result<EmbedsContents<'a>> {
 	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 

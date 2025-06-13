@@ -90,7 +90,10 @@ mod tests {
 		let length_diff = 15 - desc.len() as i32;
 		let result = trim(desc, length_diff);
 		// Should ensure the spoiler tags are properly balanced
-		assert!(result.matches("||").count() % 2 == 0, "Spoiler tags should be balanced");
+		assert!(
+			result.matches("||").count() % 2 == 0,
+			"Spoiler tags should be balanced"
+		);
 	}
 
 	#[test]

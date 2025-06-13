@@ -579,7 +579,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
 	db_config: DbConfig, bot_data: Arc<BotData>,
-) -> Result<EmbedsContents> {
+) -> Result<EmbedsContents<'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
 	if is_adult && !get_nsfw(command_interaction, ctx).await {

@@ -29,7 +29,10 @@ mod tests {
 
 		// We can't directly access private fields, but we can verify the function doesn't panic
 		// and returns a non-null value
-		assert!(std::mem::size_of_val(&embed) > 0, "Embed should be a valid object");
+		assert!(
+			std::mem::size_of_val(&embed) > 0,
+			"Embed should be a valid object"
+		);
 	}
 
 	#[test]
@@ -40,7 +43,10 @@ mod tests {
 
 		// We can't directly access private fields, but we can verify the function doesn't panic
 		// and returns a non-null value
-		assert!(std::mem::size_of_val(&embed) > 0, "Embed should be a valid object");
+		assert!(
+			std::mem::size_of_val(&embed) > 0,
+			"Embed should be a valid object"
+		);
 
 		// Test that using different colors produces different embeds
 		// This is a weak test but better than nothing

@@ -98,7 +98,7 @@ impl Command for ListRegisterUser {
 	/// - The guild interaction fails to provide a guild ID.
 	/// - Custom errors from localization loading.
 	/// - Failures in fetching partial guild data or other external
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

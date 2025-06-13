@@ -124,7 +124,7 @@ impl Command for PingCommand {
 		user_id = ?self.command_interaction.user.id,
 		guild_id = ?self.command_interaction.guild_id,
 	))]
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		info!("Processing ping command");
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();

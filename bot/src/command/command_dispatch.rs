@@ -16,7 +16,6 @@ use crate::command::anilist_user::ln::LnCommand;
 use crate::command::anilist_user::manga::MangaCommand;
 use crate::command::anilist_user::random::RandomCommand;
 use crate::command::anilist_user::register::RegisterCommand;
-use crate::command::anilist_user::search::SearchCommand;
 use crate::command::anilist_user::seiyuu::SeiyuuCommand;
 use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
@@ -506,14 +505,6 @@ pub async fn dispatch_command(
 		},
 		"studio" => {
 			StudioCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
-		"search" => {
-			SearchCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}

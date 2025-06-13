@@ -189,7 +189,7 @@ impl Command for AnimeRandomNsfwImageCommand {
 	///   - `get_option_map_string_subcommand`: Extracts command options.
 	///   - `load_localization_random_image_nsfw`: Loads localized strings for NSFW random images.
 	///   - `random_image_content`: Constructs the `EmbedContent` object.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -201,6 +201,8 @@ impl Command for AnimeRandomNsfwImageCommand {
 		let image_type = map
 			.get(&String::from("image_type"))
 			.ok_or(anyhow!("No image type specified"))?;
+        
+        let image_type = image_type.clone();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id = match command_interaction.guild_id {
@@ -216,9 +218,6 @@ impl Command for AnimeRandomNsfwImageCommand {
 		self.defer().await?;
 
 		// Send the random NSFW image as a response to the command interaction
-		let embed_contents =
-			random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await?;
-
-		Ok(embed_contents)
+        random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await
 	}
 }

@@ -125,7 +125,7 @@ impl Command for RemoveCommand {
 	///
 	/// This function is typically called in the context of handling a "remove" subcommand
 	/// that modifies the music playback queue in a guild's voice session.
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;

@@ -109,7 +109,7 @@ impl Command for JoinCommand {
 	/// ### Notes
 	/// - Ensure that sharing and cloning bot data is safe and that lifetime requirements align with the provided borrow checks.
 	/// - Internal logic might depend on external systems or APIs for joining the context, bot data, and interaction output.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -181,9 +181,9 @@ impl Command for JoinCommand {
 /// - This function assumes that Lavalink is properly configured and running in the bot context.
 ///   If Lavalink is disabled, the function will exit with an error.
 /// - Ensure the voice permissions for the bot are properly granted in the target guild.
-pub async fn join(
-	ctx: &Context, bot_data: Arc<BotData>, command_interaction: &CommandInteraction,
-) -> Result<(bool, EmbedsContents)> {
+pub async fn join<'a>(
+	ctx: &'a Context, bot_data: Arc<BotData>, command_interaction: &'a CommandInteraction,
+) -> Result<(bool, EmbedsContents<'a>)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {
 		Some(id) => id.to_string(),

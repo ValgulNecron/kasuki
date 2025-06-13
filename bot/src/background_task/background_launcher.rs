@@ -743,8 +743,14 @@ async fn ping_manager_thread(
 ) -> Result<()> {
 	// Log the initialization of the ping monitoring thread
 	info!("Launching the ping monitoring thread!");
-	debug!("Ping update interval configured for {} seconds", task_intervals.ping_update);
-	trace!("Initializing ping monitoring with database config: {:?}", db_config);
+	debug!(
+		"Ping update interval configured for {} seconds",
+		task_intervals.ping_update
+	);
+	trace!(
+		"Initializing ping monitoring with database config: {:?}",
+		db_config
+	);
 
 	// Retrieve the shard manager from the bot's context
 	// The shard manager contains information about all active shards
@@ -766,7 +772,10 @@ async fn ping_manager_thread(
 		None => {
 			// If the shard manager is not available (which might happen during startup),
 			// sleep for the configured interval and then retry by recursively calling this function
-			warn!("Shard manager not available, waiting for {} seconds before retry", task_intervals.ping_update);
+			warn!(
+				"Shard manager not available, waiting for {} seconds before retry",
+				task_intervals.ping_update
+			);
 			tokio::time::sleep(Duration::from_secs(task_intervals.ping_update)).await;
 			debug!("Retrying shard manager retrieval");
 			Box::pin(ping_manager_thread(ctx, db_config, task_intervals)).await?;
@@ -777,12 +786,18 @@ async fn ping_manager_thread(
 	// Set up a periodic interval for checking shard latency
 	// This determines how frequently we'll record ping data
 	let mut interval = tokio::time::interval(Duration::from_secs(task_intervals.ping_update));
-	debug!("Set up ping check interval timer for {} seconds", task_intervals.ping_update);
+	debug!(
+		"Set up ping check interval timer for {} seconds",
+		task_intervals.ping_update
+	);
 
 	// Establish a connection to the database for recording ping history
 	// This connection is reused for all database operations to avoid repeatedly connecting
 	info!("Establishing database connection for ping history recording");
-	trace!("Using database URL from config: {}", get_url(db_config.clone()));
+	trace!(
+		"Using database URL from config: {}",
+		get_url(db_config.clone())
+	);
 
 	let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
 		Ok(conn) => {
@@ -795,7 +810,7 @@ async fn ping_manager_thread(
 				"Failed to connect to database with config: {:?}",
 				db_config
 			));
-		}
+		},
 	};
 
 	// Main monitoring loop - runs indefinitely
@@ -810,7 +825,10 @@ async fn ping_manager_thread(
 		cycle_count += 1;
 
 		let current_time = chrono::Utc::now();
-		info!("Starting ping update cycle #{} at {}", cycle_count, current_time);
+		info!(
+			"Starting ping update cycle #{} at {}",
+			cycle_count, current_time
+		);
 		trace!("Ping update cycle started");
 
 		// Get a reference to the shard manager
@@ -858,7 +876,10 @@ async fn ping_manager_thread(
 			// Then execute the insert operation
 			// Create a new database record with the shard ID, latency, and timestamp
 			// Then execute the insert operation with proper error context
-			trace!("Inserting ping history record for shard {} with latency {}", shard_id, latency);
+			trace!(
+				"Inserting ping history record for shard {} with latency {}",
+				shard_id, latency
+			);
 			let result = PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
 				latency: Set(latency.clone()),
@@ -900,7 +921,11 @@ async fn ping_manager_thread(
 
 		info!(
 			"Ping update cycle #{} completed: processed {} shards ({} successful, {} failed) in {:?}",
-			cycle_count, shard_count, cycle_successful_updates, cycle_failed_updates, cycle_duration
+			cycle_count,
+			shard_count,
+			cycle_successful_updates,
+			cycle_failed_updates,
+			cycle_duration
 		);
 
 		debug!(

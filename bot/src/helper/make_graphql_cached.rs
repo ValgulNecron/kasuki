@@ -63,7 +63,7 @@ pub async fn make_request_anilist<
 			Err(e) => {
 				error!("GraphQL request failed: {:#}", e);
 				return Err(e).with_context(|| "Failed to check cache or make GraphQL request");
-			}
+			},
 		};
 
 		trace!("GraphQL request completed successfully");
@@ -125,8 +125,7 @@ async fn check_cache<
 			// Cache hit - deserialize the cached JSON string
 			info!("Cache hit for GraphQL query");
 			debug!("Deserializing cached response");
-			get_type(data)
-				.with_context(|| "Failed to deserialize cached GraphQL response")
+			get_type(data).with_context(|| "Failed to deserialize cached GraphQL response")
 		},
 		None => {
 			// Cache miss - make a network request
@@ -195,16 +194,18 @@ async fn do_request<
 		.header("Accept", "application/json")
 		.json(&operation)  // Serialize the operation to JSON
 		.send()
-		.await {
-			Ok(resp) => {
-				debug!("Received response with status: {}", resp.status());
-				resp
-			},
-			Err(e) => {
-				error!("Failed to send GraphQL request: {}", e);
-				return Err::<GraphQlResponse<U>, anyhow::Error>(e.into()).with_context(|| "Failed to send GraphQL request to Anilist API");
-			}
-		};
+		.await
+	{
+		Ok(resp) => {
+			debug!("Received response with status: {}", resp.status());
+			resp
+		},
+		Err(e) => {
+			error!("Failed to send GraphQL request: {}", e);
+			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+				.with_context(|| "Failed to send GraphQL request to Anilist API");
+		},
+	};
 
 	// Extract the response text and handle any errors
 	trace!("Extracting response text");
@@ -216,8 +217,9 @@ async fn do_request<
 		},
 		Err(e) => {
 			error!("Failed to extract text from response: {}", e);
-			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into()).with_context(|| "Failed to extract text from Anilist API response");
-		}
+			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+				.with_context(|| "Failed to extract text from Anilist API response");
+		},
 	};
 
 	// Cache the response for future use
@@ -232,8 +234,12 @@ async fn do_request<
 
 	// Deserialize the response to the requested type
 	debug!("Deserializing GraphQL response");
-	get_type(response_text)
-		.with_context(|| format!("Failed to deserialize GraphQL response for query: {}", operation.query))
+	get_type(response_text).with_context(|| {
+		format!(
+			"Failed to deserialize GraphQL response for query: {}",
+			operation.query
+		)
+	})
 }
 
 /// Deserializes a JSON string into a GraphQL response of the specified type.
@@ -293,8 +299,9 @@ fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlRespon
 			// JSON parsing failed - this could be due to invalid JSON or
 			// a mismatch between the JSON structure and the expected type
 			error!("Failed to deserialize GraphQL response: {}", e);
-			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into()).with_context(|| "Failed to parse JSON response from GraphQL");
-		}
+			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+				.with_context(|| "Failed to parse JSON response from GraphQL");
+		},
 	};
 
 	debug!("GraphQL deserialization completed successfully");

@@ -127,7 +127,7 @@ impl Command for ProfileCommand {
 	/// - `self.get_command_interaction()`: Accesses the current command interaction handling instance.
 	/// - `load_localization_profile()` and `get_fields()`: Localizes user details and formats them according to guild-specific settings.
 	/// - API calls for fetching SKUs, premium entitlements, and guild membership details.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

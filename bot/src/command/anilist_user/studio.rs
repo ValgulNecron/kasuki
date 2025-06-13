@@ -209,7 +209,7 @@ impl Command for StudioCommand {
 	/// - The studio data is fetched via AniList's GraphQL API using either the studio's ID or name.
 	/// - Embed descriptions are dynamically constructed using localization strings and studio metadata.
 	/// - If there is no guild ID specified in the command interaction, a default guild ID of "0" is assigned.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

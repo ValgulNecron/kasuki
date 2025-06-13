@@ -139,7 +139,7 @@ impl Command for CompareCommand {
 	/// This method assumes both users' statistics are readily accessible and contain all necessary fields
 	/// for comparisons. If certain fields (e.g., `tags`, `genres`) are missing, appropriate error handling
 	/// should be implemented to ensure a graceful failure or fallback logic.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

@@ -40,7 +40,10 @@ pub async fn image_saver(
 	save_type: String,
 ) -> Result<()> {
 	info!("Saving image: {}", filename);
-	debug!("Image save parameters: guild_id={}, save_type={}, server={}", guild_id, save_type, saver_server);
+	debug!(
+		"Image save parameters: guild_id={}, save_type={}, server={}",
+		guild_id, save_type, saver_server
+	);
 	debug!("Image data size: {} bytes", image_data.len());
 
 	// Strategy pattern: Select the appropriate saving strategy based on save_type
@@ -55,8 +58,13 @@ pub async fn image_saver(
 			},
 			Err(e) => {
 				error!("Failed to save image locally: {}", e);
-				Err(e).with_context(|| format!("Failed to save image locally for guild: {}, filename: {}", guild_id, filename))
-			}
+				Err(e).with_context(|| {
+					format!(
+						"Failed to save image locally for guild: {}, filename: {}",
+						guild_id, filename
+					)
+				})
+			},
 		}
 	} else if save_type == *"remote" {
 		trace!("Using remote image saving method");
@@ -69,8 +77,13 @@ pub async fn image_saver(
 			},
 			Err(e) => {
 				error!("Failed to save image remotely: {}", e);
-				Err(e).with_context(|| format!("Failed to save image remotely, filename: {}, server: {}", filename, saver_server))
-			}
+				Err(e).with_context(|| {
+					format!(
+						"Failed to save image remotely, filename: {}, server: {}",
+						filename, saver_server
+					)
+				})
+			},
 		}
 	} else {
 		// Graceful handling of unknown save types
@@ -129,9 +142,11 @@ pub async fn remote_saver(
 				},
 				Err(e) => {
 					error!("Failed to upload image to Catbox: {}", e);
-					Err(e).with_context(|| format!("Failed to upload image to Catbox, filename: {}", filename))
-				}
+					Err(e).with_context(|| {
+						format!("Failed to upload image to Catbox, filename: {}", filename)
+					})
+				},
 			}
-		}
+		},
 	}
 }

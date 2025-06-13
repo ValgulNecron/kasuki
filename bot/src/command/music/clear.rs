@@ -185,7 +185,7 @@ impl Command for ClearCommand {
 	/// 4. Attempt to retrieve the player for the given guild.
 	/// 5. On success, clear the player's queue and respond with a localized success message.
 	/// 6. Handle errors and provide appropriate localized failure messages.
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();

@@ -117,7 +117,7 @@ impl Command for DeleteActivityCommand {
 	/// - Fetching anime media information from AniList.
 	/// - Database operations for managing activity records.
 	/// - Localization functions for internationalization and localized user feedback.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let command_interaction = self.get_command_interaction();
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
