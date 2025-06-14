@@ -1,14 +1,25 @@
 //! Represents a command to compare two AniList user profiles based on their anime and manga statistics.
+
+use std::borrow::Cow;
 use std::collections::HashSet;
 
 use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use serenity::builder::{
+	CreateComponent, CreateContainer, CreateSection, CreateSectionAccessory,
+	CreateSectionComponent, CreateSeparator, CreateTextDisplay, CreateThumbnail,
+	CreateUnfurledMediaItem,
+};
 use small_fixed_array::FixedString;
+use songbird::packet::pnet::types::u2;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::ComponentVersion::V2;
+use crate::command::embed_content::{
+	CommandType, ComponentVersion, ComponentVersion2, EmbedContent, EmbedsContents,
+};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -177,18 +188,18 @@ impl Command for CompareCommand {
 		let username = user.name.clone();
 
 		let username2 = user2.name.clone();
-
-		// Initialize the description string
-		let mut desc = String::new();
-
 		// Calculate the affinity between the two users
 		let affinity = get_affinity(
 			user.statistics.clone().unwrap(),
 			user2.statistics.clone().unwrap(),
 		);
 
+		let mut u1_text = String::new();
+		let mut u2_text = String::new();
+		let mut common_text = String::new();
+
 		// Add the affinity to the description string
-		desc.push_str(
+		common_text.push_str(
 			compare_localised
 				.affinity
 				.replace("$1$", username.as_str())
@@ -215,21 +226,21 @@ impl Command for CompareCommand {
 
 		// Compare the count of anime watched by the two users and add the result to the description string
 		match count.cmp(&count2) {
-			std::cmp::Ordering::Greater => desc.push_str(
+			std::cmp::Ordering::Greater => u1_text.push_str(
 				compare_localised
 					.more_anime
 					.replace("$greater$", username.as_str())
 					.replace("$lesser$", username2.as_str())
 					.as_str(),
 			),
-			std::cmp::Ordering::Less => desc.push_str(
+			std::cmp::Ordering::Less => u2_text.push_str(
 				compare_localised
 					.more_anime
 					.replace("$greater$", username2.as_str())
 					.replace("$lesser$", username.as_str())
 					.as_str(),
 			),
-			std::cmp::Ordering::Equal => desc.push_str(
+			std::cmp::Ordering::Equal => common_text.push_str(
 				compare_localised
 					.same_anime
 					.replace("$2$", username2.as_str())
@@ -240,21 +251,21 @@ impl Command for CompareCommand {
 
 		// Compare the minutes watched by the two users and add the result to the description string
 		match minutes_watched.cmp(&minutes_watched2) {
-			std::cmp::Ordering::Greater => desc.push_str(
+			std::cmp::Ordering::Greater => u1_text.push_str(
 				compare_localised
 					.more_watch_time
 					.replace("$greater$", username.as_str())
 					.replace("$lesser$", username2.as_str())
 					.as_str(),
 			),
-			std::cmp::Ordering::Less => desc.push_str(
+			std::cmp::Ordering::Less => u2_text.push_str(
 				compare_localised
 					.more_watch_time
 					.replace("$greater$", username2.as_str())
 					.replace("$lesser$", username.as_str())
 					.as_str(),
 			),
-			std::cmp::Ordering::Equal => desc.push_str(
+			std::cmp::Ordering::Equal => common_text.push_str(
 				compare_localised
 					.same_watch_time
 					.replace("$2$", username2.as_str())
@@ -268,7 +279,7 @@ impl Command for CompareCommand {
 
 		let tag2 = get_tag(&anime2.tags.unwrap());
 
-		desc.push_str(
+		common_text.push_str(
 			diff(
 				&tag,
 				&tag2,
@@ -285,7 +296,7 @@ impl Command for CompareCommand {
 
 		let genre2 = get_genre(&anime2.genres.unwrap());
 
-		desc.push_str(
+		common_text.push_str(
 			diff(
 				&genre,
 				&genre2,
@@ -312,7 +323,7 @@ impl Command for CompareCommand {
 		// Compare the count of manga read by the two users and add the result to the description string
 		match count.cmp(&count2) {
 			std::cmp::Ordering::Greater => {
-				desc.push_str(
+				u1_text.push_str(
 					compare_localised
 						.more_manga
 						.replace("$greater$", username.as_str())
@@ -321,7 +332,7 @@ impl Command for CompareCommand {
 				);
 			},
 			std::cmp::Ordering::Less => {
-				desc.push_str(
+				u2_text.push_str(
 					compare_localised
 						.more_manga
 						.replace("$greater$", username2.as_str())
@@ -330,7 +341,7 @@ impl Command for CompareCommand {
 				);
 			},
 			std::cmp::Ordering::Equal => {
-				desc.push_str(
+				common_text.push_str(
 					compare_localised
 						.same_manga
 						.replace("$2$", username2.as_str())
@@ -343,7 +354,7 @@ impl Command for CompareCommand {
 		// Compare the chapters read by the two users and add the result to the description string
 		match chapters_read.cmp(&chapters_read2) {
 			std::cmp::Ordering::Greater => {
-				desc.push_str(
+				u1_text.push_str(
 					compare_localised
 						.more_manga_chapter
 						.replace("$greater$", username.as_str())
@@ -352,7 +363,7 @@ impl Command for CompareCommand {
 				);
 			},
 			std::cmp::Ordering::Less => {
-				desc.push_str(
+				u2_text.push_str(
 					compare_localised
 						.more_manga_chapter
 						.replace("$greater$", username2.as_str())
@@ -361,7 +372,7 @@ impl Command for CompareCommand {
 				);
 			},
 			std::cmp::Ordering::Equal => {
-				desc.push_str(
+				common_text.push_str(
 					compare_localised
 						.same_manga_chapter
 						.replace("$2$", username2.as_str())
@@ -376,7 +387,7 @@ impl Command for CompareCommand {
 
 		let tag2 = get_tag(&manga2.tags.unwrap());
 
-		desc.push_str(
+		common_text.push_str(
 			diff(
 				&tag,
 				&tag2,
@@ -393,7 +404,7 @@ impl Command for CompareCommand {
 
 		let genre2 = get_genre(&manga2.genres.unwrap());
 
-		desc.push_str(
+		common_text.push_str(
 			diff(
 				&genre,
 				&genre2,
@@ -405,9 +416,35 @@ impl Command for CompareCommand {
 			.as_str(),
 		);
 
-		let embed_content = EmbedContent::new("".to_string()).description(desc);
+		let mut section_u1 = (
+			vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(u1_text))],
+			CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
+				user.avatar.unwrap().large.unwrap(),
+			))),
+		);
+		let mut section_u2 = (
+			vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(u2_text))],
+			CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
+				user2.avatar.unwrap().large.unwrap(),
+			))),
+		);
+		let common = CreateComponent::TextDisplay(CreateTextDisplay::new(common_text));
 
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let u1 = CreateComponent::Section(CreateSection::new(section_u1.0, section_u1.1));
+		let u2 = CreateComponent::Section(CreateSection::new(section_u2.0, section_u2.1));
+
+		let create_components = CreateComponent::Container(CreateContainer::new(vec![
+			common,
+			CreateComponent::Separator(CreateSeparator::new(true)),
+			u1,
+			CreateComponent::Separator(CreateSeparator::new(true)),
+			u2,
+		]));
+
+		let embed_contents =
+			EmbedsContents::new(CommandType::First, vec![]).action_row(V2(ComponentVersion2 {
+				components: Cow::Owned(vec![create_components]),
+			}));
 
 		Ok(embed_contents)
 	}

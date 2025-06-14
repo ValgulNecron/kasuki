@@ -13,7 +13,7 @@ pub struct EmbedsContents<'a> {
 	pub files: Vec<CommandFiles>,
 }
 
-impl<'a> EmbedsContents<'a> {  
+impl<'a> EmbedsContents<'a> {
 	pub fn new(command_type: CommandType, embed_contents: Vec<EmbedContent>) -> Self {
 		Self {
 			command_type,
@@ -367,5 +367,5 @@ pub struct InputTextV1 {
 
 #[derive(Clone)]
 pub struct ComponentVersion2<'a> {
-	pub components: Cow<'a, CreateComponent<'a>>,
+	pub components: Cow<'a, [CreateComponent<'a>]>,
 }

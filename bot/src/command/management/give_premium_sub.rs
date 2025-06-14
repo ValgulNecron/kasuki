@@ -74,7 +74,7 @@
 //!
 //! - `ctx`: SerenityContext - The current Serenity context for this interaction.
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};

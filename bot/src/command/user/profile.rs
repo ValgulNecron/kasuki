@@ -6,7 +6,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 
 /// `ProfileCommand` represents a structure that handles the context and interaction

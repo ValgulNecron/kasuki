@@ -1559,38 +1559,38 @@ async fn update_user_blacklist(
 		// This handles the case where the JSON structure might not match our expectations
 		trace!("Extracting user_id array from JSON response");
 		let user_ids: Vec<String> = match blacklist_json["user_id"].as_array() {
-			Some(arr) => {
-				debug!("Found user_id array in blacklist with {} entries", arr.len());
-				trace!("First 5 user IDs in array: {:?}", 
+            Some(arr) => {
+                debug!("Found user_id array in blacklist with {} entries", arr.len());
+                trace!("First 5 user IDs in array: {:?}", 
 					arr.iter().take(5).map(|v| v.to_string()).collect::<Vec<String>>());
-				arr // If we found an array at the "user_id" key, use it
-			},
-			None => {
-				// If there's no array at "user_id", log an error and skip this update
-				consecutive_failures += 1;
-				error!("Failed to get user_id array from blacklist JSON");
-				warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
-				debug!("JSON keys available: {:?}", 
+                arr // If we found an array at the "user_id" key, use it
+            }
+            None => {
+                // If there's no array at "user_id", log an error and skip this update
+                consecutive_failures += 1;
+                error!("Failed to get user_id array from blacklist JSON");
+                warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
+                debug!("JSON keys available: {:?}", 
 					blacklist_json.as_object().map(|o| o.keys().cloned().collect::<Vec<String>>()));
-				debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-				trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
-				continue;
-			},
-		}
-		// Convert each element in the array to a String
-		.iter()
-		.map(|id| match id.as_str() {
-			Some(id) => id.to_string(), // If the element is a string, convert it
-			None => {
-				// If the element is not a string, log an error and use an empty string
-				// This ensures we don't crash even if some elements are invalid
-				error!("Found non-string value in user_id array");
-				debug!("Invalid value type: {}", id.to_string());
-				"".to_string()
-			},
-		})
-		.filter(|id| !id.is_empty()) // Filter out empty strings
-		.collect();
+                debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
+                trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
+                continue;
+            }
+        }
+            // Convert each element in the array to a String
+            .iter()
+            .map(|id| match id.as_str() {
+                Some(id) => id.to_string(), // If the element is a string, convert it
+                None => {
+                    // If the element is not a string, log an error and use an empty string
+                    // This ensures we don't crash even if some elements are invalid
+                    error!("Found non-string value in user_id array");
+                    debug!("Invalid value type: {}", id.to_string());
+                    "".to_string()
+                }
+            })
+            .filter(|id| !id.is_empty()) // Filter out empty strings
+            .collect();
 
 		// Update the shared blacklist with the new data
 		info!("Updating blacklist with {} users", user_ids.len());

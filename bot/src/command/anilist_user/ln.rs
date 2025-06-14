@@ -15,7 +15,6 @@ use crate::structure::run::anilist::media::{
 	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
 	MediaQuerrySearchVariables, MediaType,
 };
-use anyhow::Result;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;

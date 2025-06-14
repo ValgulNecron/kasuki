@@ -5,7 +5,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::structure::message::vn::user::UserLocalised;
 use crate::structure::message::vn::user::load_localization_user;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct VnUserCommand {

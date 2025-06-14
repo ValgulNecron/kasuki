@@ -43,7 +43,7 @@ use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

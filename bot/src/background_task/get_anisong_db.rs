@@ -317,34 +317,34 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 				);
 
 				let result = AnimeSong::insert(anime_song_model)
-					// Define conflict resolution based on the composite key
-					// If a record with the same AnilistId, AnnId, and AnnSongId exists:
-					.on_conflict(
-						sea_orm::sea_query::OnConflict::columns([
-							// These three columns form our composite unique key
-							crate::database::anime_song::Column::AnilistId,
-							crate::database::anime_song::Column::AnnId,
-							crate::database::anime_song::Column::AnnSongId,
-						])
-						// Update these columns with the new values
-						// This ensures we keep the latest data while preserving the record
-						.update_columns([
-							crate::database::anime_song::Column::AnimeEnName,
-							crate::database::anime_song::Column::AnimeJpName,
-							crate::database::anime_song::Column::AnimeAltName,
-							crate::database::anime_song::Column::SongType,
-							crate::database::anime_song::Column::SongName,
-							crate::database::anime_song::Column::Hq,
-							crate::database::anime_song::Column::Mq,
-							crate::database::anime_song::Column::Audio,
-						])
-						.to_owned(),
-					)
-					// Execute the query on the database connection
-					.exec(&*connection)
-					.await
-					.context(format!("Failed to insert anime song '{}' for ANN ID {} and Anilist ID {}",
-						anisong.song_name, anisong.ann_id, anilist_id))?;
+                    // Define conflict resolution based on the composite key
+                    // If a record with the same AnilistId, AnnId, and AnnSongId exists:
+                    .on_conflict(
+                        sea_orm::sea_query::OnConflict::columns([
+                            // These three columns form our composite unique key
+                            crate::database::anime_song::Column::AnilistId,
+                            crate::database::anime_song::Column::AnnId,
+                            crate::database::anime_song::Column::AnnSongId,
+                        ])
+                            // Update these columns with the new values
+                            // This ensures we keep the latest data while preserving the record
+                            .update_columns([
+                                crate::database::anime_song::Column::AnimeEnName,
+                                crate::database::anime_song::Column::AnimeJpName,
+                                crate::database::anime_song::Column::AnimeAltName,
+                                crate::database::anime_song::Column::SongType,
+                                crate::database::anime_song::Column::SongName,
+                                crate::database::anime_song::Column::Hq,
+                                crate::database::anime_song::Column::Mq,
+                                crate::database::anime_song::Column::Audio,
+                            ])
+                            .to_owned(),
+                    )
+                    // Execute the query on the database connection
+                    .exec(&*connection)
+                    .await
+                    .context(format!("Failed to insert anime song '{}' for ANN ID {} and Anilist ID {}",
+                                     anisong.song_name, anisong.ann_id, anilist_id))?;
 
 				let db_duration = db_start_time.elapsed();
 				trace!(

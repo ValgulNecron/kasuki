@@ -79,7 +79,7 @@
 //! In this example, the command fetches data for a studio either by ID or search query and formats
 //! it into a detailed response, including media information, localization, and more.
 use crate::command::command::Command;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::DEFAULT_STRING;

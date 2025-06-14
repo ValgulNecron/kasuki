@@ -50,7 +50,6 @@
 //!
 //! ### Error Handling:
 //! - Propagates errors using `anyhow::Result` in cases where localization data fails to load or any other runtime issue occurs.
-use anyhow::Result;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};

@@ -3,7 +3,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct VnStatsCommand {

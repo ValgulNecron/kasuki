@@ -5,7 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context, used to interact with and manage the Discord bot's state and data.
 //! - `command_interaction`: Represents the specific command interaction that triggered the command.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use bytes::Bytes;
 use std::io::Cursor;
 

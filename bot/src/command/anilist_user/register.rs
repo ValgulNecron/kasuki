@@ -12,7 +12,7 @@
 //!                          about the invoked command (i.e., the user, arguments, and guild information).
 //!
 //! This struct implements the `Command` trait, defining the behavior and response of the "register" command.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;

@@ -4,7 +4,6 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::staff::get_staff;
 use crate::structure::message::vn::staff::load_localization_staff;
-use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 

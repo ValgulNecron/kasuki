@@ -16,7 +16,7 @@ use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use small_fixed_array::FixedString;

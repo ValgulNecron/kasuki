@@ -22,7 +22,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::message::user::command_usage::load_localization_command_usage;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLockReadGuard;
 

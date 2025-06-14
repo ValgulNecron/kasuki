@@ -8,7 +8,7 @@ use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::server::lang::load_localization_lang;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};

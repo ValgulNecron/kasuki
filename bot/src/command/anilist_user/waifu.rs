@@ -20,7 +20,6 @@
 //! command.get_contents().await?;
 //! ```
 //!
-use anyhow::Result;
 
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 

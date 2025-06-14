@@ -79,7 +79,7 @@
 //!     - `structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw`:
 //!       Loads localization strings for the NSFW image response.
 //! ```
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::anime::random_image::random_image_content;
 use crate::command::command::{Command, CommandRun};
@@ -201,8 +201,8 @@ impl Command for AnimeRandomNsfwImageCommand {
 		let image_type = map
 			.get(&String::from("image_type"))
 			.ok_or(anyhow!("No image type specified"))?;
-        
-        let image_type = image_type.clone();
+
+		let image_type = image_type.clone();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id = match command_interaction.guild_id {
@@ -218,6 +218,6 @@ impl Command for AnimeRandomNsfwImageCommand {
 		self.defer().await?;
 
 		// Send the random NSFW image as a response to the command interaction
-        random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await
+		random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await
 	}
 }

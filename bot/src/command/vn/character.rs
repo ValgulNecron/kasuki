@@ -31,7 +31,7 @@ impl Command for VnCharacterCommand {
 	#[instrument(name = "vn_character_command", skip(self), fields(
 		user_id = ?self.command_interaction.user.id,
 		guild_id = ?self.command_interaction.guild_id,
-	))]
+    ))]
 	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		info!("Processing VN character command");
 		let ctx = self.get_ctx();

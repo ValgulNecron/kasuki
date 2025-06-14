@@ -1,6 +1,7 @@
 # Kasuki Dependency Graph Documentation
 
-This document provides a comprehensive overview of the dependencies between different components of the Kasuki Discord bot. Understanding these relationships is crucial for development, maintenance, and troubleshooting.
+This document provides a comprehensive overview of the dependencies between different components of the Kasuki Discord
+bot. Understanding these relationships is crucial for development, maintenance, and troubleshooting.
 
 ## Core Components and Their Dependencies
 
@@ -9,6 +10,7 @@ This document provides a comprehensive overview of the dependencies between diff
 The main entry point initializes all core components and establishes the foundation for the bot's operation.
 
 **Dependencies:**
+
 - **Configuration** (`config.rs`): Loads and manages bot configuration
 - **Logging** (`logger.rs`): Initializes logging system
 - **Database**: Initializes database connection
@@ -41,6 +43,7 @@ EventHandler -> BackgroundTasks
 The event handler processes Discord events and routes them to appropriate handlers.
 
 **Dependencies:**
+
 - **Command Dispatcher**: Routes command interactions to command handlers
 - **Autocomplete Dispatcher**: Handles autocomplete interactions
 - **Component Dispatcher**: Processes component interactions (buttons, select menus)
@@ -70,6 +73,7 @@ EventHandler -> BotData
 The command system handles user interactions through Discord slash commands.
 
 **Dependencies:**
+
 - **Command Dispatcher**: Routes commands to appropriate handlers
 - **Command Handlers**: Implement command functionality
 - **Database**: Retrieves and stores data for commands
@@ -96,6 +100,7 @@ CommandHandlers -> Helper
 Background tasks perform periodic operations independent of user interactions.
 
 **Dependencies:**
+
 - **Task Launcher**: Orchestrates and schedules all background tasks
 - **Database**: Retrieves and stores data for background operations
 - **External APIs**: Fetches data from external sources
@@ -141,6 +146,7 @@ BlacklistUpdater -> GitHub
 The database system manages persistent storage of bot data.
 
 **Entities:**
+
 - **ActivityData**: Anime/manga activity tracking
 - **AnimeSong**: Anime song database
 - **GuildData**: Discord server information
@@ -194,6 +200,7 @@ Database -> UserSubscription
 The bot integrates with several external APIs to provide functionality.
 
 **Integrations:**
+
 - **Anilist API**: Anime and manga data
 - **VNDB API**: Visual novel data
 - **Steam API**: Game information
@@ -222,6 +229,7 @@ ExternalAPIs -> LavalinkAPI
 The configuration system manages bot settings and is used by almost all components.
 
 **Consumers:**
+
 - **Main**: Initial setup
 - **Commands**: Feature toggles and limits
 - **Background Tasks**: Task intervals and behavior
@@ -233,11 +241,13 @@ The configuration system manages bot settings and is used by almost all componen
 The caching system improves performance by storing frequently accessed data.
 
 **Cache Types:**
+
 - **Anilist Cache**: Anime and manga data
 - **VNDB Cache**: Visual novel data
 - **Command Usage Cache**: Command usage statistics
 
 **Consumers:**
+
 - **Commands**: Retrieve cached data
 - **Background Tasks**: Update cached data
 
@@ -246,6 +256,7 @@ The caching system improves performance by storing frequently accessed data.
 Error handling is implemented throughout the application for robustness.
 
 **Key Features:**
+
 - **Error Propagation**: Errors are propagated up the call stack
 - **Error Logging**: Errors are logged for debugging
 - **User Feedback**: User-friendly error messages are sent to Discord
@@ -339,6 +350,9 @@ Background tasks have specific dependencies:
 
 ## Conclusion
 
-This dependency graph documentation provides a comprehensive overview of the relationships between different components of the Kasuki Discord bot. Understanding these dependencies is crucial for maintaining and extending the bot's functionality.
+This dependency graph documentation provides a comprehensive overview of the relationships between different components
+of the Kasuki Discord bot. Understanding these dependencies is crucial for maintaining and extending the bot's
+functionality.
 
-When making changes to the codebase, consider the impact on dependent components and ensure that all dependencies are properly managed.
+When making changes to the codebase, consider the impact on dependent components and ensure that all dependencies are
+properly managed.

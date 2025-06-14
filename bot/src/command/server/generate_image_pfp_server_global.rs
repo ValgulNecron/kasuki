@@ -44,7 +44,6 @@ use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// A struct representing the `GenerateGlobalImagePfPCommand`, which encapsulates

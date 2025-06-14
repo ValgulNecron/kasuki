@@ -79,7 +79,7 @@
 //! ## Note:
 //! This implementation assumes that the bot is running with appropriate scopes
 //! and permissions to access guild data such as its metadata, channels, and roles.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};

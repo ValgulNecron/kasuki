@@ -182,7 +182,7 @@ impl Command for AnimeRandomImageCommand {
 		let image_type = map
 			.get(&String::from("image_type"))
 			.ok_or(anyhow!("No image type specified"))?;
-		
+
 		let image_type = image_type.clone();
 
 		// Retrieve the guild ID from the command interaction
@@ -195,7 +195,7 @@ impl Command for AnimeRandomImageCommand {
 			load_localization_random_image(guild_id, config.db.clone()).await?;
 
 		self.defer().await?;
-			
+
 		random_image_content(image_type, random_image_localised.title, "sfw").await
 	}
 }
