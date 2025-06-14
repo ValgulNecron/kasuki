@@ -91,7 +91,7 @@ header {
 }
 
 .nav-links a {
-    color: white;
+    color: black;
     text-decoration: none;
     font-weight: 500;
     transition: opacity 0.3s;
