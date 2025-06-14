@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN rustup default nightly
 
+RUN rustup update
+
 USER root
 
 RUN cargo new --bin kasuki
