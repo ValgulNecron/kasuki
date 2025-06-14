@@ -137,16 +137,18 @@ impl<T: Command> CommandRun for T {
 				if has_embed {
 					builder = builder.embeds(embeds);
 				} else if let Some(component) = component.clone()
-					&& is_v2
 				{
-					builder = builder
-						.components(component)
-						.flags(MessageFlags::IS_COMPONENTS_V2);
+					if is_v2 {
+						builder = builder
+							.components(component)
+							.flags(MessageFlags::IS_COMPONENTS_V2);
+					}
 				}
 				if let Some(component) = component
-					&& !is_v2
 				{
-					builder = builder.components(component);
+					if !is_v2 {
+						builder = builder.components(component);
+					}
 				}
 				let builder = CreateInteractionResponse::Message(builder);
 				command_interaction
@@ -158,16 +160,18 @@ impl<T: Command> CommandRun for T {
 				if has_embed {
 					builder = builder.embeds(embeds);
 				} else if let Some(component) = component.clone()
-					&& is_v2
 				{
-					builder = builder
-						.components(component)
-						.flags(MessageFlags::IS_COMPONENTS_V2);
+					if is_v2 {
+						builder = builder
+							.components(component)
+							.flags(MessageFlags::IS_COMPONENTS_V2);
+					}
 				}
 				if let Some(component) = component
-					&& !is_v2
 				{
-					builder = builder.components(component);
+					if !is_v2 {
+						builder = builder.components(component);
+					}
 				}
 				command_interaction
 					.create_followup(&ctx.http, builder)
