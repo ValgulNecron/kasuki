@@ -193,7 +193,9 @@ impl Command for StaffCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let staff_localised = load_localization_staff(guild_id, db_connection).await?;
 
 		let mut fields = vec![
 			(staff_localised.media, media, true),

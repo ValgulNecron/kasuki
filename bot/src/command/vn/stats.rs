@@ -30,9 +30,10 @@ impl Command for VnStatsCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let stats = get_stats(vndb_cache).await?;
-		let stats_localised = load_localization_stats(guild_id, config.db.clone()).await?;
+		let stats_localised = load_localization_stats(guild_id, db_connection).await?;
 		let fields = vec![
 			(stats_localised.chars.clone(), stats.chars.to_string(), true),
 			(

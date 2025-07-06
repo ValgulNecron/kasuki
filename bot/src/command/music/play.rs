@@ -14,7 +14,7 @@
 //!
 //! This struct implements the `Command
 use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::command::embed_content::EmbedsContents;
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -100,10 +100,10 @@ impl Command for PlayCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let play_localised =
-			load_localization_play(guild_id_str, bot_data.config.db.clone()).await?;
+		let play_localised = load_localization_play(guild_id_str, db_connection).await?;
 
 		let lava_client = bot_data.lavalink.read().await.clone();
 		let (_, mut embed_content) = join(ctx, bot_data, command_interaction).await?;

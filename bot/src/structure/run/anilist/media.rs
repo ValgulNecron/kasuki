@@ -9,7 +9,7 @@ use crate::helper::general_channel_info::get_nsfw;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
 use anyhow::{Result, anyhow};
-use sea_orm::{entity::*, query::*};
+use sea_orm::{DatabaseConnection, entity::*, query::*};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -578,7 +578,7 @@ fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
 
 pub async fn media_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &'a CommandInteraction, data: Media,
-	db_config: DbConfig, bot_data: Arc<BotData>,
+	db_connection: Arc<DatabaseConnection>, bot_data: Arc<BotData>,
 ) -> Result<EmbedsContents<'a>> {
 	let is_adult = data.is_adult.unwrap_or(true);
 
@@ -623,7 +623,7 @@ pub async fn media_content<'a>(
 		}
 	}
 
-	let media_localised = load_localization_media(guild_id, db_config).await?;
+	let media_localised = load_localization_media(guild_id, db_connection).await?;
 
 	let mut fields = Vec::new();
 

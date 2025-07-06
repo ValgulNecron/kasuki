@@ -1,18 +1,13 @@
-use std::sync::Arc;
-
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
 use crate::structure::message::vn::character::load_localization_character;
-use anyhow::{Context, Result};
+use anyhow::Context;
 use markdown_converter::vndb::convert_vndb_markdown;
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tokio::sync::RwLock;
-use tracing::{debug, info, instrument, trace, warn};
+use tracing::{debug, info, instrument, warn};
 
 pub struct VnCharacterCommand {
 	pub ctx: SerenityContext,
@@ -61,9 +56,10 @@ impl Command for VnCharacterCommand {
 			.get(&String::from("name"))
 			.cloned()
 			.unwrap_or(String::new());
+		let db_connection = bot_data.db_connection.clone();
 
 		debug!("Loading character localization for guild: {}", guild_id);
-		let character_localised = load_localization_character(guild_id.clone(), config.db.clone())
+		let character_localised = load_localization_character(guild_id.clone(), db_connection)
 			.await
 			.context(format!(
 				"Failed to load character localization for guild: {}",

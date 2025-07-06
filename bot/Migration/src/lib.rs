@@ -18,6 +18,9 @@ mod m20241221_192314_command_usage;
 mod m20241221_192339_random_stats;
 mod m20241225_163933_anime_song;
 mod m20250312_195747_update_unique;
+mod m20250630_200300_message;
+mod m20250630_200400_vocal;
+mod m20250701_204100_update_module;
 
 pub struct Migrator;
 
@@ -43,6 +46,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20241221_192339_random_stats::Migration),
             Box::new(m20241225_163933_anime_song::Migration),
             Box::new(m20250312_195747_update_unique::Migration),
+            Box::new(m20250630_200300_message::Migration),
+            Box::new(m20250630_200400_vocal::Migration),
+            Box::new(m20250701_204100_update_module::Migration),
         ]
     }
 }

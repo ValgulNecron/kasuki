@@ -7,6 +7,7 @@ use crate::helper::get_guild_lang::get_guild_language;
 use anyhow::{Context, Result, anyhow};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use tokio::sync::RwLock;
@@ -98,14 +99,14 @@ pub struct ReleaseDate {
 
 impl SteamGameWrapper {
 	pub async fn new_steam_game_by_id(
-		appid: u128, guild_id: String, db_config: DbConfig,
+		appid: u128, guild_id: String, db_connection: Arc<DatabaseConnection>,
 	) -> Result<SteamGameWrapper> {
 		let client = reqwest::Client::builder()
 			.user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
 			.build()
 			.context("Failed to build reqwest client")?;
 
-		let lang = get_guild_language(guild_id, db_config).await;
+		let lang = get_guild_language(guild_id, db_connection).await;
 
 		let local_lang = LANG_MAP.clone();
 
@@ -161,7 +162,7 @@ impl SteamGameWrapper {
 
 	pub async fn new_steam_game_by_search(
 		search: &str, guild_id: String, apps: Arc<RwLock<HashMap<String, u128>>>,
-		db_config: DbConfig,
+		db_connection: Arc<DatabaseConnection>,
 	) -> Result<SteamGameWrapper> {
 		let guard = apps.read().await;
 
@@ -199,6 +200,6 @@ impl SteamGameWrapper {
 			}
 		}
 
-		SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_config).await
+		SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_connection).await
 	}
 }

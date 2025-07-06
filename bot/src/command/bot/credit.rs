@@ -158,9 +158,10 @@ impl Command for CreditCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings for the credits
-		let credit_localised = load_localization_credit(guild_id, config.db.clone()).await?;
+		let credit_localised = load_localization_credit(guild_id, db_connection).await?;
 
 		// Construct a description by concatenating the descriptions of all credits
 		let mut desc: String = "".to_string();

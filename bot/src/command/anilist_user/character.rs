@@ -183,11 +183,11 @@ impl Command for CharacterCommand {
 				.character
 				.context(format!("No character found with name '{}'", value))?
 		};
+		let db_connection = bot_data.db_connection.clone();
 
-		let embed_contents =
-			character::character_content(command_interaction, data, config.db.clone())
-				.await
-				.context("Failed to generate character content for embed")?;
+		let embed_contents = character::character_content(command_interaction, data, db_connection)
+			.await
+			.context("Failed to generate character content for embed")?;
 
 		Ok(embed_contents)
 	}

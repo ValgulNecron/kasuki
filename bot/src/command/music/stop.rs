@@ -140,10 +140,10 @@ impl Command for StopCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let stop_localised =
-			load_localization_stop(guild_id_str, bot_data.config.db.clone()).await?;
+		let stop_localised = load_localization_stop(guild_id_str, db_connection).await?;
 
 		let command_interaction = self.get_command_interaction();
 

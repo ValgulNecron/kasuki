@@ -92,9 +92,10 @@ impl Command for LevelCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized level strings
-		let level_localised = load_localization_level(guild_id, db_config).await?;
+		let level_localised = load_localization_level(guild_id, db_connection).await?;
 
 		// Clone the manga and anime statistics
 		let statistics = user.statistics.clone().unwrap();

@@ -1,12 +1,12 @@
-use std::fmt::Display;
-
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::DbConfig;
 use crate::constant::COLOR;
 use crate::structure::message::anilist_user::user::{UserLocalised, load_localization_user};
 use anyhow::{Result, anyhow};
+use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
 use serenity::model::Colour;
+use std::fmt::Display;
+use std::sync::Arc;
 
 #[cynic::schema("anilist")]
 
@@ -181,14 +181,14 @@ impl Display for UserStatisticsSort {
 }
 
 pub async fn user_content<'a>(
-	command: &'a CommandInteraction, user: User, db_config: DbConfig,
+	command: &'a CommandInteraction, user: User, db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents> {
 	let guild_id = match command.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
 	};
 
-	let user_localised = load_localization_user(guild_id, db_config).await?;
+	let user_localised = load_localization_user(guild_id, db_connection).await?;
 
 	let mut field = Vec::new();
 

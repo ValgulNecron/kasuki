@@ -210,9 +210,10 @@ impl Command for KillSwitchCommand {
 		let module = map
 			.get(&FixedString::from_str_trunc("name"))
 			.ok_or(anyhow!("No option for name"))?;
+		let db_connection = bot_data.db_connection.clone();
 
 		let module_localised =
-			load_localization_kill_switch(guild_id.clone(), config.db.clone()).await?;
+			load_localization_kill_switch(guild_id.clone(), db_connection).await?;
 
 		let map = get_option_map_boolean(command_interaction);
 
@@ -232,7 +233,8 @@ impl Command for KillSwitchCommand {
 			"ANILIST" => row.anilist_module = state,
 			"AI" => row.ai_module = state,
 			"GAME" => row.game_module = state,
-			"NEW_MEMBER" => row.new_members_module = state,
+			"LEVEL" => row.level_module = state,
+			"MINIGAME" => row.mini_game_module = state,
 			"ANIME" => row.anime_module = state,
 			"VN" => row.vn_module = state,
 			_ => {

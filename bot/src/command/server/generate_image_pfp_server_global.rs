@@ -131,9 +131,9 @@ impl Command for GenerateGlobalImagePfPCommand {
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
+		let db_connection = bot_data.db_connection.clone();
 
-		let embed_contents =
-			get_content(ctx, command_interaction, "global", config.db.clone()).await?;
+		let embed_contents = get_content(ctx, command_interaction, "global", db_connection).await?;
 
 		Ok(embed_contents)
 	}

@@ -189,9 +189,10 @@ pub async fn join<'a>(
 		Some(id) => id.to_string(),
 		None => String::from("0"),
 	};
+	let db_connection = bot_data.db_connection.clone();
 
 	// Load the localized strings
-	let join_localised = load_localization_join(guild_id_str, bot_data.config.db.clone()).await?;
+	let join_localised = load_localization_join(guild_id_str, db_connection).await?;
 
 	let lava_client = bot_data.lavalink.read().await.clone();
 	match lava_client {

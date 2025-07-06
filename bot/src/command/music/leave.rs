@@ -118,10 +118,10 @@ impl Command for LeaveCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let leave_localised =
-			load_localization_leave(guild_id_str, bot_data.config.db.clone()).await?;
+		let leave_localised = load_localization_leave(guild_id_str, db_connection).await?;
 
 		let manager = bot_data.manager.clone();
 		let lava_client = bot_data.lavalink.clone();

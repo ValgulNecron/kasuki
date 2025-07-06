@@ -67,7 +67,6 @@ use anyhow::{Context as AnyhowContext, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use std::error::Error;
 use std::time::Instant;
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -919,7 +918,8 @@ pub async fn check_if_module_is_on(
 				ai_module: true,
 				anilist_module: true,
 				game_module: true,
-				new_members_module: false,
+				level_module: false,
+				mini_game_module: true,
 				anime_module: true,
 				vn_module: true,
 				updated_at: Default::default(),
@@ -1053,7 +1053,8 @@ async fn check_kill_switch_status(
 				ai_module: true,
 				anilist_module: true,
 				game_module: true,
-				new_members_module: false,
+				level_module: false,
+				mini_game_module: true,
 				anime_module: true,
 				vn_module: true,
 				updated_at: Default::default(),

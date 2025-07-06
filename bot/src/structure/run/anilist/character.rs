@@ -4,7 +4,9 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
 use anyhow::{Result, anyhow};
+use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
+use std::sync::Arc;
 use tracing::log::trace;
 
 #[cynic::schema("anilist")]
@@ -81,7 +83,8 @@ pub struct FuzzyDate {
 	pub day: Option<i32>,
 }
 pub async fn character_content<'a>(
-	command_interaction: &'a CommandInteraction, character: Character, db_config: DbConfig,
+	command_interaction: &'a CommandInteraction, character: Character,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -90,7 +93,7 @@ pub async fn character_content<'a>(
 
 	trace!("{:#?}", guild_id);
 
-	let character_localised = load_localization_character(guild_id, db_config).await?;
+	let character_localised = load_localization_character(guild_id, db_connection).await?;
 
 	let date_of_birth_data = character.date_of_birth.clone();
 

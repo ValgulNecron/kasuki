@@ -183,8 +183,9 @@ impl Command for SeiyuuCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
-		let seiyuu_localised = load_localization_seiyuu(guild_id, config.db.clone()).await?;
+		let seiyuu_localised = load_localization_seiyuu(guild_id, db_connection).await?;
 
 		self.defer().await?;
 

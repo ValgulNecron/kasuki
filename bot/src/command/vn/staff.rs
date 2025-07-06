@@ -39,8 +39,9 @@ impl Command for VnStaffCommand {
 			.get(&String::from("name"))
 			.cloned()
 			.unwrap_or(String::new());
+		let db_connection = bot_data.db_connection.clone();
 
-		let staff_localised = load_localization_staff(guild_id, db_config).await?;
+		let staff_localised = load_localization_staff(guild_id, db_connection).await?;
 
 		let staff = get_staff(staff.clone(), vndb_cache.clone()).await?;
 

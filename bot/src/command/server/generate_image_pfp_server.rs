@@ -1,20 +1,20 @@
 //! This module defines the `GenerateImagePfPCommand` structure and related functionality
 //! for handling a command interaction that generates server profile picture images.
+
 use anyhow::{Result, anyhow};
+use std::sync::Arc;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
-use crate::config::DbConfig;
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
-use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
@@ -122,9 +122,9 @@ impl Command for GenerateImagePfPCommand {
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
+		let db_connection = bot_data.db_connection.clone();
 
-		let embed_contents =
-			get_content(ctx, command_interaction, "local", config.db.clone()).await?;
+		let embed_contents = get_content(ctx, command_interaction, "local", db_connection).await?;
 
 		Ok(embed_contents)
 	}
@@ -181,7 +181,7 @@ impl Command for GenerateImagePfPCommand {
 /// ```
 pub async fn get_content<'a>(
 	ctx: &'a SerenityContext, command_interaction: &CommandInteraction, image_type: &str,
-	db_config: DbConfig,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id = match command_interaction.guild_id {
@@ -191,7 +191,7 @@ pub async fn get_content<'a>(
 
 	// Load the localized text for the server's profile picture image
 	let pfp_server_image_localised_text =
-		load_localization_pfp_server_image(guild_id.clone(), db_config.clone()).await?;
+		load_localization_pfp_server_image(guild_id.clone(), db_connection.clone()).await?;
 
 	// Create a deferred response to the command interaction
 	let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -201,13 +201,10 @@ pub async fn get_content<'a>(
 		.create_response(&ctx.http, builder_message)
 		.await?;
 
-	// Retrieve the server's profile picture image
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
 	let image = ServerImage::find()
 		.filter(Column::ServerId.eq(guild_id.clone()))
 		.filter(Column::ImageType.eq(image_type.to_string()))
-		.one(&connection)
+		.one(&*db_connection)
 		.await?
 		.ok_or(anyhow!(format!(
 			"Server image with type {} not found",

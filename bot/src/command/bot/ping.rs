@@ -13,7 +13,7 @@ use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::structure::message::bot::ping::load_localization_ping;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -144,10 +144,11 @@ impl Command for PingCommand {
 				String::from("0")
 			},
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized ping strings
 		debug!("Loading ping localization for guild: {}", guild_id);
-		let ping_localised = load_localization_ping(guild_id, config.db.clone())
+		let ping_localised = load_localization_ping(guild_id, db_connection)
 			.await
 			.map_err(|e| {
 				error!("Failed to load ping localization: {}", e);

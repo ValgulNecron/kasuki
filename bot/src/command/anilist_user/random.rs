@@ -218,9 +218,10 @@ impl Command for RandomCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized random strings
-		let random_localised = load_localization_random(guild_id, config.db.clone()).await?;
+		let random_localised = load_localization_random(guild_id, db_connection).await?;
 
 		// Retrieve the type of media (anime or manga) from the command interaction
 		let map = get_option_map_string(command_interaction);

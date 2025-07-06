@@ -254,9 +254,10 @@ impl Command for StudioCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized studio strings
-		let studio_localised = load_localization_studio(guild_id, config.db.clone()).await?;
+		let studio_localised = load_localization_studio(guild_id, db_connection).await?;
 
 		// Initialize a string to store the content of the response
 		let mut content = String::new();

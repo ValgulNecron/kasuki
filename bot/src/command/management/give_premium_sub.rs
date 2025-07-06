@@ -227,10 +227,11 @@ impl Command for GivePremiumSubCommand {
 			.http
 			.create_test_entitlement(sku_id, EntitlementOwner::User(user))
 			.await?;
+		let db_connection = bot_data.db_connection.clone();
 
 		let localization = load_localization_give_premium_sub(
 			command_interaction.guild_id.unwrap().to_string(),
-			config.db.clone(),
+			db_connection,
 		)
 		.await?;
 

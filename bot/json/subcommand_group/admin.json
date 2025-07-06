@@ -410,27 +410,6 @@
                   ]
                 },
                 {
-                  "option_choice": "NEW_MEMBER",
-                  "option_choice_localised": [
-                    {
-                      "code": "en-US",
-                      "name": "New Member"
-                    },
-                    {
-                      "code": "fr",
-                      "name": "Nouveau Membre"
-                    },
-                    {
-                      "code": "de",
-                      "name": "Neues Mitglied"
-                    },
-                    {
-                      "code": "ja",
-                      "name": "新メンバー"
-                    }
-                  ]
-                },
-                {
                   "option_choice": "ANIME",
                   "option_choice_localised": [
                     {
@@ -471,6 +450,48 @@
                       "name": "ビジュアルノベル"
                     }
                   ]
+                },
+                {
+                  "option_choice": "LEVEL",
+                  "option_choice_localised": [
+                {
+                  "code": "en-US",
+                  "name": "Level"
+                },
+                {
+                  "code": "fr",
+                  "name": "Niveaux"
+                },
+                {
+                  "code": "de",
+                  "name": "Ebene"
+                },
+                {
+                  "code": "ja",
+                  "name": "ビジュアルノベル"
+                }
+                    ]
+                },
+                {
+                  "option_choice": "MINIGAME",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Mini game"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Mini jeu"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Mini-Spiel"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "ミニゲーム"
+                    }
+                    ]
                 }
               ],
               "localised_args": [

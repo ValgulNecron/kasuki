@@ -198,10 +198,10 @@ impl Command for ClearCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let clear_localised =
-			load_localization_clear(guild_id_str, bot_data.config.db.clone()).await?;
+		let clear_localised = load_localization_clear(guild_id_str, db_connection).await?;
 
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();

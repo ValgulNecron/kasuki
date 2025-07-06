@@ -136,16 +136,14 @@ impl<T: Command> CommandRun for T {
 				let mut builder = CreateInteractionResponseMessage::new().files(files);
 				if has_embed {
 					builder = builder.embeds(embeds);
-				} else if let Some(component) = component.clone()
-				{
+				} else if let Some(component) = component.clone() {
 					if is_v2 {
 						builder = builder
 							.components(component)
 							.flags(MessageFlags::IS_COMPONENTS_V2);
 					}
 				}
-				if let Some(component) = component
-				{
+				if let Some(component) = component {
 					if !is_v2 {
 						builder = builder.components(component);
 					}
@@ -159,16 +157,14 @@ impl<T: Command> CommandRun for T {
 				let mut builder = CreateInteractionResponseFollowup::new().files(files);
 				if has_embed {
 					builder = builder.embeds(embeds);
-				} else if let Some(component) = component.clone()
-				{
+				} else if let Some(component) = component.clone() {
 					if is_v2 {
 						builder = builder
 							.components(component)
 							.flags(MessageFlags::IS_COMPONENTS_V2);
 					}
 				}
-				if let Some(component) = component
-				{
+				if let Some(component) = component {
 					if !is_v2 {
 						builder = builder.components(component);
 					}

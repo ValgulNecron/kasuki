@@ -130,7 +130,6 @@ impl Command for ProfileCommand {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let db_config = bot_data.config.db.clone();
 
 		let user = match command_interaction.data.kind.0 {
 			1 => get_user_command(ctx, command_interaction).await?,
@@ -144,8 +143,9 @@ impl Command for ProfileCommand {
 			.guild_id
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
+		let db_connection = bot_data.db_connection.clone();
 
-		let profile_localised = load_localization_profile(guild_id, db_config).await?;
+		let profile_localised = load_localization_profile(guild_id, db_connection).await?;
 
 		let mut fields = get_fields(&profile_localised, user.clone());
 

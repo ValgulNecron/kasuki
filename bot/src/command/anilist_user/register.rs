@@ -140,9 +140,10 @@ impl Command for RegisterCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized register strings
-		let register_localised = load_localization_register(guild_id, config.db.clone()).await?;
+		let register_localised = load_localization_register(guild_id, db_connection).await?;
 
 		// Retrieve the user's Discord ID and username
 		let user_id = &command_interaction.user.id.to_string();

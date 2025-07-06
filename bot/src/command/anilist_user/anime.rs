@@ -235,10 +235,10 @@ impl Command for AnimeCommand {
 				None => return Err(anyhow!("Anime not found")),
 			}
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let embed_contents =
-			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
-				.await?;
+			media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
 
 		Ok(embed_contents)
 	}

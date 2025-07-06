@@ -177,9 +177,10 @@ impl Command for ListAllActivity {
 
 		let activity: Vec<String> = get_formatted_activity_list(list, 0);
 		let join_activity = activity.join("\n");
+		let db_connection = bot_data.db_connection.clone();
 
 		let list_activity_localised_text =
-			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
+			load_localization_list_activity(guild_id.to_string(), db_connection).await?;
 
 		let embed_content =
 			EmbedContent::new(list_activity_localised_text.title).description(join_activity);

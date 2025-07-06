@@ -149,7 +149,6 @@ impl Command for CommandUsageCommand {
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let command_usage = bot_data.number_of_command_use_per_command.clone();
-		let db_config = bot_data.config.db.clone();
 
 		let user_id = user.id.to_string();
 
@@ -163,8 +162,10 @@ impl Command for CommandUsageCommand {
 			.guild_id
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
+		let db_connection = bot_data.db_connection.clone();
 
-		let localized_command_usage = load_localization_command_usage(guild_id, db_config).await?;
+		let localized_command_usage =
+			load_localization_command_usage(guild_id, db_connection).await?;
 
 		let mut embed_contents = vec![];
 

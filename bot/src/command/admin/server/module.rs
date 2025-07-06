@@ -131,7 +131,7 @@ impl Command for ModuleCommand {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
-		let connection = bot_data.db_connection.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
@@ -149,28 +149,28 @@ impl Command for ModuleCommand {
 			.ok_or(anyhow!("No option for state"))?;
 
 		let module_localised =
-			load_localization_module_activation(guild_id.clone(), bot_data.config.db.clone());
+			load_localization_module_activation(guild_id.clone(), db_connection.clone());
 
 		let mut row = ModuleActivation::find()
 			.filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
-			.one(&*connection)
+			.one(&*db_connection)
 			.await?
 			.unwrap_or(Model {
 				guild_id,
 				ai_module: true,
 				anilist_module: true,
 				game_module: true,
-				new_members_module: false,
 				anime_module: true,
 				vn_module: true,
 				updated_at: Default::default(),
+				level_module: false,
+				mini_game_module: true,
 			});
 
 		match module.as_str() {
 			"ANILIST" => row.anilist_module = state,
 			"AI" => row.ai_module = state,
 			"GAME" => row.game_module = state,
-			"NEW_MEMBER" => row.new_members_module = state,
 			"ANIME" => row.anime_module = state,
 			"VN" => row.vn_module = state,
 			_ => {
@@ -179,7 +179,7 @@ impl Command for ModuleCommand {
 		}
 
 		let active_model = row.into_active_model();
-		active_model.update(&*connection).await?;
+		active_model.update(&*db_connection).await?;
 
 		let module_localised = module_localised.await?;
 		let desc = if state {
@@ -245,9 +245,10 @@ pub async fn check_activation_status(module: &str, row: Model) -> bool {
 		"ANILIST" => row.anilist_module,
 		"AI" => row.ai_module,
 		"GAME" => row.game_module,
-		"NEW_MEMBER" => row.new_members_module,
 		"ANIME" => row.anime_module,
 		"VN" => row.vn_module,
+		"LEVEL" => row.level_module,
+		"MINIGAME" => row.mini_game_module,
 		_ => false,
 	}
 }

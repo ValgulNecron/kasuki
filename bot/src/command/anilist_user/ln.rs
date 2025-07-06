@@ -164,10 +164,10 @@ impl Command for LnCommand {
 
 			data.data.unwrap().media.unwrap()
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let embed_content =
-			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
-				.await?;
+			media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
 
 		Ok(embed_content)
 	}

@@ -79,12 +79,10 @@ use std::sync::Arc;
 use crate::command::command::Command;
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::DbConfig;
 use crate::database::activity_data;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
@@ -104,9 +102,9 @@ use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
-use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, DatabaseConnection};
 use serde_json::json;
 use serenity::all::{
 	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
@@ -263,7 +261,6 @@ impl Command for AddActivityCommand {
 		let ctx = self.get_ctx();
 
 		let bot_data = ctx.data::<BotData>().clone();
-		let config = bot_data.config.clone();
 
 		let map = get_option_map_string_subcommand_group(&command_interaction);
 		let anime = map
@@ -278,15 +275,16 @@ impl Command for AddActivityCommand {
 			Some(id) => id.to_string(),
 			None => String::from("1"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let add_activity_localised =
-			load_localization_add_activity(guild_id.clone(), config.db.clone());
+			load_localization_add_activity(guild_id.clone(), db_connection.clone());
 
 		self.defer().await?;
 
 		let anime_id = media.id;
 		let url = format!("https://anilist.co/anime/{}", anime_id);
-		let exist = check_if_activity_exist(anime_id, guild_id.clone(), config.db.clone()).await;
+		let exist = check_if_activity_exist(anime_id, guild_id.clone(), db_connection).await;
 
 		let title = media
 			.title
@@ -527,16 +525,13 @@ fn calculate_crop_params(width: u32, height: u32) -> (u32, u32, u32) {
 /// This function uses the `sea-orm` library for interacting with the database,
 /// and assumes the presence of the `ActivityData` entity and `Column` for filtering.
 /// Ensure that the database schema and configurations align with these assumptions.
-async fn check_if_activity_exist(anime_id: i32, server_id: String, config: DbConfig) -> bool {
-	let conn = match sea_orm::Database::connect(get_url(config.clone())).await {
-		Ok(conn) => conn,
-		Err(_) => return false,
-	};
-
+async fn check_if_activity_exist(
+	anime_id: i32, server_id: String, db_connection: Arc<DatabaseConnection>,
+) -> bool {
 	let row = match ActivityData::find()
 		.filter(Column::ServerId.eq(server_id))
 		.filter(Column::AnimeId.eq(anime_id))
-		.one(&conn)
+		.one(&*db_connection)
 		.await
 	{
 		Ok(row) => row,

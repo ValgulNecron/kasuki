@@ -372,8 +372,9 @@ impl Command for TranslationCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let translation_localised =
-			load_localization_translation(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let translation_localised = load_localization_translation(guild_id, db_connection).await?;
 
 		let embed_content =
 			EmbedContent::new(translation_localised.title).description(text.to_string());

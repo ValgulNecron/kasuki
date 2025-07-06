@@ -142,9 +142,10 @@ impl Command for InfoCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized information strings
-		let info_localised = load_localization_info(guild_id, config.db.clone()).await?;
+		let info_localised = load_localization_info(guild_id, db_connection).await?;
 
 		// Retrieve various details about the bot and the server
 		let shard_count = ctx.cache.shard_count();

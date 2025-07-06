@@ -3,7 +3,6 @@
 use std::borrow::Cow;
 use std::collections::HashSet;
 
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::builder::{
 	CreateComponent, CreateContainer, CreateSection, CreateSectionAccessory,
@@ -11,15 +10,12 @@ use serenity::builder::{
 	CreateUnfurledMediaItem,
 };
 use small_fixed_array::FixedString;
-use songbird::packet::pnet::types::u2;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::Command;
 use crate::command::embed_content::ComponentVersion::V2;
-use crate::command::embed_content::{
-	CommandType, ComponentVersion, ComponentVersion2, EmbedContent, EmbedsContents,
-};
+use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
@@ -180,9 +176,10 @@ impl Command for CompareCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized comparison strings
-		let compare_localised = load_localization_compare(guild_id, config.db.clone()).await?;
+		let compare_localised = load_localization_compare(guild_id, db_connection).await?;
 
 		// Clone the user data
 		let username = user.name.clone();
@@ -416,13 +413,13 @@ impl Command for CompareCommand {
 			.as_str(),
 		);
 
-		let mut section_u1 = (
+		let section_u1 = (
 			vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(u1_text))],
 			CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
 				user.avatar.unwrap().large.unwrap(),
 			))),
 		);
-		let mut section_u2 = (
+		let section_u2 = (
 			vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(u2_text))],
 			CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
 				user2.avatar.unwrap().large.unwrap(),

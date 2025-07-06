@@ -189,8 +189,9 @@ impl Command for TranscriptCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let transcript_localised =
-			load_localization_transcript(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let transcript_localised = load_localization_transcript(guild_id, db_connection).await?;
 
 		let response = reqwest::get(content.to_string()).await?;
 		let buffer = response.bytes().await?;

@@ -239,8 +239,9 @@ impl Command for ImageCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
-		let image_localised = load_localization_image(guild_id.clone(), config.db.clone());
+		let image_localised = load_localization_image(guild_id.clone(), db_connection);
 		self.defer().await?;
 
 		let uuid_name = Uuid::new_v4();

@@ -148,10 +148,11 @@ impl Command for WaifuCommand {
 		// Execute the corresponding search function based on the specified type
 		// Fetch the data of the character with ID 156323 from AniList
 		let value = 156323;
+		let db_connection = bot_data.db_connection.clone();
 
 		let data = get_character_by_id(value, anilist_cache).await?;
 
-		let embed_content = character_content(command_interaction, data, db_config).await?;
+		let embed_content = character_content(command_interaction, data, db_connection).await?;
 
 		Ok(embed_content)
 	}

@@ -209,10 +209,11 @@ impl Command for AnimeRandomNsfwImageCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized random NSFW image strings
 		let random_image_nsfw_localised =
-			load_localization_random_image_nsfw(guild_id, config.db.clone()).await?;
+			load_localization_random_image_nsfw(guild_id, db_connection).await?;
 
 		// Create a deferred response to the command interaction
 		self.defer().await?;

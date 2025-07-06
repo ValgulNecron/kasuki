@@ -190,9 +190,10 @@ impl Command for AnimeRandomImageCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let random_image_localised =
-			load_localization_random_image(guild_id, config.db.clone()).await?;
+			load_localization_random_image(guild_id, db_connection).await?;
 
 		self.defer().await?;
 

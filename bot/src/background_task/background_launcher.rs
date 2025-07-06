@@ -18,11 +18,10 @@ use crate::background_task::activity::anime_activity::manage_activity;
 use crate::background_task::get_anisong_db::get_anisong;
 use crate::background_task::server_image::generate_server_image::server_image_management;
 use crate::background_task::update_random_stats::update_random_stats_launcher;
-use crate::config::{DbConfig, ImageConfig, TaskIntervalConfig};
+use crate::config::{ImageConfig, TaskIntervalConfig};
 use crate::database::ping_history::ActiveModel;
 use crate::database::prelude::PingHistory;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::{Context as AnyhowContext, Result};
 /// Main function responsible for launching and managing all background tasks.
@@ -63,11 +62,8 @@ use anyhow::{Context as AnyhowContext, Result};
 ///
 /// * `ctx` - Serenity context for Discord API interactions
 /// * `bot_data` - Shared bot data including caches and configuration
-/// * `db_config` - Database configuration
 ///
-pub async fn thread_management_launcher(
-	ctx: SerenityContext, bot_data: Arc<BotData>, db_config: DbConfig,
-) {
+pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotData>) {
 	info!("Initializing background task manager");
 	debug!("Preparing shared resources for background tasks");
 
@@ -75,7 +71,7 @@ pub async fn thread_management_launcher(
 	let anilist_cache = bot_data.anilist_cache.clone();
 	let apps = bot_data.apps.clone();
 	let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
-	let connection = bot_data.db_connection.clone();
+	let db_connection = bot_data.db_connection.clone();
 	let task_intervals = bot_data.config.task_intervals.clone();
 	let shutdown_signal = bot_data.shutdown_signal.clone();
 
@@ -105,11 +101,11 @@ pub async fn thread_management_launcher(
 		task_intervals.anisong_update
 	);
 	let task_intervals_c = task_intervals.clone();
-	let connection_c = connection.clone();
+	let db_connection_c = db_connection.clone();
 	let mut anisong_shutdown_rx = shutdown_signal.subscribe();
 	let anisong_task = tokio::spawn(async move {
 		tokio::select! {
-			_ = update_anisong_db(connection_c, task_intervals_c) => {
+			_ = update_anisong_db(db_connection_c, task_intervals_c) => {
 				info!("Anisong database update task completed");
 			},
 			_ = anisong_shutdown_rx.recv() => {
@@ -150,14 +146,14 @@ pub async fn thread_management_launcher(
 	let task_intervals_c = task_intervals.clone();
 	let ctx_c = ctx.clone();
 	let anilist_cache_c = anilist_cache.clone();
-	let db_config_c = db_config.clone();
+	let db_connection_c = db_connection.clone();
 	let mut activity_shutdown_rx = shutdown_signal.subscribe();
 	let activity_task = tokio::spawn(async move {
 		tokio::select! {
 			_ = launch_activity_management_thread(
 				ctx_c,
 				anilist_cache_c,
-				db_config_c,
+				db_connection_c,
 				task_intervals_c,
 			) => {
 				info!("Activity management task completed");
@@ -198,11 +194,11 @@ pub async fn thread_management_launcher(
 	);
 	let task_intervals_c = task_intervals.clone();
 	let ctx_c = ctx.clone();
-	let db_config_c = db_config.clone();
+	let db_connection_c = db_connection.clone();
 	let mut ping_shutdown_rx = shutdown_signal.subscribe();
 	let ping_task = tokio::spawn(async move {
 		tokio::select! {
-			result = ping_manager_thread(ctx_c, db_config_c, task_intervals_c) => {
+			result = ping_manager_thread(ctx_c, db_connection_c, task_intervals_c) => {
 				match result {
 					Ok(_) => info!("Ping manager task completed successfully"),
 					Err(e) => error!("Ping manager task failed: {:#}", e),
@@ -287,7 +283,7 @@ pub async fn thread_management_launcher(
 			_ = launch_server_image_management_thread(
 				ctx_c,
 				image_config,
-				connection,
+				db_connection,
 				task_intervals_c,
 			) => {
 				info!("Server image management task completed");
@@ -739,17 +735,14 @@ async fn test_database_connection(db: &Arc<DatabaseConnection>) -> Result<()> {
 /// * `task_intervals` - Configuration for how frequently to check and record latency
 ///
 async fn ping_manager_thread(
-	ctx: SerenityContext, db_config: DbConfig, task_intervals: TaskIntervalConfig,
+	ctx: SerenityContext, db_connection: Arc<DatabaseConnection>,
+	task_intervals: TaskIntervalConfig,
 ) -> Result<()> {
 	// Log the initialization of the ping monitoring thread
 	info!("Launching the ping monitoring thread!");
 	debug!(
 		"Ping update interval configured for {} seconds",
 		task_intervals.ping_update
-	);
-	trace!(
-		"Initializing ping monitoring with database config: {:?}",
-		db_config
 	);
 
 	// Retrieve the shard manager from the bot's context
@@ -778,7 +771,7 @@ async fn ping_manager_thread(
 			);
 			tokio::time::sleep(Duration::from_secs(task_intervals.ping_update)).await;
 			debug!("Retrying shard manager retrieval");
-			Box::pin(ping_manager_thread(ctx, db_config, task_intervals)).await?;
+			Box::pin(ping_manager_thread(ctx, db_connection, task_intervals)).await?;
 			return Ok(());
 		},
 	};
@@ -791,33 +784,10 @@ async fn ping_manager_thread(
 		task_intervals.ping_update
 	);
 
-	// Establish a connection to the database for recording ping history
-	// This connection is reused for all database operations to avoid repeatedly connecting
-	info!("Establishing database connection for ping history recording");
-	trace!(
-		"Using database URL from config: {}",
-		get_url(db_config.clone())
-	);
-
-	let connection = match sea_orm::Database::connect(get_url(db_config.clone())).await {
-		Ok(conn) => {
-			info!("Successfully connected to database for ping history");
-			conn
-		},
-		Err(e) => {
-			error!("Failed to connect to database: {:#}", e);
-			return Err(e).context(format!(
-				"Failed to connect to database with config: {:?}",
-				db_config
-			));
-		},
-	};
-
 	// Main monitoring loop - runs indefinitely
 	let mut cycle_count = 0;
 	let mut total_shards_processed = 0;
 	let mut successful_updates = 0;
-	let mut failed_updates = 0;
 
 	loop {
 		// Wait for the next scheduled check based on the configured interval
@@ -886,7 +856,7 @@ async fn ping_manager_thread(
 				timestamp: Set(now),
 				..Default::default() // Use defaults for any other fields
 			})
-			.exec(&connection)
+			.exec(&*db_connection)
 			.await
 			.context(format!(
 				"Failed to insert ping history for shard {} with latency {}",
@@ -908,7 +878,6 @@ async fn ping_manager_thread(
 						shard_id, e
 					);
 					cycle_failed_updates += 1;
-					failed_updates += 1;
 					total_shards_processed += 1;
 					// Continue with other shards despite this error
 				},
@@ -1107,8 +1076,8 @@ async fn launch_game_management_thread(
 ///
 
 async fn launch_activity_management_thread(
-	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>, db_config: DbConfig,
-	task_intervals: TaskIntervalConfig,
+	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	db_connection: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig,
 ) {
 	// Create an interval for periodic updates
 	let mut interval = interval(Duration::from_secs(task_intervals.activity_check));
@@ -1121,8 +1090,8 @@ async fn launch_activity_management_thread(
 	);
 
 	let mut update_count = 0;
-	let mut consecutive_failures = 0;
-	let mut in_recovery_mode = false;
+	let consecutive_failures = 0;
+	let in_recovery_mode = false;
 	let max_backoff_seconds = 3600; // Maximum backoff of 1 hour
 	let base_interval = task_intervals.activity_check;
 
@@ -1139,10 +1108,14 @@ async fn launch_activity_management_thread(
 		// Clone the context and db_type arguments
 		let ctx = ctx.clone();
 		let anilist_cache_clone = anilist_cache.clone();
-		let db_config_clone = db_config.clone();
+		let db_connection_clone = db_connection.clone();
 
 		// Spawn a new task to manage the bot's activity and handle errors
-		tokio::spawn(manage_activity(ctx, anilist_cache_clone, db_config_clone));
+		tokio::spawn(manage_activity(
+			ctx,
+			anilist_cache_clone,
+			db_connection_clone,
+		));
 
 		debug!(
 			"Next activity management cycle scheduled in {} seconds",
@@ -1195,23 +1168,6 @@ async fn launch_server_image_management_thread(
 		trace!("Waiting for next server image management interval tick");
 		interval.tick().await;
 		update_count += 1;
-
-		// If we're in recovery mode, apply exponential backoff
-		let current_interval = if in_recovery_mode {
-			let backoff_factor = 2u64.pow(consecutive_failures.min(10) as u32); // Prevent overflow
-			let backoff_seconds = (base_interval * backoff_factor).min(max_backoff_seconds);
-
-			info!(
-				"Server image management in recovery mode: using extended interval of {} seconds",
-				backoff_seconds
-			);
-
-			// Reset the interval with the new backoff duration
-			interval = tokio::time::interval(Duration::from_secs(backoff_seconds));
-			backoff_seconds
-		} else {
-			base_interval
-		};
 
 		info!("Starting server image management cycle #{}", update_count);
 		debug!("Current time: {}", chrono::Utc::now());

@@ -121,7 +121,7 @@ impl Command for LangCommand {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
-		let connection = bot_data.db_connection.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let map = get_option_map_string_subcommand_group(command_interaction);
 		let lang = map
@@ -138,10 +138,10 @@ impl Command for LangCommand {
 			lang: Set(lang.clone()),
 			..Default::default()
 		})
-		.exec(&*connection)
+		.exec(&*db_connection)
 		.await?;
 
-		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
+		let lang_localised = load_localization_lang(guild_id, db_connection).await?;
 
 		let embed_content = EmbedContent::new(lang_localised.title.clone())
 			.description(lang_localised.desc.replace("$lang$", lang.as_str()));

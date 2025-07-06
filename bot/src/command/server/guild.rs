@@ -197,9 +197,10 @@ impl Command for GuildCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized guild information
-		let guild_localised = load_localization_guild(guild_id, config.db.clone()).await?;
+		let guild_localised = load_localization_guild(guild_id, db_connection).await?;
 
 		// Retrieve the guild ID from the command interaction or return an error if it does not exist
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;

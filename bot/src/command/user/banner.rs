@@ -1,11 +1,12 @@
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::config::DbConfig;
 use crate::event_handler::BotData;
 use crate::structure::message::user::banner::load_localization_banner;
 use anyhow::Result;
+use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use std::sync::Arc;
 
 pub struct BannerCommand {
 	pub ctx: SerenityContext,
@@ -35,12 +36,13 @@ impl Command for BannerCommand {
 			},
 		};
 
-		let db_config = config.db.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let banner = match user.banner_url() {
 			Some(url) => url,
 			None => {
-				let embed_content = no_banner(command_interaction, &user.name, db_config).await?;
+				let embed_content =
+					no_banner(command_interaction, &user.name, db_connection).await?;
 				let embed_contents = EmbedsContents::new(CommandType::First, embed_content);
 				return Ok(embed_contents);
 			},
@@ -53,7 +55,7 @@ impl Command for BannerCommand {
 			None => String::from("0"),
 		};
 
-		let banner_localised = load_localization_banner(guild_id, db_config).await?;
+		let banner_localised = load_localization_banner(guild_id, db_connection).await?;
 
 		let embed_content = EmbedContent::new(banner_localised.title.replace("$user$", username))
 			.images_url(banner);
@@ -65,14 +67,15 @@ impl Command for BannerCommand {
 }
 
 pub async fn no_banner(
-	command_interaction: &CommandInteraction, username: &str, db_config: DbConfig,
+	command_interaction: &CommandInteraction, username: &str,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<Vec<EmbedContent>> {
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
 	};
 
-	let banner_localised = load_localization_banner(guild_id, db_config).await?;
+	let banner_localised = load_localization_banner(guild_id, db_connection).await?;
 
 	let embed_content = EmbedContent::new(banner_localised.no_banner_title)
 		.description(banner_localised.no_banner.replace("$user$", username));
