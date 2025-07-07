@@ -1,6 +1,7 @@
 use crate::command::embed_content::{
 	CommandType, ComponentVersion, ComponentVersion1, EmbedsContents,
 };
+use crate::command::levels::stats::LevelsStatsCommand;
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -18,6 +19,26 @@ pub trait Command {
 
 	fn get_command_interaction(&self) -> &CommandInteraction;
 	async fn get_contents<'a>(&'a self) -> Result<EmbedsContents<'a>>;
+}
+
+#[macro_export]
+macro_rules! impl_command {
+	(
+        for $type:ty,
+        get_contents = $get_contents_fn:expr
+    ) => {
+		impl Command for $type {
+			fn get_ctx(&self) -> &SerenityContext {
+				&self.ctx
+			}
+			fn get_command_interaction(&self) -> &CommandInteraction {
+				&self.command_interaction
+			}
+			async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
+				($get_contents_fn)(self.clone()).await
+			}
+		}
+	};
 }
 
 pub trait CommandRun {

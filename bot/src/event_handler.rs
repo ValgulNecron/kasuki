@@ -506,7 +506,7 @@ impl Handler {
 			.await
 			{
 				Ok(_) => {},
-				Err(e) => error!("Failed to insert server user relation. {}", e),
+				Err(e) => error!("Failed to insert server user relation. {:?}", e),
 			};
 		}
 	}
@@ -813,7 +813,7 @@ async fn insert_user_subscription(
 	.await
 	{
 		Ok(_) => {},
-		Err(e) => error!("Failed to insert user subscription. {}", e),
+		Err(e) => error!("Failed to insert user subscription. {:?}", e),
 	};
 }
 

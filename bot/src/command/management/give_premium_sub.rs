@@ -192,7 +192,6 @@ impl Command for GivePremiumSubCommand {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let config = &bot_data.config;
 
 		let map = get_option_map_user(command_interaction);
 

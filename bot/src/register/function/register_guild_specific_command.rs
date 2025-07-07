@@ -3,7 +3,7 @@ use crate::register::structure::guild_command::GuildCommand;
 use anyhow::Result;
 use serenity::all::{CommandType, CreateCommand, GuildId, Http};
 use std::sync::Arc;
-use tracing::{error, trace};
+use tracing::{debug, error, trace};
 
 pub async fn creates_guild_commands(http: &Arc<Http>) {
 	let commands = match get_commands("./json/guild_command") {
@@ -63,6 +63,7 @@ async fn create_command(command: &GuildCommand, http: &Arc<Http>) {
 		Ok(_) => (),
 		Err(e) => {
 			error!("Failed to create command: {:?}", e);
+			debug!("{:?}", command);
 		},
 	}
 }

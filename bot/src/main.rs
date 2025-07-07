@@ -171,8 +171,7 @@ async fn main() {
 	// Get the needed privileged intent.
 	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
-        | GatewayIntents::MESSAGE_CONTENT
-        ;
+        | GatewayIntents::MESSAGE_CONTENT;
 	info!(
 		"Privileged intents configured: {:?}",
 		gateway_intent_privileged
