@@ -12,3 +12,4 @@ pub mod music;
 pub mod server;
 pub mod user;
 pub mod vn;
+pub mod levels;

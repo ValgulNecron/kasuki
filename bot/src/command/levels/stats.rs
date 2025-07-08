@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use sea_orm::EntityTrait;use sea_orm::QueryFilter;
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::management::give_premium_sub::GivePremiumSubCommand;
 use crate::database::{message, vocal};
@@ -13,6 +13,8 @@ use async_trait::async_trait;
 use sea_orm::{ColumnTrait, Condition};
 use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext, EntitlementOwner};
 use small_fixed_array::FixedString;
+use crate::structure::message::levels::stats::load_localization_levels_stats;
+
 #[derive(Clone)]
 pub struct LevelsStatsCommand {
 	pub ctx: SerenityContext,
@@ -22,6 +24,7 @@ pub struct LevelsStatsCommand {
 impl_command!(
 	for LevelsStatsCommand,
 	get_contents = |self_: LevelsStatsCommand| async move {
+		self_.defer().await;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
@@ -64,9 +67,24 @@ impl_command!(
 			total_vocal_len += vocal.duration  as i128;
 		}
 
-		let xp: i128 = total_message_len *2 + total_message + total_vocal_len*2 + total_vocal;
+		let localization = load_localization_levels_stats(
+			command_interaction.guild_id.unwrap().to_string(),
+			db_connection,
+		)
+		.await?;
 
-		Err(anyhow!("Not implemented yet"))
+		let desc = format!("{}\n{}\n{}\n{}", localization.vocal.replace("{session}", &total_vocal.to_string()),
+			localization.vocal_len.replace("{duration}", &total_vocal_len.to_string()),
+			localization.message.replace("{message}", &total_message.to_string()),
+			localization.message_len.replace("{char}",&total_message_len.to_string())
+		);
+		let embed_content = EmbedContent::new(String::default()).description(
+			desc
+		);
+
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+		Ok(embed_contents)
 	}
 );
 

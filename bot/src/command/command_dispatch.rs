@@ -69,6 +69,7 @@ use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::time::Instant;
 use tracing::{debug, error, info, instrument, trace, warn};
+use crate::command::levels::stats::LevelsStatsCommand;
 
 /// Dispatches a command to the appropriate handler based on the command name.
 ///
@@ -803,7 +804,14 @@ pub async fn dispatch_command(
 			.await?
 		},
 
-		"levels_stats" => {},
+		"levels_stats" => {
+			LevelsStatsCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
 
 		// =====================================================================
 		// UNKNOWN COMMAND HANDLER

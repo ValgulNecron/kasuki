@@ -1,0 +1,26 @@
+{
+  "en": {
+    "vocal": "You did a total of {session} session on this server vocal channels",
+    "vocal_len": "You spend a total of {duration} second in a vocal on this server",
+    "message": "You sent a total of {message} message in this server",
+    "message_len": "You wrote a total of {char} character in the message sent on this server"
+  },
+  "fr": {
+    "vocal": "Vous avez effectué un total de {session} sessions sur les salons vocaux de ce serveur",
+    "vocal_len": "Vous avez passé un total de {duration} seconde(s) dans un salon vocal sur ce serveur",
+    "message": "Vous avez envoyé un total de {message} messages sur ce serveur",
+    "message_len": "Vous avez écrit un total de {char} caractères dans les messages envoyés sur ce serveur"
+  },
+  "de": {
+    "vocal": "Du hast insgesamt {session} Sitzungen in den Sprachkanälen dieses Servers gemacht",
+    "vocal_len": "Du hast insgesamt {duration} Sekunden in einem Sprachkanal auf diesem Server verbracht",
+    "message": "Du hast insgesamt {message} Nachrichten auf diesem Server gesendet",
+    "message_len": "Du hast insgesamt {char} Zeichen in den gesendeten Nachrichten auf diesem Server geschrieben"
+  },
+  "ja": {
+    "vocal": "このサーバーのボイスチャンネルで合計{session}回のセッションを行いました",
+    "vocal_len": "このサーバーのボイスチャンネルで合計{duration}秒過ごしました",
+    "message": "このサーバーで合計{message}件のメッセージを送信しました",
+    "message_len": "このサーバーで送信したメッセージの合計文字数は{char}文字です"
+  }
+}
