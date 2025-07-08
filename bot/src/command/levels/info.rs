@@ -16,19 +16,18 @@ use small_fixed_array::FixedString;
 use crate::structure::message::levels::stats::load_localization_levels_stats;
 
 #[derive(Clone)]
-pub struct LevelsStatsCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+pub struct LevelsInfoCommand {
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
-	for LevelsStatsCommand,
-	get_contents = |self_: LevelsStatsCommand| async move {
+	for LevelsInfoCommand,
+	get_contents = |self_: LevelsInfoCommand| async move {
 		self_.defer().await;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
-		let db_connection = bot_data.db_connection.clone();
 
 		let channels_id = command_interaction.guild_id.unwrap().channels(&ctx.http)
 			.await?;
@@ -72,12 +71,11 @@ impl_command!(
 			db_connection,
 		)
 		.await?;
+		
+		let xp = (total_message_len/10 + total_vocal_len/10) + (total_message + total_vocal );
+		
 
-		let desc = format!("{}\n{}\n{}\n{}", localization.vocal.replace("{session}", &total_vocal.to_string()),
-			localization.vocal_len.replace("{duration}", &total_vocal_len.to_string()),
-			localization.message.replace("{message}", &total_message.to_string()),
-			localization.message_len.replace("{char}",&total_message_len.to_string())
-		);
+		let desc = get_level(xp).to_string();
 		let embed_content = EmbedContent::new(String::default()).description(
 			desc
 		);
@@ -87,3 +85,18 @@ impl_command!(
 		Ok(embed_contents)
 	}
 );
+
+fn get_level(xp: i128) -> i32 {
+    match xp {
+        0..=1000 => 1,
+        1001..=3000 => 2,
+        3001..=5000 => 3,
+        5001..=8000 => 4,
+        8001..=13000 => 5,
+        13001..=21000 => 6,
+        21001..=34000 => 7,
+        34001..=55000 => 8,
+        55001..=89000 => 9,
+        _ => 10,
+    }
+}
