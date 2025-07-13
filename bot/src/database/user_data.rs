@@ -2,17 +2,10 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"user_data"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "user_data")]
 pub struct Model {
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub user_id: String,
 	pub username: String,
 	pub is_bot: bool,
@@ -20,67 +13,24 @@ pub struct Model {
 	pub added_at: DateTime,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	UserId,
-	Username,
-	IsBot,
-	Banner,
-	AddedAt,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	UserId,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = String;
-	fn auto_increment() -> bool {
-		false
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(has_many = "super::command_usage::Entity")]
 	CommandUsage,
+	#[sea_orm(has_one = "super::guild_subscription::Entity")]
 	GuildSubscription,
+	#[sea_orm(has_many = "super::message::Entity")]
 	Message,
+	#[sea_orm(has_one = "super::registered_user::Entity")]
 	RegisteredUser,
+	#[sea_orm(has_many = "super::server_user_relation::Entity")]
 	ServerUserRelation,
+	#[sea_orm(has_one = "super::user_color::Entity")]
 	UserColor,
+	#[sea_orm(has_one = "super::user_subscription::Entity")]
 	UserSubscription,
+	#[sea_orm(has_many = "super::vocal::Entity")]
 	Vocal,
-}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::UserId => ColumnType::String(StringLen::None).def(),
-			Self::Username => ColumnType::String(StringLen::None).def(),
-			Self::IsBot => ColumnType::Boolean.def(),
-			Self::Banner => ColumnType::String(StringLen::None).def(),
-			Self::AddedAt => ColumnType::DateTime.def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		match self {
-			Self::CommandUsage => Entity::has_many(super::command_usage::Entity).into(),
-			Self::GuildSubscription => Entity::has_one(super::guild_subscription::Entity).into(),
-			Self::Message => Entity::has_many(super::message::Entity).into(),
-			Self::RegisteredUser => Entity::has_one(super::registered_user::Entity).into(),
-			Self::ServerUserRelation => {
-				Entity::has_many(super::server_user_relation::Entity).into()
-			},
-			Self::UserColor => Entity::has_one(super::user_color::Entity).into(),
-			Self::UserSubscription => Entity::has_one(super::user_subscription::Entity).into(),
-			Self::Vocal => Entity::has_many(super::vocal::Entity).into(),
-		}
-	}
 }
 
 impl Related<super::command_usage::Entity> for Entity {

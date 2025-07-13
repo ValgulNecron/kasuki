@@ -66,6 +66,7 @@ use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;
 use lavalink_rs::prelude::NodeDistributionStrategy;
+use crate::helper::load_items::load_items_from_json;
 
 pub struct Handler;
 
@@ -629,6 +630,8 @@ impl Handler {
 
 			command_registration(&ctx.http, remove_old_command).await;
 		}
+		let db = bot_data.db_connection.clone();
+		load_items_from_json(&db).await;
 	}
 
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {

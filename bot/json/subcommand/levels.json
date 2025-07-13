@@ -37,32 +37,6 @@
           "desc": "ユーザー統計を取得します。"
         }
       ]
-    },
-    {
-      "name": "info",
-      "desc": "Get the user level.",
-      "localised": [
-        {
-          "code": "en-US",
-          "name": "info",
-          "desc": "Get the user level."
-        },
-        {
-          "code": "fr",
-          "name": "info",
-          "desc": "Obtenir le niveau de l'utilisateur."
-        },
-        {
-          "code": "de",
-          "name": "infos",
-          "desc": "Ermitteln Sie die Benutzerebene."
-        },
-        {
-          "code": "ja",
-          "name": "インフォ",
-          "desc": "ユーザーレベルを取得する。"
-        }
-      ]
     }
       ],
 "localised": [

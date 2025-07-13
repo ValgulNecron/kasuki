@@ -1,8 +1,6 @@
-use crate::config::DbConfig;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::activity_data::{Column, Model};
 use crate::database::prelude::ActivityData;
-use crate::get_url;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::{Result, anyhow};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};

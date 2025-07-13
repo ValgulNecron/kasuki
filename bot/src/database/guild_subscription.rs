@@ -2,76 +2,29 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"guild_subscription"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "guild_subscription")]
 pub struct Model {
+	#[sea_orm(primary_key, auto_increment = false, unique)]
 	pub guild_id: String,
 	pub entitlement_id: String,
+	#[sea_orm(primary_key, auto_increment = false, unique)]
 	pub sku_id: String,
 	pub created_at: DateTime,
 	pub updated_at: DateTime,
 	pub expired_at: DateTime,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	GuildId,
-	EntitlementId,
-	SkuId,
-	CreatedAt,
-	UpdatedAt,
-	ExpiredAt,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	GuildId,
-	SkuId,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = (String, String);
-	fn auto_increment() -> bool {
-		false
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(
+		belongs_to = "super::user_data::Entity",
+		from = "Column::GuildId",
+		to = "super::user_data::Column::UserId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
 	UserData,
-}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::GuildId => ColumnType::String(StringLen::None).def().unique(),
-			Self::EntitlementId => ColumnType::String(StringLen::None).def(),
-			Self::SkuId => ColumnType::String(StringLen::None).def().unique(),
-			Self::CreatedAt => ColumnType::DateTime.def(),
-			Self::UpdatedAt => ColumnType::DateTime.def(),
-			Self::ExpiredAt => ColumnType::DateTime.def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		match self {
-			Self::UserData => Entity::belongs_to(super::user_data::Entity)
-				.from(Column::GuildId)
-				.to(super::user_data::Column::UserId)
-				.into(),
-		}
-	}
 }
 
 impl Related<super::user_data::Entity> for Entity {

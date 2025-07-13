@@ -2,59 +2,16 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"random_stats"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "random_stats")]
 pub struct Model {
+	#[sea_orm(primary_key)]
 	pub id: i32,
 	pub last_anime_page: i32,
 	pub last_manga_page: i32,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	Id,
-	LastAnimePage,
-	LastMangaPage,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	Id,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = i32;
-	fn auto_increment() -> bool {
-		true
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::Id => ColumnType::Integer.def(),
-			Self::LastAnimePage => ColumnType::Integer.def(),
-			Self::LastMangaPage => ColumnType::Integer.def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		panic!("No RelationDef")
-	}
-}
 
 impl ActiveModelBehavior for ActiveModel {}

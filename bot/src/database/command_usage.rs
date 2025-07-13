@@ -2,77 +2,33 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"command_usage"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "command_usage")]
 pub struct Model {
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub command: String,
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub user: String,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	Command,
-	User,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	Command,
-	User,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = (String, String);
-	fn auto_increment() -> bool {
-		false
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(
+		belongs_to = "super::command_list::Entity",
+		from = "(Column::Command, Column::Command, Column::Command, Column::Command)",
+		to = "(super::command_list::Column::CommandName, super::command_list::Column::CommandName)",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
 	CommandList,
+	#[sea_orm(
+		belongs_to = "super::user_data::Entity",
+		from = "Column::User",
+		to = "super::user_data::Column::UserId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
 	UserData,
-}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::Command => ColumnType::String(StringLen::None).def(),
-			Self::User => ColumnType::String(StringLen::None).def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		match self {
-			Self::CommandList => Entity::belongs_to(super::command_list::Entity)
-				.from((
-					Column::Command,
-					Column::Command,
-					Column::Command,
-					Column::Command,
-				))
-				.to((
-					super::command_list::Column::CommandName,
-					super::command_list::Column::CommandName,
-				))
-				.into(),
-			Self::UserData => Entity::belongs_to(super::user_data::Entity)
-				.from(Column::User)
-				.to(super::user_data::Column::UserId)
-				.into(),
-		}
-	}
 }
 
 impl Related<super::command_list::Entity> for Entity {

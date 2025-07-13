@@ -1,7 +1,6 @@
 use crate::command::embed_content::{
 	CommandType, ComponentVersion, ComponentVersion1, EmbedsContents,
 };
-use crate::command::levels::stats::LevelsStatsCommand;
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
@@ -59,7 +58,8 @@ impl<T: Command> CommandRun for T {
 		let mut has_embed = false;
 		for embed_content in contents.embed_contents {
 			has_embed = true;
-			let mut embed = get_default_embed(embed_content.colour)
+			let user_color = &self.get_command_interaction().user.accent_colour;
+			let mut embed = get_default_embed(embed_content.colour,user_color)
 				.title(embed_content.title)
 				.fields(embed_content.fields);
 

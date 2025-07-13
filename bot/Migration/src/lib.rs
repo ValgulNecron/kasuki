@@ -21,6 +21,8 @@ mod m20250312_195747_update_unique;
 mod m20250630_200300_message;
 mod m20250630_200400_vocal;
 mod m20250701_204100_update_module;
+mod m20250712_120900_create_item;
+mod m20250712_120918_create_inventory;
 
 pub struct Migrator;
 
@@ -49,6 +51,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20250630_200300_message::Migration),
             Box::new(m20250630_200400_vocal::Migration),
             Box::new(m20250701_204100_update_module::Migration),
+            Box::new(m20250712_120900_create_item::Migration),
+            Box::new(m20250712_120918_create_inventory::Migration),
         ]
     }
 }

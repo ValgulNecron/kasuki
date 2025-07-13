@@ -5,10 +5,21 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct LevelsStatsLocalised {
+    pub title: String,
+    pub vocal_title: String,
     pub vocal: String,
     pub vocal_len: String,
+    pub message_title: String,
     pub message: String,
     pub message_len: String,
+    pub xp_title: String,
+    pub xp_message: String,
+    pub xp_message_len: String,
+    pub xp_vocal: String,
+    pub xp_vocal_len: String,
+    pub xp_total: String,
+    pub level_progress_title: String,
+    pub level_progress: String,
 }
 
 use anyhow::Result;

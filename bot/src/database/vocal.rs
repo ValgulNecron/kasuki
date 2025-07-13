@@ -2,17 +2,10 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"vocal"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "vocal")]
 pub struct Model {
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub id: String,
 	pub user_id: String,
 	pub start: DateTime,
@@ -21,56 +14,16 @@ pub struct Model {
 	pub channel_id: String,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	Id,
-	UserId,
-	Start,
-	End,
-	Duration,
-	ChannelId,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	Id,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = String;
-	fn auto_increment() -> bool {
-		false
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+	#[sea_orm(
+		belongs_to = "super::user_data::Entity",
+		from = "Column::UserId",
+		to = "super::user_data::Column::UserId",
+		on_update = "Cascade",
+		on_delete = "Cascade"
+	)]
 	UserData,
-}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::Id => ColumnType::String(StringLen::None).def(),
-			Self::UserId => ColumnType::String(StringLen::None).def(),
-			Self::Start => ColumnType::DateTime.def(),
-			Self::End => ColumnType::DateTime.def(),
-			Self::Duration => ColumnType::Integer.def(),
-			Self::ChannelId => ColumnType::String(StringLen::None).def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		match self {
-			Self::UserData => Entity::belongs_to(super::user_data::Entity)
-				.from(Column::UserId)
-				.to(super::user_data::Column::UserId)
-				.into(),
-		}
-	}
 }
 
 impl Related<super::user_data::Entity> for Entity {

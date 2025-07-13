@@ -2,60 +2,17 @@
 
 use sea_orm::entity::prelude::*;
 
-#[derive(Copy, Clone, Default, Debug, DeriveEntity)]
-pub struct Entity;
-
-impl EntityName for Entity {
-	fn table_name(&self) -> &str {
-		"ping_history"
-	}
-}
-
-#[derive(Clone, Debug, PartialEq, DeriveModel, DeriveActiveModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[sea_orm(table_name = "ping_history")]
 pub struct Model {
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub shard_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
 	pub timestamp: DateTime,
 	pub latency: String,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
-pub enum Column {
-	ShardId,
-	Timestamp,
-	Latency,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DerivePrimaryKey)]
-pub enum PrimaryKey {
-	ShardId,
-	Timestamp,
-}
-
-impl PrimaryKeyTrait for PrimaryKey {
-	type ValueType = (String, DateTime);
-	fn auto_increment() -> bool {
-		false
-	}
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
-
-impl ColumnTrait for Column {
-	type EntityName = Entity;
-	fn def(&self) -> ColumnDef {
-		match self {
-			Self::ShardId => ColumnType::String(StringLen::None).def(),
-			Self::Timestamp => ColumnType::DateTime.def(),
-			Self::Latency => ColumnType::String(StringLen::None).def(),
-		}
-	}
-}
-
-impl RelationTrait for Relation {
-	fn def(&self) -> RelationDef {
-		panic!("No RelationDef")
-	}
-}
 
 impl ActiveModelBehavior for ActiveModel {}

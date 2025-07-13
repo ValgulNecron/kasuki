@@ -5,7 +5,6 @@ use std::sync::Arc;
 use tracing::trace;
 
 use crate::components::anilist::{list_all_activity, list_register_user};
-use crate::config::DbConfig;
 
 pub async fn components_dispatching(
 	ctx: SerenityContext, component_interaction: ComponentInteraction,
@@ -22,7 +21,6 @@ pub async fn components_dispatching(
 				&component_interaction,
 				user_id,
 				prev_id,
-				db_connection,
 			)
 			.await?
 		},

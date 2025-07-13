@@ -113,7 +113,7 @@ async fn send_specific_activity(
 
 	webhook.edit(&ctx.http, edit_webhook).await?;
 
-	let embed = get_default_embed(None)
+	let embed = get_default_embed(None, &None)
 		.description(
 			localised_text
 				.desc
