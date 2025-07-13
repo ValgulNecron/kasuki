@@ -23,6 +23,7 @@ mod m20250630_200400_vocal;
 mod m20250701_204100_update_module;
 mod m20250712_120900_create_item;
 mod m20250712_120918_create_inventory;
+mod m20250713_181925_remove_max_quantity;
 
 pub struct Migrator;
 
@@ -53,6 +54,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250701_204100_update_module::Migration),
             Box::new(m20250712_120900_create_item::Migration),
             Box::new(m20250712_120918_create_inventory::Migration),
+            Box::new(m20250713_181925_remove_max_quantity::Migration),
         ]
     }
 }

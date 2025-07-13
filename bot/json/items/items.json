@@ -7,7 +7,6 @@
       "price": 10,
       "minimum_rarity": 1,
       "maximum_rarity": 3,
-      "max_number": 999,
       "type": "minigame",
       "base_xp_boost": 0.05,
       "weight": 10
@@ -19,7 +18,6 @@
       "price": 50,
       "minimum_rarity": 2,
       "maximum_rarity": 4,
-      "max_number": 100,
       "type": "minigame",
       "base_xp_boost": 0.1,
       "weight": 5
@@ -31,7 +29,6 @@
       "price": 200,
       "minimum_rarity": 4,
       "maximum_rarity": 5,
-      "max_number": 10,
       "type": "minigame",
       "base_xp_boost": 0.25,
       "weight": 2
@@ -43,7 +40,6 @@
       "price": 150,
       "minimum_rarity": 3,
       "maximum_rarity": 5,
-      "max_number": 20,
       "type": "shop",
       "base_xp_boost": 0.1,
       "weight": 6
@@ -55,7 +51,6 @@
       "price": 0,
       "minimum_rarity": 3,
       "maximum_rarity": 5,
-      "max_number": 5,
       "type": "quest",
       "base_xp_boost": 0.2,
       "weight": 4
@@ -67,7 +62,6 @@
       "price": 0,
       "minimum_rarity": 4,
       "maximum_rarity": 5,
-      "max_number": 3,
       "type": "event",
       "base_xp_boost": 0.3,
       "weight": 1
@@ -79,7 +73,6 @@
       "price": 5,
       "minimum_rarity": 1,
       "maximum_rarity": 2,
-      "max_number": 500,
       "type": "fish",
       "base_xp_boost": 0.02,
       "weight": 200
@@ -91,7 +84,6 @@
       "price": 25,
       "minimum_rarity": 2,
       "maximum_rarity": 3,
-      "max_number": 200,
       "type": "fish",
       "base_xp_boost": 0.08,
       "weight": 80
@@ -103,7 +95,6 @@
       "price": 75,
       "minimum_rarity": 3,
       "maximum_rarity": 4,
-      "max_number": 50,
       "type": "fish",
       "base_xp_boost": 0.15,
       "weight": 30
@@ -115,7 +106,6 @@
       "price": 150,
       "minimum_rarity": 4,
       "maximum_rarity": 5,
-      "max_number": 15,
       "type": "fish",
       "base_xp_boost": 0.25,
       "weight": 15
@@ -127,7 +117,6 @@
       "price": 300,
       "minimum_rarity": 5,
       "maximum_rarity": 5,
-      "max_number": 5,
       "type": "fish",
       "base_xp_boost": 0.5,
       "weight": 5
@@ -139,7 +128,6 @@
       "price": 500,
       "minimum_rarity": 5,
       "maximum_rarity": 5,
-      "max_number": 1,
       "type": "fish",
       "base_xp_boost": 1.0,
       "weight": 2
@@ -151,7 +139,6 @@
       "price": 8,
       "minimum_rarity": 1,
       "maximum_rarity": 2,
-      "max_number": 450,
       "type": "fish",
       "base_xp_boost": 0.03,
       "weight": 190
@@ -163,7 +150,6 @@
       "price": 10,
       "minimum_rarity": 1,
       "maximum_rarity": 2,
-      "max_number": 400,
       "type": "fish",
       "base_xp_boost": 0.04,
       "weight": 180
@@ -175,7 +161,6 @@
       "price": 35,
       "minimum_rarity": 2,
       "maximum_rarity": 3,
-      "max_number": 180,
       "type": "fish",
       "base_xp_boost": 0.1,
       "weight": 70
@@ -187,7 +172,6 @@
       "price": 45,
       "minimum_rarity": 2,
       "maximum_rarity": 3,
-      "max_number": 150,
       "type": "fish",
       "base_xp_boost": 0.12,
       "weight": 60
@@ -199,7 +183,6 @@
       "price": 90,
       "minimum_rarity": 3,
       "maximum_rarity": 4,
-      "max_number": 40,
       "type": "fish",
       "base_xp_boost": 0.18,
       "weight": 25
@@ -211,7 +194,6 @@
       "price": 110,
       "minimum_rarity": 3,
       "maximum_rarity": 4,
-      "max_number": 30,
       "type": "fish",
       "base_xp_boost": 0.2,
       "weight": 20
@@ -223,7 +205,6 @@
       "price": 180,
       "minimum_rarity": 4,
       "maximum_rarity": 5,
-      "max_number": 12,
       "type": "fish",
       "base_xp_boost": 0.3,
       "weight": 12
@@ -235,7 +216,6 @@
       "price": 220,
       "minimum_rarity": 4,
       "maximum_rarity": 5,
-      "max_number": 10,
       "type": "fish",
       "base_xp_boost": 0.35,
       "weight": 10
@@ -247,7 +227,6 @@
       "price": 350,
       "minimum_rarity": 5,
       "maximum_rarity": 5,
-      "max_number": 4,
       "type": "fish",
       "base_xp_boost": 0.6,
       "weight": 4
@@ -259,7 +238,6 @@
       "price": 400,
       "minimum_rarity": 5,
       "maximum_rarity": 5,
-      "max_number": 3,
       "type": "fish",
       "base_xp_boost": 0.7,
       "weight": 3
@@ -271,7 +249,6 @@
       "price": 600,
       "minimum_rarity": 5,
       "maximum_rarity": 5,
-      "max_number": 1,
       "type": "fish",
       "base_xp_boost": 0.9,
       "weight": 1

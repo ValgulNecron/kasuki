@@ -12,7 +12,6 @@ pub struct Model {
 	pub price: i32,
 	pub minimum_rarity: i32,
 	pub maximum_rarity: i32,
-	pub max_number: i32,
 	pub r#type: String,
 	#[sea_orm(column_type = "Float")]
 	pub base_xp_boost: f32,
