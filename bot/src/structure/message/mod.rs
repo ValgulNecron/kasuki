@@ -8,6 +8,7 @@ pub mod bot;
 pub mod common;
 pub mod game;
 pub mod management;
+pub mod minigame;
 pub mod music;
 pub mod server;
 pub mod user;

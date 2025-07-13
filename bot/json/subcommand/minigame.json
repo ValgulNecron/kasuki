@@ -1,0 +1,116 @@
+{
+  "name": "minigame",
+  "desc": "Commands for playing minigames and managing your inventory.",
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
+  "nsfw": false,
+  "command": [
+    {
+      "name": "fishing",
+      "desc": "Go fishing to catch random fish.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "fishing",
+          "desc": "Go fishing to catch random fish."
+        },
+        {
+          "code": "fr",
+          "name": "peche",
+          "desc": "Allez pêcher pour attraper des poissons aléatoires."
+        },
+        {
+          "code": "de",
+          "name": "angeln",
+          "desc": "Gehen Sie angeln, um zufällige Fische zu fangen."
+        },
+        {
+          "code": "ja",
+          "name": "釣り",
+          "desc": "釣りをしてランダムな魚を捕まえましょう。"
+        }
+      ]
+    },
+    {
+      "name": "inventory",
+      "desc": "View your inventory of items.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "inventory",
+          "desc": "View your inventory of items."
+        },
+        {
+          "code": "fr",
+          "name": "inventaire",
+          "desc": "Consultez votre inventaire d'objets."
+        },
+        {
+          "code": "de",
+          "name": "inventar",
+          "desc": "Sehen Sie sich Ihr Inventar an."
+        },
+        {
+          "code": "ja",
+          "name": "インベントリ",
+          "desc": "アイテムのインベントリを表示します。"
+        }
+      ]
+    },
+    {
+      "name": "fish_inventory",
+      "desc": "View a detailed inventory of all your fish with rarity information.",
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "fish_inventory",
+          "desc": "View a detailed inventory of all your fish with rarity information."
+        },
+        {
+          "code": "fr",
+          "name": "inventaire_poisson",
+          "desc": "Consultez un inventaire détaillé de tous vos poissons avec des informations sur leur rareté."
+        },
+        {
+          "code": "de",
+          "name": "fisch_inventar",
+          "desc": "Sehen Sie sich ein detailliertes Inventar all Ihrer Fische mit Seltenheitsinformationen an."
+        },
+        {
+          "code": "ja",
+          "name": "魚のインベントリ",
+          "desc": "レア度情報を含むすべての魚の詳細なインベントリを表示します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "minigame",
+      "desc": "Commands for playing minigames and managing your inventory."
+    },
+    {
+      "code": "fr",
+      "name": "mini-jeu",
+      "desc": "Commandes pour jouer à des mini-jeux et gérer votre inventaire."
+    },
+    {
+      "code": "de",
+      "name": "minispiel",
+      "desc": "Befehle zum Spielen von Minispielen und zur Verwaltung Ihres Inventars."
+    },
+    {
+      "code": "ja",
+      "name": "ミニゲーム",
+      "desc": "ミニゲームをプレイしてインベントリを管理するためのコマンド。"
+    }
+  ]
+}

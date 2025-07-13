@@ -70,6 +70,9 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::time::Instant;
 use tracing::{debug, error, info, instrument, trace, warn};
 use crate::command::levels::stats::LevelsStatsCommand;
+use crate::command::minigame::fishing::FishingCommand;
+use crate::command::minigame::fish_inventory::FishInventoryCommand;
+use crate::command::minigame::inventory::InventoryCommand;
 
 /// Dispatches a command to the appropriate handler based on the command name.
 ///
@@ -804,8 +807,35 @@ pub async fn dispatch_command(
 			.await?
 		},
 
-		"levels_stats" => {
+  "levels_stats" => {
 			LevelsStatsCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+		"minigame_fishing" => {
+			FishingCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+  "minigame_inventory" => {
+			InventoryCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+		"minigame_fish_inventory" => {
+			FishInventoryCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}

@@ -12,6 +12,7 @@ pub mod bot;
 pub mod command_dispatch;
 pub mod embed_content;
 pub mod levels;
+pub mod minigame;
 pub mod management;
 mod message_command_dispatch;
 pub mod music;

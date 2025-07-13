@@ -24,8 +24,10 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(UserInventory::Size).integer().not_null())
                     .col(ColumnDef::new(UserInventory::Rarity).integer().not_null())
                     .col(ColumnDef::new(UserInventory::ItemXPBoost).float().not_null())
+                    .col(ColumnDef::new(UserInventory::Id).string().not_null())
                     .primary_key(
                         Index::create()
+                            .col(UserInventory::Id)
                             .col(UserInventory::ItemId)
                             .col(UserInventory::UserId)
                             .col(UserInventory::ServerId),
@@ -52,6 +54,7 @@ impl MigrationTrait for Migration {
 #[derive(DeriveIden)]
 pub enum UserInventory {
     Table,
+    Id,
     ItemId,
     UserId,
     ServerId,

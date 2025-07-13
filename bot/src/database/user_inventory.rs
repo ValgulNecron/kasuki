@@ -15,6 +15,8 @@ pub struct Model {
 	pub rarity: i32,
 	#[sea_orm(column_type = "Float")]
 	pub item_xp_boost: f32,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub id: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
