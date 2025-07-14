@@ -123,7 +123,7 @@ impl Command for RemoveTestSubCommand {
 		let embed_content = EmbedContent::new(String::new())
 			.description(localization.success.replace("{user}", &user.to_string()));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		Ok(embed_contents)
 	}

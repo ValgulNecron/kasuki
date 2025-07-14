@@ -146,7 +146,7 @@ impl Command for LangCommand {
 		let embed_content = EmbedContent::new(lang_localised.title.clone())
 			.description(lang_localised.desc.replace("$lang$", lang.as_str()));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		Ok(embed_contents)
 	}
