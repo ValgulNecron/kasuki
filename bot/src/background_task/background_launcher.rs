@@ -70,7 +70,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	// Extract shared resources that will be used by multiple background tasks
 	let anilist_cache = bot_data.anilist_cache.clone();
 	let apps = bot_data.apps.clone();
-	let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
+	let user_blacklist_server_image = bot_data.user_blacklist.clone();
 	let db_connection = bot_data.db_connection.clone();
 	let task_intervals = bot_data.config.task_intervals.clone();
 	let shutdown_signal = bot_data.shutdown_signal.clone();

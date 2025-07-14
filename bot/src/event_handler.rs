@@ -45,7 +45,7 @@ pub struct BotData {
 	pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
 	pub already_launched: RwLock<bool>,
 	pub apps: Arc<RwLock<HashMap<String, u128>>>,
-	pub user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
+	pub user_blacklist: Arc<RwLock<Vec<String>>>,
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Arc<Client>,
@@ -351,9 +351,16 @@ impl Handler {
 
 	async fn new_message(&self, ctx: SerenityContext, message: Message) {
 		let bot_data = ctx.data::<BotData>().clone();
+		let user_blacklist = bot_data.user_blacklist.clone();
+		let read_guard = user_blacklist.read().await;
+		let user_id = message.author.id;
+
+		if read_guard.contains(&user_id.to_string()) {
+			return
+		}
+
 		let db_connection = bot_data.db_connection.clone();
 		let message_id = message.id.to_string();
-		let user_id = message.author.id;
 		let data = message.content.to_string();
 		let length = data.len();
 		let channel_id = message.channel_id.to_string();
@@ -376,7 +383,7 @@ impl Handler {
 
 		let image_config = bot_data.config.image.clone();
 
-		let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
+		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 		let db_connection = bot_data.db_connection.clone();
 
 		if is_new.unwrap_or_default() {
@@ -417,7 +424,7 @@ impl Handler {
 	async fn guild_member_addition(&self, ctx: SerenityContext, member: Member) {
 		let bot_data = ctx.data::<BotData>().clone();
 
-		let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
+		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 
 		let guild_id = member.guild_id.to_string();
 
@@ -517,7 +524,7 @@ impl Handler {
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
 
-		let user_blacklist_server_image = bot_data.user_blacklist_server_image.clone();
+		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 
 		let user_id = new_data.user.id;
 

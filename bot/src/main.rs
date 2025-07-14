@@ -224,7 +224,7 @@ async fn main() {
 		vndb_cache,
 		already_launched: false.into(),
 		apps: Arc::new(Default::default()),
-		user_blacklist_server_image: Arc::new(Default::default()),
+		user_blacklist: Arc::new(Default::default()),
 		db_connection: Arc::new(connection),
 		manager: Arc::clone(&manager),
 		http_client: Arc::from(reqwest::Client::new()),
