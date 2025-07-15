@@ -1,9 +1,7 @@
 use anyhow::{anyhow, Result};
-use sea_orm::DatabaseConnection;
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
-use std::sync::Arc;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;

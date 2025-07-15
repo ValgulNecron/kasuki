@@ -1,5 +1,4 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::DbConfig;
 use crate::constant::UNKNOWN;
 use crate::database::anime_song::Column::AnilistId;
 use crate::database::prelude::AnimeSong;

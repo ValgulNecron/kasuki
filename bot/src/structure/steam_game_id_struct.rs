@@ -6,7 +6,7 @@ use anyhow::{Context as AnyhowContext, Result};
 use serde::Deserialize;
 use serde_json::Value;
 use tokio::sync::RwLock;
-use tracing::{debug, error, trace};
+use tracing::{debug, trace};
 
 // App is a struct that represents a Steam app
 #[derive(Debug, Deserialize, Clone)]

@@ -1,7 +1,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::item::{Entity as Item, Model as ItemModel};
-use crate::database::user_inventory::{ActiveModel as UserInventoryActiveModel, Entity as UserInventory};
+use crate::database::user_inventory::ActiveModel as UserInventoryActiveModel;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::minigame::fishing::load_localization_fishing;

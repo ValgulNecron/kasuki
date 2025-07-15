@@ -150,7 +150,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 
 			let mut retries = 0;
 			let max_retries = 5;
-			let mut raw_anisong: Vec<RawAniSongDB>;
+			let raw_anisong: Vec<RawAniSongDB>;
 
 			loop {
 				let rate_limit_start = Instant::now();

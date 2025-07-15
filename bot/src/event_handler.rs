@@ -22,7 +22,7 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, FullEvent, UserId, VoiceServerUpdateEvent, VoiceState};
+use serenity::all::{FullEvent, VoiceState};
 use serenity::all::{
 	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction,
 	Member, Message, Presence, Ready, ShardId, User,

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::config::DbConfig;
 use crate::constant::LANG_MAP;
 use crate::helper::get_guild_lang::get_guild_language;
 use anyhow::{Context, Result, anyhow};
