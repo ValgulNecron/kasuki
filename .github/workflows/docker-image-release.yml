@@ -39,9 +39,30 @@ jobs:
           context: bot
           file: bot/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64/v8
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest-amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
+
+      - name: Build and push arm64
+        id: docker_build_arm64
+        uses: docker/build-push-action@v6
+        with:
+          context: bot
+          file: bot/Dockerfile
+          push: true
+          platforms: linux/arm64/v8
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest-arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Create and push manifest
+        run: |
+          docker manifest create ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest-amd64 \
+            ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest-arm64
+          docker manifest push ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:latest
