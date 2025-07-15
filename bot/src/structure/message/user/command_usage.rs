@@ -1,6 +1,6 @@
-use crate::config::DbConfig;
 use crate::structure::message::common::load_localization;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
@@ -11,11 +11,12 @@ pub struct CommandUsageLocalised {
 }
 
 use anyhow::Result;
+use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_command_usage(
-	guild_id: String, db_config: DbConfig,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<CommandUsageLocalised> {
 	let path = "json/message/user/command_usage.json";
 
-	load_localization(guild_id, path, db_config).await
+	load_localization(guild_id, path, db_connection).await
 }

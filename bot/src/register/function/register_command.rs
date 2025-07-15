@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use serenity::all::{CommandType, CreateCommand, Http};
-use tracing::{error, trace};
+use tracing::{debug, error, trace};
 
 use crate::register::function::common::{
 	get_option, get_permission, get_vec, get_vec_installation_context, get_vec_integration_context,
@@ -67,6 +67,7 @@ async fn create_command(command: &Command, http: &Arc<Http>) {
 		Ok(_) => (),
 		Err(e) => {
 			error!("Failed to create command: {:?}", e);
+			debug!("{:?}", command);
 		},
 	}
 }

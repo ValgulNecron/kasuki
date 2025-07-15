@@ -137,7 +137,7 @@ impl Command for StaffCommand {
 	/// # Note
 	/// This function assumes that staff data and localization data are well-formed and available.
 	/// Unavailable or malformed data will be replaced with fallback values (e.g., "Unknown").
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -193,7 +193,9 @@ impl Command for StaffCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let staff_localised = load_localization_staff(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let staff_localised = load_localization_staff(guild_id, db_connection).await?;
 
 		let mut fields = vec![
 			(staff_localised.media, media, true),

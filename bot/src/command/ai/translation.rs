@@ -219,7 +219,7 @@ impl Command for TranslationCommand {
 	///
 	/// # Thread Safety
 	/// This function is marked as asynchronous (`async`) and is designed to be executed within an asynchronous runtime. Ensure that concurrency considerations are respected when invoking this function across multiple tasks.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -372,8 +372,9 @@ impl Command for TranslationCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let translation_localised =
-			load_localization_translation(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let translation_localised = load_localization_translation(guild_id, db_connection).await?;
 
 		let embed_content =
 			EmbedContent::new(translation_localised.title).description(text.to_string());

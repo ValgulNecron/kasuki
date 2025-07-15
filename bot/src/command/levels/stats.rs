@@ -1,0 +1,299 @@
+use crate::command::command::{Command, CommandRun};
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::constant::COLOR;
+use crate::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
+use crate::database::{message, vocal};
+use crate::event_handler::BotData;
+use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
+use crate::impl_command;
+use crate::structure::message::levels::stats::load_localization_levels_stats;
+use anyhow::{anyhow, Result};
+use sea_orm::EntityTrait;
+use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, Condition};
+use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
+use serenity::model::Colour;
+use uuid::Uuid;
+
+#[derive(Clone)]
+pub struct LevelsStatsCommand {
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
+}
+
+impl_command!(
+	for LevelsStatsCommand,
+	get_contents = |self_: LevelsStatsCommand| async move {
+		self_.defer().await;
+		let ctx = self_.get_ctx();
+		let bot_data = ctx.data::<BotData>().clone();
+		let command_interaction = self_.get_command_interaction();
+
+		let channels_id = command_interaction.guild_id.unwrap().channels(&ctx.http)
+			.await?;
+		let vec_channel_id: Vec<ChannelId> = channels_id.iter().map(|a| a.id).collect();
+		let vec_string: Vec<String> = vec_channel_id.iter().map(|id| id.to_string()).collect();
+		let user_id = command_interaction.user.id.to_string();
+
+		let condition = Condition::all()
+			.add(message::Column::UserId.eq(user_id.clone()))
+			.add(message::Column::ChannelId.is_in(vec_string.clone()));
+
+        let db_connection = bot_data.db_connection.clone();
+
+		let messages = DatabaseMessage::find()
+            .filter(condition)
+		    .all(&*db_connection)
+	        .await?;
+
+		let total_message = messages.len()  as i128;
+		let mut total_message_len: i128 = 0;
+		for message in messages {
+			total_message_len += message.chat_length  as i128;
+		}
+
+		let condition = Condition::all()
+			.add(vocal::Column::UserId.eq(user_id))
+			.add(vocal::Column::ChannelId.is_in(vec_string));
+		let vocals = DatabaseVocal::find()
+		.filter(condition)
+		.all(&*db_connection)
+		.await?;
+
+		let total_vocal = vocals.len() as i128;
+		let mut total_vocal_len: i128 = 0;
+		for vocal in vocals {
+			total_vocal_len += vocal.duration  as i128;
+		}
+
+		// Convert seconds to hours, minutes, seconds
+		let hours = total_vocal_len / 3600;
+		let minutes = (total_vocal_len % 3600) / 60;
+		let seconds = total_vocal_len % 60;
+
+		// Calculate XP components
+		let xp_message = total_message;
+		let xp_message_len = total_message_len / 10;
+		let xp_vocal = total_vocal;
+		let xp_vocal_len = total_vocal_len / 10;
+
+		// Calculate total XP and level
+		let xp = xp_message_len + xp_vocal_len + xp_message + xp_vocal;
+		let level = get_level(xp);
+
+		// Calculate level progression
+		let current_level_xp = get_xp_for_level(level);
+		let next_level_xp = get_xp_for_next_level(level);
+		let xp_progress = xp - current_level_xp;
+		let xp_needed = next_level_xp - current_level_xp;
+
+		// Create progress bar with user color
+		let user_color = command_interaction.user.accent_colour;
+		let (progress_file, percent) = create_progress_bar(xp_progress, xp_needed, user_color).await?;
+		let progress_filename = format!("attachment://{}", progress_file.filename.clone());
+
+		let localization = load_localization_levels_stats(
+			command_interaction.guild_id.unwrap().to_string(),
+			db_connection,
+		)
+		.await?;
+
+		// Format numbers with commas for better readability
+		let formatted_message_count = format!("{}", total_message);
+		let formatted_char_count = format!("{}", total_message_len);
+		let formatted_session_count = format!("{}", total_vocal);
+
+		// Format XP values
+		let formatted_xp_message = format!("{}", xp_message);
+		let formatted_xp_message_len = format!("{}", xp_message_len);
+		let formatted_xp_vocal = format!("{}", xp_vocal);
+		let formatted_xp_vocal_len = format!("{}", xp_vocal_len);
+		let formatted_xp_total = format!("{}", xp);
+
+		// Format level progression values
+		let formatted_current_xp = format!("{}", xp_progress);
+		let formatted_next_level_xp = format!("{}", xp_needed);
+		let next_level = level + 1;
+
+		// Create embed with title and fields
+		let embed_content = EmbedContent::new(localization.title.clone())
+			.images_url(progress_filename)
+			.fields(vec![
+				// Level Information
+				(format!("Level {}", level), String::new(), false),
+
+				// Level Progression Section
+				(localization.level_progress_title.clone(), String::new(), false),
+				(
+					localization.level_progress
+						.replace("{current_level}", &level.to_string())
+						.replace("{next_level}", &next_level.to_string())
+						.replace("{current_xp}", &formatted_current_xp)
+						.replace("{next_level_xp}", &formatted_next_level_xp)
+						.replace("{percent}", &percent.to_string()),
+					String::new(),
+					false
+				),
+
+				// Voice Activity Section
+				(localization.vocal_title.clone(), String::new(), false),
+				(
+					localization.vocal.replace("{session}", &formatted_session_count),
+					String::new(),
+					true
+				),
+				(
+					localization.vocal_len
+						.replace("{hours}", &hours.to_string())
+						.replace("{minutes}", &minutes.to_string())
+						.replace("{seconds}", &seconds.to_string()),
+					String::new(),
+					true
+				),
+				// Message Activity Section
+				(localization.message_title.clone(), String::new(), false),
+				(
+					localization.message.replace("{message}", &formatted_message_count),
+					String::new(),
+					true
+				),
+				(
+					localization.message_len.replace("{char}", &formatted_char_count),
+					String::new(),
+					true
+				),
+				// XP Breakdown Section
+				(localization.xp_title.clone(), String::new(), false),
+				(
+					localization.xp_message.replace("{xp}", &formatted_xp_message),
+					String::new(),
+					true
+				),
+				(
+					localization.xp_message_len.replace("{xp}", &formatted_xp_message_len),
+					String::new(),
+					true
+				),
+				(
+					localization.xp_vocal.replace("{xp}", &formatted_xp_vocal),
+					String::new(),
+					true
+				),
+				(
+					localization.xp_vocal_len.replace("{xp}", &formatted_xp_vocal_len),
+					String::new(),
+					true
+				),
+				(
+					localization.xp_total.replace("{xp}", &formatted_xp_total),
+					String::new(),
+					false
+				)
+			]);
+
+		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		embed_contents.add_file(progress_file);
+
+		Ok(embed_contents)
+	}
+);
+
+fn get_level(xp: i128) -> i32 {
+    match xp {
+        0..=500 => 1,
+        501..=1500 => 2,
+        1501..=3000 => 3,
+        3001..=5000 => 4,
+        5001..=8000 => 5,
+        8001..=12000 => 6,
+        12001..=17000 => 7,
+        17001..=23000 => 8,
+        23001..=30000 => 9,
+        30001..=38000 => 10,
+        38001..=47000 => 11,
+        47001..=57000 => 12,
+        57001..=68000 => 13,
+        68001..=80000 => 14,
+        80001..=93000 => 15,
+        93001..=107000 => 16,
+        107001..=122000 => 17,
+        122001..=138000 => 18,
+        138001..=155000 => 19,
+        _ => 20,
+    }
+}
+
+fn get_xp_for_level(level: i32) -> i128 {
+    match level {
+        1 => 0,
+        2 => 501,
+        3 => 1501,
+        4 => 3001,
+        5 => 5001,
+        6 => 8001,
+        7 => 12001,
+        8 => 17001,
+        9 => 23001,
+        10 => 30001,
+        11 => 38001,
+        12 => 47001,
+        13 => 57001,
+        14 => 68001,
+        15 => 80001,
+        16 => 93001,
+        17 => 107001,
+        18 => 122001,
+        19 => 138001,
+        20 => 155001,
+        _ => 155001, // Cap at level 20
+    }
+}
+
+fn get_xp_for_next_level(level: i32) -> i128 {
+    match level {
+        1 => 501,
+        2 => 1501,
+        3 => 3001,
+        4 => 5001,
+        5 => 8001,
+        6 => 12001,
+        7 => 17001,
+        8 => 23001,
+        9 => 30001,
+        10 => 38001,
+        11 => 47001,
+        12 => 57001,
+        13 => 68001,
+        14 => 80001,
+        15 => 93001,
+        16 => 107001,
+        17 => 122001,
+        18 => 138001,
+        19 => 155001,
+        _ => 999999, // No next level after 20
+    }
+}
+
+async fn create_progress_bar(current: i128, max: i128, user_color: Option<Colour>) -> Result<(CommandFiles, i32)> {
+    // Calculate percentage
+    let percent = if max > 0 { ((current as f64 / max as f64) * 100.0) as i32 } else { 100 };
+
+    // Ensure percentage is between 0 and 100
+    let percent = percent.max(0).min(100);
+
+	let color = user_color.unwrap_or(COLOR);
+	let rgb_color = [color.r(), color.b(), color.g(),255];
+
+    // Generate the progress bar image with the user's color or default color
+    let image_data = generate_progress_bar_image_in_memory(percent as u32, rgb_color)
+        .map_err(|e| anyhow!("Failed to generate progress bar image: {}", e))?;
+
+    // Generate a unique filename for the attachment
+    let uuid = Uuid::new_v4();
+    let filename = format!("progress_{}.png", uuid);
+
+    // Create the CommandFiles object
+    let file = CommandFiles::new(filename.clone(), image_data);
+
+    Ok((file, percent))
+}

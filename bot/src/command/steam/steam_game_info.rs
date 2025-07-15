@@ -91,19 +91,18 @@
 //!     // Process and use the retrieved SteamGameWrapper.
 //! }
 //! ```
-use anyhow::{Result, anyhow};
-use std::collections::HashMap;
-use std::sync::Arc;
-
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
+use anyhow::{Result, anyhow};
+use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
+use std::collections::HashMap;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 /// A struct representing a command to fetch Steam game information.
@@ -232,25 +231,26 @@ impl Command for SteamGameInfoCommand {
 	///
 	/// - Ensure the `BotData` context is configured correctly with necessary Steam API credentials and application data.
 	/// - This function assumes certain responses from the Steam API match the expected schema; modifications to the schema may require code updates.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
+		let db_connection = bot_data.db_connection.clone();
 		let data = get_steam_game(
 			bot_data.apps.clone(),
 			self.command_interaction.clone(),
-			bot_data.config.clone(),
+			db_connection,
 		)
 		.await?;
 		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
 
 		let guild_id = command_interaction
 			.guild_id
 			.unwrap_or(GuildId::from(0))
 			.to_string();
+		let db_connection = bot_data.db_connection.clone();
 
 		let steam_game_info_localised =
-			load_localization_steam_game_info(guild_id.clone(), config.db.clone()).await?;
+			load_localization_steam_game_info(guild_id.clone(), db_connection).await?;
 
 		let game = data.data;
 
@@ -463,7 +463,7 @@ impl Command for SteamGameInfoCommand {
 /// ```
 async fn get_steam_game(
 	apps: Arc<RwLock<HashMap<String, u128>>>, command_interaction: CommandInteraction,
-	config: Arc<Config>,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<SteamGameWrapper> {
 	let guild_id = command_interaction
 		.guild_id
@@ -477,10 +477,10 @@ async fn get_steam_game(
 		.ok_or(anyhow!("No option for game_name"))?;
 
 	let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-		SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, config.db.clone())
+		SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_connection)
 			.await?
 	} else {
-		SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, config.db.clone()).await?
+		SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, db_connection).await?
 	};
 
 	Ok(data)

@@ -133,7 +133,7 @@ impl Command for QueueCommand {
 	/// - The function ensures the bot's state and player's context are properly validated before
 	///   attempting to retrieve or format the music queue.
 	/// - A maximum of 9 tracks are included in the queue message to limit excessive output.
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -143,10 +143,10 @@ impl Command for QueueCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let queue_localised =
-			load_localization_queue(guild_id_str, bot_data.config.db.clone()).await?;
+		let queue_localised = load_localization_queue(guild_id_str, db_connection).await?;
 
 		let command_interaction = self.get_command_interaction();
 

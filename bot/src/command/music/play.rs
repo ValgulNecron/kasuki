@@ -14,12 +14,12 @@
 //!
 //! This struct implements the `Command
 use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::command::embed_content::EmbedsContents;
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::message::music::play::load_localization_play;
-use anyhow::anyhow;
+use anyhow::{Context, anyhow};
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -88,7 +88,7 @@ impl Command for PlayCommand {
 	/// 3. Extract the guild ID from the command interaction and fetch localization settings.
 	/// 4. Validate and utilize the Lavalink client for music-related functionalities.
 	/// 5. Retrieve the search query input
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -100,10 +100,10 @@ impl Command for PlayCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let play_localised =
-			load_localization_play(guild_id_str, bot_data.config.db.clone()).await?;
+		let play_localised = load_localization_play(guild_id_str, db_connection).await?;
 
 		let lava_client = bot_data.lavalink.read().await.clone();
 		let (_, mut embed_content) = join(ctx, bot_data, command_interaction).await?;
@@ -111,12 +111,19 @@ impl Command for PlayCommand {
 		match lava_client {
 			Some(_) => {},
 			None => {
-				return Err(anyhow::anyhow!("Lavalink is disabled"));
+				return Err(anyhow::anyhow!("Lavalink is disabled")).with_context(
+					|| "Cannot play music because Lavalink service is not configured or unavailable",
+				);
 			},
 		}
 		let lava_client = lava_client.unwrap();
 		let command_interaction = self.get_command_interaction();
-		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+		let guild_id = command_interaction
+			.guild_id
+			.ok_or(anyhow!("no guild id"))
+			.with_context(
+				|| "Command must be used in a server, not in DMs or other non-guild contexts",
+			)?;
 
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))

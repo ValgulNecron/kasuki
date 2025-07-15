@@ -1,17 +1,11 @@
-use std::sync::Arc;
-
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::game::get_vn;
 use crate::structure::message::vn::game::load_localization_game;
-use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct VnGameCommand {
@@ -28,11 +22,11 @@ impl Command for VnGameCommand {
 		&self.command_interaction
 	}
 
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let db_connection = bot_data.db_connection.clone();
 		let vndb_cache = bot_data.vndb_cache.clone();
 
 		let guild_id = match command_interaction.guild_id {
@@ -49,7 +43,7 @@ impl Command for VnGameCommand {
 			.cloned()
 			.unwrap_or(String::new());
 
-		let game_localised = load_localization_game(guild_id, config.db.clone()).await?;
+		let game_localised = load_localization_game(guild_id, db_connection).await?;
 
 		let vn = get_vn(game.clone(), vndb_cache).await?;
 

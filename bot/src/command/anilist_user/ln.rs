@@ -15,7 +15,6 @@ use crate::structure::run::anilist::media::{
 	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
 	MediaQuerrySearchVariables, MediaType,
 };
-use anyhow::Result;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -122,7 +121,7 @@ impl Command for LnCommand {
 	///     // Process your embed contents (e.g., send a response to Discord, log results, etc.)
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -165,10 +164,10 @@ impl Command for LnCommand {
 
 			data.data.unwrap().media.unwrap()
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let embed_content =
-			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
-				.await?;
+			media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
 
 		Ok(embed_content)
 	}

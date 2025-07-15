@@ -1,11 +1,11 @@
-use anyhow::{Result, anyhow};
-
+use anyhow::{anyhow, Result};
+use sea_orm::DatabaseConnection;
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
+use std::sync::Arc;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
-use crate::config::DbConfig;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
@@ -13,7 +13,7 @@ use crate::structure::message::anilist_server::list_register_user::load_localiza
 
 pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, user_id: &str,
-	prev_id: &str, db_config: DbConfig,
+	prev_id: &str
 ) -> Result<()> {
 	let bot_data = ctx.data::<BotData>().clone();
 	let connection = bot_data.db_connection.clone();
@@ -22,9 +22,10 @@ pub async fn update(
 		Some(id) => id.to_string(),
 		None => String::from("0"),
 	};
+	let db_connection = bot_data.db_connection.clone();
 
 	// Load the localized user list
-	let list_user_localised = load_localization_list_user(guild_id, db_config.clone()).await?;
+	let list_user_localised = load_localization_list_user(guild_id, db_connection).await?;
 
 	// Retrieve the guild ID from the component interaction
 	let guild_id = component_interaction
@@ -52,7 +53,7 @@ pub async fn update(
 		.and_then(|embed| embed.title.clone())
 		.unwrap_or_default();
 
-	let embed = get_default_embed(None)
+	let embed = get_default_embed(None, &None)
 		.title(old_embed_title)
 		.description(builder_message);
 

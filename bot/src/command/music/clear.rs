@@ -185,7 +185,7 @@ impl Command for ClearCommand {
 	/// 4. Attempt to retrieve the player for the given guild.
 	/// 5. On success, clear the player's queue and respond with a localized success message.
 	/// 6. Handle errors and provide appropriate localized failure messages.
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -198,10 +198,10 @@ impl Command for ClearCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let clear_localised =
-			load_localization_clear(guild_id_str, bot_data.config.db.clone()).await?;
+		let clear_localised = load_localization_clear(guild_id_str, db_connection).await?;
 
 		let lava_client = bot_data.lavalink.clone();
 		let lava_client = lava_client.read().await.clone();

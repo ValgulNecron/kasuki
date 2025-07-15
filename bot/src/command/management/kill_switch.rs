@@ -66,7 +66,7 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
@@ -194,10 +194,11 @@ impl Command for KillSwitchCommand {
 	/// # Notes
 	/// Ensure that the database setup is correct and the necessary tables (`KillSwitch`) exist with the expected schema.
 	/// The localization function (`load_localization_kill_switch`) must support fallback behaviors for missing translations.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
+		let bot_data = ctx.data::<BotData>().clone();
+
 		let config = bot_data.config.clone();
 
 		let guild_id = match command_interaction.guild_id {
@@ -210,9 +211,10 @@ impl Command for KillSwitchCommand {
 		let module = map
 			.get(&FixedString::from_str_trunc("name"))
 			.ok_or(anyhow!("No option for name"))?;
+		let db_connection = bot_data.db_connection.clone();
 
 		let module_localised =
-			load_localization_kill_switch(guild_id.clone(), config.db.clone()).await?;
+			load_localization_kill_switch(guild_id.clone(), db_connection).await?;
 
 		let map = get_option_map_boolean(command_interaction);
 
@@ -232,7 +234,8 @@ impl Command for KillSwitchCommand {
 			"ANILIST" => row.anilist_module = state,
 			"AI" => row.ai_module = state,
 			"GAME" => row.game_module = state,
-			"NEW_MEMBER" => row.new_members_module = state,
+			"LEVEL" => row.level_module = state,
+			"MINIGAME" => row.mini_game_module = state,
 			"ANIME" => row.anime_module = state,
 			"VN" => row.vn_module = state,
 			_ => {

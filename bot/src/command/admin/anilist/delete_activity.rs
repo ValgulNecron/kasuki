@@ -117,7 +117,7 @@ impl Command for DeleteActivityCommand {
 	/// - Fetching anime media information from AniList.
 	/// - Database operations for managing activity records.
 	/// - Localization functions for internationalization and localized user feedback.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let command_interaction = self.get_command_interaction();
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -134,9 +134,10 @@ impl Command for DeleteActivityCommand {
 			Some(id) => id.to_string(),
 			None => String::from("1"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let delete_activity_localised_text =
-			load_localization_delete_activity(guild_id.clone(), config.db.clone());
+			load_localization_delete_activity(guild_id.clone(), db_connection);
 		let media = get_minimal_anime_media(anime.to_string(), anilist_cache);
 
 		self.defer().await?;

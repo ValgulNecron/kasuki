@@ -154,7 +154,7 @@ impl Command for UserCommand {
 	/// - `get_user`: Function used to fetch AniList user data.
 	/// - `user::user_content`: Function used to generate embed content for AniList user data.
 	///
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -170,9 +170,10 @@ impl Command for UserCommand {
 		// If the username is provided, fetch the user's data from AniList and send it as a response
 		if let Some(value) = user {
 			let data: User = get_user(value, anilist_cache.clone()).await?;
+			let db_connection = bot_data.db_connection.clone();
 
 			let embed_content =
-				user::user_content(command_interaction, data, config.db.clone()).await?;
+				user::user_content(command_interaction, data, db_connection).await?;
 
 			return Ok(embed_content);
 		}
@@ -190,9 +191,9 @@ impl Command for UserCommand {
 
 		// Fetch the user's data from AniList and send it as a response
 		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+		let db_connection = bot_data.db_connection.clone();
 
-		let embed_content =
-			user::user_content(command_interaction, data, config.db.clone()).await?;
+		let embed_content = user::user_content(command_interaction, data, db_connection).await?;
 
 		Ok(embed_content)
 	}

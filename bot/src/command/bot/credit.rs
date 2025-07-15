@@ -50,7 +50,6 @@
 //!
 //! ### Error Handling:
 //! - Propagates errors using `anyhow::Result` in cases where localization data fails to load or any other runtime issue occurs.
-use anyhow::Result;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
@@ -148,7 +147,7 @@ impl Command for CreditCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -159,9 +158,10 @@ impl Command for CreditCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings for the credits
-		let credit_localised = load_localization_credit(guild_id, config.db.clone()).await?;
+		let credit_localised = load_localization_credit(guild_id, db_connection).await?;
 
 		// Construct a description by concatenating the descriptions of all credits
 		let mut desc: String = "".to_string();

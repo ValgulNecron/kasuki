@@ -5,7 +5,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::structure::message::vn::user::UserLocalised;
 use crate::structure::message::vn::user::load_localization_user;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct VnUserCommand {
@@ -22,7 +22,7 @@ impl Command for VnUserCommand {
 		&self.command_interaction
 	}
 
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -43,9 +43,9 @@ impl Command for VnUserCommand {
 		let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
 
 		let user = get_user(path, vndb_cache).await?;
+		let db_connection = bot_data.db_connection.clone();
 
-		let user_localised: UserLocalised =
-			load_localization_user(guild_id, config.db.clone()).await?;
+		let user_localised: UserLocalised = load_localization_user(guild_id, db_connection).await?;
 
 		let fields = vec![
 			(user_localised.id.clone(), user.id.clone(), true),

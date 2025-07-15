@@ -5,7 +5,7 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
 	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
 };
-use crate::constant::{ MEMBER_LIST_LIMIT};
+use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
@@ -16,10 +16,7 @@ use futures::pin_mut;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, PartialGuild,
-	User, UserId,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext, PartialGuild, User, UserId};
 use std::sync::Arc;
 use tracing::trace;
 
@@ -101,7 +98,7 @@ impl Command for ListRegisterUser {
 	/// - The guild interaction fails to provide a guild ID.
 	/// - Custom errors from localization loading.
 	/// - Failures in fetching partial guild data or other external
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -114,8 +111,10 @@ impl Command for ListRegisterUser {
 			Some(id) => id,
 			None => return Err(anyhow!("Failed to get the id of the guild")),
 		};
+		let db_connection = bot_data.db_connection.clone();
+
 		let list_user_localised =
-			load_localization_list_user(guild_id.to_string(), config.db.clone()).await?;
+			load_localization_list_user(guild_id.to_string(), db_connection).await?;
 		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =

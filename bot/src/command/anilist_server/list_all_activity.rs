@@ -43,7 +43,7 @@ use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -155,7 +155,7 @@ impl Command for ListAllActivity {
 	///
 	/// # Note
 	/// This function is asynchronous and should be awaited in an appropriate async runtime environment.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -177,9 +177,10 @@ impl Command for ListAllActivity {
 
 		let activity: Vec<String> = get_formatted_activity_list(list, 0);
 		let join_activity = activity.join("\n");
+		let db_connection = bot_data.db_connection.clone();
 
 		let list_activity_localised_text =
-			load_localization_list_activity(guild_id.to_string(), config.db.clone()).await?;
+			load_localization_list_activity(guild_id.to_string(), db_connection).await?;
 
 		let embed_content =
 			EmbedContent::new(list_activity_localised_text.title).description(join_activity);

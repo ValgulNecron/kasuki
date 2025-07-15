@@ -6,7 +6,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates pkg-config \
     libopus-dev \
     youtube-dl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+
+RUN rustup default nightly
+
+RUN rustup update
 
 USER root
 

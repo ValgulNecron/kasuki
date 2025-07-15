@@ -5,7 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context, used to interact with and manage the Discord bot's state and data.
 //! - `command_interaction`: Represents the specific command interaction that triggered the command.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use bytes::Bytes;
 use std::io::Cursor;
 
@@ -117,7 +117,7 @@ impl Command for SeiyuuCommand {
 	/// ```rust
 	/// let embed_contents = self.get_contents().await?;
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -183,8 +183,9 @@ impl Command for SeiyuuCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
-		let seiyuu_localised = load_localization_seiyuu(guild_id, config.db.clone()).await?;
+		let seiyuu_localised = load_localization_seiyuu(guild_id, db_connection).await?;
 
 		self.defer().await?;
 

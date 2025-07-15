@@ -6,7 +6,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 
 /// `ProfileCommand` represents a structure that handles the context and interaction
@@ -127,11 +126,10 @@ impl Command for ProfileCommand {
 	/// - `self.get_command_interaction()`: Accesses the current command interaction handling instance.
 	/// - `load_localization_profile()` and `get_fields()`: Localizes user details and formats them according to guild-specific settings.
 	/// - API calls for fetching SKUs, premium entitlements, and guild membership details.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let db_config = bot_data.config.db.clone();
 
 		let user = match command_interaction.data.kind.0 {
 			1 => get_user_command(ctx, command_interaction).await?,
@@ -145,8 +143,9 @@ impl Command for ProfileCommand {
 			.guild_id
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
+		let db_connection = bot_data.db_connection.clone();
 
-		let profile_localised = load_localization_profile(guild_id, db_config).await?;
+		let profile_localised = load_localization_profile(guild_id, db_connection).await?;
 
 		let mut fields = get_fields(&profile_localised, user.clone());
 

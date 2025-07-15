@@ -16,7 +16,6 @@ use crate::command::anilist_user::ln::LnCommand;
 use crate::command::anilist_user::manga::MangaCommand;
 use crate::command::anilist_user::random::RandomCommand;
 use crate::command::anilist_user::register::RegisterCommand;
-use crate::command::anilist_user::search::SearchCommand;
 use crate::command::anilist_user::seiyuu::SeiyuuCommand;
 use crate::command::anilist_user::staff::StaffCommand;
 use crate::command::anilist_user::studio::StudioCommand;
@@ -64,108 +63,307 @@ use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
 use crate::get_url;
-use anyhow::Result;
+use anyhow::{Context as AnyhowContext, Result};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use std::error::Error;
-use tracing::trace;
+use std::time::Instant;
+use tracing::{debug, error, info, instrument, trace, warn};
+use crate::command::levels::stats::LevelsStatsCommand;
+use crate::command::minigame::fishing::FishingCommand;
+use crate::command::minigame::fish_inventory::FishInventoryCommand;
+use crate::command::minigame::inventory::InventoryCommand;
 
+/// Dispatches a command to the appropriate handler based on the command name.
+///
+/// This function is the central command routing mechanism for the bot. It:
+/// 1. Identifies the command type and name from the interaction
+/// 2. Creates the appropriate command handler instance
+/// 3. Executes the command
+/// 4. Records usage statistics
+///
+/// # Command Routing Architecture
+///
+/// The function uses a large match statement to route commands to their handlers.
+/// Each command follows this pattern:
+/// ```
+/// CommandHandlerStruct {
+///     ctx: ctx.clone(),
+///     command_interaction: command_interaction.clone(),
+/// }
+/// .run_slash()
+/// .await?
+/// ```
+///
+/// # Command Naming Convention
+///
+/// Commands follow a hierarchical naming convention:
+/// - First level: Category (e.g., "user", "admin", "bot")
+/// - Second level: Subcategory or specific command (e.g., "avatar", "info")
+///
+/// Example: "user_avatar" for the user avatar command
+///
+/// # Arguments
+///
+/// * `ctx` - The Serenity context containing bot state and Discord connection
+/// * `command_interaction` - The command interaction from Discord containing command data
+///
+/// # Returns
+///
+/// * `Ok(())` - If the command was dispatched and executed successfully
+/// * `Err(Error)` - If there was an error dispatching or executing the command
+#[instrument(name = "dispatch_command", skip(ctx, command_interaction), fields(
+	user_id = ?command_interaction.user.id,
+	guild_id = ?command_interaction.guild_id,
+))]
 pub async fn dispatch_command(
 	ctx: &SerenityContext, command_interaction: &CommandInteraction,
 ) -> Result<()> {
+	info!(
+		"Dispatching command from user: {} (ID: {})",
+		command_interaction.user.name, command_interaction.user.id
+	);
+
+	// Extract bot data from context for command usage tracking
 	let bot_data = ctx.data::<BotData>().clone();
+
+	// Determine command type and name from the interaction
+	// This uses a helper function to parse the command structure
 	let (kind, name) = guess_command_kind(command_interaction);
 
+	// Create a full command name by combining type and name
+	// This is used for logging and usage statistics
 	let full_command_name = format!("{} {}", kind, name);
 
-	trace!("Running command: {}", full_command_name);
+	debug!(
+		"Command details: type={}, name={}, full_name={}",
+		kind, name, full_command_name
+	);
 
+	// Log whether the command was executed in a guild or DM
+	// This is important for commands that behave differently in these contexts
+	if let Some(guild_id) = command_interaction.guild_id {
+		debug!("Command executed in guild: {}", guild_id);
+	} else {
+		debug!("Command executed in DM");
+	}
+
+	trace!("Command options: {:?}", command_interaction.data.options());
+
+	// Start timing the command execution
+	let start_time = Instant::now();
+	info!("Executing command: {}", full_command_name);
+
+	// =====================================================================
+	// COMMAND ROUTING SYSTEM
+	// =====================================================================
+	//
+	// The following match statement implements the command routing system.
+	// This is a critical part of the bot architecture that:
+	//
+	// 1. Maps command names to their handler implementations
+	// 2. Provides consistent execution patterns across all commands
+	// 3. Enables performance tracking and error handling
+	//
+	// COMMAND NAMING CONVENTION:
+	// --------------------------
+	// Commands follow a hierarchical naming pattern:
+	//   <category>_<subcategory>_<action>
+	//
+	// Examples:
+	//   - user_avatar: User category, avatar action
+	//   - admin_anilist_add_anime_activity: Admin category, anilist subcategory, add_anime_activity action
+	//
+	// EXECUTION PATTERN:
+	// ------------------
+	// Each command follows this execution pattern:
+	//   1. Create command handler instance with context and interaction
+	//   2. Call run_slash() to execute the command
+	//   3. Measure and log execution time
+	//   4. Handle errors consistently
+	//
+	// ORGANIZATION:
+	// -------------
+	// Commands are grouped by category in this match statement:
+	//   - USER: Profile and user information commands
+	//   - ADMIN: Server administration and configuration
+	//   - STEAM: Game information retrieval
+	//   - AI: Artificial intelligence features
+	//   - ANILIST: Anime/manga database integration
+	//   - BOT: Bot status and information
+	//   - MANAGEMENT: Bot owner administrative commands
+	//   - SERVER: Server management and customization
+	//   - VN: Visual novel database integration
+	//   - MUSIC: Audio playback and management
+	//
+	// PERFORMANCE TRACKING:
+	// --------------------
+	// Some commands include detailed performance tracking with Instant::now()
+	// This helps identify slow commands that need optimization
+	//
 	match name.as_str() {
+		// === USER COMMANDS ===
+		// Commands related to user profiles and information
 		"user_avatar" => {
-			AvatarCommand {
+			trace!("Dispatching user_avatar command");
+			let command_start = Instant::now();
+			let result = AvatarCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"user_avatar command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"user_banner" => {
-			BannerCommand {
+			trace!("Dispatching user_banner command");
+			let command_start = Instant::now();
+			let result = BannerCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"user_banner command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"user_profile" => {
-			ProfileCommand {
+			trace!("Dispatching user_profile command");
+			let command_start = Instant::now();
+			let result = ProfileCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"user_profile command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"user_command_usage" => {
-			CommandUsageCommand {
+			trace!("Dispatching user_command_usage command");
+			let command_start = Instant::now();
+			let result = CommandUsageCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"user_command_usage command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 
+		// === ADMIN COMMANDS ===
+		// Commands for server administration and configuration
 		"admin_general_lang" => {
-			LangCommand {
+			trace!("Dispatching admin_general_lang command");
+			let command_start = Instant::now();
+			let result = LangCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"admin_general_lang command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"admin_general_module" => {
-			ModuleCommand {
+			trace!("Dispatching admin_general_module command");
+			let command_start = Instant::now();
+			let result = ModuleCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"admin_general_module command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 
 		"admin_anilist_add_anime_activity" => {
-			AddActivityCommand {
+			trace!("Dispatching admin_anilist_add_anime_activity command");
+			let command_start = Instant::now();
+			let result = AddActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"admin_anilist_add_anime_activity command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"admin_anilist_delete_anime_activity" => {
-			DeleteActivityCommand {
+			trace!("Dispatching admin_anilist_delete_anime_activity command");
+			let command_start = Instant::now();
+			let result = DeleteActivityCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"admin_anilist_delete_anime_activity command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 
+		// === STEAM COMMANDS ===
+		// Commands for retrieving Steam game information
 		"steam_game" => {
-			SteamGameInfoCommand {
+			trace!("Dispatching steam_game command");
+			let command_start = Instant::now();
+			let result = SteamGameInfoCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"steam_game command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 
+		// === AI COMMANDS ===
+		// Commands for AI-powered features like image generation and text processing
 		"ai_image" => {
-			ImageCommand {
+			trace!("Dispatching ai_image command");
+			let command_start = Instant::now();
+			let result = ImageCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 				command_name: full_command_name.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"ai_image command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"ai_question" => {
 			QuestionCommand {
@@ -195,6 +393,8 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === ANILIST SERVER COMMANDS ===
+		// Commands for managing Anilist integrations at the server level
 		"list_user" => {
 			ListRegisterUser {
 				ctx: ctx.clone(),
@@ -212,13 +412,19 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === ANILIST USER COMMANDS ===
+		// Commands for interacting with Anilist data at the user level
 		"anime" => {
-			AnimeCommand {
+			trace!("Dispatching anime command");
+			let command_start = Instant::now();
+			let result = AnimeCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!("anime command execution took {:?}", command_start.elapsed());
+			result?
 		},
 		"character" => {
 			CharacterCommand {
@@ -308,14 +514,6 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-		"search" => {
-			SearchCommand {
-				ctx: ctx.clone(),
-				command_interaction: command_interaction.clone(),
-			}
-			.run_slash()
-			.await?
-		},
 		"seiyuu" => {
 			SeiyuuCommand {
 				ctx: ctx.clone(),
@@ -325,6 +523,8 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === ANIME COMMANDS ===
+		// Commands for retrieving anime images and related content
 		"random_anime_random_image" => {
 			AnimeRandomImageCommand {
 				ctx: ctx.clone(),
@@ -334,6 +534,8 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === ANIME NSFW COMMANDS ===
+		// Age-restricted commands for anime content
 		"random_hanime_random_himage" => {
 			AnimeRandomNsfwImageCommand {
 				ctx: ctx.clone(),
@@ -343,31 +545,56 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === BOT COMMANDS ===
+		// Commands for bot information, status, and credits
 		"bot_credit" => {
-			CreditCommand {
+			trace!("Dispatching bot_credit command");
+			let command_start = Instant::now();
+			let result = CreditCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"bot_credit command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"bot_info" => {
-			InfoCommand {
+			trace!("Dispatching bot_info command");
+			let command_start = Instant::now();
+			let result = InfoCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"bot_info command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"bot_ping" => {
-			PingCommand {
+			trace!("Dispatching bot_ping command");
+			let command_start = Instant::now();
+			let result = PingCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"bot_ping command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 
+		// === MANAGEMENT COMMANDS ===
+		// Administrative commands for bot owners and managers
 		"kill_switch" => {
 			KillSwitchCommand {
 				ctx: ctx.clone(),
@@ -393,6 +620,8 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+		// === SERVER COMMANDS ===
+		// Commands for server management and customization
 		"server_guild" => {
 			GuildCommand {
 				ctx: ctx.clone(),
@@ -468,12 +697,19 @@ pub async fn dispatch_command(
 		},
 
 		"music_play" => {
-			PlayCommand {
+			trace!("Dispatching music_play command");
+			let command_start = Instant::now();
+			let result = PlayCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"music_play command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"music_pause" => {
 			PauseCommand {
@@ -508,12 +744,19 @@ pub async fn dispatch_command(
 			.await?
 		},
 		"music_queue" => {
-			QueueCommand {
+			trace!("Dispatching music_queue command");
+			let command_start = Instant::now();
+			let result = QueueCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
 			.run_slash()
-			.await?
+			.await;
+			debug!(
+				"music_queue command execution took {:?}",
+				command_start.elapsed()
+			);
+			result?
 		},
 		"music_clear" => {
 			ClearCommand {
@@ -564,70 +807,309 @@ pub async fn dispatch_command(
 			.await?
 		},
 
+  "levels_stats" => {
+			LevelsStatsCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+		"minigame_fishing" => {
+			FishingCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+  "minigame_inventory" => {
+			InventoryCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+		"minigame_fish_inventory" => {
+			FishInventoryCommand {
+				ctx: ctx.clone(),
+				command_interaction: command_interaction.clone(),
+			}
+				.run_slash()
+				.await?
+		},
+
+		// =====================================================================
+		// UNKNOWN COMMAND HANDLER
+		// =====================================================================
+		//
+		// This catch-all case handles any commands that don't match known patterns.
+		// This should never happen in normal operation, as Discord only allows
+		// execution of commands that have been registered with the API.
+		//
+		// However, this can occur in several scenarios:
+		//
+		// 1. COMMAND REGISTRATION MISMATCH:
+		//    The most common cause - a command was registered with Discord but
+		//    not implemented in the code, or the implementation name doesn't match
+		//    the registered name.
+		//
+		// 2. DEVELOPMENT ENVIRONMENT:
+		//    During development, commands might be registered before their
+		//    implementation is complete.
+		//
+		// 3. VERSION MISMATCH:
+		//    If the bot code was updated but commands weren't re-registered,
+		//    or if multiple bot instances share the same application ID but
+		//    have different command implementations.
+		//
+		// The error handling here provides detailed diagnostics to help identify
+		// and resolve the root cause of the unknown command.
 		_ => {
-			Err(anyhow::anyhow!("Command not found"))?;
+			// Log detailed error information at different severity levels
+			error!("Unknown command requested: {}", full_command_name);
+			warn!("This could indicate a mismatch between registered commands and implementation");
+			debug!("Command options: {:?}", command_interaction.data.options());
+			error!("Available commands do not include: {}", name);
+
+			// Return a structured error with context
+			// The outer error provides a user-friendly message
+			// The context provides more technical details for debugging
+			return Err(anyhow::anyhow!("Command not found: {}", full_command_name)).context(
+				format!("No handler implemented for command: {}", full_command_name),
+			);
 		},
 	};
 
+	// Calculate and log the total execution time
+	let execution_time = start_time.elapsed();
+	debug!(
+		"Command {} execution took {:?}",
+		full_command_name, execution_time
+	);
+
+	// Log performance warning for slow commands
+	if execution_time.as_millis() > 1000 {
+		warn!(
+			"Command {} took over 1 second to execute: {:?}",
+			full_command_name, execution_time
+		);
+	}
+
+	debug!(
+		"Incrementing command usage statistics for: {}",
+		full_command_name
+	);
 	bot_data
 		.increment_command_use_per_command(
-			full_command_name,
+			full_command_name.clone(),
 			command_interaction.user.id.to_string(),
 			command_interaction.user.name.to_string(),
 		)
 		.await;
 
+	info!("Command {} executed successfully", full_command_name);
 	Ok(())
 }
 
 pub async fn check_if_module_is_on(
 	guild_id: String, module: &str, db_config: DbConfig,
-) -> Result<bool, Box<dyn Error>> {
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+) -> Result<bool> {
+	debug!(
+		"Checking if module '{}' is enabled for guild {}",
+		module, guild_id
+	);
 
+	debug!("Connecting to database to check module activation");
+	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+		.await
+		.context(format!(
+			"Failed to connect to database to check module activation for guild {}",
+			guild_id
+		))?;
+	debug!("Successfully connected to database");
+
+	debug!("Querying module activation status for guild {}", guild_id);
 	let row = ModuleActivation::find()
 		.filter(database::module_activation::Column::GuildId.eq(guild_id.clone()))
 		.one(&connection)
-		.await?
-		.unwrap_or(Model {
-			guild_id: guild_id.clone(),
-			ai_module: true,
-			anilist_module: true,
-			game_module: true,
-			new_members_module: false,
-			anime_module: true,
-			vn_module: true,
-			updated_at: Default::default(),
-		});
+		.await
+		.context(format!(
+			"Failed to query module activation status for guild {}",
+			guild_id
+		))?;
 
+	let row = match row {
+		Some(row) => {
+			debug!("Found existing module configuration for guild {}", guild_id);
+			row
+		},
+		None => {
+			info!(
+				"No module configuration found for guild {}, using defaults",
+				guild_id
+			);
+			Model {
+				guild_id: guild_id.clone(),
+				ai_module: true,
+				anilist_module: true,
+				game_module: true,
+				level_module: false,
+				mini_game_module: true,
+				anime_module: true,
+				vn_module: true,
+				updated_at: Default::default(),
+			}
+		},
+	};
+
+	debug!("Checking activation status for module '{}'", module);
 	let state = check_activation_status(module, row).await;
+	debug!(
+		"Module '{}' activation status from database: {}",
+		module, state
+	);
 
-	let state = state && check_kill_switch_status(module, db_config, guild_id).await?;
+	debug!("Checking kill switch status for module '{}'", module);
+	let kill_switch_state = check_kill_switch_status(module, db_config, guild_id.clone())
+		.await
+		.context(format!(
+			"Failed to check kill switch status for module '{}' in guild {}",
+			module, guild_id
+		))?;
 
-	Ok(state)
+	let final_state = state && kill_switch_state;
+	debug!(
+		"Kill switch status for module '{}': {}",
+		module, kill_switch_state
+	);
+	debug!(
+		"Final activation status for module '{}': {}",
+		module, final_state
+	);
+
+	info!(
+		"Module '{}' is {} for guild {}",
+		module,
+		if final_state { "enabled" } else { "disabled" },
+		guild_id
+	);
+	Ok(final_state)
 }
 
+/// Checks if a module is disabled by the global kill switch system.
+///
+/// The kill switch system provides an emergency override mechanism that can disable
+/// modules across the bot, regardless of individual guild settings. This is useful for:
+///
+/// 1. Quickly disabling problematic features without a full bot restart
+/// 2. Performing maintenance on specific modules
+/// 3. Responding to API rate limiting or service outages
+///
+/// # Architecture
+///
+/// The kill switch operates as a second layer of permission checking:
+/// - First, the regular module activation status is checked (user configuration)
+/// - Then, the kill switch status is checked (system override)
+/// - A module is only active if BOTH checks pass
+///
+/// # Database Structure
+///
+/// Kill switches are stored in a separate table from regular module activations,
+/// allowing them to be managed independently. The schema mirrors the module_activation
+/// table, but represents system-level rather than user-level settings.
+///
+/// # Arguments
+///
+/// * `module` - The name of the module to check (e.g., "ai_module", "anilist_module")
+/// * `db_config` - Database configuration for connecting to the database
+/// * `guild_id` - The ID of the guild to check the kill switch for
+///
+/// # Returns
+///
+/// * `Ok(true)` - If the module is NOT killed (allowed to run)
+/// * `Ok(false)` - If the module is killed (should not run)
+/// * `Err(Error)` - If there was an error checking the kill switch status
+///
+/// # Flow
+///
+/// 1. Connect to the database
+/// 2. Query the kill_switch table for the specified guild
+/// 3. If no record exists, use default values (all modules enabled)
+/// 4. Check the specific module's status in the retrieved record
+/// 5. Return the status (true = active, false = killed)
 async fn check_kill_switch_status(
 	module: &str, db_config: DbConfig, guild_id: String,
-) -> Result<bool, Box<dyn Error>> {
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+) -> Result<bool> {
+	debug!(
+		"Checking kill switch status for module '{}' in guild {}",
+		module, guild_id
+	);
 
+	// Connect to the database to retrieve kill switch settings
+	// This uses a separate connection to ensure we always get the latest settings
+	// even if other connections are in a transaction
+	debug!("Connecting to database for kill switch check");
+	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
+		.await
+		.context(format!(
+			"Failed to connect to database for kill switch check for module '{}' in guild {}",
+			module, guild_id
+		))?;
+	debug!("Successfully connected to database for kill switch check");
+
+	// Query the kill_switch table for this guild's settings
+	// This table is separate from the module_activation table to allow
+	// system-level overrides independent of user configuration
+	debug!("Querying kill switch status for guild {}", guild_id);
 	let row = ModuleActivation::find()
 		.filter(database::kill_switch::Column::GuildId.eq(guild_id.clone()))
 		.one(&connection)
-		.await?
-		.unwrap_or(Model {
-			guild_id,
-			ai_module: true,
-			anilist_module: true,
-			game_module: true,
-			new_members_module: false,
-			anime_module: true,
-			vn_module: true,
-			updated_at: Default::default(),
-		});
+		.await
+		.context(format!(
+			"Failed to query kill switch status for module '{}' in guild {}",
+			module, guild_id
+		))?;
 
-	trace!(?row);
+	let row = match row {
+		Some(row) => {
+			debug!(
+				"Found existing kill switch configuration for guild {}",
+				guild_id
+			);
+			row
+		},
+		None => {
+			info!(
+				"No kill switch configuration found for guild {}, using defaults",
+				guild_id
+			);
+			Model {
+				guild_id,
+				ai_module: true,
+				anilist_module: true,
+				game_module: true,
+				level_module: false,
+				mini_game_module: true,
+				anime_module: true,
+				vn_module: true,
+				updated_at: Default::default(),
+			}
+		},
+	};
 
-	Ok(check_activation_status(module, row).await)
+	trace!("Kill switch row data: {:?}", row);
+
+	debug!(
+		"Determining final kill switch status for module '{}'",
+		module
+	);
+	let status = check_activation_status(module, row).await;
+	debug!("Kill switch status for module '{}': {}", module, status);
+
+	Ok(status)
 }

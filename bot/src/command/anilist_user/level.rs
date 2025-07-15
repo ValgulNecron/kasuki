@@ -16,7 +16,7 @@ use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use small_fixed_array::FixedString;
@@ -54,7 +54,7 @@ impl Command for LevelCommand {
 	}
 
 	///
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -92,9 +92,10 @@ impl Command for LevelCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized level strings
-		let level_localised = load_localization_level(guild_id, db_config).await?;
+		let level_localised = load_localization_level(guild_id, db_connection).await?;
 
 		// Clone the manga and anime statistics
 		let statistics = user.statistics.clone().unwrap();

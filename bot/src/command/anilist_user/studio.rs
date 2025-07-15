@@ -79,7 +79,7 @@
 //! In this example, the command fetches data for a studio either by ID or search query and formats
 //! it into a detailed response, including media information, localization, and more.
 use crate::command::command::Command;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::DEFAULT_STRING;
@@ -209,7 +209,7 @@ impl Command for StudioCommand {
 	/// - The studio data is fetched via AniList's GraphQL API using either the studio's ID or name.
 	/// - Embed descriptions are dynamically constructed using localization strings and studio metadata.
 	/// - If there is no guild ID specified in the command interaction, a default guild ID of "0" is assigned.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -254,9 +254,10 @@ impl Command for StudioCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized studio strings
-		let studio_localised = load_localization_studio(guild_id, config.db.clone()).await?;
+		let studio_localised = load_localization_studio(guild_id, db_connection).await?;
 
 		// Initialize a string to store the content of the response
 		let mut content = String::new();

@@ -207,7 +207,7 @@ impl Command for RandomCommand {
 	/// - `make_request_anilist`: Executes AniList GraphQL queries.
 	/// - `convert_anilist_flavored_to_discord_flavored_markdown`: Converts descriptions to be compatible with Discord markdown styling.
 	/// - `EmbedContent`: A custom structure to build and format the Discord embed messages.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -218,9 +218,10 @@ impl Command for RandomCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized random strings
-		let random_localised = load_localization_random(guild_id, config.db.clone()).await?;
+		let random_localised = load_localization_random(guild_id, db_connection).await?;
 
 		// Retrieve the type of media (anime or manga) from the command interaction
 		let map = get_option_map_string(command_interaction);

@@ -9,7 +9,7 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
@@ -78,7 +78,7 @@ impl Command for RemoveTestSubCommand {
 	/// Asynchronously retrieves and processes the contents related to user entitlements.
 	///
 	/// This function performs the following
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -99,10 +99,11 @@ impl Command for RemoveTestSubCommand {
 			.http
 			.get_entitlements(Some(*user), None, None, None, None, None, None)
 			.await?;
+		let db_connection = bot_data.db_connection.clone();
 
 		let localization = load_localization_remove_test_sub(
 			command_interaction.guild_id.unwrap().to_string(),
-			config.db.clone(),
+			db_connection,
 		)
 		.await?;
 
@@ -122,7 +123,7 @@ impl Command for RemoveTestSubCommand {
 		let embed_content = EmbedContent::new(String::new())
 			.description(localization.success.replace("{user}", &user.to_string()));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		Ok(embed_contents)
 	}

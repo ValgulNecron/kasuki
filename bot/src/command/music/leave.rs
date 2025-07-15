@@ -107,7 +107,7 @@ impl Command for LeaveCommand {
 	///     println!("Embed Title: {}", content.title());
 	/// }
 	/// ```
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -118,10 +118,10 @@ impl Command for LeaveCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let leave_localised =
-			load_localization_leave(guild_id_str, bot_data.config.db.clone()).await?;
+		let leave_localised = load_localization_leave(guild_id_str, db_connection).await?;
 
 		let manager = bot_data.manager.clone();
 		let lava_client = bot_data.lavalink.clone();

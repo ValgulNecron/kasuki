@@ -1,20 +1,19 @@
-use crate::config::DbConfig;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use crate::database::activity_data::{Column, Model};
 use crate::database::prelude::ActivityData;
-use crate::get_url;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::{Result, anyhow};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed,
 	CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
+use std::sync::Arc;
 use tracing::trace;
 
 pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, page_number: &str,
-	db_config: DbConfig,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
 	let guild_id = match component_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -22,17 +21,15 @@ pub async fn update(
 	};
 
 	let list_activity_localised_text =
-		load_localization_list_activity(guild_id, db_config.clone()).await?;
+		load_localization_list_activity(guild_id, db_connection.clone()).await?;
 
 	let guild_id = component_interaction
 		.guild_id
 		.ok_or(anyhow!("Guild ID not found"))?;
 
-	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
-
 	let list = ActivityData::find()
 		.filter(Column::ServerId.eq(guild_id.to_string()))
-		.all(&connection)
+		.all(&*db_connection)
 		.await?;
 
 	let len = list.len();

@@ -79,7 +79,7 @@
 //! ## Note:
 //! This implementation assumes that the bot is running with appropriate scopes
 //! and permissions to access guild data such as its metadata, channels, and roles.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
@@ -186,7 +186,7 @@ impl Command for GuildCommand {
 	///     // Perform further operations with embed data
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -197,9 +197,10 @@ impl Command for GuildCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized guild information
-		let guild_localised = load_localization_guild(guild_id, config.db.clone()).await?;
+		let guild_localised = load_localization_guild(guild_id, db_connection).await?;
 
 		// Retrieve the guild ID from the command interaction or return an error if it does not exist
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;

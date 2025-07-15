@@ -12,7 +12,7 @@
 //!                          about the invoked command (i.e., the user, arguments, and guild information).
 //!
 //! This struct implements the `Command` trait, defining the behavior and response of the "register" command.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -115,7 +115,7 @@ impl Command for RegisterCommand {
 	/// # Workflow
 	/// 1. The function retrieves context and bot-specific resources (e.g., cache, database connection).
 	///
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -140,9 +140,10 @@ impl Command for RegisterCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized register strings
-		let register_localised = load_localization_register(guild_id, config.db.clone()).await?;
+		let register_localised = load_localization_register(guild_id, db_connection).await?;
 
 		// Retrieve the user's Discord ID and username
 		let user_id = &command_interaction.user.id.to_string();

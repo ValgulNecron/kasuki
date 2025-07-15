@@ -111,7 +111,7 @@ Check the [todo](TODO.md) file.
 ## Website
 
 for those of you who prefer web dev.\
-[https://github.com/ValgulNecron/kasuki_website](https://github.com/ValgulNecron/kasuki_website)
+you can check ./website and make improvement. 
 
 # Credit
 

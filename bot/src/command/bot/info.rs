@@ -9,7 +9,7 @@ use crate::database::prelude::UserColor;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::structure::message::bot::info::load_localization_info;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::EntityTrait;
 use serenity::all::{ButtonStyle, CommandInteraction, Context as SerenityContext};
 
@@ -131,7 +131,7 @@ impl Command for InfoCommand {
 	/// - **Official Website Link**: A button linking to the bot's official webpage.
 	/// - **Official Discord Server**: A button linking to join the community server.
 	/// - **Invitation Links**: Buttons for adding stable and beta versions of the bot.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -142,9 +142,10 @@ impl Command for InfoCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized information strings
-		let info_localised = load_localization_info(guild_id, config.db.clone()).await?;
+		let info_localised = load_localization_info(guild_id, db_connection).await?;
 
 		// Retrieve various details about the bot and the server
 		let shard_count = ctx.cache.shard_count();
@@ -216,15 +217,15 @@ impl Command for InfoCommand {
 		);
 
 		buttons.push(
-			ButtonV1::new(info_localised.button_add_the_bot)
-				.url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot".to_string())
-				.style(ButtonStyle::Success),
+            ButtonV1::new(info_localised.button_add_the_bot)
+                .url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot".to_string())
+                .style(ButtonStyle::Success),
         );
 
 		buttons.push(
-			ButtonV1::new(info_localised.button_add_the_beta_bot)
-				.url("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot".to_string())
-				.style(ButtonStyle::Secondary),
+            ButtonV1::new(info_localised.button_add_the_beta_bot)
+                .url("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot".to_string())
+                .style(ButtonStyle::Secondary),
         );
 
 		let embed_content = EmbedContent::new(info_localised.title)

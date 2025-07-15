@@ -76,7 +76,7 @@ use crate::structure::run::anilist::media::{
 	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
 	MediaQuerrySearchVariables, MediaType,
 };
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -170,7 +170,7 @@ impl Command for AnimeCommand {
 	/// `MediaQuerryId`, `MediaQuerrySearch`, and various utility functions (e.g., `make_request_anilist`, `media_content`).
 	///
 	/// Ensure that all relevant dependencies are properly defined and that the context contains the necessary data for execution.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -235,10 +235,10 @@ impl Command for AnimeCommand {
 				None => return Err(anyhow!("Anime not found")),
 			}
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let embed_contents =
-			media::media_content(ctx, command_interaction, data, config.db.clone(), bot_data)
-				.await?;
+			media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
 
 		Ok(embed_contents)
 	}

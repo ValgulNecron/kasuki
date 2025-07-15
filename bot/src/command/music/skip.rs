@@ -162,7 +162,7 @@ impl Command for SkipCommand {
 	/// - Async context for LavaLink and interaction deferral handling.
 	/// - Localization logic for guild-specific messaging.
 	///
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -172,10 +172,10 @@ impl Command for SkipCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let skip_localised =
-			load_localization_skip(guild_id_str, bot_data.config.db.clone()).await?;
+		let skip_localised = load_localization_skip(guild_id_str, db_connection).await?;
 
 		let command_interaction = self.get_command_interaction();
 

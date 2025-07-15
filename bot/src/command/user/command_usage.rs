@@ -22,7 +22,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::{BotData, RootUsage};
 use crate::structure::message::user::command_usage::load_localization_command_usage;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLockReadGuard;
 
@@ -144,13 +143,12 @@ impl Command for CommandUsageCommand {
 	/// let embed_contents = self.get_contents().await?;
 	/// // Use the returned embed_contents to send a followup message to the user.
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let command_usage = bot_data.number_of_command_use_per_command.clone();
-		let db_config = bot_data.config.db.clone();
 
 		let user_id = user.id.to_string();
 
@@ -164,8 +162,10 @@ impl Command for CommandUsageCommand {
 			.guild_id
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
+		let db_connection = bot_data.db_connection.clone();
 
-		let localized_command_usage = load_localization_command_usage(guild_id, db_config).await?;
+		let localized_command_usage =
+			load_localization_command_usage(guild_id, db_connection).await?;
 
 		let mut embed_contents = vec![];
 

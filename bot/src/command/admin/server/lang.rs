@@ -8,7 +8,7 @@ use crate::database::prelude::GuildLang;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::structure::message::admin::server::lang::load_localization_lang;
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -117,11 +117,11 @@ impl Command for LangCommand {
 	///
 	/// ## Panics
 	/// None. Any failures are propagated using the `Result` type.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
-		let connection = bot_data.db_connection.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let map = get_option_map_string_subcommand_group(command_interaction);
 		let lang = map
@@ -138,15 +138,15 @@ impl Command for LangCommand {
 			lang: Set(lang.clone()),
 			..Default::default()
 		})
-		.exec(&*connection)
+		.exec(&*db_connection)
 		.await?;
 
-		let lang_localised = load_localization_lang(guild_id, bot_data.config.db.clone()).await?;
+		let lang_localised = load_localization_lang(guild_id, db_connection).await?;
 
 		let embed_content = EmbedContent::new(lang_localised.title.clone())
 			.description(lang_localised.desc.replace("$lang$", lang.as_str()));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		Ok(embed_contents)
 	}

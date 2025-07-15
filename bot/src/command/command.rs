@@ -4,10 +4,11 @@ use crate::command::embed_content::{
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::{Result, anyhow};
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, SkuId};
+use serenity::all::{CommandInteraction, MessageFlags, SkuId};
 use serenity::builder::{
-	CreateActionRow, CreateAttachment, CreateButton, CreateEmbedAuthor, CreateEmbedFooter,
-	CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
+	CreateActionRow, CreateAttachment, CreateButton, CreateComponent, CreateEmbedAuthor,
+	CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup,
+	CreateInteractionResponseMessage,
 };
 use serenity::prelude::Context as SerenityContext;
 use std::borrow::Cow;
@@ -16,8 +17,27 @@ pub trait Command {
 	fn get_ctx(&self) -> &SerenityContext;
 
 	fn get_command_interaction(&self) -> &CommandInteraction;
+	async fn get_contents<'a>(&'a self) -> Result<EmbedsContents<'a>>;
+}
 
-	async fn get_contents(&self) -> Result<EmbedsContents>;
+#[macro_export]
+macro_rules! impl_command {
+	(
+        for $type:ty,
+        get_contents = $get_contents_fn:expr
+    ) => {
+		impl Command for $type {
+			fn get_ctx(&self) -> &SerenityContext {
+				&self.ctx
+			}
+			fn get_command_interaction(&self) -> &CommandInteraction {
+				&self.command_interaction
+			}
+			async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
+				($get_contents_fn)(self.clone()).await
+			}
+		}
+	};
 }
 
 pub trait CommandRun {
@@ -33,10 +53,13 @@ pub trait CommandRun {
 }
 
 impl<T: Command> CommandRun for T {
-	async fn send_embed(&self, contents: EmbedsContents) -> Result<()> {
+	async fn send_embed(&self, contents: EmbedsContents<'_>) -> Result<()> {
 		let mut embeds = vec![];
+		let mut has_embed = false;
 		for embed_content in contents.embed_contents {
-			let mut embed = get_default_embed(embed_content.colour)
+			has_embed = true;
+			let user_color = &self.get_command_interaction().user.accent_colour;
+			let mut embed = get_default_embed(embed_content.colour,user_color)
 				.title(embed_content.title)
 				.fields(embed_content.fields);
 
@@ -80,6 +103,7 @@ impl<T: Command> CommandRun for T {
 		}
 
 		let mut component = None;
+		let mut is_v2 = false;
 		if let Some(action_row) = contents.action_row {
 			match action_row {
 				ComponentVersion::V1(v1) => match v1 {
@@ -107,7 +131,9 @@ impl<T: Command> CommandRun for T {
 							button_builder = button_builder.disabled(button.disabled);
 							components.push(button_builder)
 						}
-						component = Some(CreateActionRow::Buttons(Cow::Owned(components)))
+						component = Some(Cow::Owned(vec![CreateComponent::ActionRow(
+							CreateActionRow::Buttons(Cow::Owned(components)),
+						)]))
 					},
 					ComponentVersion1::SelectMenu(select_menu) => {
 						return Err(anyhow!("Component V1 SelectMenu is not supported yet"));
@@ -117,7 +143,8 @@ impl<T: Command> CommandRun for T {
 					},
 				},
 				ComponentVersion::V2(v2) => {
-					return Err(anyhow!("Component V2 is not supported yet"));
+					is_v2 = true;
+					component = Some(v2.components)
 				},
 			};
 		};
@@ -127,11 +154,20 @@ impl<T: Command> CommandRun for T {
 
 		match contents.command_type {
 			CommandType::First => {
-				let mut builder = CreateInteractionResponseMessage::new()
-					.embeds(embeds)
-					.files(files);
+				let mut builder = CreateInteractionResponseMessage::new().files(files);
+				if has_embed {
+					builder = builder.embeds(embeds);
+				} else if let Some(component) = component.clone() {
+					if is_v2 {
+						builder = builder
+							.components(component)
+							.flags(MessageFlags::IS_COMPONENTS_V2);
+					}
+				}
 				if let Some(component) = component {
-					builder = builder.components(Cow::Owned(vec![component]));
+					if !is_v2 {
+						builder = builder.components(component);
+					}
 				}
 				let builder = CreateInteractionResponse::Message(builder);
 				command_interaction
@@ -139,11 +175,20 @@ impl<T: Command> CommandRun for T {
 					.await?;
 			},
 			CommandType::Followup => {
-				let mut builder = CreateInteractionResponseFollowup::new()
-					.embeds(embeds)
-					.files(files);
+				let mut builder = CreateInteractionResponseFollowup::new().files(files);
+				if has_embed {
+					builder = builder.embeds(embeds);
+				} else if let Some(component) = component.clone() {
+					if is_v2 {
+						builder = builder
+							.components(component)
+							.flags(MessageFlags::IS_COMPONENTS_V2);
+					}
+				}
 				if let Some(component) = component {
-					builder = builder.components(Cow::Owned(vec![component]));
+					if !is_v2 {
+						builder = builder.components(component);
+					}
 				}
 				command_interaction
 					.create_followup(&ctx.http, builder)

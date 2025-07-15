@@ -44,7 +44,6 @@ use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// A struct representing the `GenerateGlobalImagePfPCommand`, which encapsulates
@@ -127,14 +126,14 @@ impl Command for GenerateGlobalImagePfPCommand {
 	/// # Dependencies
 	/// - This function depends on the presence of a proper context, bot data,
 	///   and a valid database connection in the configuration.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
 		let config = bot_data.config.clone();
+		let db_connection = bot_data.db_connection.clone();
 
-		let embed_contents =
-			get_content(ctx, command_interaction, "global", config.db.clone()).await?;
+		let embed_contents = get_content(ctx, command_interaction, "global", db_connection).await?;
 
 		Ok(embed_contents)
 	}

@@ -76,9 +76,7 @@ use image::EncodableLayout;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext,  
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -214,7 +212,7 @@ impl Command for ImageCommand {
 	/// 2. Prepares and sends a generation request to the AI service.
 	/// 3. Processes the response, saves images, and organizes them into an embed.
 	/// 4. Returns the embed for further interaction or display as a follow-up.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		if self
@@ -241,8 +239,9 @@ impl Command for ImageCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
-		let image_localised = load_localization_image(guild_id.clone(), config.db.clone());
+		let image_localised = load_localization_image(guild_id.clone(), db_connection);
 		self.defer().await?;
 
 		let uuid_name = Uuid::new_v4();

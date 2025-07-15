@@ -3,7 +3,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::structure::message::vn::stats::load_localization_stats;
-use anyhow::Result;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 pub struct VnStatsCommand {
@@ -20,7 +19,7 @@ impl Command for VnStatsCommand {
 		&self.command_interaction
 	}
 
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -31,9 +30,10 @@ impl Command for VnStatsCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		let stats = get_stats(vndb_cache).await?;
-		let stats_localised = load_localization_stats(guild_id, config.db.clone()).await?;
+		let stats_localised = load_localization_stats(guild_id, db_connection).await?;
 		let fields = vec![
 			(stats_localised.chars.clone(), stats.chars.to_string(), true),
 			(

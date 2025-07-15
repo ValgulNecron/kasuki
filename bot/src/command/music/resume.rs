@@ -202,7 +202,7 @@ impl Command for ResumeCommand {
 	///     }
 	/// }
 	/// ```
-	async fn get_contents(&self) -> anyhow::Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		self.defer().await?;
@@ -212,10 +212,10 @@ impl Command for ResumeCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
+		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let resume_localised =
-			load_localization_resume(guild_id_str, bot_data.config.db.clone()).await?;
+		let resume_localised = load_localization_resume(guild_id_str, db_connection).await?;
 
 		let command_interaction = self.get_command_interaction();
 

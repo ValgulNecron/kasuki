@@ -41,11 +41,11 @@ impl Command for AvatarCommand {
 	/// This method performs the following tasks:
 	/// 1. Resolves the user associated with the current command interaction by using `get_user_command`.
 	/// 2. Retrieves the bot's shared context
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let db_connection = bot_data.db_connection.clone();
 		let user = match command_interaction.data.kind.0 {
 			1 => get_user_command(ctx, command_interaction).await?,
 			2 => get_user_command_user(ctx, command_interaction).await,
@@ -60,7 +60,7 @@ impl Command for AvatarCommand {
 			.unwrap_or_default();
 		let avatar_url = user.face();
 		let username = user.name;
-		let avatar_localised = load_localization_avatar(guild_id, config.db.clone()).await?;
+		let avatar_localised = load_localization_avatar(guild_id, db_connection).await?;
 		let server_avatar = match command_interaction.guild_id {
 			Some(guild_id) => {
 				let member = guild_id

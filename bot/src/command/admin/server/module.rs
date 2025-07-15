@@ -2,6 +2,7 @@
 //! It contains context and interaction details necessary for processing the command.
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::database::module_activation;
 use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
@@ -9,9 +10,9 @@ use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::structure::message::admin::server::module::load_localization_module_activation;
-use anyhow::{Result, anyhow};
-use sea_orm::ColumnTrait;
+use anyhow::anyhow;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
+use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// A structure representing a command executed within a module,
@@ -127,11 +128,11 @@ impl Command for ModuleCommand {
 	///
 	/// # Return Type
 	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A `Result` containing a `Vec` of embed content or an error.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
-		let connection = bot_data.db_connection.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
@@ -149,37 +150,50 @@ impl Command for ModuleCommand {
 			.ok_or(anyhow!("No option for state"))?;
 
 		let module_localised =
-			load_localization_module_activation(guild_id.clone(), bot_data.config.db.clone());
+			load_localization_module_activation(guild_id.clone(), db_connection.clone());
 
-		let mut row = ModuleActivation::find()
-			.filter(crate::database::module_activation::Column::GuildId.eq(guild_id.clone()))
-			.one(&*connection)
+		match ModuleActivation::find()
+			.filter(module_activation::Column::GuildId.eq(guild_id.clone()))
+			.one(&*db_connection)
 			.await?
-			.unwrap_or(Model {
-				guild_id,
-				ai_module: true,
-				anilist_module: true,
-				game_module: true,
-				new_members_module: false,
-				anime_module: true,
-				vn_module: true,
-				updated_at: Default::default(),
-			});
-
-		match module.as_str() {
-			"ANILIST" => row.anilist_module = state,
-			"AI" => row.ai_module = state,
-			"GAME" => row.game_module = state,
-			"NEW_MEMBER" => row.new_members_module = state,
-			"ANIME" => row.anime_module = state,
-			"VN" => row.vn_module = state,
-			_ => {
-				return Err(anyhow!("The module specified does not exist"));
+		{
+			None => {
+				ModuleActivation::insert(module_activation::ActiveModel {
+					guild_id: Set(guild_id),
+					ai_module: Set(true),
+					anilist_module: Set(true),
+					game_module: Set(true),
+					anime_module: Set(true),
+					vn_module: Set(true),
+					updated_at: Set(Default::default()),
+					level_module: Set(false),
+					mini_game_module: Set(true),
+				})
+				.on_conflict(
+					sea_orm::sea_query::OnConflict::columns([module_activation::Column::GuildId])
+						.do_nothing()
+						.to_owned(),
+				)
+				.exec(&*db_connection.clone())
+				.await?;
+			},
+			Some(mut row) => {
+				match module.as_str() {
+					"ANILIST" => row.anilist_module = state,
+					"AI" => row.ai_module = state,
+					"GAME" => row.game_module = state,
+					"ANIME" => row.anime_module = state,
+					"VN" => row.vn_module = state,
+					"LEVEL" => row.level_module = state,
+					"MINIGAME" => row.mini_game_module = state,
+					_ => {
+						return Err(anyhow!("The module specified does not exist"));
+					},
+				}
+				let active_model = row.into_active_model();
+				active_model.update(&*db_connection).await?;
 			},
 		}
-
-		let active_model = row.into_active_model();
-		active_model.update(&*connection).await?;
 
 		let module_localised = module_localised.await?;
 		let desc = if state {
@@ -245,9 +259,10 @@ pub async fn check_activation_status(module: &str, row: Model) -> bool {
 		"ANILIST" => row.anilist_module,
 		"AI" => row.ai_module,
 		"GAME" => row.game_module,
-		"NEW_MEMBER" => row.new_members_module,
 		"ANIME" => row.anime_module,
 		"VN" => row.vn_module,
+		"LEVEL" => row.level_module,
+		"MINIGAME" => row.mini_game_module,
 		_ => false,
 	}
 }

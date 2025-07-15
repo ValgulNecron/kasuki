@@ -74,7 +74,7 @@
 //!
 //! - `ctx`: SerenityContext - The current Serenity context for this interaction.
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
@@ -188,11 +188,10 @@ impl Command for GivePremiumSubCommand {
 	/// # Note
 	/// - This function assumes that the bot's configuration and HTTP client are correctly implemented and operational.
 	/// - The guild ID must be available for localization purposes, and the subscription ID must correspond to an active SKU.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let config = &bot_data.config;
 
 		let map = get_option_map_user(command_interaction);
 
@@ -227,10 +226,11 @@ impl Command for GivePremiumSubCommand {
 			.http
 			.create_test_entitlement(sku_id, EntitlementOwner::User(user))
 			.await?;
+		let db_connection = bot_data.db_connection.clone();
 
 		let localization = load_localization_give_premium_sub(
 			command_interaction.guild_id.unwrap().to_string(),
-			config.db.clone(),
+			db_connection,
 		)
 		.await?;
 

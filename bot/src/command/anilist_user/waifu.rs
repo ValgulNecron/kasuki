@@ -20,7 +20,6 @@
 //! command.get_contents().await?;
 //! ```
 //!
-use anyhow::Result;
 
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
@@ -136,7 +135,7 @@ impl Command for WaifuCommand {
 	///
 	/// # Returns
 	/// `Result<Vec<EmbedContent>, Error>`: The formatted embed content or an error if retrieval or processing fails.
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
@@ -149,10 +148,11 @@ impl Command for WaifuCommand {
 		// Execute the corresponding search function based on the specified type
 		// Fetch the data of the character with ID 156323 from AniList
 		let value = 156323;
+		let db_connection = bot_data.db_connection.clone();
 
 		let data = get_character_by_id(value, anilist_cache).await?;
 
-		let embed_content = character_content(command_interaction, data, db_config).await?;
+		let embed_content = character_content(command_interaction, data, db_connection).await?;
 
 		Ok(embed_content)
 	}

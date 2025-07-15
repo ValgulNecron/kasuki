@@ -126,7 +126,7 @@ impl Command for TranscriptCommand {
 	///     println!("Embed Description: {}", content.description());
 	/// }
 	/// ```
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -189,8 +189,9 @@ impl Command for TranscriptCommand {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
-		let transcript_localised =
-			load_localization_transcript(guild_id, config.db.clone()).await?;
+		let db_connection = bot_data.db_connection.clone();
+
+		let transcript_localised = load_localization_transcript(guild_id, db_connection).await?;
 
 		let response = reqwest::get(content.to_string()).await?;
 		let buffer = response.bytes().await?;

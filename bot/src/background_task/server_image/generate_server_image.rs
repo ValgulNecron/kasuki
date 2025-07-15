@@ -27,6 +27,7 @@ use crate::config::ImageConfig;
 use crate::constant::THREAD_POOL_SIZE;
 use crate::database::prelude::{ServerImage, UserColor};
 use crate::database::server_image::{ActiveModel, Column};
+use crate::event_handler::BotData;
 use crate::helper::image_saver::general_image_saver::image_saver;
 
 pub async fn generate_local_server_image(
@@ -35,7 +36,10 @@ pub async fn generate_local_server_image(
 ) -> Result<()> {
 	let members: Vec<Member> = get_member(ctx.clone(), guild_id).await;
 
-	let average_colors = return_average_user_color(members, connection.clone())
+	let bot_data = ctx.data::<BotData>().clone();
+	let user_blacklist = bot_data.user_blacklist.clone();
+	let read_guard = user_blacklist.read().await.clone();
+	let average_colors = return_average_user_color(members, connection.clone(),read_guard)
 		.await
 		.map_err(|e| {
 			anyhow!(
@@ -45,7 +49,7 @@ pub async fn generate_local_server_image(
 			)
 		})?;
 
-	let color_vec = create_color_vector_from_tuple(average_colors.clone());
+	let color_vec = create_color_vector_from_tuple(average_colors.clone(), );
 
 	generate_server_image(
 		ctx,
@@ -64,7 +68,10 @@ pub async fn generate_global_server_image(
 ) -> Result<()> {
 	let average_colors = UserColor::find().all(&*connection).await?;
 
-	let color_vec = create_color_vector_from_user_color(average_colors.clone());
+	let bot_data = ctx.data::<BotData>().clone();
+	let user_blacklist = bot_data.user_blacklist.clone();
+	let read_guard = user_blacklist.read().await.clone();
+	let color_vec = create_color_vector_from_user_color(average_colors.clone(),read_guard);
 
 	generate_server_image(
 		ctx,

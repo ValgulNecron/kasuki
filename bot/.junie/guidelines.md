@@ -1,10 +1,12 @@
 # Kasuki Development Guidelines
 
-This document provides essential information for developers working on the Kasuki Discord bot project. It covers build instructions, testing procedures, and development practices specific to this project.
+This document provides essential information for developers working on the Kasuki Discord bot project. It covers build
+instructions, testing procedures, and development practices specific to this project.
 
 ## Build/Configuration Instructions
 
 ### Prerequisites
+
 - Rust toolchain (latest stable version recommended)
 - PostgreSQL database (for production)
 - Discord bot token
@@ -37,7 +39,8 @@ This document provides essential information for developers working on the Kasuk
    ```
 
 3. **GraphQL Schema**:
-   The project uses GraphQL for Anilist API interactions. The schema is automatically registered during build from `schemas/anilist.graphql`.
+   The project uses GraphQL for Anilist API interactions. The schema is automatically registered during build from
+   `schemas/anilist.graphql`.
 
 4. **Build the project**:
    ```bash
@@ -80,6 +83,7 @@ cargo test <module_path>
 ```
 
 For example:
+
 ```bash
 cargo test helper::string_utils
 ```
@@ -133,7 +137,8 @@ cargo test helper::string_utils
    }
    ```
 
-3. **Adding the Module**: When adding a new module with tests, make sure to update the appropriate `mod.rs` file to include your new module.
+3. **Adding the Module**: When adding a new module with tests, make sure to update the appropriate `mod.rs` file to
+   include your new module.
 
 ## Additional Development Information
 
@@ -165,6 +170,7 @@ cargo clippy
 - Follow Rust's standard documentation format with examples where appropriate
 
 Example:
+
 ```rust
 /// Capitalizes the first letter of a string.
 ///
@@ -211,4 +217,5 @@ The project uses the `cynic` crate for GraphQL integration with Anilist. When mo
 5. Document changes in your commit message, including performance impacts
 6. Submit a pull request
 
-When modifying existing functionality, clearly document what has changed and the impact (performance, readability, API version changes, etc.).
+When modifying existing functionality, clearly document what has changed and the impact (performance, readability, API
+version changes, etc.).

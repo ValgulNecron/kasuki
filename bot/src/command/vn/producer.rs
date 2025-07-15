@@ -1,16 +1,11 @@
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::config::Config;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::producer::get_producer;
 use crate::structure::message::vn::producer::load_localization_producer;
-use anyhow::Result;
 use markdown_converter::vndb::convert_vndb_markdown;
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 pub struct VnProducerCommand {
@@ -27,12 +22,12 @@ impl Command for VnProducerCommand {
 		&self.command_interaction
 	}
 
-	async fn get_contents(&self) -> Result<EmbedsContents> {
+	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
 		let ctx = self.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
 		let vndb_cache = bot_data.vndb_cache.clone();
+		let db_connection = bot_data.db_connection.clone();
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
@@ -47,9 +42,8 @@ impl Command for VnProducerCommand {
 			.get(&String::from("name"))
 			.cloned()
 			.unwrap_or(String::new());
-		let db_config = config.db.clone();
 
-		let producer_localised = load_localization_producer(guild_id, db_config.clone()).await?;
+		let producer_localised = load_localization_producer(guild_id, db_connection).await?;
 
 		let producer = get_producer(producer.clone(), vndb_cache.clone()).await?;
 
