@@ -73,12 +73,11 @@ impl_command!(
 
 		// Calculate XP components
 		let xp_message = total_message;
-		let xp_message_len = total_message_len / 10;
 		let xp_vocal = total_vocal;
 		let xp_vocal_len = total_vocal_len / 10;
 
 		// Calculate total XP and level
-		let xp = xp_message_len + xp_vocal_len + xp_message + xp_vocal;
+		let xp = xp_vocal_len + xp_message + xp_vocal;
 		let level = get_level(xp);
 
 		// Calculate level progression
@@ -100,12 +99,10 @@ impl_command!(
 
 		// Format numbers with commas for better readability
 		let formatted_message_count = format!("{}", total_message);
-		let formatted_char_count = format!("{}", total_message_len);
 		let formatted_session_count = format!("{}", total_vocal);
 
 		// Format XP values
 		let formatted_xp_message = format!("{}", xp_message);
-		let formatted_xp_message_len = format!("{}", xp_message_len);
 		let formatted_xp_vocal = format!("{}", xp_vocal);
 		let formatted_xp_vocal_len = format!("{}", xp_vocal_len);
 		let formatted_xp_total = format!("{}", xp);
@@ -157,20 +154,10 @@ impl_command!(
 					String::new(),
 					true
 				),
-				(
-					localization.message_len.replace("{char}", &formatted_char_count),
-					String::new(),
-					true
-				),
 				// XP Breakdown Section
 				(localization.xp_title.clone(), String::new(), false),
 				(
 					localization.xp_message.replace("{xp}", &formatted_xp_message),
-					String::new(),
-					true
-				),
-				(
-					localization.xp_message_len.replace("{xp}", &formatted_xp_message_len),
 					String::new(),
 					true
 				),
