@@ -15,8 +15,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, arm64-runner]
-        arch: [amd64, arm64]
+        include:
+          - os: ubuntu-latest
+            arch: amd64
+          - os: arm64-runner
+            arch: arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
