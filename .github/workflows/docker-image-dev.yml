@@ -46,10 +46,6 @@ jobs:
           file: bot/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:dev-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
 
   manifest:
     runs-on: ubuntu-latest
