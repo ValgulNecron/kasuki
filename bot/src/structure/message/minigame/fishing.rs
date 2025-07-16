@@ -1,8 +1,8 @@
 use crate::structure::message::common::load_localization;
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FishingLocalised {

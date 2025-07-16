@@ -59,7 +59,7 @@ impl<T: Command> CommandRun for T {
 		for embed_content in contents.embed_contents {
 			has_embed = true;
 			let user_color = &self.get_command_interaction().user.accent_colour;
-			let mut embed = get_default_embed(embed_content.colour,user_color)
+			let mut embed = get_default_embed(embed_content.colour, user_color)
 				.title(embed_content.title)
 				.fields(embed_content.fields);
 

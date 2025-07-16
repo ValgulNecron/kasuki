@@ -71,10 +71,9 @@ pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> 
 ///
 /// * `tuples` - A vector of `UserColor` objects.
 
-pub fn create_color_vector_from_user_color(tuples: Vec<Model>, blacklist: Vec<String>) -> Vec<ColorWithUrl> {
-	
-	
-	
+pub fn create_color_vector_from_user_color(
+	tuples: Vec<Model>, blacklist: Vec<String>,
+) -> Vec<ColorWithUrl> {
 	tuples
 		.into_iter()
 		.filter_map(|user_color| {

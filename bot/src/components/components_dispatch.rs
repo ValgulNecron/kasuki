@@ -16,13 +16,7 @@ pub async fn components_dispatching(
 
 			let prev_id = user_id.split_at("_".len()).1;
 
-			list_register_user::update(
-				&ctx,
-				&component_interaction,
-				user_id,
-				prev_id,
-			)
-			.await?
+			list_register_user::update(&ctx, &component_interaction, user_id, prev_id).await?
 		},
 		s if s.starts_with("next_activity_") => {
 			let page_number = s.split_at("next_activity_".len()).1;

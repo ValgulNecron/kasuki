@@ -22,11 +22,11 @@ use reqwest::Client;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::{FullEvent, VoiceState};
 use serenity::all::{
 	CommandType, CurrentApplicationInfo, Entitlement, Guild, GuildMembersChunkEvent, Interaction,
 	Member, Message, Presence, Ready, ShardId, User,
 };
+use serenity::all::{FullEvent, VoiceState};
 use serenity::async_trait;
 use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo, ShardRunnerMessage};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
@@ -58,6 +58,7 @@ pub struct BotData {
 	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 }
+use crate::helper::load_items::load_items_from_json;
 use crate::music_events;
 use anyhow::{Context, Result};
 use dashmap::DashMap;
@@ -66,7 +67,6 @@ use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;
 use lavalink_rs::prelude::NodeDistributionStrategy;
-use crate::helper::load_items::load_items_from_json;
 
 pub struct Handler;
 
@@ -356,7 +356,7 @@ impl Handler {
 		let user_id = message.author.id;
 
 		if read_guard.contains(&user_id.to_string()) {
-			return
+			return;
 		}
 
 		let db_connection = bot_data.db_connection.clone();

@@ -120,11 +120,11 @@ pub async fn calculate_users_color(
 }
 
 pub async fn return_average_user_color(
-	members: Vec<Member>, connection: Arc<DatabaseConnection>,
-	blacklist: Vec<String>,
+	members: Vec<Member>, connection: Arc<DatabaseConnection>, blacklist: Vec<String>,
 ) -> Result<Vec<(String, String, String)>> {
 	let mut average_colors = Vec::with_capacity(members.len());
-	let members: Vec<Member> = members.into_iter()
+	let members: Vec<Member> = members
+		.into_iter()
 		.filter(|member| !blacklist.contains(&member.user.id.to_string()))
 		.collect();
 

@@ -28,9 +28,13 @@ use crate::command::bot::info::InfoCommand;
 use crate::command::bot::ping::PingCommand;
 use crate::command::command::CommandRun;
 use crate::command::guess_kind::guess_command_kind;
+use crate::command::levels::stats::LevelsStatsCommand;
 use crate::command::management::give_premium_sub::GivePremiumSubCommand;
 use crate::command::management::kill_switch::KillSwitchCommand;
 use crate::command::management::remove_test_sub::RemoveTestSubCommand;
+use crate::command::minigame::fish_inventory::FishInventoryCommand;
+use crate::command::minigame::fishing::FishingCommand;
+use crate::command::minigame::inventory::InventoryCommand;
 use crate::command::music::clear::ClearCommand;
 use crate::command::music::join::JoinCommand;
 use crate::command::music::leave::LeaveCommand;
@@ -69,10 +73,6 @@ use sea_orm::{EntityTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::time::Instant;
 use tracing::{debug, error, info, instrument, trace, warn};
-use crate::command::levels::stats::LevelsStatsCommand;
-use crate::command::minigame::fishing::FishingCommand;
-use crate::command::minigame::fish_inventory::FishInventoryCommand;
-use crate::command::minigame::inventory::InventoryCommand;
 
 /// Dispatches a command to the appropriate handler based on the command name.
 ///
@@ -807,13 +807,13 @@ pub async fn dispatch_command(
 			.await?
 		},
 
-  "levels_stats" => {
+		"levels_stats" => {
 			LevelsStatsCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
-				.run_slash()
-				.await?
+			.run_slash()
+			.await?
 		},
 
 		"minigame_fishing" => {
@@ -821,17 +821,17 @@ pub async fn dispatch_command(
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
-				.run_slash()
-				.await?
+			.run_slash()
+			.await?
 		},
 
-  "minigame_inventory" => {
+		"minigame_inventory" => {
 			InventoryCommand {
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
-				.run_slash()
-				.await?
+			.run_slash()
+			.await?
 		},
 
 		"minigame_fish_inventory" => {
@@ -839,8 +839,8 @@ pub async fn dispatch_command(
 				ctx: ctx.clone(),
 				command_interaction: command_interaction.clone(),
 			}
-				.run_slash()
-				.await?
+			.run_slash()
+			.await?
 		},
 
 		// =====================================================================

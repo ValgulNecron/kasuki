@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
@@ -11,7 +11,7 @@ use crate::structure::message::anilist_server::list_register_user::load_localiza
 
 pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, user_id: &str,
-	prev_id: &str
+	prev_id: &str,
 ) -> Result<()> {
 	let bot_data = ctx.data::<BotData>().clone();
 	let connection = bot_data.db_connection.clone();

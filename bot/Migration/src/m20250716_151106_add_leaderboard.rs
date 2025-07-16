@@ -1,6 +1,6 @@
 use crate::m20240815_180000_guild_data::GuildData;
 use crate::m20240815_180201_user_data::UserData;
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -11,28 +11,33 @@ impl MigrationTrait for Migration {
 		manager
 			.create_table(
 				Table::create()
-					.table(ServerUserRelation::Table)
+					.table(LeaderBoard::Table)
 					.if_not_exists()
-					.col(string(ServerUserRelation::UserId))
-					.col(string(ServerUserRelation::GuildId))
+					.col(ColumnDef::new(LeaderBoard::UserId).string().not_null())
+					.col(
+						ColumnDef::new(LeaderBoard::MinigameType)
+							.string()
+							.not_null(),
+					)
+					.col(ColumnDef::new(LeaderBoard::ServerId).string().not_null())
+					.col(ColumnDef::new(LeaderBoard::Points).integer().not_null())
 					.primary_key(
 						Index::create()
-							.col(ServerUserRelation::UserId)
-							.col(ServerUserRelation::GuildId),
+							.col(LeaderBoard::MinigameType)
+							.col(LeaderBoard::ServerId)
+							.col(LeaderBoard::UserId),
 					)
 					.foreign_key(
 						ForeignKey::create()
-							.name("FK_user_relation")
-							.to(UserData::Table, UserData::UserId)
-							.from(ServerUserRelation::Table, ServerUserRelation::UserId)
+							.from(GuildData::Table, GuildData::GuildId)
+							.to(LeaderBoard::Table, LeaderBoard::ServerId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)
 					.foreign_key(
 						ForeignKey::create()
-							.name("FK_server_relation")
-							.to(GuildData::Table, GuildData::GuildId)
-							.from(ServerUserRelation::Table, ServerUserRelation::GuildId)
+							.from(UserData::Table, UserData::UserId)
+							.to(LeaderBoard::Table, LeaderBoard::ServerId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)
@@ -43,14 +48,16 @@ impl MigrationTrait for Migration {
 
 	async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
 		manager
-			.drop_table(Table::drop().table(ServerUserRelation::Table).to_owned())
+			.drop_table(Table::drop().table(LeaderBoard::Table).to_owned())
 			.await
 	}
 }
 
 #[derive(DeriveIden)]
-pub enum ServerUserRelation {
+pub enum LeaderBoard {
 	Table,
+	ServerId,
 	UserId,
-	GuildId,
+	Points,
+	MinigameType,
 }

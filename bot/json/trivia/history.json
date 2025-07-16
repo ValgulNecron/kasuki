@@ -1,0 +1,296 @@
+[
+  {
+    "id": "history_01",
+    "difficulty": "1",
+    "question": {
+      "en": "Who was the first President of the United States?",
+      "fr": "Qui était le premier président des États-Unis ?",
+      "de": "Wer war der erste Präsident der Vereinigten Staaten?",
+      "ja": "アメリカ合衆国の初代大統領は誰でしたか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Abraham Lincoln",
+          "fr": "Abraham Lincoln",
+          "de": "Abraham Lincoln",
+          "ja": "エイブラハム・リンカーン"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "George Washington",
+          "fr": "George Washington",
+          "de": "George Washington",
+          "ja": "ジョージ・ワシントン"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Thomas Jefferson",
+          "fr": "Thomas Jefferson",
+          "de": "Thomas Jefferson",
+          "ja": "トーマス・ジェファーソン"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "John Adams",
+          "fr": "John Adams",
+          "de": "John Adams",
+          "ja": "ジョン・アダムズ"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "history_02",
+    "difficulty": "2",
+    "question": {
+      "en": "In which year did World War II end?",
+      "fr": "En quelle année la Seconde Guerre mondiale s'est-elle terminée ?",
+      "de": "In welchem Jahr endete der Zweite Weltkrieg?",
+      "ja": "第二次世界大戦は何年に終結しましたか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "1945",
+          "fr": "1945",
+          "de": "1945",
+          "ja": "1945年"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "1939",
+          "fr": "1939",
+          "de": "1939",
+          "ja": "1939年"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "1950",
+          "fr": "1950",
+          "de": "1950",
+          "ja": "1950年"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "1942",
+          "fr": "1942",
+          "de": "1942",
+          "ja": "1942年"
+        }
+      }
+    ],
+    "valid_response": "a"
+  },
+  {
+    "id": "history_03",
+    "difficulty": "2",
+    "question": {
+      "en": "Who discovered America?",
+      "fr": "Qui a découvert l'Amérique ?",
+      "de": "Wer hat Amerika entdeckt?",
+      "ja": "アメリカ大陸を発見したのは誰ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Christopher Columbus",
+          "fr": "Christophe Colomb",
+          "de": "Christoph Kolumbus",
+          "ja": "クリストファー・コロンブス"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Amerigo Vespucci",
+          "fr": "Amerigo Vespucci",
+          "de": "Amerigo Vespucci",
+          "ja": "アメリゴ・ヴェスプッチ"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Vasco da Gama",
+          "fr": "Vasco de Gama",
+          "de": "Vasco da Gama",
+          "ja": "ヴァスコ・ダ・ガマ"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Ferdinand Magellan",
+          "fr": "Fernand de Magellan",
+          "de": "Ferdinand Magellan",
+          "ja": "フェルディナンド・マゼラン"
+        }
+      }
+    ],
+    "valid_response": "a"
+  },
+  {
+    "id": "history_04",
+    "difficulty": "3",
+    "question": {
+      "en": "The ancient city of Rome was built on how many hills?",
+      "fr": "Sur combien de collines la ville antique de Rome a-t-elle été construite ?",
+      "de": "Auf wie vielen Hügeln wurde die antike Stadt Rom erbaut?",
+      "ja": "古代都市ローマはいくつの丘の上に築かれましたか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "5",
+          "fr": "5",
+          "de": "5",
+          "ja": "5"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "7",
+          "fr": "7",
+          "de": "7",
+          "ja": "7"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "9",
+          "fr": "9",
+          "de": "9",
+          "ja": "9"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "12",
+          "fr": "12",
+          "de": "12",
+          "ja": "12"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "history_05",
+    "difficulty": "1",
+    "question": {
+      "en": "Who was the first man to walk on the moon?",
+      "fr": "Qui a été le premier homme à marcher sur la lune ?",
+      "de": "Wer war der erste Mensch, der den Mond betrat?",
+      "ja": "月面を歩いた最初の人物は誰ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Buzz Aldrin",
+          "fr": "Buzz Aldrin",
+          "de": "Buzz Aldrin",
+          "ja": "バズ・オルドリン"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Neil Armstrong",
+          "fr": "Neil Armstrong",
+          "de": "Neil Armstrong",
+          "ja": "ニール・アームストロング"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Michael Collins",
+          "fr": "Michael Collins",
+          "de": "Michael Collins",
+          "ja": "マイケル・コリンズ"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Yuri Gagarin",
+          "fr": "Yuri Gagarin",
+          "de": "Yuri Gagarin",
+          "ja": "ユーリ・ガガーリン"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "history_06",
+    "difficulty": "2",
+    "question": {
+      "en": "What was the name of the ship that carried the Pilgrims to America in 1620?",
+      "fr": "Quel était le nom du navire qui a transporté les Pèlerins en Amérique en 1620 ?",
+      "de": "Wie hieß das Schiff, das die Pilger 1620 nach Amerika brachte?",
+      "ja": "1620年にピルグリムをアメリカに運んだ船の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "The Santa Maria",
+          "fr": "La Santa Maria",
+          "de": "Die Santa Maria",
+          "ja": "サンタ・マリア号"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "The Mayflower",
+          "fr": "Le Mayflower",
+          "de": "Die Mayflower",
+          "ja": "メイフラワー号"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "The Titanic",
+          "fr": "Le Titanic",
+          "de": "Die Titanic",
+          "ja": "タイタニック号"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "The Endeavour",
+          "fr": "L'Endeavour",
+          "de": "Die Endeavour",
+          "ja": "エンデバー号"
+        }
+      }
+    ],
+    "valid_response": "b"
+  }
+]

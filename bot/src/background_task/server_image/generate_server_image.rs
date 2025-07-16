@@ -39,7 +39,7 @@ pub async fn generate_local_server_image(
 	let bot_data = ctx.data::<BotData>().clone();
 	let user_blacklist = bot_data.user_blacklist.clone();
 	let read_guard = user_blacklist.read().await.clone();
-	let average_colors = return_average_user_color(members, connection.clone(),read_guard)
+	let average_colors = return_average_user_color(members, connection.clone(), read_guard)
 		.await
 		.map_err(|e| {
 			anyhow!(
@@ -49,7 +49,7 @@ pub async fn generate_local_server_image(
 			)
 		})?;
 
-	let color_vec = create_color_vector_from_tuple(average_colors.clone(), );
+	let color_vec = create_color_vector_from_tuple(average_colors.clone());
 
 	generate_server_image(
 		ctx,
@@ -71,7 +71,7 @@ pub async fn generate_global_server_image(
 	let bot_data = ctx.data::<BotData>().clone();
 	let user_blacklist = bot_data.user_blacklist.clone();
 	let read_guard = user_blacklist.read().await.clone();
-	let color_vec = create_color_vector_from_user_color(average_colors.clone(),read_guard);
+	let color_vec = create_color_vector_from_user_color(average_colors.clone(), read_guard);
 
 	generate_server_image(
 		ctx,
