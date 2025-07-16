@@ -169,9 +169,9 @@ impl Command for InfoCommand {
 		let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
 
 		let guild_count = if server_count > app_guild_count {
-			server_count
-		} else {
 			app_guild_count
+		} else {
+			server_count
 		};
 
 		let app_installation_count =
