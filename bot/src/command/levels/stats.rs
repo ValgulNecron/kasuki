@@ -13,6 +13,7 @@ use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, Condition};
 use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
 use serenity::model::Colour;
+use tracing::{debug, info};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -24,80 +25,103 @@ pub struct LevelsStatsCommand {
 impl_command!(
 	for LevelsStatsCommand,
 	get_contents = |self_: LevelsStatsCommand| async move {
-		self_.defer().await;
+		info!("Processing levels stats command");
+		let _ = self_.defer().await;
+		debug!("Command deferred");
+
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
+		debug!("Retrieved bot data and command interaction");
 
+		debug!("Fetching channels for guild");
 		let channels_id = command_interaction.guild_id.unwrap().channels(&ctx.http)
 			.await?;
 		let vec_channel_id: Vec<ChannelId> = channels_id.iter().map(|a| a.id).collect();
 		let vec_string: Vec<String> = vec_channel_id.iter().map(|id| id.to_string()).collect();
 		let user_id = command_interaction.user.id.to_string();
+		debug!("User ID: {}, Channel count: {}", user_id, vec_channel_id.len());
 
+		debug!("Creating message query condition");
 		let condition = Condition::all()
 			.add(message::Column::UserId.eq(user_id.clone()))
 			.add(message::Column::ChannelId.is_in(vec_string.clone()));
 
 		let db_connection = bot_data.db_connection.clone();
 
+		debug!("Querying database for user messages");
 		let messages = DatabaseMessage::find()
 			.filter(condition)
 			.all(&*db_connection)
 			.await?;
 
-		let total_message = messages.len()  as i128;
-		let mut total_message_len: i128 = 0;
-		for message in messages {
-			total_message_len += message.chat_length  as i128;
-		}
+	 let total_message = messages.len() as i128;
+		debug!("Found {} messages for user", total_message);
 
+		debug!("Creating vocal query condition");
 		let condition = Condition::all()
 			.add(vocal::Column::UserId.eq(user_id))
 			.add(vocal::Column::ChannelId.is_in(vec_string));
+
+		debug!("Querying database for user vocal sessions");
 		let vocals = DatabaseVocal::find()
 		.filter(condition)
 		.all(&*db_connection)
 		.await?;
 
 		let total_vocal = vocals.len() as i128;
+		debug!("Found {} vocal sessions for user", total_vocal);
+
 		let mut total_vocal_len: i128 = 0;
 		for vocal in vocals {
-			total_vocal_len += vocal.duration  as i128;
+			total_vocal_len += vocal.duration as i128;
 		}
+		debug!("Total vocal duration: {} seconds", total_vocal_len);
 
 		// Convert seconds to hours, minutes, seconds
 		let hours = total_vocal_len / 3600;
 		let minutes = (total_vocal_len % 3600) / 60;
 		let seconds = total_vocal_len % 60;
+		debug!("Formatted vocal time: {}h {}m {}s", hours, minutes, seconds);
 
 		// Calculate XP components
+		debug!("Calculating XP components");
 		let xp_message = total_message;
 		let xp_vocal = total_vocal;
 		let xp_vocal_len = total_vocal_len / 10;
+		debug!("XP from messages: {}, XP from vocal sessions: {}, XP from vocal duration: {}",
+			xp_message, xp_vocal, xp_vocal_len);
 
 		// Calculate total XP and level
 		let xp = xp_vocal_len + xp_message + xp_vocal;
 		let level = get_level(xp);
+		debug!("Total XP: {}, Current level: {}", xp, level);
 
 		// Calculate level progression
+		debug!("Calculating level progression");
 		let current_level_xp = get_xp_for_level(level);
 		let next_level_xp = get_xp_for_next_level(level);
 		let xp_progress = xp - current_level_xp;
 		let xp_needed = next_level_xp - current_level_xp;
+		debug!("XP progress: {}/{} for next level", xp_progress, xp_needed);
 
 		// Create progress bar with user color
+		debug!("Creating progress bar with user color");
 		let user_color = command_interaction.user.accent_colour;
 		let (progress_file, percent) = create_progress_bar(xp_progress, xp_needed, user_color).await?;
 		let progress_filename = format!("attachment://{}", progress_file.filename.clone());
+		debug!("Progress bar created with filename: {}, percent: {}", progress_file.filename, percent);
 
+		debug!("Loading localization for levels stats");
 		let localization = load_localization_levels_stats(
 			command_interaction.guild_id.unwrap().to_string(),
 			db_connection,
 		)
 		.await?;
+		debug!("Localization loaded successfully");
 
 		// Format numbers with commas for better readability
+		debug!("Formatting display values");
 		let formatted_message_count = format!("{}", total_message);
 		let formatted_session_count = format!("{}", total_vocal);
 
@@ -111,8 +135,10 @@ impl_command!(
 		let formatted_current_xp = format!("{}", xp_progress);
 		let formatted_next_level_xp = format!("{}", xp_needed);
 		let next_level = level + 1;
+		debug!("Current level: {}, Next level: {}", level, next_level);
 
 		// Create embed with title and fields
+		debug!("Creating embed content with fields");
 		let embed_content = EmbedContent::new(localization.title.clone())
 			.images_url(progress_filename)
 			.fields(vec![
@@ -177,10 +203,14 @@ impl_command!(
 					false
 				)
 			]);
+		debug!("Embed content created with title: {}", localization.title);
 
+		debug!("Creating final embed contents with CommandType::Followup");
 		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 		embed_contents.add_file(progress_file);
+		debug!("Added progress bar file to embed contents");
 
+		info!("Levels stats command processed successfully");
 		Ok(embed_contents)
 	}
 );

@@ -86,6 +86,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
+use crate::impl_command;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
@@ -136,129 +137,17 @@ use tracing::trace;
 ///     command_interaction: interaction,
 /// };
 /// ```
+#[derive(Clone)]
 pub struct AddActivityCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for AddActivityCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` (`&SerenityContext`) which provides access to the
-	/// Discord API and various utilities for interacting with Discord via the serenity framework.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use the `context` to interact with Discord or retrieve additional data
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance (`&CommandInteraction`) stored within the object.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = my_object.get_command_interaction();
-	/// // Use the interaction object as needed
-	/// ```
-	///
-	/// # Notes
-	/// - This method does not take any parameters.
-	/// - The returned reference borrows the internal `CommandInteraction` instance and follows Rust's borrowing rules.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously processes the functionality for retrieving and managing content related to anime activities.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` with one or more embed contents representing messages about the activity.
-	/// - `Err(anyhow::Error)` with relevant error details if a failure occurs at any step during execution.
-	///
-	/// # Functionality
-	/// 1. Extracts interaction and context information:
-	///     - Retrieves the `command_interaction` details (e.g., user input).
-	///     - Gets the application context `ctx`.
-	///
-	/// 2. Gets bot-specific configuration and cache:
-	///     - Loads `BotData` from the context.
-	///     - Extracts `config` for database and localization settings.
-	///
-	/// 3. Parses user input:
-	///     - Retrieves the `anime_name` from the subcommand map or defaults to an empty string.
-	///
-	/// 4. Fetches anime details from Anilist:
-	///     - Queries `get_minimal_anime_media` for the anime's metadata using the cache and input name.
-	///
-	/// 5. Handles localization for the response:
-	///     - Loads language/localization configurations for customizing messages.
-	///
-	/// 6. Checks for existing activities:
-	///     - Verifies whether the anime is already being tracked for a specific guild using `check_if_activity_exist`.
-	///
-	/// 7. Prepares the response for existing activities:
-	///     - Constructs an embed content response indicating the activity already exists with localized messages.
-	///
-	/// 8. Processes new activities:
-	///     - Collects additional user-provided data like delay.
-	///     - Prepares trimmed versions of anime names to fit API constraints.
-	///
-	/// 9. Handles image processing:
-	///     - Fetches the anime's cover image from its metadata.
-	///     - Resizes and converts the image to Base64 for usage in webhooks.
-	///
-	/// 10. Handles scheduling for next airing episodes:
-	///     - Extracts and computes the timestamp for the next episode using Anilist's data.
-	///
-	/// 11. Configures webhook notifications:
-	///     - Creates or retrieves a webhook for the designated channel.
-	///
-	/// 12. Inserts activity data into the database:
-	///     - Persists new anime activity details into a database table via an active model (`ActivityData`).
-	///
-	/// 13. Returns success:
-	///     - Constructs localized success message with an embed that includes information about the newly created activity.
-	///
-	/// # Parameters
-	/// - `self`: Reference to the implementing struct.
-	///
-	/// # Asynchronous Behavior
-	/// - Because this function performs multiple asynchronous tasks (e.g., HTTP requests, database interactions),
-	///   it must be used inside an async runtime.
-	///
-	/// # Possible Errors
-	/// - Fails if there is an issue with:
-	///   - Fetching anime metadata from Anilist.
-	///   - Image processing or resizing.
-	///   - Interactions with webhook configuration.
-	///   - Database connection or insertion.
-	///   - Parsing or formatting data during execution.
-	///
-	/// # Example Usage
-	/// ```rust
-	/// let embed_contents = your_struct_instance.get_contents().await;
-	/// match embed_contents {
-	///     Ok(contents) => {
-	///         for content in contents {
-	///             println!("EmbedContent: {:?}", content);
-	///         }
-	///     }
-	///     Err(err) => {
-	///         eprintln!("Error occurred: {}", err);
-	///     }
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let command_interaction = self.get_command_interaction();
-		let ctx = self.get_ctx();
+impl_command!(
+	for AddActivityCommand,
+	get_contents = |self_: AddActivityCommand| async move {
+		let command_interaction = self_.get_command_interaction();
+		let ctx = self_.get_ctx();
 
 		let bot_data = ctx.data::<BotData>().clone();
 
@@ -280,7 +169,7 @@ impl Command for AddActivityCommand {
 		let add_activity_localised =
 			load_localization_add_activity(guild_id.clone(), db_connection.clone());
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let anime_id = media.id;
 		let url = format!("https://anilist.co/anime/{}", anime_id);
@@ -321,12 +210,12 @@ impl Command for AddActivityCommand {
 		};
 
 		let image_url = media.cover_image.ok_or(
-            anyhow!("No cover image for this media".to_string()),
-        )?.extra_large.
-            unwrap_or(
-                "https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
-                    .to_string()
-            );
+			anyhow!("No cover image for this media".to_string()),
+		)?.extra_large.
+			unwrap_or(
+				"https://imgs.search.brave.com/CYnhSvdQcm9aZe3wG84YY0B19zT2wlAuAkiAGu0mcLc/rs:fit:640:400:1/g:ce/aHR0cDovL3d3dy5m/cmVtb250Z3VyZHdh/cmEub3JnL3dwLWNv/bnRlbnQvdXBsb2Fk/cy8yMDIwLzA2L25v/LWltYWdlLWljb24t/Mi5wbmc"
+					.to_string()
+			);
 		let bytes = get(image_url.clone()).await?.bytes().await?;
 		let buf = resize_image(&bytes).await?;
 		let base64 = STANDARD.encode(buf.into_inner());
@@ -378,7 +267,7 @@ impl Command for AddActivityCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Asynchronously resizes an input image to a 128x128 pixel JPEG format while maintaining its aspect ratio.
 ///

@@ -18,143 +18,30 @@ use crate::command::embed_content::ComponentVersion::V2;
 use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
+use crate::impl_command;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
 	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
 	UserStatusStatistic, UserTagStatistic,
 };
 
-/// A struct representing the "CompareCommand" which is used to encapsulate the
-/// context and interaction data for a specific command execution in a Discord bot.
-///
-/// This struct is designed to work with the Serenity library and contains the necessary
-/// components for handling a command interaction.
-///
-/// # Fields
-///
-/// * `ctx` - The context of the Serenity framework, which provides access to the bot's state,
-///   including data and functionality needed to interact with Discord's API.
-///
-/// * `command_interaction` - Represents the interaction object associated with a command.
-///   This contains data related to the user's input, as well as methods to respond
-///   to the interaction.
+#[derive(Clone)]
 pub struct CompareCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for CompareCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` contained within the current structure.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Now you can use `ctx` to interact with the Serenity bot context.
-	/// ```
-	///
-	/// # Note
-	/// This function borrows the context immutably. If you need a mutable reference, consider using a different method or refactor accordingly.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` structure stored within the instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the interaction as needed
-	/// ```
-	///
-	/// # Remarks
-	/// This method provides read-only access to the `CommandInteraction` and does not allow any modifications.
-	///
-	/// # Safety
-	/// Ensure that the returned reference is not used after the lifetime of the associated instance.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves a comparison of anime and manga statistics between two users.
-	///
-	/// The method fetches user data based on provided usernames, compares their anime and manga
-	/// statistics, and formats the data into a detailed description. The description is then wrapped
-	/// into an embed content structure for further usage, such as displaying within a bot interface.
-	///
-	/// # Returns
-	/// * `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing embed content formatted with the comparison
-	///   details if successful.
-	/// * `Err(anyhow::Error)` - An error if any of the fetching, processing, or formatting operations fail.
-	///
-	/// # Logic Overview
-	/// 1. **Input Processing**:
-	///    - Extracts the "username" and "username2" values from the command interaction.
-	///    - Provides empty strings as default if either value is missing.
-	///
-	/// 2. **User Data Fetching**:
-	///    - Calls `get_user` asynchronously to fetch user statistics for both usernames from the AniList cache.
-	///
-	/// 3. **Data Comparison**:
-	///    - Compares various aspects of both users' anime and manga statistics:
-	///        - Affinity (a measure of similarity in statistics).
-	///        - Total anime watched and manga read (count-wise).
-	///        - Total minutes watched for anime and chapters read for manga.
-	///        - Comparison of tags and genres for both anime and manga.
-	///
-	/// 4. **Localization and Description**:
-	///    - Retrieves localized strings for the comparison descriptions using the guild ID.
-	///    - Constructs a dynamic, localized description comparing both users in terms of their anime and manga activity.
-	///
-	/// 5. **Embed Content Generation**:
-	///    - Creates an `EmbedContent` object with a detailed description of the comparison and sets the command type.
-	///
-	/// # Example Usage
-	/// ```
-	/// // Assuming `self` refers to an appropriate struct implementing the `get_contents` method
-	/// let contents = self.get_contents().await?;
-	/// println!("{:?}", contents); // Outputs the embed contents detailing user comparison
-	/// ```
-	///
-	/// # Errors
-	/// The function may return errors in the following scenarios:
-	/// * Failure to fetch user data using the `get_user` function.
-	/// * Issues with fetching or accessing localization data.
-	/// * Any mismatch or unavailability of required user statistics such as anime or manga data.
-	///
-	/// # Dependencies
-	/// This function relies on several helper functions for fetching, computing, and formatting data:
-	/// * `get_user` - Fetch user data.
-	/// * `get_affinity` - Calculate the affinity/similarity between two users.
-	/// * `load_localization_compare` - Load localized strings for the comparison.
-	/// * `diff` - Compute difference details for tags and genres.
-	/// * `get_tag`, `get_genre` - Extract tags and genres from statistics.
-	///
-	/// # Returns Description
-	/// The resulting `EmbedContent` contains:
-	/// * A description comparing the two users in terms of:
-	///     - Anime stats: count, minutes watched, tags, and genres.
-	///     - Manga stats: count, chapters read, tags, and genres.
-	///
-	/// # Note
-	/// This method assumes both users' statistics are readily accessible and contain all necessary fields
-	/// for comparisons. If certain fields (e.g., `tags`, `genres`) are missing, appropriate error handling
-	/// should be implemented to ensure a graceful failure or fallback logic.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for CompareCommand,
+	get_contents = |self_: CompareCommand| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction().clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
-		let config = bot_data.config.clone();
+		let _config = bot_data.config.clone();
 
-		let map = get_option_map_string(command_interaction);
+		let map = get_option_map_string(&command_interaction);
 
 		let value = map
 			.get(&FixedString::from_str_trunc("username"))
@@ -445,7 +332,7 @@ impl Command for CompareCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Calculates the affinity score between two users based on their anime and manga preferences.
 ///

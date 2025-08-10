@@ -88,6 +88,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
+use crate::impl_command;
 use crate::structure::message::ai::translation::load_localization_translation;
 use anyhow::{Result, anyhow};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -115,6 +116,7 @@ use uuid::Uuid;
 /// * `command_name` - A `String` representing the name of the command,
 ///   which indicates the specific translation action to be taken.
 ///
+#[derive(Clone)]
 pub struct TranslationCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
@@ -122,112 +124,17 @@ pub struct TranslationCommand {
 	pub command_name: String,
 }
 
-impl Command for TranslationCommand {
-	/// Returns a reference to the `SerenityContext`.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored in the
-	/// current instance. This allows access to the context object for performing
-	/// various operations related to Discord bot functionality.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` to perform actions within the bot's environment.
-	/// ```
-	///
-	/// # Notes
-	/// - This method borrows the internal `SerenityContext` as an immutable reference,
-	/// so it cannot be used to modify the context directly.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance stored within the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance (`&CommandInteraction`).
-	///
-	/// # Example
-	/// ```
-	/// let command_interaction = object.get_command_interaction();
-	/// // Use the `command_interaction` reference as needed
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes file contents for transcription and optional translation.
-	///
-	/// # Description
-	/// This function executes the following sequence of operations:
-	/// 1. Validates the hourly usage limit for the provided command type.
-	/// 2. Extracts options and attachments from the command interaction.
-	/// 3. Validates the content type and file extension of the input attachment.
-	/// 4. Processes the file for transcription using an AI transcription service.
-	/// 5. Optionally translates the transcribed text to a configured target language.
-	/// 6. Builds and returns a response struct containing the processed content.
-	///
-	/// # Pre-requisites
-	/// - The user must not exceed the hourly usage limit for the specified command type.
-	/// - A valid audio or video file must be provided.
-	/// - Proper API tokens and configuration values are required for AI services like transcription and translation.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` containing content data ready for embedding.
-	/// - `Err` if any error occurs during the process, such as invalid file, API call failures, or configuration issues.
-	///
-	/// # Errors
-	/// The function can return errors in the following cases:
-	/// - Hourly usage limit for the command type is exceeded.
-	/// - Missing or invalid required attachment (video/audio file).
-	/// - Invalid file type or unsupported file extension.
-	/// - Failure to download or process the attachment.
-	/// - API errors during transcription or translation.
-	/// - Missing or incorrect API configuration or tokens.
-	///
-	/// # Examples
-	/// Given a valid file attachment and proper API configuration, the function can:
-	/// - Transcribe an audio file to text.
-	/// - Translate the transcribed text into a target language if needed.
-	/// - Build an embed content struct for user feedback.
-	///
-	/// ```
-	/// let result = your_instance.get_contents().await;
-	/// match result {
-	///     Ok(contents) => {
-	///         for content in contents {
-	///             println!("Embed Title: {}", content.title);
-	///             println!("Embed Description: {}", content.description.unwrap());
-	///         }
-	///     },
-	///     Err(error) => eprintln!("Error: {}", error),
-	/// }
-	/// ```
-	///
-	/// # Notes
-	/// - The transcription API base URL is validated and formatted, ensuring it ends with the correct endpoint.
-	/// - Language translation is only performed if the target language is not English.
-	/// - The response from the transcription API is parsed assuming a JSON structure with a `text` field for the transcribed content.
-	/// - The function defers a response to the user until processing is complete.
-	///
-	/// # Dependencies
-	/// - `reqwest` for HTTP requests to download files and call external APIs.
-	/// - `chrono`, `uuid` for generating unique file names.
-	/// - Custom data structures, enums, and configurations like `BotData`, `EmbedContent`, `PremiumCommandType`, etc., are used for logical operations.
-	/// - Localization and translation utilities to handle various language-specific use cases.
-	///
-	/// # Thread Safety
-	/// This function is marked as asynchronous (`async`) and is designed to be executed within an asynchronous runtime. Ensure that concurrency considerations are respected when invoking this function across multiple tasks.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for TranslationCommand,
+	get_contents = |self_: TranslationCommand| async move {
+		let ctx = self_.get_ctx();
+		let command_interaction = self_.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
-		if self
+		if self_
 			.check_hourly_limit(
-				self.command_name.clone(),
+				self_.command_name.clone(),
 				&bot_data,
 				PremiumCommandType::AITranslation,
 			)
@@ -238,7 +145,7 @@ impl Command for TranslationCommand {
 			));
 		}
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let map = get_option_map_string_subcommand(command_interaction);
 		let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -383,7 +290,7 @@ impl Command for TranslationCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Translates a given text into the target language specified by its ISO-639-1 code using an external translation API.
 ///

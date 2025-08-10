@@ -1,38 +1,30 @@
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
+use crate::impl_command;
 use crate::structure::message::vn::character::load_localization_character;
 use anyhow::Context;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, info, warn};
 
+#[derive(Clone)]
 pub struct VnCharacterCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for VnCharacterCommand {
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	#[instrument(name = "vn_character_command", skip(self), fields(
-		user_id = ?self.command_interaction.user.id,
-		guild_id = ?self.command_interaction.guild_id,
-    ))]
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
+impl_command!(
+	for VnCharacterCommand,
+	get_contents = |self_: VnCharacterCommand|
+	async move {
 		info!("Processing VN character command");
-		let ctx = self.get_ctx();
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction();
 		let vndb_cache = bot_data.vndb_cache.clone();
 
 		let guild_id = match command_interaction.guild_id {
@@ -221,14 +213,14 @@ impl Command for VnCharacterCommand {
 			);
 		}
 
-		// Create the final embed contents with the CommandType::First flag
-		// This indicates that this is the first (and only) page of the embed
+		// Create the final embed contents with the CommandType::Followup flag
+		// This indicates that this is a followup message after the defer
 		debug!("Creating final embed contents");
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		// Return the embed contents wrapped in Ok
 		// This indicates that the command was processed successfully
 		info!("VN character command processed successfully");
 		Ok(embed_contents)
 	}
-}
+);

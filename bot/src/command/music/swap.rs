@@ -76,6 +76,7 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
+use crate::impl_command;
 use crate::structure::message::music::swap::load_localization_swap;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -99,98 +100,21 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// The `SwapCommand` structure is designed to abstract and streamline the handling of a specific command within
 /// the bot. It provides direct access to both the context and the interaction, which are typically essential
 /// components for most command-processing logic.
+#[derive(Clone)]
 pub struct SwapCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for SwapCommand {
-	/// Retrieves a reference to the `SerenityContext`.
-	///
-	/// This function provides access to the Discord bot's context,
-	/// allowing the caller to utilize the context for various operations, such as interacting
-	/// with Discord's API, managing bot state, or listening to events.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext`.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let context = my_struct.get_ctx();
-	/// // Use `context` to interact with Discord API or handle various tasks
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance.
-	///
-	/// # Examples
-	/// ```rust
-	/// let interaction = object.get_command_interaction();
-	/// // Use the `interaction` reference as needed
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves the embed contents for swapping tracks in a music playback queue.
-	///
-	/// # Arguments
-	/// - `self`: The context for the command interaction, which contains necessary data to process the command.
-	///
-	/// # Returns
-	/// - `anyhow::Result<EmbedsContents>`: An `EmbedsContents` object that contains the response to the user
-	///   based on the processing of the swap action.
-	///
-	/// # Workflow
-	/// 1. Fetch application context and bot data that's used throughout the function.
-	/// 2. Defer the command interaction to prevent timeouts while processing.
-	/// 3. Retrieve the Guild ID associated with the command interaction.
-	/// 4. Load localized content for the swap operation based on database configuration.
-	/// 5. Validate if Lavalink (music client) is enabled and fetch its instance.
-	///    If Lavalink is disabled, return an error response embedded with a localized message.
-	/// 6. Retrieve the player context for the current guild. If no player context exists,
-	///    send a message indicating that the user is not in a voice channel.
-	/// 7. Extract the indices (`index1` and `index2`) from the command interaction's input options for track swapping.
-	///    Defaults to `0` if indices are missing.
-	/// 8. Validate the extracted indices:
-	///    - If either index exceeds the queue length or indices are identical, return respective error messages.
-	/// 9. Perform a swap operation between the two tracks in the queue using their indices:
-	///    - Fetch the tracks at the given indices.
-	///    - Swap the tracks in the playback queue.
-	///    - Return a success message.
-	/// 10. Compile the appropriate embed content (error or success) and return it to the user.
-	///
-	/// # Errors
-	/// - Returns an error if:
-	///   - The Guild ID is missing in the command interaction.
-	///   - Lavalink client is disabled or unavailable.
-	///   - Any unexpected issues occur while fetching data, interacting with the Lavalink client,
-	///     or manipulating the track queue.
-	///
-	/// # Example
-	/// ```ignore
-	/// // Assuming this function is invoked during a music bot operation when a user
-	/// // issues a "swap" command to switch the positions of two tracks in the queue.
-	/// let embed_contents = command.get_contents().await?;
-	/// for embed in embed_contents {
-	///     send_followup_command(embed).await?;
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for SwapCommand,
+	get_contents = |self_: SwapCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 
-		self.defer().await?;
-
 		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self.command_interaction.guild_id {
+		let guild_id_str = match self_.command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
@@ -199,7 +123,7 @@ impl Command for SwapCommand {
 		// Load the localized strings
 		let swap_localised = load_localization_swap(guild_id_str, db_connection).await?;
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
@@ -259,4 +183,4 @@ impl Command for SwapCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

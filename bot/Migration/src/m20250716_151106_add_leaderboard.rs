@@ -29,15 +29,17 @@ impl MigrationTrait for Migration {
 					)
 					.foreign_key(
 						ForeignKey::create()
-							.from(GuildData::Table, GuildData::GuildId)
-							.to(LeaderBoard::Table, LeaderBoard::ServerId)
+							.name("fk-leaderboard-user_id")
+							.from(LeaderBoard::Table, LeaderBoard::UserId)
+							.to(UserData::Table, UserData::UserId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)
 					.foreign_key(
 						ForeignKey::create()
-							.from(UserData::Table, UserData::UserId)
-							.to(LeaderBoard::Table, LeaderBoard::ServerId)
+							.name("fk-leaderboard-server_id")
+							.from(LeaderBoard::Table, LeaderBoard::ServerId)
+							.to(GuildData::Table, GuildData::GuildId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)

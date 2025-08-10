@@ -71,6 +71,7 @@ use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::impl_command;
 use crate::structure::run::anilist::media;
 use crate::structure::run::anilist::media::{
 	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
@@ -81,165 +82,84 @@ use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 
-/// This struct represents a command related to Anime in the context
-/// of a Discord bot using the `serenity` library. It holds the necessary
-/// context and interaction data required for handling the command.
-///
-/// # Fields
-///
-/// - `ctx` - The `SerenityContext`, which provides access to the Discord bot's
-///           client state, allowing the command to perform various operations
-///           in the Discord API, such as sending messages or managing guilds.
-///
-/// - `command_interaction` - The `CommandInteraction`, which contains
-///                           information about the specific command interaction.
-///                           This includes the user who invoked the command,
-///                           the guild or channel it was invoked in, as well as
-///                           the command data itself.
+#[derive(Clone)]
 pub struct AnimeCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for AnimeCommand {
-	/// Retrieves a reference to the stored `SerenityContext`.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` instance associated with the current object.
-	///
-	/// # Examples
-	/// ```rust
-	/// let context = my_object.get_ctx();
-	/// // Use `context` for further operations
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
+impl_command!(
+for AnimeCommand,
+get_contents = |self_: AnimeCommand| async move {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
-	/// Retrieves a reference to the stored `CommandInteraction`.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` associated with the instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let command_interaction = instance.get_command_interaction();
-	/// // Use `command_interaction` as needed
-	/// ```
-	///
-	/// This method is useful when you need to access the `CommandInteraction`
-	/// without taking ownership of it.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
+	let map = get_option_map_string(&command_interaction);
+	let value = map
+		.get(&FixedString::from_str_trunc("anime_name"))
+		.cloned()
+		.unwrap_or(String::new());
 
-	/// Asynchronously retrieves a list of embed contents based on user input, such as anime name or ID.
-	///
-	/// # Errors
-	///
-	/// Returns an error if:
-	/// - The anime is not found in the API response.
-	/// - There is an issue with the API request or response parsing.
-	///
-	/// # Returns
-	///
-	/// Returns a `Result` containing a vector of `EmbedContent` if successful, or an error on failure.
-	///
-	/// # Details
-	///
-	/// This function performs the following operations:
-	/// 1. Retrieves the context and bot data needed for the operation.
-	/// 2. Extracts and processes the anime name or ID from the command interaction's options.
-	/// 3. Prepares a set of media formats (`format_in`) for filtering anime media types.
-	/// 4. Executes a query against the AniList API to fetch media data:
-	///    - If the input value is an integer, the function treats it as an anime ID and queries based on ID.
-	///    - If the input value is a string, the function treats it as an anime name and performs a search query.
-	/// 5. Parses the API's GraphQL response to extract the relevant media object.
-	/// 6. Generates embed content using the fetched media data and additional bot configuration.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let embed_contents = my_obj.get_contents().await?;
-	/// for content in embed_contents {
-	///     println!("{:?}", content);
-	/// }
-	/// ```
-	///
-	/// This function relies on types and modules such as `BotData`, `MediaFormat`, `MediaType`, `GraphQlResponse`,
-	/// `MediaQuerryId`, `MediaQuerrySearch`, and various utility functions (e.g., `make_request_anilist`, `media_content`).
-	///
-	/// Ensure that all relevant dependencies are properly defined and that the context contains the necessary data for execution.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+	let format_in = Some(vec![
+		Some(MediaFormat::Tv),
+		Some(MediaFormat::TvShort),
+		Some(MediaFormat::Movie),
+		Some(MediaFormat::Special),
+		Some(MediaFormat::Ova),
+		Some(MediaFormat::Ona),
+		Some(MediaFormat::Music),
+	]);
 
-		let map = get_option_map_string(command_interaction);
-		let value = map
-			.get(&FixedString::from_str_trunc("anime_name"))
-			.cloned()
-			.unwrap_or(String::new());
+	let anilist_cache = bot_data.anilist_cache.clone();
+	let config = bot_data.config.clone();
 
-		let format_in = Some(vec![
-			Some(MediaFormat::Tv),
-			Some(MediaFormat::TvShort),
-			Some(MediaFormat::Movie),
-			Some(MediaFormat::Special),
-			Some(MediaFormat::Ova),
-			Some(MediaFormat::Ona),
-			Some(MediaFormat::Music),
-		]);
+	let data: Media = if value.parse::<i32>().is_ok() {
+		let id = value.parse::<i32>().unwrap();
 
-		let anilist_cache = bot_data.anilist_cache.clone();
-		let config = bot_data.config.clone();
-
-		let data: Media = if value.parse::<i32>().is_ok() {
-			let id = value.parse::<i32>().unwrap();
-
-			let var = MediaQuerryIdVariables {
-				format_in,
-				id: Some(id),
-				media_type: Some(MediaType::Anime),
-			};
-
-			let operation = MediaQuerryId::build(var);
-
-			let data: GraphQlResponse<MediaQuerryId> =
-				make_request_anilist(operation, false, anilist_cache).await?;
-
-			match data.data {
-				Some(data) => match data.media {
-					Some(media) => media,
-					None => return Err(anyhow!("Anime not found")),
-				},
-				None => return Err(anyhow!("Anime not found")),
-			}
-		} else {
-			let var = MediaQuerrySearchVariables {
-				format_in,
-				search: Some(&*value),
-				media_type: Some(MediaType::Anime),
-			};
-
-			let operation = MediaQuerrySearch::build(var);
-
-			let data: GraphQlResponse<MediaQuerrySearch> =
-				make_request_anilist(operation, false, anilist_cache).await?;
-
-			match data.data {
-				Some(data) => match data.media {
-					Some(media) => media,
-					None => return Err(anyhow!("Anime not found")),
-				},
-				None => return Err(anyhow!("Anime not found")),
-			}
+		let var = MediaQuerryIdVariables {
+			format_in,
+			id: Some(id),
+			media_type: Some(MediaType::Anime),
 		};
-		let db_connection = bot_data.db_connection.clone();
 
-		let embed_contents =
-			media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
+		let operation = MediaQuerryId::build(var);
 
-		Ok(embed_contents)
-	}
+		let data: GraphQlResponse<MediaQuerryId> =
+			make_request_anilist(operation, false, anilist_cache).await?;
+
+		match data.data {
+			Some(data) => match data.media {
+				Some(media) => media,
+				None => return Err(anyhow!("Anime not found")),
+			},
+			None => return Err(anyhow!("Anime not found")),
+		}
+	} else {
+		let var = MediaQuerrySearchVariables {
+			format_in,
+			search: Some(&*value),
+			media_type: Some(MediaType::Anime),
+		};
+
+		let operation = MediaQuerrySearch::build(var);
+
+		let data: GraphQlResponse<MediaQuerrySearch> =
+			make_request_anilist(operation, false, anilist_cache).await?;
+
+		match data.data {
+			Some(data) => match data.media {
+				Some(media) => media,
+				None => return Err(anyhow!("Anime not found")),
+			},
+			None => return Err(anyhow!("Anime not found")),
+		}
+	};
+	let db_connection = bot_data.db_connection.clone();
+
+	let embed_contents =
+		media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
+
+	Ok(embed_contents)
 }
+);

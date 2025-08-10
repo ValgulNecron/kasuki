@@ -8,6 +8,7 @@ use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
+use crate::impl_command;
 use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 use anyhow::anyhow;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -32,57 +33,19 @@ use tracing::error;
 ///
 /// This structure can be used for implementing logic specific to handling a "remove test"
 /// subcommand within the bot's interaction system.
+#[derive(Clone)]
 pub struct RemoveTestSubCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for RemoveTestSubCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` (`&SerenityContext`), which provides
-	/// the context needed for interacting with Discord through the Serenity library.
-	///
-	/// # Examples
-	///
-	/// ```rust
-	/// let context = my_instance.get_ctx();
-	/// // Use `context` to interact with Discord API.
-	/// ```
-	///
-	/// # Notes
-	/// This function borrows the `SerenityContext` immutably, ensuring the context
-	/// is accessible without allowing modifications.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with this object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance.
-	///
-	/// # Examples
-	/// ```
-	/// let interaction = my_object.get_command_interaction();
-	/// ```
-	///
-	/// This method provides access to the underlying `CommandInteraction` field
-	/// of the object, allowing for read-only operations on the data.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes the contents related to user entitlements.
-	///
-	/// This function performs the following
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for RemoveTestSubCommand,
+	get_contents = |self_: RemoveTestSubCommand| async move {
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction();
+		let _config = bot_data.config.clone();
 
 		let map = get_option_map_user(command_interaction);
 
@@ -127,4 +90,4 @@ impl Command for RemoveTestSubCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

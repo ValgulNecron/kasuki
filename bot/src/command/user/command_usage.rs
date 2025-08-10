@@ -17,10 +17,11 @@
 //! };
 //! let embed_contents = command_usage.get_contents().await?;
 //! ```
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::{BotData, RootUsage};
+use crate::impl_command;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tokio::sync::RwLockReadGuard;
@@ -53,101 +54,20 @@ use tokio::sync::RwLockReadGuard;
 ///
 /// // Use the fields `ctx` and `command_interaction` to process the command.
 /// ```
+#[derive(Clone)]
 pub struct CommandUsageCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for CommandUsageCommand {
-	/// Retrieves a reference to the `SerenityContext` object.
-	///
-	/// This function provides access to the `SerenityContext` associated with the current instance.
-	/// The `SerenityContext` allows interaction with the Discord API and context-dependent operations.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` contained within the implementing structure.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` for Discord API interactions
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` contained within the struct.
-	///
-	/// # Example
-	/// ```rust
-	/// let command_interaction = instance.get_command_interaction();
-	/// ```
-	///
-	/// This method is useful when you need to access the details or properties of the
-	/// `CommandInteraction` stored in the struct.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves the contents of embedded messages for displaying user-specific command usage statistics.
-	///
-	/// # Returns
-	/// This asynchronous function returns a `Result` containing `EmbedsContents`. On success, it provides the constructed embed(s)
-	/// that can be displayed as part of bot interactions. On failure, it returns an error.
-	///
-	/// # How it works
-	/// 1. **Fetch the User**:
-	///     - Retrieves the user information (`user`) who invoked the command via `get_user_command`.
-	///
-	/// 2. **Bot Context and Configuration**:
-	///     - Accesses necessary bot data (such as database configuration and command usage statistics)
-	///       from the context object.
-	///     - Retrieves the command interaction information.
-	///
-	/// 3. **Retrieve and Process Usage Statistics**:
-	///     - Identifies the invoking user's ID and username.
-	///     - Fetches the user's command usage statistics from the shared, thread-safe `command_usage` storage.
-	///     - Processes usage data, tailored based on a localization system configured for the guild (server)
-	///       that the command was used in.
-	///
-	/// 4. **Build Embeds**:
-	///     - Constructs the embedded message contents based on the localized response templates.
-	///     - If the user has no usage statistics, an "empty usage" message is generated.
-	///     - If the user has usage statistics, iterates over the usage records and appends them to the embed's description.
-	///     - Manages character limits for embeds by ensuring no embed description exceeds the allowed limit (4096 characters),
-	///       splitting data across multiple embeds if necessary.
-	///
-	/// 5. **Return Result**:
-	///     - Creates an instance of `EmbedsContents` object with the generated embed(s).
-	///     - Wraps the result and returns it.
-	///
-	/// # Errors
-	/// This function can return an error in the following cases:
-	/// - If there is an issue fetching the invoking user's information.
-	/// - If there is an issue loading localization data for command usage.
-	///
-	/// # Dependencies
-	/// - `get_user_command`: Fetches the user object from the command interaction context.
-	/// - `BotData`: Accesses bot-wide data, such as command statistics and database configurations.
-	/// - `get_usage_for_id`: Extracts usage data for a specific user ID from the command usage records.
-	/// - `load_localization_command_usage`: Loads localized templates for command statistics based on the guild (server) ID.
-	///
-	/// # Arguments
-	/// - `&self`: The instance holding the current context (`ctx`), command interaction, and required data.
-	///
-	/// # Example
-	/// ```rust
-	/// let embed_contents = self.get_contents().await?;
-	/// // Use the returned embed_contents to send a followup message to the user.
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let user = get_user_command(&self.ctx, &self.command_interaction).await?;
-		let ctx = self.get_ctx();
+impl_command!(
+	for CommandUsageCommand,
+	get_contents = |self_: CommandUsageCommand| async move {
+		self_.defer().await?;
+		let user = get_user_command(&self_.ctx, &self_.command_interaction).await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 		let command_usage = bot_data.number_of_command_use_per_command.clone();
 
 		let user_id = user.id.to_string();
@@ -214,7 +134,7 @@ impl Command for CommandUsageCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Retrieves usage statistics for a specific user ID from the given `RootUsage` data structure.
 ///

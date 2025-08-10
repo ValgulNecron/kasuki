@@ -12,57 +12,31 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
+use crate::{get_url, impl_command};
 use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use small_fixed_array::FixedString;
 
-/// Represents a level command within a Discord bot context.
-///
-/// The `LevelCommand` struct encapsulates the necessary context and interaction
-/// data for processing a command related to leveling functionality in a Discord bot.
-///
-/// # Fields
-///
-/// * `ctx` - The bot's context (`SerenityContext`) which provides access to
-///   various
+#[derive(Clone)]
 pub struct LevelCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for LevelCommand {
-	///
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the stored `CommandInteraction`.
-	///
-	/// This method provides access to the `CommandInteraction` instance
-	/// associated with the current object. The returned reference allows
-	/// the caller to inspect the command interaction but not modify it.
-	///
-	/// # Returns
-	/// A reference
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	///
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for LevelCommand,
+	get_contents = |self_: LevelCommand| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction().clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
 		let config = bot_data.config.clone();
-		let db_config = config.db.clone();
-		let map = get_option_map_string(command_interaction);
+		let map = get_option_map_string(&command_interaction);
 
 		let user = map.get(&FixedString::from_str_trunc("username"));
 
@@ -164,7 +138,7 @@ impl Command for LevelCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// A constant that represents the maximum possible value for an XP (experience points) system,
 pub const MAX_XP: f64 = f64::MAX;

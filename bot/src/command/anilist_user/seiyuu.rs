@@ -14,6 +14,7 @@ use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, Emb
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::impl_command;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
 use crate::structure::run::anilist::seiyuu_id::{
 	Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
@@ -26,106 +27,23 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 
-/// A structure representing a command to handle interactions related to seiyuu (voice actors) using the Serenity library.
-///
-/// # Fields
-///
-/// * `ctx` - The context of the Serenity framework containing the Discord bot's state, session, and cache data.
-/// It provides access to utilities and contextual information required for handling commands or events.
-///
-/// * `command_interaction` - The interaction instance representing a specific command
-/// issued by a user, containing details about the command and the interaction state.
-///
-/// # Usage
-/// This struct is typically used to encapsulate the necessary context and interaction
-/// details for processing a command related to seiyuu. It can contain additional methods
-/// or logic to handle the command's functionality effectively.
+#[derive(Clone)]
 pub struct SeiyuuCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for SeiyuuCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// This function provides read-only access to the `SerenityContext` stored within
-	/// the instance of the struct. The `SerenityContext` is essential for interacting
-	/// with Discord through the Serenity library, enabling actions such as sending messages,
-	/// managing channels, and more.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` (`&SerenityContext`).
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` for further operations
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object stored within the instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let command_interaction = instance.get_command_interaction();
-	/// // Use command_interaction as needed
-	/// ```
-	///
-	/// # Notes
-	/// This function provides a read-only reference to the underlying `CommandInteraction`.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves embed contents for a Discord interaction, performing operations to fetch, process,
-	/// and format data related to staff and their associated characters from a remote API.
-	///
-	/// ### Functionality
-	/// - Parses interaction input to extract the staff name or ID.
-	/// - Communicates with the Anilist API to retrieve detailed staff information, including their characters.
-	/// - Processes the fetched data into images and combined layouts for graphical representation.
-	/// - Creates and returns a structured embed message with the processed data.
-	///
-	/// ### Considerations
-	/// - Staff can be searched by name or ID. Adjusts the query and parsing based on input.
-	/// - Handles cases where the input does not match any staff, returning relevant error messages.
-	/// - Utilizes caching mechanisms to optimize data fetching and prevent redundant API calls.
-	/// - Dynamically creates combined images of the staff and their associated characters for better visualization.
-	///
-	/// ### Returns
-	/// - `Vec<EmbedContent<'_, '_>>`: A vector containing embedded content with images and metadata.
-	/// - Returns an `Err` if any step encounters an issue (e.g., missing data, API call failure).
-	///
-	/// ### Errors
-	/// - `No staff name specified`: When the input lacks a valid staff name or ID.
-	/// - `No staff found`: When the search query yields no results.
-	/// - `No image found`: When no image is available in the retrieved staff data.
-	/// - Other errors depend on network requests, data parsing, or image processing failures.
-	///
-	/// ### Dependencies
-	/// - External API: Makes requests to Anilist API for staff and character details.
-	/// - Libraries: Uses image processing (`image` crate) and web requests (`reqwest` crate).
-	///
-	/// ### Example Usage
-	/// ```rust
-	/// let embed_contents = self.get_contents().await?;
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for SeiyuuCommand,
+	get_contents = |self_: SeiyuuCommand| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction().clone();
 
-		let config = bot_data.config.clone();
+		let _config = bot_data.config.clone();
 		let anilist_cache = bot_data.anilist_cache.clone();
 
-		let map = get_option_map_string(command_interaction);
+		let map = get_option_map_string(&command_interaction);
 
 		let value = map
 			.get(&FixedString::from_str_trunc("staff_name"))
@@ -187,7 +105,7 @@ impl Command for SeiyuuCommand {
 
 		let seiyuu_localised = load_localization_seiyuu(guild_id, db_connection).await?;
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let mut buffers: Vec<Bytes> = Vec::new();
 
@@ -307,7 +225,7 @@ impl Command for SeiyuuCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Retrieves a list of characters from a `CharacterConnection`.
 ///

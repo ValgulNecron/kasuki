@@ -67,6 +67,7 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
+use crate::impl_command;
 use crate::structure::message::music::seek::load_localization_seek;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -91,105 +92,21 @@ use std::time::Duration;
 ///
 /// Example integration would involve the struct being processed by a handler function
 /// to adjust playback state accordingly.
+#[derive(Clone)]
 pub struct SeekCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for SeekCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// This method provides access to the `ctx` field, which is of type `SerenityContext`.
-	/// The `SerenityContext` typically contains various utilities and data required for
-	/// interacting with the Discord API and handling bot state.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext`, allowing the caller to utilize its properties and methods.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use `ctx` to interact with Discord API or access bot state.
-	/// ```
-	///
-	/// Note: Ensure the instance implementing this method contains a valid `ctx` field.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	///
-	/// This method is useful for accessing the `CommandInteraction` object to inspect or
-	/// interact with the underlying command details.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes audio playback information to create embedded response content.
-	///
-	/// This method performs the following steps:
-	/// 1. Retrieves the current context and defers the command interaction for later response.
-	/// 2. Extracts the Guild ID from the command interaction or assigns a default ID if not found.
-	/// 3. Loads localized strings based on the Guild ID. These strings contain specific responses for user interaction.
-	/// 4. Validates the bot's Lavalink client instance, which is required for audio playback. If unavailable, it returns an error or a response with a suitable message.
-	/// 5. Extracts and parses the user's provided subcommand options, particularly the "time" value, which indicates the seek position in the audio.
-	/// 6. Retrieves the currently playing track in the guild and, if a track is active, adjusts the playback to the specified seek position. Otherwise, a message indicating no track is playing is returned.
-	///
-	/// # Returns
-	/// On success, it returns a `Vec` of `EmbedContent` objects, used to display appropriate feedback to the user (e.g., a success message or an error if no track is playing).
-	///
-	/// # Errors
-	/// - Returns an error if:
-	///   - The Lavalink client is disabled or unavailable.
-	///   - There's an issue retrieving or modifying playback information.
-	///   - Required command interaction details, such as Guild ID, are missing or invalid.
-	/// - Custom error messages from the localization system may also be shown in the embedded content.
-	///
-	/// # Dependencies
-	/// - The method relies on a Lavalink client (`lava_client`) for interacting with audio playback.
-	/// - Guild-specific localized strings are loaded using the `load_localization_seek` function.
-	/// - Global configurations and data are accessed through a `BotData` context.
-	///
-	/// # Parameters
-	/// - `self`: Reference to the current instance, typically bound to a command interaction handler.
-	///
-	/// # Example
-	/// This function is generally used within the bot's command-handling flow for seeking to a specific time in an audio track.
-	///
-	/// ```ignore
-	/// // Example usage in a command handler
-	/// let response = interaction_handler.get_contents().await;
-	/// match response {
-	///     Ok(embed_contents) => {
-	///         // Send the embedded contents to the user
-	///         for embed in embed_contents {
-	///             interaction.follow_up(embed).await?;
-	///         }
-	///     }
-	///     Err(err) => {
-	///         // Log error or send a failure message
-	///         error!("Failed to execute seek command: {}", err);
-	///     }
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for SeekCommand,
+	get_contents = |self_: SeekCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		self.defer().await?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self.command_interaction.guild_id {
+		let guild_id_str = match self_.command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
@@ -198,7 +115,7 @@ impl Command for SeekCommand {
 		// Load the localized strings
 		let seek_localised = load_localization_seek(guild_id_str, db_connection).await?;
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
@@ -239,4 +156,4 @@ impl Command for SeekCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

@@ -65,6 +65,7 @@ use crate::database::prelude::KillSwitch;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
+use crate::impl_command;
 use crate::structure::message::management::kill_switch::load_localization_kill_switch;
 use anyhow::anyhow;
 use sea_orm::ActiveModelTrait;
@@ -101,102 +102,17 @@ use small_fixed_array::FixedString;
 ///
 /// [`SerenityContext`]: https://docs.rs/serenity/latest/serenity/prelude/type.Context.html
 /// [`CommandInteraction`]: https://docs.rs/serenity/latest/serenity/model/interactions/application_command/struct.CommandInteraction.html
+#[derive(Clone)]
 pub struct KillSwitchCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for KillSwitchCommand {
-	/// Retrieves a reference to the `SerenityContext`.
-	///
-	/// This function returns a reference to the `SerenityContext` held by the current instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` associated with `self`.
-	///
-	/// # Examples
-	///
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use the context for further operations
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance stored within the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance.
-	///
-	/// # Examples
-	/// ```
-	/// let command_interaction = my_object.get_command_interaction();
-	/// // Use `command_interaction` as needed
-	/// ```
-	///
-	/// This method is useful for accessing the `CommandInteraction` object
-	/// encapsulated within the struct without taking ownership.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves the contents based on the provided user interaction and settings.
-	///
-	/// This function performs the following tasks:
-	/// 1. Fetches the current application context (`ctx`) and bot-wide data (`BotData`).
-	/// 2. Retrieves the guild ID from the command interaction or defaults to "0" if unavailable.
-	/// 3. Extracts the `name` and `state` command options from the command's inputs.
-	/// 4. Loads localization settings based on the guild ID.
-	/// 5. Connects to the database to retrieve and update the `KillSwitch` row corresponding to the module name.
-	/// 6. Toggles the specified module's state (`enabled` or `disabled`) and persists the changes in the database.
-	/// 7. Prepares and returns an embedded message (`EmbedContent`) summarizing the action performed.
-	///
-	/// # Parameters
-	/// - `&self`: A reference to the instance of the calling object.
-	///
-	/// # Returns
-	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A result containing a vector of `EmbedContent`, which is used to display success messages.
-	///   - If successful, returns a single message explaining the state update for a specific module.
-	///   - If an error occurs, returns an error detailing the failure.
-	///
-	/// # Errors
-	/// This function returns an error in any of the following cases:
-	/// - `name` or `state` option is missing from the provided command interaction.
-	/// - Database connection fails.
-	/// - The specified module name does not match any recognized modules.
-	/// - The `KillSwitch` for the given guild cannot be found.
-	/// - Database update operations fail while saving the change.
-	///
-	/// # Modules
-	/// This function supports the following module names:
-	/// - `"ANILIST"`
-	/// - `"AI"`
-	/// - `"GAME"`
-	/// - `"NEW_MEMBER"`
-	/// - `"ANIME"`
-	/// - `"VN"`
-	///
-	/// If an unsupported module name is provided, an error is returned.
-	///
-	/// # Example Output
-	/// - For enabling the Anime module:
-	///     - Returns an `EmbedContent` with the module state set to "on".
-	/// - For disabling the AI module:
-	///     - Returns an `EmbedContent` with the module state set to "off".
-	///
-	/// # Dependencies
-	/// - Relies on `sea_orm` for database operations.
-	/// - Utilizes localization data based on the guild ID to provide appropriate messages.
-	/// - Requires interaction context to extract user commands and options.
-	///
-	/// # Notes
-	/// Ensure that the database setup is correct and the necessary tables (`KillSwitch`) exist with the expected schema.
-	/// The localization function (`load_localization_kill_switch`) must support fallback behaviors for missing translations.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for KillSwitchCommand,
+	get_contents = |self_: KillSwitchCommand| async move {
+		let ctx = self_.get_ctx();
+		let command_interaction = self_.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 
 		let config = bot_data.config.clone();
@@ -259,4 +175,4 @@ impl Command for KillSwitchCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

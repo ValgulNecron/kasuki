@@ -9,6 +9,7 @@ use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
+use crate::impl_command;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
@@ -37,89 +38,17 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// };
 /// // Perform deletion logic using the command's context and interaction.
 /// ```
+#[derive(Clone)]
 pub struct DeleteActivityCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for DeleteActivityCommand {
-	/// Retrieves a reference to the `SerenityContext` stored within the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Usage
-	/// This function is useful for accessing the context needed to interact with
-	/// the Discord API or perform various bot operations.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use context to perform bot operations
-	/// ```
-	///
-	/// # Note
-	/// Ensure the instance is correctly initialized with a `SerenityContext`
-	/// before calling this method.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance contained within the struct.
-	///
-	/// # Returns
-	/// A shared reference to the `CommandInteraction` instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = my_struct.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	///
-	/// # Notes
-	/// - This method provides read-only access to `command_interaction`.
-	/// - Ensure that the returned reference is used within the lifetime of `self`.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves embed content data based on a given anime name and performs a delete activity operation.
-	///
-	/// This function executes the following steps:
-	/// 1. Retrieves the bot and cached data needed for processing.
-	/// 2. Parses the input command to extract the anime name provided by the user.
-	/// 3. Identifies the guild ID from the interaction, defaulting to "1" if none is provided.
-	/// 4. Loads localized text for the activity delete operation based on the guild's settings.
-	/// 5. Queries AniList for minimal anime media information based on the anime name.
-	/// 6. Defers the bot's response to indicate the operation is ongoing.
-	/// 7. Deletes the associated activity record from the database if the anime is successfully located.
-	/// 8. Constructs the embed content, including a success message and relevant links.
-	///
-	/// # Returns
-	/// Returns a `Result` with a vector of `EmbedContent` if successful. Otherwise, returns an error.
-	///
-	/// # Errors
-	/// Returns an error for the following scenarios:
-	/// - If asynchronous operations such as fetching data from the database or AniList fail.
-	/// - If the anime media information cannot be retrieved or is incomplete.
-	/// - If localization data for the delete activity operation cannot be loaded.
-	///
-	/// # Examples
-	/// ```ignore
-	/// let embed_contents = instance.get_contents().await?;
-	/// for content in embed_contents {
-	///     println!("{:?}", content);
-	/// }
-	/// ```
-	///
-	/// # Dependencies
-	/// The function relies on external services and modules for:
-	/// - Fetching anime media information from AniList.
-	/// - Database operations for managing activity records.
-	/// - Localization functions for internationalization and localized user feedback.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let command_interaction = self.get_command_interaction();
-		let ctx = self.get_ctx();
+impl_command!(
+	for DeleteActivityCommand,
+	get_contents = |self_: DeleteActivityCommand| async move {
+		let command_interaction = self_.get_command_interaction();
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 		let anilist_cache = bot_data.anilist_cache.clone();
@@ -140,7 +69,7 @@ impl Command for DeleteActivityCommand {
 			load_localization_delete_activity(guild_id.clone(), db_connection);
 		let media = get_minimal_anime_media(anime.to_string(), anilist_cache);
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let media = media.await?;
 		let anime_id = media.id;
@@ -167,7 +96,7 @@ impl Command for DeleteActivityCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Asynchronously removes an activity entry from the database based on the provided guild ID and anime ID.
 ///

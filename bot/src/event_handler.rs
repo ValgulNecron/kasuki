@@ -629,7 +629,7 @@ impl Handler {
 
 			*write_guard = true;
 
-			tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
+			//tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
 
 			drop(write_guard);
 

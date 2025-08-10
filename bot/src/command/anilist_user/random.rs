@@ -62,6 +62,7 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
+use crate::impl_command;
 use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
@@ -101,119 +102,21 @@ use anyhow::{Result, anyhow};
 ///
 /// // Use `random_command` to process the command interaction and respond accordingly.
 /// ```
+#[derive(Clone)]
 pub struct RandomCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for RandomCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) held within the struct.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` for further operations
-	/// ```
-	///
-	/// This function is typically used to access the context required for interacting with
-	/// Discord's API or handling bot-related operations.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Returns a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` stored within the instance.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the interaction reference for further operations
-	/// ```
-	///
-	/// # Notes
-	///
-	/// This method provides read-only access to the `CommandInteraction`
-	/// and does not modify the instance.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves embed contents based on media type and context.
-	///
-	/// This function is designed to fetch a random media (anime or manga) from the AniList API,
-	/// construct detailed embed content with metadata, and return it for use in command interactions.
-	///
-	/// # Parameters
-	/// This is an instance method, so it relies on the context/state contained within `self`.
-	///
-	/// # Returns
-	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A result containing a vector of embed content on success,
-	/// or an error if something went wrong during the execution.
-	///
-	/// # Workflow
-	/// 1. Initializes context and extracts cached data and command interaction.
-	/// 2. Determines the media type (anime or manga) from the user's command interaction input.
-	/// 3. Fetches random localized text for descriptions.
-	/// 4. Retrieves and updates statistics about the available media pool from the AniList cache.
-	/// 5. Calculates a random page number based on media type and fetches random media data from AniList.
-	/// 6. Extracts and formats metadata such as title, description, genres, and tags.
-	/// 7. Constructs a user-friendly embed content object with the fetched data.
-	///
-	/// # Details
-	/// - **Localization**: Incorporates localized descriptions for randomness.
-	/// - **API Integration**: Executes GraphQL queries against the AniList API to retrieve media information.
-	/// - **Error Handling**: Handles various potential failures, including missing data, AniList API errors, or unfulfilled user input.
-	///
-	/// # Media Data
-	/// The metadata fields included in the embed content:
-	/// - **Title**: A combined format of the user-preferred title and native title.
-	/// - **Description**: An abridged description of the media, formatted in Discord-flavored markdown.
-	/// - **Genres**: Relevant genres of the media.
-	/// - **Tags**: Detailed tags for further classification of the media.
-	/// - **Media Format**: Specifies whether the media is a TV series, movie, manga, etc.
-	/// - **URL**: Link to the AniList page of the selected media.
-	///
-	/// # Example
-	/// ```rust
-	/// let embed_contents = my_instance.get_contents().await;
-	/// match embed_contents {
-	///     Ok(embeds) => {
-	///         for embed in embeds {
-	///             // Process or display the embed
-	///         }
-	///     }
-	///     Err(error) => {
-	///         // Handle error
-	///     }
-	/// }
-	/// ```
-	///
-	/// # Errors
-	/// This function can return an error in the following cases:
-	/// - If the media type is not specified in the command interaction.
-	/// - If any AniList API request fails or returns invalid/missing data.
-	/// - If there's an issue with localization, configuration, or cache retrieval.
-	///
-	/// # Dependencies
-	/// - `ctx`: Contains the context and data related to bot operations.
-	/// - `BotData`: Holds the AniList cache and configuration required to perform API requests and localization.
-	/// - `make_request_anilist`: Executes AniList GraphQL queries.
-	/// - `convert_anilist_flavored_to_discord_flavored_markdown`: Converts descriptions to be compatible with Discord markdown styling.
-	/// - `EmbedContent`: A custom structure to build and format the Discord embed messages.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for RandomCommand,
+	get_contents = |self_: RandomCommand| async move {
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
-		let config = bot_data.config.clone();
+		let _config = bot_data.config.clone();
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
@@ -230,7 +133,7 @@ impl Command for RandomCommand {
 			.get(&FixedString::from_str_trunc("type"))
 			.ok_or(anyhow!("No type specified"))?;
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let random_stats = update_random_stats(anilist_cache.clone()).await?;
 
@@ -327,4 +230,4 @@ impl Command for RandomCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

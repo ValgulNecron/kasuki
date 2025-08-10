@@ -81,9 +81,10 @@
 //! and permissions to access guild data such as its metadata, channels, and roles.
 use anyhow::anyhow;
 
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::nonmax::NonMaxU64;
@@ -103,94 +104,19 @@ use serenity::nonmax::NonMaxU64;
 ///                           the executed command. This holds information
 ///                           about the command, the user who invoked it,
 ///                           and other relevant interaction details.
+#[derive(Clone)]
 pub struct GuildCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for GuildCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` stored in the current object.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = object.get_ctx();
-	/// // Use the retrieved `SerenityContext`
-	/// ```
-	///
-	/// This function can be used to access the Discord bot context for performing various operations
-	/// within the bot's lifecycle.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with this object.
-	///
-	/// This method provides access to the `command_interaction` field of the implementing structure,
-	/// allowing you to inspect or manipulate information related to a command interaction.
-	///
-	/// # Returns
-	/// - A reference to the `CommandInteraction` object.
-	///
-	/// # Example
-	/// ```
-	/// let interaction = obj.get_command_interaction();
-	/// // Use the `interaction` for further operations
-	/// ```
-	///
-	/// # Panics
-	/// This method does not panic.
-	///
-	/// # Safety
-	/// This method is safe to call as it only returns a reference to an internal field.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves embed content representing information about a guild.
-	///
-	/// This method performs the following tasks:
-	/// 1. Retrieves the context and necessary bot data.
-	/// 2. Extracts the guild ID from the command interaction, returning "0" if not present.
-	/// 3. Loads the localized guild information using the guild ID.
-	/// 4. Retrieves detailed information about the guild, including its:
-	///    - Name
-	///    - Member counts (actual, maximum)
-	///    - Online member count and max online capacity
-	///    - Creation date
-	///    - Owner information
-	///    - Roles count
-	///    - Channels count
-	///    - Verification level
-	///    - NSFW level
-	///    - Banner image
-	///    - Avatar image
-	/// 5. Constructs an embed with the guild's information and fields, and optionally
-	///    includes the guild banner and avatar if available.
-	///
-	/// # Returns
-	/// A vector containing a single `EmbedContent` instance represented as a custom response.
-	///
-	/// # Errors
-	/// This method returns an error if:
-	/// - The guild ID is unavailable or invalid.
-	/// - The guild's information could not be retrieved from the context or API.
-	/// - The localization or database operation fails.
-	///
-	/// # Example
-	/// ```rust
-	/// let embed_data = guild_data.get_contents().await;
-	/// if let Ok(embeds) = embed_data {
-	///     // Perform further operations with embed data
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for GuildCommand,
+	get_contents = |self_: GuildCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id = match command_interaction.guild_id {
@@ -310,8 +236,8 @@ impl Command for GuildCommand {
 			embed_content = embed_content.images_url(guild_banner.unwrap())
 		}
 
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embed_contents)
 	}
-}
+);

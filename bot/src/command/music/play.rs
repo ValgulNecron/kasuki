@@ -18,6 +18,7 @@ use crate::command::embed_content::EmbedsContents;
 use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::impl_command;
 use crate::structure::message::music::play::load_localization_play;
 use anyhow::{Context, anyhow};
 use lavalink_rs::player_context::TrackInQueue;
@@ -35,65 +36,19 @@ use tracing::trace;
 /// * `ctx` - The [`SerenityContext`](https://docs.rs/serenity/latest/serenity/prelude/struct.Context.html)
 ///   provided by the `serenity` framework, which contains information about the bot's state and functionality.
 ///   This is required to interact with Discord services and manage the
+#[derive(Clone)]
 pub struct PlayCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for PlayCommand {
-	/// Returns a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// The `SerenityContext` provides access to various features and utilities of the Serenity library,
-	/// including interacting with Discord's API, retrieving data about the environment, or managing
-	/// the bot's state.
-	///
-	/// # Returns
-	/// - A reference to the `SerenityContext` used by this instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = instance.get
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` stored within this object.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = object.get_command_interaction();
-	/// // Now you can use the `interaction` reference.
-	/// ```
-	///
-	/// # Notes
-	/// - The returned reference has the same lifetime as the object on which the method is called.
-	///
-	/// # Safety
-	/// This method assumes that `self.command_interaction` has been
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves contents based on user interaction in a bot command.
-	///
-	/// This asynchronous function handles processing for a command by deferring its execution,
-	/// retrieving necessary context, and interacting with external systems such as a Lavalink music
-	/// player client. It performs the following steps:
-	///
-	/// 1. Retrieve the command's context and bot-specific data.
-	/// 2. Defer the command execution to acknowledge interaction timely.
-	/// 3. Extract the guild ID from the command interaction and fetch localization settings.
-	/// 4. Validate and utilize the Lavalink client for music-related functionalities.
-	/// 5. Retrieve the search query input
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for PlayCommand,
+	get_contents = |self_: PlayCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-
-		self.defer().await?;
+		let command_interaction = self_.get_command_interaction().clone();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id_str = match command_interaction.guild_id {
@@ -117,7 +72,7 @@ impl Command for PlayCommand {
 			},
 		}
 		let lava_client = lava_client.unwrap();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 		let guild_id = command_interaction
 			.guild_id
 			.ok_or(anyhow!("no guild id"))
@@ -216,4 +171,4 @@ impl Command for PlayCommand {
 
 		Ok(embed_content)
 	}
-}
+);

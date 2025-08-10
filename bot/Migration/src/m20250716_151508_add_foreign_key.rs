@@ -15,19 +15,21 @@ impl MigrationTrait for Migration {
 					.table(UserInventory::Table)
 					.add_foreign_key(
 						TableForeignKey::new()
-							.from_tbl(GuildData::Table)
-							.from_col(GuildData::GuildId)
-							.to_tbl(UserInventory::Table)
-							.to_col(UserInventory::ServerId)
+							.name("fk-inventory-server_id")
+							.from_tbl(UserInventory::Table)
+							.from_col(UserInventory::ServerId)
+							.to_tbl(GuildData::Table)
+							.to_col(GuildData::GuildId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)
 					.add_foreign_key(
 						TableForeignKey::new()
-							.from_tbl(UserData::Table)
-							.from_col(UserData::UserId)
-							.to_tbl(UserInventory::Table)
-							.to_col(UserInventory::UserId)
+							.name("fk-inventory-user_id")
+							.from_tbl(UserInventory::Table)
+							.from_col(UserInventory::UserId)
+							.to_tbl(UserData::Table)
+							.to_col(UserData::UserId)
 							.on_delete(ForeignKeyAction::Cascade)
 							.on_update(ForeignKeyAction::Cascade),
 					)
@@ -41,8 +43,8 @@ impl MigrationTrait for Migration {
 			.alter_table(
 				TableAlterStatement::new()
 					.table(UserInventory::Table)
-					.drop_foreign_key(Alias::new("fk-guild_data-guild_id"))
-					.drop_foreign_key(Alias::new("fk-user_data-user_id"))
+					.drop_foreign_key(Alias::new("fk-inventory-server_id"))
+					.drop_foreign_key(Alias::new("fk-inventory-user_id"))
 					.to_owned(),
 			)
 			.await

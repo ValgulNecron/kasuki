@@ -62,6 +62,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::clear::load_localization_clear;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -93,105 +94,21 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///
 /// The `ClearCommand` struct is expected to be used to process and execute the logic for clearing messages
 /// or performing other related administrative actions in a Discord server.
+#[derive(Clone)]
 pub struct ClearCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ClearCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// This method returns the context (`SerenityContext`) that can be used to interact with Discord's API,
-	/// manage the current bot state, or perform other context-specific actions.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` held by the current instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` to interact with Discord API or manage bot state
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with this instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` field.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the `interaction` as needed
-	/// ```
-	///
-	/// # Notes
-	/// This method provides read-only access to the `CommandInteraction`
-	/// field of the structure it is called on.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves the contents resulting from a Lavalink queue clear operation.
-	///
-	/// # Description
-	/// This method processes the command interaction and clears the player's playback queue
-	/// through Lavalink. It handles various scenarios such as missing guild context or an inactive
-	/// Lavalink service, and provides localized responses accordingly.
-	///
-	/// # Returns
-	/// - Returns a `Result` containing a vector of `EmbedContent` upon success, representing localized success
-	///   or error messages.
-	/// - Returns an `anyhow::Error` if the operation fails, such as due to missing data or configuration errors.
-	///
-	/// # Errors
-	/// This function may return the following errors:
-	/// - `anyhow::Error` if the guild ID is unavailable in the command interaction.
-	/// - `anyhow::Error` if Lavalink is unavailable or disabled.
-	/// - `anyhow::Error` if any unexpected issue occurs during processing.
-	///
-	/// # Example
-	/// ```rust
-	/// // Assuming `self` implements the necessary trait context
-	/// let contents = self.get_contents().await;
-	/// match contents {
-	///     Ok(embeds) => {
-	///         for embed in embeds {
-	///             // Process or send the embedded content
-	///             println!("Embed title: {}", embed.title());
-	///         }
-	///     }
-	///     Err(err) => eprintln!("Failed to retrieve contents: {}", err),
-	/// }
-	/// ```
-	///
-	/// # Notes
-	/// - This function defers the interaction before performing resource-intensive operations.
-	/// - Localized strings are loaded based on the guild ID associated with the command interaction.
-	/// - The player's Lavalink queue is cleared at the end of this procedure if the operation is successful.
-	///
-	/// # Dependencies
-	/// - `anyhow` for error handling.
-	/// - `EmbedContent` for formatting interaction responses.
-	/// - `lavalink_rs` for managing audio playback and player state in the Lavalink client.
-	///
-	/// # Steps Overview
-	/// 1. Retrieve command interaction and guild ID.
-	/// 2. Load localized strings for the `clear` command.
-	/// 3. Check for the availability of a Lavalink client instance.
-	/// 4. Attempt to retrieve the player for the given guild.
-	/// 5. On success, clear the player's queue and respond with a localized success message.
-	/// 6. Handle errors and provide appropriate localized failure messages.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for ClearCommand,
+	get_contents = |self_: ClearCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-		self.defer().await?;
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id_str = match command_interaction.guild_id {
@@ -229,4 +146,4 @@ impl Command for ClearCommand {
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 		Ok(embed_contents)
 	}
-}
+);

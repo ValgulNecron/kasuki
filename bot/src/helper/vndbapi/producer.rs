@@ -84,7 +84,8 @@ pub enum Type {
 impl Serialize for Type {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer, {
+		S: Serializer,
+	{
 		let value = match self {
 			Self::Company => "co",
 			Self::Individual => "in",
@@ -98,7 +99,8 @@ impl Serialize for Type {
 impl<'de> Deserialize<'de> for Type {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>, {
+		D: Deserializer<'de>,
+	{
 		let value = String::deserialize(deserializer)?;
 
 		match value.as_str() {

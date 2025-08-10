@@ -8,6 +8,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::join::load_localization_join;
 use anyhow::{Result, anyhow};
 use lavalink_rs::model::ChannelId;
@@ -26,101 +27,26 @@ use std::sync::Arc;
 /// * `command_interaction` - The `CommandInteraction` object containing details about the join command interaction, such as the user who invoked it and context around the interaction.
 ///
 /// This struct is used to handle and process user commands related to joining a specific resource or session in the bot workflow.
+#[derive(Clone)]
 pub struct JoinCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for JoinCommand {
-	/// Retrieves a reference to the `SerenityContext` within the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Usage
-	/// This method provides access to the `SerenityContext`, which contains
-	/// information and utilities for interacting with the Discord API.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use the context for Discord API operations
-	/// ```
-	///
-	/// # Notes
-	/// - This method borrows the context immutably, so the returned reference
-	/// cannot be used to make modifications to the context.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the returned `CommandInteraction` reference
-	/// ```
-	///
-	/// This method allows read-only access to the `CommandInteraction` field of the structure.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Fetches and returns a list of `EmbedContent` asynchronously.
-	///
-	/// This function performs the following steps:
-	/// 1. Retrieves the context (`ctx`) associated with the current state of the bot.
-	/// 2. Accesses the bot's shared data (`BotData`) from the context.
-	/// 3. Retrieves the command interaction currently being processed.
-	/// 4. Defers the interaction to indicate to the user that the bot is working and may take some time to respond.
-	/// 5. Joins the necessary information from the context, bot data, and command interaction to produce the desired embed content.
-	/// 6. Returns a vector of `EmbedContent` objects encapsulating the relevant information.
-	///
-	/// ### Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` if the operation is successful, containing the embed content to be processed or displayed.
-	/// - `Err(_)` if an error occurs during any of the aforementioned steps.
-	///
-	/// ### Errors
-	/// This function returns an error if:
-	/// - Retrieving the context or bot data fails.
-	/// - The interaction cannot be deferred properly.
-	/// - An error occurs while joining the required data to generate the embed content.
-	///
-	/// ### Usage
-	/// This method is typically called when an interaction requires generation of rich embed responses that aggregate
-	/// information from various sources.
-	///
-	/// ### Example
-	/// ```rust
-	/// let embed_contents = your_instance.get_contents().await?;
-	/// for content in embed_contents {
-	///     println!("{:?}", content);
-	/// }
-	/// ```
-	///
-	/// ### Dependencies
-	/// - The `join` function must support the provided context, bot data, and command interaction to generate embed content.
-	/// - This function assumes that `defer` is called successfully to handle interaction delays appropriately.
-	///
-	/// ### Notes
-	/// - Ensure that sharing and cloning bot data is safe and that lifetime requirements align with the provided borrow checks.
-	/// - Internal logic might depend on external systems or APIs for joining the context, bot data, and interaction output.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for JoinCommand,
+	get_contents = |self_: JoinCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-
-		self.defer().await?;
+		let command_interaction = self_.get_command_interaction().clone();
 
 		let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
+		let embed = embed_content.clone();
 
-		Ok(embed_content)
+		Ok(embed)
 	}
-}
+);
 
 /// Asynchronously handles the bot's joining of a voice channel in response to a command.
 ///
@@ -182,7 +108,7 @@ impl Command for JoinCommand {
 ///   If Lavalink is disabled, the function will exit with an error.
 /// - Ensure the voice permissions for the bot are properly granted in the target guild.
 pub async fn join<'a>(
-	ctx: &'a Context, bot_data: Arc<BotData>, command_interaction: &'a CommandInteraction,
+	ctx: Context, bot_data: Arc<BotData>, command_interaction: CommandInteraction,
 ) -> Result<(bool, EmbedsContents<'a>)> {
 	// Retrieve the guild ID from the command interaction
 	let guild_id_str = match command_interaction.guild_id {

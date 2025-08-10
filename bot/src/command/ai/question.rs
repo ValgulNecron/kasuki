@@ -17,6 +17,7 @@ use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::impl_command;
 use anyhow::{Result, anyhow};
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -38,128 +39,24 @@ use tracing::trace;
 ///
 /// - `command_name` (`String`): The name of the command as issued by the user,
 ///   allowing the logic to dynamically reference or process specific command implementations.
+#[derive(Clone)]
 pub struct QuestionCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 	pub command_name: String,
 }
 
-impl Command for QuestionCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` stored within the current object.
-	///
-	/// # Usage
-	/// This method allows access to the underlying `SerenityContext`, which can be used for
-	/// performing operations or retrieving data related to the bot's state or Discord interactions.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = my_instance.get_ctx();
-	/// // Use `context` to interact with the bot's state or execute actions.
-	/// ```
-	///
-	/// # Notes
-	/// Ensure that the lifetime of the returned reference aligns with the
-	/// expected usage to avoid borrowing issues.
-	///
-	/// # Context
-	/// The `SerenityContext` is an abstraction provided by the Serenity library
-	/// for managing bot operations like cache access, data sharing, and event handling.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` field of the object.
-	///
-	/// # Example
-	/// ```
-	/// let interaction = obj.get_command_interaction();
-	/// // Use the interaction as needed
-	/// ```
-	///
-	/// # Notes
-	/// - This method returns an immutable reference to ensure the `CommandInteraction` cannot be modified.
-	/// - Ensure the `CommandInteraction` field is properly initialized before invoking this method.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves content based on user input and processes it through an AI question system.
-	///
-	/// # Description
-	/// This asynchronous function fetches user input from the command interaction,
-	/// performs checks (e.g., hourly usage limits), then forwards a prompt to an AI-based
-	/// question API and returns the generated content encapsulated in an `EmbedContent` structure.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing the result of the AI question processing in
-	///   an embedded format, ready to be presented to the user.
-	/// - `Err(anyhow::Error)` - Indicates an error occurred either due to reaching the hourly limit or
-	///   during the question processing steps (e.g., API interaction failure).
-	///
-	/// # Steps
-	/// 1. **Context and Configuration Retrieval**: Obtains the bot's execution context, command
-	/// interaction data, and associated configuration settings.
-	/// 2. **Hourly Limit Check**: Verifies if the current command has exceeded the allowed hourly usage.
-	///    - If exceeded, an error with the appropriate message is returned.
-	/// 3. **Option Map Retrieval**: Extracts command options, ensuring the "prompt" parameter is fetched
-	///    from the command interaction. Defaults to a constant string if `prompt` is not provided.
-	/// 4. **API Interaction**: Sends the `prompt` along with the AI API key, base URL, and model
-	///    to the question service to return a generated text response.
-	/// 5. **Embed Creation**: Wraps the processed text output from the API into an `EmbedContent`
-	///    object to format it for later display as a follow-up message.
-	///
-	/// # Parameters
-	/// - This method operates on the instance of the structure implementing it (`&self`).
-	///
-	/// # API Configuration
-	/// The AI API integration uses the following configuration parameters:
-	/// - `ai_question_token`: API key for authentication.
-	/// - `ai_question_base_url`: The base URL of the AI question service.
-	/// - `ai_question_model`: The configured model for generating responses.
-	///
-	/// # Error Handling
-	/// - A rate-limiting error is returned if the command exceeds its hourly limit.
-	/// - API errors or missing parameters during interaction with the AI endpoint
-	///   will result in an error being propagated.
-	///
-	/// # Example Usage
-	/// ```rust
-	/// let contents = instance.get_contents().await;
-	/// match contents {
-	///     Ok(embed_contents) => {
-	///         for embed in embed_contents {
-	///             // Process and display embed content
-	///         }
-	///     }
-	///     Err(err) => println!("Error: {:?}", err),
-	/// }
-	/// ```
-	///
-	/// # Dependencies
-	/// - `BotData`: Provides configuration and state for the bot.
-	/// - `EmbedContent`: Represents the structure of embedded content sent back to users.
-	/// - External AI service for question generation.
-	///
-	/// # Notes
-	/// - Ensure the API key, base URL, and model are properly configured before invoking
-	///   this method.
-	/// - The function automatically defers the command interaction to indicate that processing
-	///   is ongoing while awaiting a response from the API.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for QuestionCommand,
+	get_contents = |self_: QuestionCommand| async move {
+		let ctx = self_.get_ctx();
+		let command_interaction = self_.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
-		if self
+		if self_
 			.check_hourly_limit(
-				self.command_name.clone(),
+				self_.command_name.clone(),
 				&bot_data,
 				PremiumCommandType::AIQuestion,
 			)
@@ -172,7 +69,7 @@ impl Command for QuestionCommand {
 
 		let map = get_option_map_string_subcommand(command_interaction);
 		let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
-		self.defer().await?;
+		self_.defer().await?;
 
 		let api_key = config
 			.ai
@@ -208,7 +105,7 @@ impl Command for QuestionCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 ///
 /// Sends a text prompt to a specified OpenAI language model API and retrieves the model's response.

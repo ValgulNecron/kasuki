@@ -80,6 +80,7 @@ use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
+use crate::impl_command;
 use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
 use small_fixed_array::FixedString;
@@ -95,103 +96,18 @@ use small_fixed_array::FixedString;
 ///           which provides access to the Discord API and bot state.
 /// * `command_interaction` - The command interaction instance (`CommandInteraction`)
 ///                           that contains the details and data of the command invoked.
+#[derive(Clone)]
 pub struct GivePremiumSubCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for GivePremiumSubCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) which can be used
-	/// to interact with the Discord API, send messages, retrieve data, or perform
-	/// other actions within the context of the bot.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // You can now use `context` to interact with the Discord API.
-	/// ```
-	///
-	/// # Notes
-	/// - The returned reference will remain valid as long as the instance (`self`)
-	///   from which it was retrieved is not dropped.
-	///
-	/// # Panics
-	/// This function does not panic.
-	///
-	/// # Safety
-	/// This function is inherently safe as it provides an immutable reference to
-	/// the context, ensuring no mutable borrowing occurs.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = object.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	///
-	/// # Notes
-	/// - This method provides a read-only reference to the `CommandInteraction` field.
-	/// - Ensure the lifetime of the returned reference aligns with the lifetime of the parent object.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves the contents required for creating a response that indicates the
-	/// successful processing of a subscription-based entitlement for a user.
-	///
-	/// This function performs the following tasks:
-	/// 1. Extracts the necessary context and configuration data from the bot.
-	/// 2. Parses interaction data to fetch the 'user' and 'subscription' options submitted by the user.
-	/// 3. Verifies if the provided subscription ID is valid against the list of available SKUs (Stock Keeping Units).
-	/// 4. Creates a test entitlement for the specified subscription ID and associated user.
-	/// 5. Loads localized strings for the response and generates an embed with the success message.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` containing a vector of embed contents for a successful operation.
-	/// - `Err(anyhow::Error)` if there is an issue during any step, such as missing options, invalid subscription IDs, or operational failures.
-	///
-	/// # Errors
-	/// - Returns an error if the 'user' or 'subscription' options are missing from the command interaction.
-	/// - Fails if the given subscription ID is not found in the list of current SKUs.
-	/// - Errors out if unable to create a test entitlement or load the localization.
-	///
-	/// # Examples
-	/// ```rust
-	/// // Example usage within an async context:
-	/// let contents = get_contents().await;
-	/// match contents {
-	///     Ok(embed_contents) => {
-	///         // Handle the embed contents, e.g., send a response
-	///     }
-	///     Err(err) => {
-	///         // Handle the error, log failure, or inform the user
-	///     }
-	/// }
-	/// ```
-	///
-	/// # Dependencies
-	/// - The function relies on the following external functionality:
-	///   - `get_option_map_user` and `get_option_map_string` for parsing options from the interaction.
-	///   - Contextual structures like `ctx`, `BotData`, and HTTP client methods for API calls.
-	///   - Utilities to generate localization strings and embed content.
-	///
-	/// # Note
-	/// - This function assumes that the bot's configuration and HTTP client are correctly implemented and operational.
-	/// - The guild ID must be available for localization purposes, and the subscription ID must correspond to an active SKU.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for GivePremiumSubCommand,
+	get_contents = |self_: GivePremiumSubCommand| async move {
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let map = get_option_map_user(command_interaction);
 
@@ -245,4 +161,4 @@ impl Command for GivePremiumSubCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

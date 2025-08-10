@@ -40,10 +40,11 @@
 //! This code is typically used as part of an event handler where the bot processes user
 //! interactions and responds with the appropriate image or embed content. The structure
 //! contributes to handling the `"global"` image generation command.
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::EmbedsContents;
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
+use crate::impl_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// A struct representing the `GenerateGlobalImagePfPCommand`, which encapsulates
@@ -56,85 +57,23 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// * `command_interaction` - The `CommandInteraction` object containing information
 ///                            about the specific command interaction from the user,
 ///                            such as command arguments, user details, and the originating channel.
+#[derive(Clone)]
 pub struct GenerateGlobalImagePfPCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for GenerateGlobalImagePfPCommand {
-	/// Returns a reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Returns
-	///
-	/// * `&SerenityContext` - A reference to the current `SerenityContext`.
-	///
-	/// # Examples
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use the context object as needed
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Returns a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// This method provides access to the `command_interaction` field, which contains
-	/// the details of the command interaction linked to the object. It can be used
-	/// to access specific data or perform operations associated with the command.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` instance.
-	///
-	/// # Example
-	/// ```
-	/// let command_interaction = object.get_command_interaction();
-	/// // Use the command_interaction as needed.
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves a vector of `EmbedContent` elements.
-	///
-	/// This function fetches the necessary context, bot data, and configuration,
-	/// and then retrieves a single `EmbedContent` instance based on a global scope
-	/// using the asynchronous helper function `get_content`. The resulting
-	/// `EmbedContent` is returned inside a vector.
-	///
-	/// # Returns
-	///
-	/// * `Ok(Vec<EmbedContent<'_, '_>>)` - A vector containing the fetched `EmbedContent`.
-	/// * `Err` - An error if the operation fails.
-	///
-	/// # Errors
-	///
-	/// This function will return an error if:
-	/// - The bot's context or configuration cannot be accessed.
-	/// - The `get_content` function encounters an issue during its execution.
-	///
-	/// # Usage
-	///
-	/// ```rust
-	/// let contents = some_instance.get_contents().await?;
-	/// for content in contents {
-	///     // Process each content
-	/// }
-	/// ```
-	///
-	/// # Dependencies
-	/// - This function depends on the presence of a proper context, bot data,
-	///   and a valid database connection in the configuration.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for GenerateGlobalImagePfPCommand,
+	get_contents = |self_: GenerateGlobalImagePfPCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction().clone();
 		let db_connection = bot_data.db_connection.clone();
 
 		let embed_contents = get_content(ctx, command_interaction, "global", db_connection).await?;
 
 		Ok(embed_contents)
 	}
-}
+);

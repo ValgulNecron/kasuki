@@ -4,11 +4,12 @@
 use anyhow::{Result, anyhow};
 use std::sync::Arc;
 
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::database::prelude::ServerImage;
 use crate::database::server_image::Column;
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
@@ -36,99 +37,26 @@ use uuid::Uuid;
 /// This struct is typically used in scenarios where a Discord bot listens for a specific
 /// user command to generate an image (e.g., a profile picture) and carries out the requested
 /// functionality using the data available in these fields.
+#[derive(Clone)]
 pub struct GenerateImagePfPCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for GenerateImagePfPCommand {
-	/// Returns a reference to the `SerenityContext`.
-	///
-	/// # Description
-	/// This method provides access to the `SerenityContext` associated with the current object.
-	/// The `SerenityContext` is typically used within the Serenity framework for managing and interacting
-	/// with Discord bot-related state and events.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`).
-	///
-	/// # Example
-	/// ```rust
-	/// let context = my_object.get_ctx();
-	/// // Use the context for interacting with Serenity functionality.
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance contained within the object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` associated with this object.
-	///
-	/// # Example
-	/// ```rust
-	/// let command_interaction = instance.get_command_interaction();
-	/// println!("{:?}", command_interaction);
-	/// ```
-	///
-	/// # Notes
-	/// This function borrows the `CommandInteraction` immutably, ensuring that the returned reference
-	/// cannot be used to modify the underlying data.
-	///
-	/// # Usage
-	/// This is commonly used to access the `CommandInteraction` for inspection or to retrieve details
-	/// relevant to a command execution process.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and compiles embed content for a given command interaction.
-	///
-	/// This function fetches the necessary data from the bot's context and configuration,
-	/// processes the command interaction to generate an `EmbedContent` object, and wraps
-	/// it in a `Vec` for ease of use.
-	///
-	/// # Returns
-	///
-	/// A `Result` containing a vector of `EmbedContent` instances if the operation is
-	/// successful, or an error if something goes wrong during the process.
-	///
-	/// # Errors
-	///
-	/// This function will return an error if:
-	/// - Retrieving the context or configuration fails.
-	/// - Processing the command interaction fails while generating the embed content.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let contents = my_instance.get_contents().await?;
-	/// ```
-	///
-	/// # Dependencies
-	///
-	/// - `ctx`: Used for accessing the application context, including shared data.
-	/// - `bot_data`: Acquired from the context, containing the bot's configuration and database.
-	/// - `get_content`: An asynchronous function responsible for processing the interaction and
-	///   generating embed content.
-	///
-	/// # Notes
-	///
-	/// - The function assumes the presence of `BotData` in the shared context and that `config.db`
-	///   is properly set up to support the `get_content` function.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for GenerateImagePfPCommand,
+	get_contents = |self_: GenerateImagePfPCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction().clone();
 		let db_connection = bot_data.db_connection.clone();
 
 		let embed_contents = get_content(ctx, command_interaction, "local", db_connection).await?;
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Asynchronously retrieves and processes the content for an image embed.
 ///
@@ -180,7 +108,7 @@ impl Command for GenerateImagePfPCommand {
 /// }
 /// ```
 pub async fn get_content<'a>(
-	ctx: &'a SerenityContext, command_interaction: &CommandInteraction, image_type: &str,
+	ctx: SerenityContext, command_interaction: CommandInteraction, image_type: &str,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
 	// Retrieve the guild ID from the command interaction
@@ -192,14 +120,6 @@ pub async fn get_content<'a>(
 	// Load the localized text for the server's profile picture image
 	let pfp_server_image_localised_text =
 		load_localization_pfp_server_image(guild_id.clone(), db_connection.clone()).await?;
-
-	// Create a deferred response to the command interaction
-	let builder_message = Defer(CreateInteractionResponseMessage::new());
-
-	// Send the deferred response
-	command_interaction
-		.create_response(&ctx.http, builder_message)
-		.await?;
 
 	let image = ServerImage::find()
 		.filter(Column::ServerId.eq(guild_id.clone()))

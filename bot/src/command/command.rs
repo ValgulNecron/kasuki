@@ -135,10 +135,10 @@ impl<T: Command> CommandRun for T {
 							CreateActionRow::Buttons(Cow::Owned(components)),
 						)]))
 					},
-					ComponentVersion1::SelectMenu(select_menu) => {
+					ComponentVersion1::SelectMenu(_select_menu) => {
 						return Err(anyhow!("Component V1 SelectMenu is not supported yet"));
 					},
-					ComponentVersion1::InputText(input_text) => {
+					ComponentVersion1::InputText(_input_text) => {
 						return Err(anyhow!("Component V1 InputText is not supported yet"));
 					},
 				},

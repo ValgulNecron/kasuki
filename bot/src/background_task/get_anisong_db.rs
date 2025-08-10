@@ -141,7 +141,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 			client: Arc<Client>, connection: Arc<DatabaseConnection>, ann_id: i64,
 			limiter: Arc<RateLimiter<state::NotKeyed, state::InMemoryState, clock::DefaultClock>>,
 		) -> Result<Vec<RawAniSongDB>> {
-			let process_start_time = Instant::now();
+			let _process_start_time = Instant::now();
 			debug!(
 				task = "anisong_update",
 				ann_id = ann_id,
@@ -316,7 +316,7 @@ pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 					"Performing database upsert operation"
 				);
 
-				let result = AnimeSong::insert(anime_song_model)
+				let _result = AnimeSong::insert(anime_song_model)
                     // Define conflict resolution based on the composite key
                     // If a record with the same AnilistId, AnnId, and AnnSongId exists:
                     .on_conflict(

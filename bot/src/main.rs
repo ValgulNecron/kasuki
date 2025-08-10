@@ -378,6 +378,14 @@ async fn init_db(config: Arc<Config>) -> Result<()> {
 	unsafe {
 		std::env::set_var("DATABASE_URL", url);
 	}
+	// check if the env var is set
+	match std::env::var("DATABASE_URL") {
+		Ok(_) => {},
+		Err(e) => {
+			println!("DATABASE_URL is not set: {}", e);
+			std::process::exit(1);
+		},
+	}
 
 	#[cfg(windows)]
 	{

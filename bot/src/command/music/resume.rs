@@ -81,6 +81,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::resume::load_localization_resume;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -112,103 +113,21 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// // Implement and invoke the logic to handle the resume command.
 /// resume_command.execute();
 /// ```
+#[derive(Clone)]
 pub struct ResumeCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ResumeCommand {
-	/// Retrieves a reference to the `SerenityContext` instance associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) held by the object.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = some_object.get_ctx();
-	/// // Use `context` for further operations within the Serenity framework.
-	/// ```
-	///
-	/// This function provides access to the context, which is generally used in interacting
-	/// with the Serenity Discord library for handling events, data, and bot actions.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` object stored in the instance.
-	///
-	/// # Examples
-	///
-	/// ```rust
-	/// // Assuming `self` is an instance of a struct that includes `command_interaction`
-	/// let command_interaction = self.get_command_interaction();
-	/// ```
-	///
-	/// This can be used to access and interact with the `CommandInteraction` for
-	/// further processing or data retrieval.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes the contents required for resuming audio playback in a Discord guild.
-	///
-	/// # Returns
-	/// Returns a `Vec` of `EmbedContent` encapsulating localized strings and status messages
-	/// to be used as responses for the user interaction.
-	///
-	/// # Errors
-	/// - Returns an error if:
-	///     - Retrieving the Lavalink client fails.
-	///     - Lavalink functionality is disabled.
-	///     - The bot is not connected to a voice channel in the guild.
-	///     - The guild ID is not available from the command interaction.
-	///     - Localization strings cannot be loaded for the guild.
-	///
-	/// # Process
-	/// 1. Obtains the context of the bot (`ctx`) and extracts shared data (`bot_data`).
-	/// 2. Attempts to defer the response to acknowledge the interaction with Discord.
-	/// 3. Retrieves the guild ID from the command interaction; if unavailable, assigns a default value of `"0"`.
-	/// 4. Fetches localized strings for resuming playback from the database associated with the bot configuration.
-	/// 5. Validates if Lavalink audio services are properly initialized and accessible.
-	/// 6. Checks for the presence of a player context in Lavalink for the specified guild:
-	///     - If unavailable, creates an error response indicating the bot is not in a voice channel.
-	/// 7. Resumes playback by unpausing the Lavalink player for the guild.
-	/// 8. Constructs a success response using localized strings and prepares it for return.
-	///
-	/// # Notes
-	/// - This function relies on the `lavalink_rs` library for managing audio playback in Discord.
-	/// - Localization strings are fetched based on the guild's ID and the bot's configuration.
-	/// - The response content is structured using the `EmbedContent` and `EmbedType` types.
-	///
-	/// # Dependencies
-	/// - `anyhow::Result`: For error handling.
-	/// - `EmbedContent` and `EmbedType`: For structuring interaction responses.
-	/// - `load_localization_resume`: For loading localized strings based on guild-specific context.
-	/// - `lavalink_rs`: For interacting and managing audio playback.
-	///
-	/// # Example
-	/// ```ignore
-	/// let result = my_interaction_handler.get_contents().await;
-	/// match result {
-	///     Ok(embeds) => {
-	///         // Send these embeds as a response to the user's command
-	///     }
-	///     Err(error) => {
-	///         // Handle the error (e.g., log it or send an error message back to the user)
-	///     }
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for ResumeCommand,
+	get_contents = |self_: ResumeCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		self.defer().await?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self.command_interaction.guild_id {
+		let guild_id_str = match self_.command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
@@ -217,7 +136,7 @@ impl Command for ResumeCommand {
 		// Load the localized strings
 		let resume_localised = load_localization_resume(guild_id_str, db_connection).await?;
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 		let lava_client = bot_data.lavalink.clone();
@@ -246,4 +165,4 @@ impl Command for ResumeCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

@@ -26,107 +26,29 @@ use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
+use crate::impl_command;
 use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{User, get_color, get_user_url};
 
-/// A structure representing a command registration action within the application.
-///
-/// This struct encapsulates the necessary context and interaction details required
-/// to handle and process a slash command registration event in a Discord bot.
-///
-/// # Fields
-///
-/// * `ctx` - A `SerenityContext` that provides access to details about the bot's
-///   runtime environment, such as the shard manager, cache, HTTP client, and other
-///   utilities required to interact with Discord's API.
-///
-/// * `command_interaction` - A `CommandInteraction` instance that contains detailed
-///   information about the specific slash command interaction, including the user's
-///   input, command arguments, and the originating context of the interaction.
-///
-/// # Usage
-///
-/// This struct is typically used to handle slash commands in Discord bots built
-/// with the Serenity library. When a user invokes a slash command, the bot receives
-/// an interaction event, which can then be represented by this struct to manage
-/// the interaction.
-///
-/// # Example
+#[derive(Clone)]
 pub struct RegisterCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for RegisterCommand {
-	/// Retrieves a reference to the `SerenityContext`.
-	///
-	/// This function provides access to the current `SerenityContext` instance associated
-	/// with the object. The `SerenityContext` typically contains important data and utilities
-	/// required for interacting with the Discord API.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = my_object.get_ctx();
-	/// // Use the context to interact with Discord API or perform operations.
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance associated with the current object.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` instance (`&CommandInteraction`) stored within the object.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let interaction = my_object.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	///
-	/// This method is useful when you need to access or inspect the `CommandInteraction` data
-	/// without taking ownership of it.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously fetches and composes user-related embed content for a Discord bot.
-	///
-	/// This function retrieves user information from the AniList service using the bot's context.
-	/// The retrieved data is used to create an embed with user-specific details for displaying
-	/// in Discord. It also handles updating or inserting user data into the bot's database.
-	///
-	/// # Returns
-	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector of embed content that can be sent as part
-	///   of a message, or an error if the operation fails.
-	///
-	/// # Errors
-	/// This function will return an error in the following circumstances:
-	/// - If no username is provided in the command interaction.
-	/// - If fetching user data from AniList fails.
-	/// - If localization data cannot be loaded.
-	/// - If database operations (inserting/registering the user) fail.
-	///
-	/// # Workflow
-	/// 1. The function retrieves context and bot-specific resources (e.g., cache, database connection).
-	///
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for RegisterCommand,
+	get_contents = |self_: RegisterCommand| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction().clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
 		let connection = bot_data.db_connection.clone();
-		let config = bot_data.config.clone();
 
-		let map = get_option_map_string(command_interaction);
+		let map = get_option_map_string(&command_interaction);
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let value = map
 			.get(&FixedString::from_str_trunc("username"))
@@ -180,4 +102,4 @@ impl Command for RegisterCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

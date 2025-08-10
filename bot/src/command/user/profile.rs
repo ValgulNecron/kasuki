@@ -1,10 +1,11 @@
 //! The `ProfileCommand` struct represents a command for handling and displaying user profile
 //! information in a Discord bot. It contains the Serenity context and the interaction data for
 //! processing and responding to the user command.
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 
@@ -36,100 +37,19 @@ use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User
 /// };
 /// // Process the profile-related command using `profile_command`
 /// ```
+#[derive(Clone)]
 pub struct ProfileCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ProfileCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` stored in the current instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` for operations requiring the Serenity context.
-	/// ```
-	///
-	/// This method is typically used to access the context object needed to interact with Discord
-	/// through the Serenity library.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to a `CommandInteraction` object that represents the interaction command
-	/// linked to the instance.
-	///
-	/// # Examples
-	/// ```
-	/// let interaction = instance.get_command_interaction();
-	/// ```
-	/// Use this method when you need to access the `CommandInteraction` without taking ownership of it.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves user-related embed contents for commands, with localized profile information, user data,
-	/// server membership details, and premium entitlement information.
-	///
-	/// # Returns
-	///
-	/// Returns a `Result` containing either the successfully constructed `EmbedsContents`,
-	/// or an error if any step in the process fails.
-	///
-	/// # Process
-	///
-	/// 1. **Extract Context and Dependencies**: Retrieves the relevant context and configuration data.
-	/// 2. **Determine Command Type**: Matches the command type to fetch the user information and determine the targeted user.
-	/// 3. **Load Guild-Specific Localization Profile**: If the interaction occurs in a guild, retrieves the localized profile
-	///    data for user embedding based on the guild ID.
-	/// 4. **Construct Embed Fields**:
-	///     - Adds user information fields based on localized settings.
-	///     - If applicable, adds the join date for guild members.
-	/// 5. **Fetch Premium Entitlements**:
-	///     - Obtains available SKUs (Stock Keeping Units) for premium content.
-	///     - Fetches and associates premium entitlements for the targeted user.
-	///     - Constructs a formatted string listing entitlement details, including premium types and timelines.
-	///     - Adds this information to the embed fields.
-	/// 6. **Build Embed Content**:
-	///     - Creates embedded content with all available fields, localized titles, avatars, banners, and additional details.
-	/// 7. **Return Results**:
-	///     - Packages the embed content into an `EmbedsContents` object and returns it.
-	///
-	/// # Errors
-	///
-	/// This method can fail under the following circumstances:
-	/// - Invalid command type provided (not matching known cases).
-	/// - Failure to fetch user details, guild membership, localization profile, SKUs, or entitlements.
-	/// - Other internal errors related to API calls or data access.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let embed_contents = your_instance.get_contents().await?;
-	/// // Use embed_contents as needed, such as sending responses in a bot interaction.
-	/// ```
-	///
-	/// # Note
-	///
-	/// This function handles both user commands (`kind == 1`) and command-user scenarios (`kind == 2`).
-	/// It is designed specifically for Discord bots orchestrated in a multi-guild context,
-	/// ensuring proper localized responses and detailed user insights.
-	///
-	/// Dependencies:
-	/// - `self.get_ctx()`: Retrieves the bot's execution context.
-	/// - `self.get_command_interaction()`: Accesses the current command interaction handling instance.
-	/// - `load_localization_profile()` and `get_fields()`: Localizes user details and formats them according to guild-specific settings.
-	/// - API calls for fetching SKUs, premium entitlements, and guild membership details.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for ProfileCommand,
+	get_contents = |self_: ProfileCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let user = match command_interaction.data.kind.0 {
 			1 => get_user_command(ctx, command_interaction).await?,
@@ -225,11 +145,11 @@ impl Command for ProfileCommand {
 		.fields(fields)
 		.images_url(user.banner_url().unwrap_or_default());
 
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Generates a vector of fields containing information extracted from a user's profile.
 ///

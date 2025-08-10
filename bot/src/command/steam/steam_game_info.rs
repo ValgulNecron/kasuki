@@ -91,11 +91,12 @@
 //!     // Process and use the retrieved SteamGameWrapper.
 //! }
 //! ```
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
+use crate::impl_command;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 use anyhow::{Result, anyhow};
@@ -131,117 +132,26 @@ use tokio::sync::RwLock;
 ///
 /// // Use `steam_game_info_command` to handle the Steam game information request.
 /// ```
+#[derive(Clone)]
 pub struct SteamGameInfoCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for SteamGameInfoCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// * `&SerenityContext` - A reference to the `SerenityContext` stored within the struct.
-	///
-	/// # Example
-	/// ```
-	/// let context = instance.get_ctx();
-	/// // Use the retrieved SerenityContext reference for further operations
-	/// ```
-	///
-	/// This method provides read-only access to the stored `SerenityContext`.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object, which provides details about the command interaction.
-	///
-	/// # Example
-	/// ```
-	/// let command_interaction = instance.get_command_interaction();
-	/// ```
-	///
-	/// This method can be used to access the command interaction for further processing or inspection.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves the content of a Steam game and formats it into Discord-styled embed content.
-	///
-	/// # Returns
-	///
-	/// Returns a `Result` containing a `Vec` of `EmbedContent` objects which represent the structured embed data for Discord.
-	/// On an error, it returns the associated error wrapped in the `Err`.
-	///
-	/// # Details
-	///
-	/// This function interacts with the Steam API to retrieve game information and transforms it into an embed format designed
-	/// for Discord interactions. It includes the following fields:
-	/// - Price: Shows the price of the game or indicates if the game is free or To Be Announced.
-	/// - Platforms: Indicates availability of the game for Windows, macOS, and Linux.
-	/// - Website: Adds the official game website, if available.
-	/// - Age Restriction: Displays an age restriction, if specified.
-	/// - Release Date: Displays the release date or notes if the game is "Coming Soon."
-	/// - Developers and Publishers: Lists the developers and publishers of the game.
-	/// - Application Type: Shows the type of the Steam application (e.g., game, software).
-	/// - Supported Languages: Lists the languages the game supports.
-	/// - Categories: Displays the categories or metadata tags associated with the game.
-	///
-	/// Additionally, fields like the game name, description, image, and Steam Store link are also included in the embed.
-	///
-	/// # Steps Involved
-	///
-	/// 1. Retrieve context and relevant dependencies including Bot data, command interaction, and configuration.
-	/// 2. Retrieve Steam game data using `get_steam_game`.
-	/// 3. Load localised strings based on the guild ID for embedding content in the user's locale.
-	/// 4. Construct fields for the embed:
-	///     - Conditionally formats fields such as price, platforms, and release dates based on game attributes (e.g., `free`, `coming soon`).
-	///     - Handles objects like developers, publishers, and categories, ensuring they format as Markdown where appropriate.
-	///     - Converts strings to Discord-compatible Markdown using `convert_steam_to_discord_flavored_markdown`.
-	/// 5. Constructs an `EmbedContent` object with:
-	///     - A descriptive title.
-	///     - A cleaned and Markdown-compatible short description.
-	///     - Dynamically built fields with game metadata.
-	///     - Steam game URL and image link.
-	/// 6. Returns the compiled embed as a `Vec<EmbedContent>`.
-	///
-	/// # Errors
-	///
-	/// This function will return an `Err` in the following scenarios:
-	/// - Failure to access game data from the Steam API.
-	/// - Localization loading errors.
-	/// - Required fields in the `game` object being `None` when expected (e.g., missing name, Steam App ID).
-	///
-	/// # Example Usage
-	///
-	/// ```rust
-	/// let steam_embed_contents = some_instance.get_contents().await?;
-	/// // Use `steam_embed_contents` for Discord messages or further processing.
-	/// ```
-	///
-	/// # Dependencies
-	///
-	/// - Requires `get_steam_game` for retrieving game information from Steam.
-	/// - Uses `load_localization_steam_game_info` to load embed localization for the guild-specific language.
-	/// - Utilizes helper functions such as `convert_steam_to_discord_flavored_markdown` to format raw strings.
-	///
-	/// # Notes
-	///
-	/// - Ensure the `BotData` context is configured correctly with necessary Steam API credentials and application data.
-	/// - This function assumes certain responses from the Steam API match the expected schema; modifications to the schema may require code updates.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for SteamGameInfoCommand,
+	get_contents = |self_: SteamGameInfoCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let db_connection = bot_data.db_connection.clone();
 		let data = get_steam_game(
 			bot_data.apps.clone(),
-			self.command_interaction.clone(),
+			self_.command_interaction.clone(),
 			db_connection,
 		)
 		.await?;
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction
 			.guild_id
@@ -415,7 +325,7 @@ impl Command for SteamGameInfoCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Fetches a Steam game based on user input from a command interaction.
 ///

@@ -181,7 +181,7 @@ impl Display for UserStatisticsSort {
 }
 
 pub async fn user_content<'a>(
-	command: &'a CommandInteraction, user: User, db_connection: Arc<DatabaseConnection>,
+	command: CommandInteraction, user: User, db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
 	let guild_id = match command.guild_id {
 		Some(id) => id.to_string(),

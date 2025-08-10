@@ -93,7 +93,7 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) -> Result<u
 	);
 
 	// Get the current size of the apps cache for comparison
-	let current_size = {
+	let _current_size = {
 		let read_guard = apps_data.read().await;
 		read_guard.len()
 	};

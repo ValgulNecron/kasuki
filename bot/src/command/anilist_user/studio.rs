@@ -86,6 +86,7 @@ use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
+use crate::impl_command;
 use crate::structure::message::anilist_user::studio::load_localization_studio;
 use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
@@ -94,131 +95,24 @@ use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 
-/// Represents a command executed within the context of a studio application.
-///
-/// This struct encapsulates the necessary data to process and execute a command
-/// within the context of the Serenity framework, enabling interaction with the
-/// Discord API and user-issued commands.
-///
-/// # Fields
-///
-/// * `ctx` - The context of the Serenity framework, providing access to
-///   Discord-related functionality and structures, such as guilds, channels,
-///   and users.
-/// * `command_interaction` - The interaction details related to the command
-///   issued by a user, including the command name, arguments, and metadata.
-///
-/// # Usage
-///
-/// The `StudioCommand` struct is utilized to represent the union of the
-/// Serenity context and the specific command interaction being processed.
-/// It is commonly used in managing and responding to user commands.
-///
-/// # Example
-///
-/// ```rust
-/// use my_crate::StudioCommand;
-///
-/// fn handle_command(command: StudioCommand) {
-///     // Access the Serenity context using command.ctx
-///     // Access the command interaction using command.command_interaction
-/// }
-/// ```
+#[derive(Clone)]
 pub struct StudioCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for StudioCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` held by this instance.
-	///
-	/// # Examples
-	/// ```
-	/// let context = instance.get_ctx();
-	/// // Use the context for further operations.
-	/// ```
-	///
-	/// # Notes
-	/// This method provides immutable access to the context.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// - A reference to the `CommandInteraction` object.
-	///
-	/// # Example
-	/// ```
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the `interaction` object as needed.
-	/// ```
-	///
-	/// This method provides read-only access to the `command_interaction` field of the struct it is implemented for.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously fetches and compiles the contents of a studio's information from AniList.
-	///
-	/// # Returns
-	/// A `Result` containing either:
-	/// - A `Vec<EmbedContent<'_, '_>>` when the operation is successful.
-	/// - An error if any step in the process fails.
-	///
-	/// # Steps
-	/// 1. Retrieves the bot context and fetches associated data, including configuration and AniList cache.
-	/// 2. Parses the studio argument from the command interaction:
-	///    - If the provided studio argument is a numeric ID, fetches the studio data by its ID.
-	///    - Otherwise, treats the given value as a name and searches for the studio by name.
-	/// 3. Handles localization to support dynamic response descriptions based on the guild ID.
-	/// 4. Constructs a content string containing links and titles for each media associated with the studio.
-	/// 5. Builds and returns an embed containing the studio's information.
-	///
-	/// # Errors
-	/// Returns an error if any of the following occur:
-	/// - The studio argument is not specified.
-	/// - Parsing or retrieving data via AniList fails.
-	/// - Localization or database-related operations fail.
-	///
-	/// # Example
-	/// ```
-	/// # async {
-	/// let contents = some_command.get_contents().await;
-	/// match contents {
-	///     Ok(embed_contents) => {
-	///         // Process and send the embed contents.
-	///     }
-	///     Err(err) => {
-	///         // Handle errors, e.g., log or notify the user.
-	///     }
-	/// }
-	/// # };
-	/// ```
-	///
-	/// # Dependencies
-	/// - `BotData`: For accessing the configuration and AniList cache.
-	/// - GraphQL queries: Used for fetching data from AniList.
-	/// - Localization utilities: Required to construct localized studio strings.
-	///
-	/// # Notes
-	/// - The studio data is fetched via AniList's GraphQL API using either the studio's ID or name.
-	/// - Embed descriptions are dynamically constructed using localization strings and studio metadata.
-	/// - If there is no guild ID specified in the command interaction, a default guild ID of "0" is assigned.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for StudioCommand,
+	get_contents = |self_: StudioCommand| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction().clone();
 
-		let config = bot_data.config.clone();
+		let _config = bot_data.config.clone();
 
 		let anilist_cache = bot_data.anilist_cache.clone();
 
-		let map = get_option_map_string(command_interaction);
+		let map = get_option_map_string(&command_interaction);
 
 		let value = map
 			.get(&FixedString::from_str_trunc("studio"))
@@ -313,4 +207,4 @@ impl Command for StudioCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

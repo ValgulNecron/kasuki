@@ -5,6 +5,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::leave::load_localization_leave;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -40,78 +41,19 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// };
 /// leave_command.execute().await;
 /// ```
+#[derive(Clone)]
 pub struct LeaveCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for LeaveCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored within the instance.
-	/// This can be used to interact with the Discord API, send messages, retrieve guild information, etc.
-	///
-	/// # Examples
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use ctx to interact with the Discord API
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the associated `CommandInteraction` instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` stored within the current instance.
-	///
-	/// # Examples
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use `interaction` as needed...
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes content for the command interaction.
-	///
-	/// This function performs the following operations:
-	/// 1. Retrieves the interaction context and relevant state from the `BotData`.
-	/// 2. Defers the interaction response.
-	/// 3. Extracts the guild ID from the command interaction, defaulting to "0" if unavailable.
-	/// 4. Loads localized content for the "leave" command using the provided guild ID.
-	/// 5. Validates the Lavalink client configuration and removes the player associated with the guild.
-	/// 6. Removes the guild from the internal bot manager if it exists.
-	/// 7. Creates an `EmbedContent` object to indicate the success of the operation and returns it.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` on success with the localized embed content.
-	/// - `Err(anyhow::Error)` if any operation (such as retrieving the Lavalink client, deleting the player, or
-	///   an absence of guild ID) fails.
-	///
-	/// # Errors
-	/// - Returns an error if the Lavalink client is not configured or is disabled.
-	/// - Returns an error if the guild ID cannot be retrieved from the interaction.
-	/// - Propagates errors from `defer`, `load_localization_leave`, `delete_player`, or `manager.remove` operations.
-	///
-	/// # Async Behavior
-	/// - The function contains multiple asynchronous operations, such as deferring the interaction, fetching
-	///   localized content, and making calls to Lavalink or the internal manager. These operations are awaited.
-	///
-	/// # Example
-	/// ```ignore
-	/// let contents = interaction.get_contents().await?;
-	/// for content in contents {
-	///     println!("Embed Title: {}", content.title());
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for LeaveCommand,
+	get_contents = |self_: LeaveCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		self.defer().await?;
+		let command_interaction = self_.get_command_interaction();
 
 		// Retrieve the guild ID from the command interaction
 		let guild_id_str = match command_interaction.guild_id {
@@ -148,4 +90,4 @@ impl Command for LeaveCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

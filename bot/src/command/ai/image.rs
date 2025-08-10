@@ -70,6 +70,7 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
+use crate::impl_command;
 use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{Result, anyhow};
 use image::EncodableLayout;
@@ -91,133 +92,21 @@ use uuid::Uuid;
 /// * `command_interaction` - Represents the interaction data for the command, including
 ///                           details about the user who triggered it and how it was invoked.
 /// * `command_name` - The name of the image command being executed, as specified by the user.
+#[derive(Clone)]
 pub struct ImageCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 	pub command_name: String,
 }
 
-impl Command for ImageCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored within the instance.
-	///
-	/// # Examples
-	/// ```rust
-	/// let my_instance = MyStruct { ctx: serenity_context };
-	/// let context = my_instance.get_ctx();
-	/// ```
-	///
-	/// This function is useful when access to the `SerenityContext` is required for operations
-	/// involving the Serenity library, such as managing Discord bot events or sending messages.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object (`&CommandInteraction`) stored within the struct.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	///
-	/// This method is useful for accessing the stored command interaction details
-	/// without taking ownership of the data.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves content by generating images using an AI-based service.
-	///
-	/// This function performs several tasks in sequence:
-	/// 1. Checks if the command's hourly usage limit has been reached for a user.
-	/// 2. Constructs the appropriate request data and headers for the AI-based image generation API.
-	/// 3. Sends a request to the AI API to generate images based on the user inputs.
-	/// 4. Parses the API response, extracts and processes image bytes, and saves the generated images.
-	/// 5. Organizes the images into an embed format and prepares the result for further usage.
-	///
-	/// # Returns
-	///
-	/// Returns a `Result` containing:
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` — A vector of embed contents containing the generated images.
-	/// - `Err(anyhow::Error)` — An error if the process fails at any step.
-	///
-	/// # Errors
-	///
-	/// This function returns an error in the following cases:
-	/// - The user has reached the hourly usage limit for the command.
-	/// - There are issues with the AI API request or response.
-	/// - Image data cannot be parsed or saved successfully.
-	/// - Configuration or header creation fails unexpectedly.
-	///
-	/// # Usage
-	///
-	/// Call this function from within an async context to handle image generation and embed construction:
-	///
-	/// ```no_run
-	/// let contents = my_obj.get_contents().await;
-	/// match contents {
-	///     Ok(embed_content) => {
-	///         // Handle embed content with generated images
-	///     }
-	///     Err(e) => {
-	///         // Handle any errors during the process
-	///     }
-	/// }
-	/// ```
-	///
-	/// # Steps and Workflow
-	///
-	/// 1. **Context Setup**:
-	///    - Retrieves the bot's shared data (`BotData`) and the command interaction context.
-	/// 2. **Hourly Limit Check**:
-	///    - Validates if the user has exceeded the hourly limit for the command.
-	/// 3. **Prepare API Request**:
-	///    - Constructs the request URL, headers, and body using bot configuration and user inputs.
-	/// 4. **Send API Request**:
-	///    - Sends the image generation request to the AI service and receives a response.
-	/// 5. **Process Response**:
-	///    - Extracts and processes image bytes from the API response.
-	///    - Saves images locally or remotely, based on the bot's settings.
-	/// 6. **Construct Embed**:
-	///    - Organizes the processed images into a user-friendly embed format.
-	///
-	/// # Notes
-	///
-	/// - The service uses unique identifiers (`UUID`) for image filenames to avoid collisions.
-	/// - Supports handling single as well as multiple images based on user input.
-	/// - Implements localization for image titles based on a guild's settings.
-	///
-	/// # Dependencies
-	///
-	/// This function depends on the following:
-	/// - `BotData` for shared bot configurations and HTTP client.
-	/// - External services (e.g., AI API and image storage services) for image generation and saving.
-	/// - Utility functions: `get_option_map_integer_subcommand`, `get_value`, `get_image_from_response`,
-	///   `image_with_n_equal_1`, `image_with_n_greater_than_1`, and `image_saver` for intermediary operations.
-	///
-	/// # Parameters
-	///
-	/// - `&self`: The instance of the struct invoking this method, which contains necessary contextual data.
-	///
-	/// # Example Scenario
-	///
-	/// A user requests image generation by invoking a command. The bot:
-	/// 1. Validates the user's remaining request quota.
-	/// 2. Prepares and sends a generation request to the AI service.
-	/// 3. Processes the response, saves images, and organizes them into an embed.
-	/// 4. Returns the embed for further interaction or display as a follow-up.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for ImageCommand,
+	get_contents = |self_: ImageCommand| async move {
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		if self
+		if self_
 			.check_hourly_limit(
-				self.command_name.clone(),
+				self_.command_name.clone(),
 				&bot_data.clone(),
 				PremiumCommandType::AIImage,
 			)
@@ -228,7 +117,7 @@ impl Command for ImageCommand {
 			));
 		}
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 		let config = bot_data.config.clone();
 		let map = get_option_map_integer_subcommand(command_interaction);
 		let client = bot_data.http_client.clone();
@@ -242,7 +131,7 @@ impl Command for ImageCommand {
 		let db_connection = bot_data.db_connection.clone();
 
 		let image_localised = load_localization_image(guild_id.clone(), db_connection);
-		self.defer().await?;
+		self_.defer().await?;
 
 		let uuid_name = Uuid::new_v4();
 		let filename = format!("{}.png", uuid_name);
@@ -335,7 +224,7 @@ impl Command for ImageCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Generates a JSON `Value` containing the information required to create an AI-generated image based on the provided input parameters.
 ///

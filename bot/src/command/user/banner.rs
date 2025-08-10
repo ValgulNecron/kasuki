@@ -1,32 +1,27 @@
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::user::banner::load_localization_banner;
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct BannerCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for BannerCommand {
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for BannerCommand,
+	get_contents = |self_: BannerCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let config = bot_data.config.clone();
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let user = match command_interaction.data.kind.0 {
 			1 => get_user_command(ctx, command_interaction).await?,
@@ -43,7 +38,7 @@ impl Command for BannerCommand {
 			None => {
 				let embed_content =
 					no_banner(command_interaction, &user.name, db_connection).await?;
-				let embed_contents = EmbedsContents::new(CommandType::First, embed_content);
+				let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
 				return Ok(embed_contents);
 			},
 		};
@@ -60,11 +55,11 @@ impl Command for BannerCommand {
 		let embed_content = EmbedContent::new(banner_localised.title.replace("$user$", username))
 			.images_url(banner);
 
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embed_contents)
 	}
-}
+);
 
 pub async fn no_banner(
 	command_interaction: &CommandInteraction, username: &str,

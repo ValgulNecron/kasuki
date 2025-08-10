@@ -82,7 +82,7 @@ pub struct FuzzyDate {
 	pub day: Option<i32>,
 }
 pub async fn character_content<'a>(
-	command_interaction: &'a CommandInteraction, character: Character,
+	command_interaction: CommandInteraction, character: Character,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
 	let guild_id = match command_interaction.guild_id {

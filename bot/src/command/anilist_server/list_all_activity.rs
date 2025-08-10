@@ -42,6 +42,7 @@ use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::database::activity_data::Column;
 use crate::database::prelude::ActivityData;
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::anyhow;
 use sea_orm::ColumnTrait;
@@ -49,119 +50,21 @@ use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
-/// Represents a structure to list all activity within a Discord bot command context.
-///
-/// This struct is used to handle interactions received from the user via Discord commands.
-/// It contains the context of the bot and the specific command interaction details.
-///
-/// # Fields
-///
-/// * `ctx` - The bot's runtime context, provided by Serenity. It allows access to bot-related operations
-///   such as retrieving data, sending messages, managing the bot state, or performing API calls.
-/// * `command_interaction` - Represents the command interaction triggered by a user. It contains details
-///   about the interaction, such as the command name, arguments, options, and the user who triggered the command.
-///
-/// # Example
-///
-/// ```rust
-/// use serenity::prelude::*;
-/// use serenity::model::prelude::*;
-///
-/// let activity = ListAllActivity { ctx: serenity_context, command_interaction: command_interaction };
-/// ```
-///
-/// This struct is typically used in the command execution lifecycle to process and respond to user commands.
+#[derive(Clone)]
 pub struct ListAllActivity {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ListAllActivity {
-	/// Retrieves a reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) that is stored
-	/// within the current instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use `ctx` for further operations.
-	/// ```
-	///
-	/// This method is useful for accessing the Discord bot's context,
-	/// which can be used to interact with the API and handle bot operations.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` field of the instance.
-	///
-	/// # Examples
-	/// ```rust
-	/// // Assuming `instance` is an instance of a struct that has this method
-	/// let command_interaction = instance.get_command_interaction();
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and processes a list of activity data from the database
-	/// for display purposes, returning a list of embed contents.
-	///
-	/// # Returns
-	/// * `Result<Vec<EmbedContent<'_, '_>>>` - A vector containing `EmbedContent` objects which
-	///   represent the formatted activities.
-	///
-	/// # Workflow
-	/// 1. Retrieve the execution context and the command interaction information.
-	/// 2. Attempt to determine the guild ID from the interaction; return an error if not found.
-	/// 3. Access the bot data and duplicate the database connection.
-	/// 4. Query the database for activities that are associated with the guild ID.
-	/// 5. Format the fetched activities into a localized, human-readable list.
-	///
-	/// # Parameters
-	/// * `&self` - A reference to the associated struct calling this method.
-	///
-	/// # Intermediate Computations
-	/// - Fetches activity entries from the database using the guild ID.
-	/// - Checks if the activity list exceeds a predefined limit and, if so, prepares
-	///   action buttons for pagination.
-	///
-	/// # Returns
-	/// - A localized embed for each activity list, including its title, description, and optional buttons.
-	///
-	/// # Error Handling
-	/// - Returns an error if:
-	///   * The guild ID cannot be fetched from the interaction.
-	///   * The database query fails.
-	///   * Any localization or formatting errors occur.
-	///
-	/// # Examples
-	/// ```rust
-	/// let result = my_struct.get_contents().await;
-	/// match result {
-	///     Ok(embed_contents) => {
-	///         // Do something with the embed contents
-	///     },
-	///     Err(e) => {
-	///         eprintln!("Failed to fetch activity contents: {}", e);
-	///     }
-	/// }
-	/// ```
-	///
-	/// # Note
-	/// This function is asynchronous and should be awaited in an appropriate async runtime environment.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for ListAllActivity,
+	get_contents = |self_: ListAllActivity| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction().clone();
+		let _config = bot_data.config.clone();
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let guild_id = command_interaction
 			.guild_id
@@ -203,4 +106,4 @@ impl Command for ListAllActivity {
 
 		Ok(embed_contents)
 	}
-}
+);

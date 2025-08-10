@@ -43,6 +43,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::skip::load_localization_skip;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -74,101 +75,21 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///
 /// // Use skip_command to process the skip action.
 /// ```
+#[derive(Clone)]
 pub struct SkipCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for SkipCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` (`&SerenityContext`) stored within the instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use `ctx` as needed
-	/// ```
-	///
-	/// This function is useful when you need to access the shared context
-	/// in a Serenity bot to interact with Discord-related operations.
-	///
-	/// # Note
-	/// The lifetime of the returned reference is tied to the lifetime of the instance.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object that is stored within the instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// // Use the `interaction` as needed
-	/// ```
-	///
-	/// This method can be used to access the `CommandInteraction` for further processing or inspection.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves the contents required for handling a bot command in a guild context.
-	///
-	/// The function performs the following steps:
-	/// - Obtains the contextual data and bot configuration.
-	/// - Defers the interaction to allow handling without timeout.
-	/// - Gathers guild-specific localized strings for message customization.
-	/// - Ensures the LavaLink client is enabled and accessible.
-	/// - Checks if a music player is active in the guild and processes the current track.
-	///
-	/// # Steps
-	/// 1. Retrieves the Guild ID from the command interaction. If unavailable, defaults to "0".
-	/// 2. Loads the localized strings for the guild to customize user-facing messages.
-	/// 3. Confirms the presence of a guild ID in the command interaction. Returns an error if absent.
-	/// 4. Ensures that the LavaLink client is active. Returns an error if disabled.
-	/// 5. Retrieves the active music player for the given guild. Sends a warning message if no player is found.
-	/// 6. Handles the current track:
-	///    - If a track is playing, skips it and updates the response with success information.
-	///    - If no track is currently playing, informs the user that there's nothing to skip.
-	///
-	/// # Returns
-	/// A `Vec` containing `EmbedContent`:
-	/// - On success, a response embed with the result of the skip operation.
-	/// - On failure or noteworthy conditions (e.g., no active player or no track to skip), an error or informational embed.
-	///
-	/// # Errors
-	/// Returns an `anyhow::Error` in the following scenarios:
-	/// - The guild ID is unavailable in the interaction context.
-	/// - The LavaLink client is disabled or inaccessible.
-	/// - Issues occur during player retrieval, skipping logic, or localized string loading.
-	///
-	/// # Dependencies
-	/// - Localization provider to load guild-specific messages.
-	/// - LavaLink client for interacting with the music player.
-	/// - EmbedContent struct to structure the response.
-	///
-	/// # Example Use
-	/// ```ignore
-	/// let contents = command_instance.get_contents().await?;
-	/// // Process `contents` to construct and send a response to the user.
-	/// ```
-	///
-	/// # Requirements
-	/// This function utilizes the following features:
-	/// - Async context for LavaLink and interaction deferral handling.
-	/// - Localization logic for guild-specific messaging.
-	///
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for SkipCommand,
+	get_contents = |self_: SkipCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		self.defer().await?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self.command_interaction.guild_id {
+		let guild_id_str = match self_.command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
@@ -177,7 +98,7 @@ impl Command for SkipCommand {
 		// Load the localized strings
 		let skip_localised = load_localization_skip(guild_id_str, db_connection).await?;
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
@@ -213,4 +134,4 @@ impl Command for SkipCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

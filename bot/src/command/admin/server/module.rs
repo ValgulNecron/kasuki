@@ -9,6 +9,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
+use crate::impl_command;
 use crate::structure::message::admin::server::module::load_localization_module_activation;
 use anyhow::anyhow;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
@@ -31,106 +32,17 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// The `ModuleCommand` struct is used to package all relevant
 /// information needed to handle a specific command interaction
 /// within a module in a bot powered by the Serenity library.
+#[derive(Clone)]
 pub struct ModuleCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ModuleCommand {
-	/// Retrieves a reference to the `SerenityContext` associated with this instance.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` held within the instance.
-	///
-	/// # Usage
-	/// This method provides access to the underlying `SerenityContext`, which can be used
-	/// to interact with Discord's API through the Serenity library. It is commonly used
-	/// when you need to perform actions such as sending messages, managing guilds, or
-	/// retrieving other resources.
-	///
-	/// # Example
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` to interact with the Discord API
-	/// ```
-	///
-	/// # Notes
-	/// This method borrows the context immutably, meaning you can safely call it
-	/// within code that requires read-only access to the `SerenityContext`.
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` instance.
-	///
-	/// # Returns
-	///
-	/// A reference to the `CommandInteraction` stored within the current object.
-	///
-	/// # Example
-	///
-	/// ```
-	/// let command_interaction = object.get_command_interaction();
-	/// // Use the command_interaction as needed
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously retrieves and updates the state of a specific module for a guild in a Discord bot context.
-	///
-	/// This function performs the following operations:
-	/// 1. Gathers the execution context of the bot and extracts data such as the command interaction details,
-	///    the database connection, and the guild ID.
-	/// 2. Retrieves the options provided in the command for identifying the targeted module ("name") and its
-	///    desired activation state ("state").
-	/// 3. Loads localized text for module activation messages based on the guild ID.
-	/// 4. Queries the current module activation settings for the guild from the database. If no settings are
-	///    found, default settings are used.
-	/// 5. Updates the activation status for the specific module based on the command input.
-	/// 6. Saves the updated activation settings to the database.
-	/// 7. Creates and returns an embed message to provide feedback to the user about the module activation
-	///    status.
-	///
-	/// # Returns
-	/// A `Result` containing a vector of `EmbedContent` objects for providing feedback about the operation. In the case
-	/// of an error, an `anyhow::Error` is returned.
-	///
-	/// # Errors
-	/// - Returns an error if the command interaction does not include a valid "name" option for the module.
-	/// - Returns an error if the command interaction does not include a valid "state" option for the module.
-	/// - Returns an error if the specified module name does not exist.
-	/// - Returns an error if there are issues querying or updating the database.
-	/// - Returns an error if there are problems with loading localized messages.
-	///
-	/// # Example
-	/// ```rust
-	/// let embed_contents = some_bot_object.get_contents().await?;
-	/// for embed in embed_contents {
-	///     // Send the embed as a response or perform other actions
-	/// }
-	/// ```
-	///
-	/// # Dependencies
-	/// - Requires the `async-trait` attribute for asynchronous methods in traits.
-	/// - Depends on the `sea-orm` library for database queries and updates.
-	/// - Relies on a custom implementation of localization (`load_localization_module_activation`) and embed creation
-	///   (`EmbedContent`).
-	///
-	/// # Notes
-	/// - This function assumes the presence of a database schema for storing and managing module activation settings.
-	/// - Default settings are used if no settings are found for the specified guild.
-	/// - The embed message contents are localized based on the guild-specific language setting.
-	///
-	/// # Parameters
-	/// - `self`: The instance of the struct or implementation that provides contextual information, including
-	///           access to the database connection and command interaction details.
-	///
-	/// # Return Type
-	/// - `Result<Vec<EmbedContent<'_, '_>>>`: A `Result` containing a `Vec` of embed content or an error.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for ModuleCommand,
+	get_contents = |self_: ModuleCommand| async move {
+		let ctx = self_.get_ctx();
+		let command_interaction = self_.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let db_connection = bot_data.db_connection.clone();
 
@@ -208,7 +120,7 @@ impl Command for ModuleCommand {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// Checks the activation status of a specific module based on the provided `module` name and the associated `row` data.
 ///

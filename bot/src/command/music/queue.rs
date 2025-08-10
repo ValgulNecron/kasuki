@@ -2,6 +2,7 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
 use futures::StreamExt;
@@ -41,105 +42,21 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// - This struct assumes you're using the `serenity` crate and handling slash commands.
 /// - The `ctx` and `command_interaction` fields are typically passed to functions that execute the logic for specific queue commands.
 ///
+#[derive(Clone)]
 pub struct QueueCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for QueueCommand {
-	/// Retrieves a reference to the `SerenityContext`.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext` stored in the current instance.
-	///
-	/// # Examples
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use `context` for further processing
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `command_interaction` associated with this instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` object stored in this instance.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = instance.get_command_interaction();
-	/// ```
-	///
-	/// # Note
-	/// This function provides read-only access to the `command_interaction`
-	/// and does not allow for modifications.
-	///
-	/// # See Also
-	/// - `CommandInteraction` for more details on its structure and usage.
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronous function to retrieve and prepare embed content containing the current state
-	/// of the music player queue for a Discord bot using Lavalink.
-	///
-	/// # Returns
-	/// - `Ok(Vec<EmbedContent<'_, '_>>)` on success: A vector of embed content with details of the
-	///   music queue, including now-playing information and queued tracks.
-	/// - `Err(anyhow::Error)` on failure: If there are any errors in retrieving data,
-	///   localization, or interactions with Lavalink.
-	///
-	/// # Errors
-	/// This function may return an error in the following cases:
-	/// - If localization data cannot be loaded (e.g., database errors).
-	/// - If the bot fails to retrieve the guild ID or Lavalink is disabled.
-	/// - If no player or player context is available for the associated guild.
-	///
-	/// # Details
-	/// 1. The function first retrieves the application context and bot data.
-	/// 2. Loads localized strings for queue-related messages based on the guild ID.
-	/// 3. Confirms Lavalink is enabled and retrieves the player context for the guild.
-	/// 4. Constructs an embed message with:
-	///    a. A "now playing" message detailing the current track (if any).
-	///    b. A formatted list of tracks currently in the queue.
-	/// 5. If no player is present, or the bot is not in a voice channel, an appropriate error
-	///    message is returned.
-	///
-	/// # Localization
-	/// The function uses localized string templates for all user-facing messages to adapt content
-	/// based on the guild's configuration or language.
-	///
-	/// # Example Usage
-	/// This function is typically used in the command-handling flow of the bot to return music
-	/// queue details to the user.
-	///
-	/// # Dependencies
-	/// - `lavalink_rs`: For managing the music player and queue.
-	/// - `anyhow`: For error handling.
-	/// - `EmbedContent`: A custom structure for formatting and returning embed content.
-	/// - `load_localization_queue`: A function for loading localized strings.
-	///
-	/// # Example
-	/// ```rust
-	/// let embed_contents = my_handler.get_contents().await?;
-	/// for embed_content in embed_contents {
-	///     println!("Title: {}", embed_content.title);
-	///     println!("Description: {}", embed_content.description);
-	/// }
-	/// ```
-	///
-	/// # Notes
-	/// - The function ensures the bot's state and player's context are properly validated before
-	///   attempting to retrieve or format the music queue.
-	/// - A maximum of 9 tracks are included in the queue message to limit excessive output.
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for QueueCommand,
+	get_contents = |self_: QueueCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		self.defer().await?;
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self.command_interaction.guild_id {
+		let guild_id_str = match self_.command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
@@ -148,7 +65,7 @@ impl Command for QueueCommand {
 		// Load the localized strings
 		let queue_localised = load_localization_queue(guild_id_str, db_connection).await?;
 
-		let command_interaction = self.get_command_interaction();
+		let command_interaction = self_.get_command_interaction();
 
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 		let lava_client = bot_data.lavalink.clone();
@@ -241,4 +158,4 @@ impl Command for QueueCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

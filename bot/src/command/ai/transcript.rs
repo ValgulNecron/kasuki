@@ -7,6 +7,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
+use crate::impl_command;
 use crate::structure::message::ai::transcript::load_localization_transcript;
 use anyhow::{Result, anyhow};
 use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
@@ -50,91 +51,24 @@ use uuid::Uuid;
 /// // Use the `command` struct to process the interaction.
 /// process_command(command);
 /// ```
+#[derive(Clone)]
 pub struct TranscriptCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 	pub command_name: String,
 }
 
-impl Command for TranscriptCommand {
-	/// Returns a reference to the `SerenityContext`.
-	///
-	/// This method provides access to the `SerenityContext` associated with the current instance,
-	/// allowing interaction with Discord's API and gateway functionality.
-	///
-	/// # Returns
-	/// A reference to the `SerenityContext`.
-	///
-	/// # Example
-	/// ```rust
-	/// let ctx = instance.get_ctx();
-	/// // Use ctx to interact with the Discord API.
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the current object.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` field of the object.
-	///
-	/// # Example
-	/// ```rust
-	/// let interaction = object.get_command_interaction();
-	/// // Use the `interaction` reference as needed
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Retrieves the content of an audio or video file, processes it using a transcription API,
-	/// and returns the transcribed text as an embed response.
-	///
-	/// # Errors
-	///
-	/// This function returns an `Err` in the following cases:
-	/// - The user exceeds their hourly limit for the AI transcription command.
-	/// - No video attachment is provided or the content type for the attachment is unsupported.
-	/// - The file extension of the attachment is not in the list of allowed extensions.
-	/// - A failure occurs while parsing the URL or download request for the attached file.
-	/// - The transcription API configuration is invalid or the API request fails.
-	/// - An error occurs while parsing the API response.
-	///
-	/// # Workflow
-	/// 1. Verifies if the user has exceeded their hourly command limit.
-	/// 2. Parses the input options, retrieves the language prompt, and validates the file attachment.
-	/// 3. Ensures the file type and extension are supported for transcription.
-	/// 4. Downloads the file from the provided URL and processes it using an external transcription API.
-	/// 5. Returns the transcribed text in an embed format.
-	///
-	/// # Returns
-	/// On success, returns a `Result<Vec<EmbedContent<'_, '_>>>` containing the embed with the transcribed content.
-	///
-	/// # Configuration Requirements
-	/// - The transcription API settings (base URL, token, and model) should be configured in the `BotData` object.
-	/// - Expected valid audio/video file types include: `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `wav`, `webm`, `ogg`.
-	///
-	/// # Parameters
-	/// This function operates on a struct instance, requiring the following context:
-	/// - `self`: Includes methods for obtaining the command interaction and configuration context.
-	///
-	/// # Example
-	/// ```rust
-	/// let contents = instance.get_contents().await?;
-	/// for content in contents {
-	///     println!("Embed Description: {}", content.description());
-	/// }
-	/// ```
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
-		let command_interaction = self.get_command_interaction();
+impl_command!(
+	for TranscriptCommand,
+	get_contents = |self_: TranscriptCommand| async move {
+		let ctx = self_.get_ctx();
+		let command_interaction = self_.get_command_interaction();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
-		if self
+		if self_
 			.check_hourly_limit(
-				self.command_name.clone(),
+				self_.command_name.clone(),
 				&bot_data,
 				PremiumCommandType::AITranscript,
 			)
@@ -145,7 +79,7 @@ impl Command for TranscriptCommand {
 			));
 		}
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let map = get_option_map_string_subcommand(command_interaction);
 		let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -258,4 +192,4 @@ impl Command for TranscriptCommand {
 
 		Ok(embed_contents)
 	}
-}
+);

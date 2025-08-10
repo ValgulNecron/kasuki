@@ -9,6 +9,7 @@ use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
 use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
+use crate::impl_command;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{Result, anyhow};
 use futures::StreamExt;
@@ -20,92 +21,22 @@ use serenity::all::{CommandInteraction, Context as SerenityContext, PartialGuild
 use std::sync::Arc;
 use tracing::trace;
 
-/// A structure representing a user registration process in a system utilizing the Serenity framework.
-/// This structure encapsulates the context and interaction required to handle a user's command.
-///
-/// # Fields
-///
-/// * `ctx` - Represents the `SerenityContext`, providing access to the bot's state and functionality,
-///           such as interacting with Discord's API or accessing data shared across commands.
-///
-/// * `command_interaction` - Represents the `CommandInteraction`, which contains all the details
-///                           about the user's interaction/command invocation, including the command
-///                           name, options, and the interaction's associated metadata.
-///
-/// # Usage
-/// This struct is designed to be used within the context of a Discord bot built with Serenity.
-/// It combines the necessary context and command interaction data to facilitate processes such as
-/// user
+#[derive(Clone)]
 pub struct ListRegisterUser {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for ListRegisterUser {
-	/// Retrieves a reference to the `SerenityContext` instance.
-	///
-	/// This method provides access to the `SerenityContext` associated
-	/// with the current instance. The `SerenityContext` contains
-	/// various components and shared data crucial for operating with
-	/// the Serenity library, such as HTTP interaction, shard information,
-	/// and cache.
-	///
-	/// # Returns
-	///
-	/// A reference to the `SerenityContext` stored in the current instance.
-	///
-	/// # Example
-	///
-	/// ```rust
-	/// let context = instance.get_ctx();
-	/// // Use the context for further operations
-	/// ```
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	/// Retrieves a reference to the `CommandInteraction` associated with the instance.
-	///
-	/// # Returns
-	/// A reference to the `CommandInteraction` stored within the current instance.
-	///
-	/// # Examples
-	/// ```
-	/// let interaction = instance.get_command_interaction();
-	/// // Use `interaction` as needed
-	/// ```
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	/// Asynchronously fetches and prepares the contents to be embedded in the response.
-	///
-	/// # Returns
-	/// * `Result<EmbedsContents>` - A result containing the `EmbedsContents` on success or an error on failure.
-	///
-	/// This method performs the following steps:
-	/// 1. Retrieves the application context and bot data.
-	/// 2. Extracts the guild ID from the interaction; returns an error if absent.
-	/// 3. Loads user localization for the given guild ID.
-	/// 4. Fetches partial guild information with counts using the guild's ID.
-	/// 5. Generates a description, count of users, and last user ID from the list of users.
-	/// 6. Constructs an embed with the above-generated details.
-	/// 7. If the number of users exceeds or equals the limit, adds a "Next" button for pagination.
-	/// 8. Wraps the embed content and optional components into `EmbedsContents`.
-	///
-	/// # Errors
-	/// Returns an error in the following situations:
-	/// - The guild interaction fails to provide a guild ID.
-	/// - Custom errors from localization loading.
-	/// - Failures in fetching partial guild data or other external
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for ListRegisterUser,
+	get_contents = |self_: ListRegisterUser| async move {
+		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction().clone();
+		let _config = bot_data.config.clone();
 		let connection = bot_data.db_connection.clone();
 
-		self.defer().await?;
+		self_.defer().await?;
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id,
@@ -118,7 +49,7 @@ impl Command for ListRegisterUser {
 		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
 		let (desc, len, last_id): (String, usize, Option<UserId>) =
-			get_the_list(guild, ctx, None, connection).await?;
+			get_the_list(guild, &ctx, None, connection).await?;
 		let embed_content = EmbedContent::new(list_user_localised.title).description(desc);
 
 		let action_row;
@@ -140,7 +71,7 @@ impl Command for ListRegisterUser {
 
 		Ok(embed_contents)
 	}
-}
+);
 
 /// The `Data` struct serves as a container for user-related information and associated metadata.
 ///

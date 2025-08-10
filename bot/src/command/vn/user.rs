@@ -1,32 +1,27 @@
-use crate::command::command::Command;
+use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
+use crate::impl_command;
 use crate::structure::message::vn::user::UserLocalised;
 use crate::structure::message::vn::user::load_localization_user;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
+#[derive(Clone)]
 pub struct VnUserCommand {
 	pub ctx: SerenityContext,
 	pub command_interaction: CommandInteraction,
 }
 
-impl Command for VnUserCommand {
-	fn get_ctx(&self) -> &SerenityContext {
-		&self.ctx
-	}
-
-	fn get_command_interaction(&self) -> &CommandInteraction {
-		&self.command_interaction
-	}
-
-	async fn get_contents<'a>(&'a self) -> anyhow::Result<EmbedsContents<'a>> {
-		let ctx = self.get_ctx();
+impl_command!(
+	for VnUserCommand,
+	get_contents = |self_: VnUserCommand| async move {
+		self_.defer().await?;
+		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self.get_command_interaction();
-		let config = bot_data.config.clone();
+		let command_interaction = self_.get_command_interaction();
 		let vndb_cache = bot_data.vndb_cache.clone();
 
 		let guild_id = match command_interaction.guild_id {
@@ -66,8 +61,8 @@ impl Command for VnUserCommand {
 			EmbedContent::new(user_localised.title.replace("$user$", &user.username))
 				.fields(fields);
 
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embed_contents)
 	}
-}
+);
