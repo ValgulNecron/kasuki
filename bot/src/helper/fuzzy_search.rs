@@ -1,3 +1,4 @@
+use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::sync::Mutex;
 
@@ -48,12 +49,13 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		return Ok(Vec::new());
 	}
 
-	let distances: Mutex<BinaryHeap<(usize, String)>> = Mutex::new(BinaryHeap::new());
+ let distances: Mutex<BinaryHeap<(Reverse<usize>, String)>> = Mutex::new(BinaryHeap::new());
 
 	vector.par_iter().try_for_each(|item| {
-		let distance = (jaro_winkler::distance(search.chars(), item.chars()) * 100.0) as usize;
+		let distance = jaro_winkler::distance(search.chars(), item.chars());
+		let score = ((1.0 - distance) * 100.0).round() as usize;
 
-		let item = (distance, item.to_string());
+		let item = (Reverse(score), item.to_string());
 
 		// Handle the mutex lock error explicitly instead of using ?
 		let mut distances = match distances.lock() {
@@ -64,11 +66,11 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		if distances.len() < n {
 			distances.push(item.clone());
 		} else {
-			let max = distances
+			let min = distances
 				.peek()
 				.context("Failed to peek at the binary heap, which should not be empty")?;
 
-			if &item.clone() < max {
+			if item.0.0 > min.0.0 {
 				distances.pop();
 				distances.push(item);
 			}
@@ -81,10 +83,13 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		.into_inner()
 		.context("Failed to release mutex lock for distances")?;
 
-	Ok(heap
-		.into_par_iter()
-		.map(|(distance, item)| (item, distance))
-		.collect())
+	let mut results: Vec<(String, usize)> = heap
+		.into_vec()
+		.into_iter()
+		.map(|(rev, item)| (item, rev.0))
+		.collect();
+	results.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+	Ok(results)
 }
 
 #[cfg(test)]

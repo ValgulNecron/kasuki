@@ -8,9 +8,7 @@ use crate::structure::message::minigame::fishing::load_localization_fishing;
 use anyhow::{Context as AnyhowContext, Result};
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
-use sea_orm::{
-	ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, Iden, QueryFilter, Set,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{debug, info};
 
@@ -23,7 +21,7 @@ pub struct FishingCommand {
 impl_command!(
 	for FishingCommand,
 	get_contents = |self_: FishingCommand| async move {
-		self_.defer().await;
+		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();

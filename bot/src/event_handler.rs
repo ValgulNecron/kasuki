@@ -1,5 +1,4 @@
 use crate::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::background_task::background_launcher::thread_management_launcher;
 use crate::background_task::server_image::calculate_user_color::{
 	color_management, get_specific_user_color,
 };
@@ -67,6 +66,7 @@ use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;
 use lavalink_rs::prelude::NodeDistributionStrategy;
+use crate::background_task::background_launcher::thread_management_launcher;
 
 pub struct Handler;
 
@@ -97,6 +97,7 @@ impl RootUsage {
 		}
 	}
 
+	#[allow(dead_code)]
 	pub fn get_total_command_use(&self) -> String {
 		let mut total = BigUint::ZERO;
 
@@ -629,7 +630,7 @@ impl Handler {
 
 			*write_guard = true;
 
-			//tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
+			tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
 
 			drop(write_guard);
 
@@ -638,7 +639,9 @@ impl Handler {
 			command_registration(&ctx.http, remove_old_command).await;
 		}
 		let db = bot_data.db_connection.clone();
-		load_items_from_json(&db).await;
+		if let Err(e) = load_items_from_json(&db).await {
+			error!("Failed to load items from JSON: {}", e);
+		}
 	}
 
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {

@@ -63,20 +63,16 @@ pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> 
 		.collect()
 }
 
-/// `create_color_vector_from_user_color` is a function that takes a vector of `UserColor`
-/// objects and returns a vector of `ColorWithUrl` objects, where each object represents
-/// a color and an associated image.
-///
-/// # Arguments
-///
-/// * `tuples` - A vector of `UserColor` objects.
-
 pub fn create_color_vector_from_user_color(
 	tuples: Vec<Model>, blacklist: Vec<String>,
 ) -> Vec<ColorWithUrl> {
 	tuples
 		.into_iter()
 		.filter_map(|user_color| {
+			if blacklist.contains(&user_color.user_id) {
+				return None;
+			}
+
 			let hex = user_color.color;
 
 			let image = user_color.images;

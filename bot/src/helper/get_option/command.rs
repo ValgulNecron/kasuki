@@ -20,6 +20,7 @@ pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<FixedS
 	map
 }
 
+#[allow(dead_code)]
 pub fn get_option_map_integer(interaction: &CommandInteraction) -> HashMap<FixedString, i64> {
 	let mut map = HashMap::new();
 
@@ -71,6 +72,7 @@ pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<FixedStr
 	map
 }
 
+#[allow(dead_code)]
 pub fn get_option_map_channel(
 	interaction: &CommandInteraction,
 ) -> HashMap<FixedString, GenericChannelId> {

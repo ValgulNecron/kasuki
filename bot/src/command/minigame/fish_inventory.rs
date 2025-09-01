@@ -22,7 +22,7 @@ pub struct FishInventoryCommand {
 impl_command!(
 	for FishInventoryCommand,
 	get_contents = |self_: FishInventoryCommand| async move {
-		self_.defer().await;
+		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
@@ -113,7 +113,7 @@ impl_command!(
 			});
 
 			// Show only the best specimen of each type
-			if let Some((inventory_item, item)) = sorted_fish.first() {
+			if let Some((inventory_item, _)) = sorted_fish.first() {
 				// Get rarity text
 				let rarity_text = match inventory_item.rarity {
 					1 => localization.common.as_str(),

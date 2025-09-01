@@ -4,6 +4,7 @@ use std::sync::Arc;
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
+use tracing::info;
 
 pub async fn get_staff(
 	value: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
@@ -43,6 +44,8 @@ pub async fn get_staff(
 	)
 	.await?;
 
+	info!("VNDB response: {}", response);
+
 	let response: StaffRoot = serde_json::from_str(&response)?;
 
 	Ok(response)
@@ -57,7 +60,7 @@ pub struct Staff {
 
 	pub name: String,
 
-	pub gender: String,
+	pub gender: Option<String>,
 
 	pub lang: String,
 

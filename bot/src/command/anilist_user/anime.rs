@@ -112,7 +112,6 @@ get_contents = |self_: AnimeCommand| async move {
 	]);
 
 	let anilist_cache = bot_data.anilist_cache.clone();
-	let config = bot_data.config.clone();
 
 	let data: Media = if value.parse::<i32>().is_ok() {
 		let id = value.parse::<i32>().unwrap();

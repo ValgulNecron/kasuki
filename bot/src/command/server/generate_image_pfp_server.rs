@@ -16,10 +16,7 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
-use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{
-	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use uuid::Uuid;
 
 /// The `GenerateImagePfPCommand` struct is used to encapsulate the necessary data
@@ -108,7 +105,7 @@ impl_command!(
 /// }
 /// ```
 pub async fn get_content<'a>(
-	ctx: SerenityContext, command_interaction: CommandInteraction, image_type: &str,
+	_ctx: SerenityContext, command_interaction: CommandInteraction, image_type: &str,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
 	// Retrieve the guild ID from the command interaction

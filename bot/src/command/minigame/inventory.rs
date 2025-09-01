@@ -21,7 +21,7 @@ pub struct InventoryCommand {
 impl_command!(
 	for InventoryCommand,
 	get_contents = |self_: InventoryCommand| async move {
-		self_.defer().await;
+		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();

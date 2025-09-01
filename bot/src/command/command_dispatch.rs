@@ -824,7 +824,6 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-
 		"minigame_inventory" => {
 			InventoryCommand {
 				ctx: ctx.clone(),
@@ -833,7 +832,6 @@ pub async fn dispatch_command(
 			.run_slash()
 			.await?
 		},
-
 		"minigame_fish_inventory" => {
 			FishInventoryCommand {
 				ctx: ctx.clone(),

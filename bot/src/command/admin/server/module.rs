@@ -15,6 +15,7 @@ use anyhow::anyhow;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use tracing::debug;
 
 /// A structure representing a command executed within a module,
 /// encapsulating the context and details of the command interaction.
@@ -70,7 +71,8 @@ impl_command!(
 			.await?
 		{
 			None => {
-				ModuleActivation::insert(module_activation::ActiveModel {
+			debug!("No module activation found for guild {}. Creating new one.", guild_id);
+			let mut models = module_activation::ActiveModel {
 					guild_id: Set(guild_id),
 					ai_module: Set(true),
 					anilist_module: Set(true),
@@ -80,7 +82,20 @@ impl_command!(
 					updated_at: Set(Default::default()),
 					level_module: Set(false),
 					mini_game_module: Set(true),
-				})
+				};
+			match module.as_str() {
+					"ANILIST" => models.anilist_module = Set(state),
+					"AI" => models.ai_module = Set(state),
+					"GAME" => models.game_module = Set(state),
+					"ANIME" => models.anime_module = Set(state),
+					"VN" => models.vn_module = Set(state),
+					"LEVEL" => models.level_module = Set(state),
+					"MINIGAME" => models.mini_game_module = Set(state),
+					_ => {
+						return Err(anyhow!("The module specified does not exist"));
+					},
+				}
+				ModuleActivation::insert(models)
 				.on_conflict(
 					sea_orm::sea_query::OnConflict::columns([module_activation::Column::GuildId])
 						.do_nothing()

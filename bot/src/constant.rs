@@ -4,6 +4,51 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
+pub const COMMAND_MODULE: Lazy<HashMap<&str, Vec<&str>>> = Lazy::new(|| {
+	let command_module = vec![
+		(
+			"ANILIST",
+			vec![
+				"list_user",
+				"list_activity",
+				"anime",
+				"character",
+				"compare",
+				"level",
+				"ln",
+				"manga",
+				"anilist_user",
+				"waifu",
+				"random",
+				"register",
+				"staff",
+				"studio",
+				"seiyuu",
+			],
+		),
+		(
+			"AI",
+			vec!["ai_image", "ai_question", "ai_transcript", "ai_translation"],
+		),
+		("GAME", vec!["steam_game"]),
+		(
+			"ANIME",
+			vec!["random_anime_random_image", "random_hanime_random_himage"],
+		),
+		(
+			"VN",
+			vec!["vn_game", "vn_character", "vn_staff", "vn_user", "vn_producer", "vn_stats"],
+		),
+		("LEVEL", vec!["levels_stats"]),
+		(
+			"MINIGAME",
+			vec!["minigame_fishing", "minigame_inventory", "minigame_fish_inventory"],
+		),
+	];
+
+	command_module.iter().cloned().collect()
+});
+
 /// Time between cache updates.
 pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
 

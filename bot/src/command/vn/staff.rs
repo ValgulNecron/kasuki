@@ -44,7 +44,7 @@ impl_command!(
 		let fields = vec![
 			(staff_localised.lang.clone(), staff.lang, true),
 			(staff_localised.aid.clone(), staff.aid.to_string(), true),
-			(staff_localised.gender.clone(), staff.gender.clone(), true),
+			(staff_localised.gender.clone(), staff.gender.clone().unwrap_or(String::new()), true),
 			(staff_localised.main.clone(), staff.ismain.to_string(), true),
 		];
 		let staff_desc = staff.description.clone();

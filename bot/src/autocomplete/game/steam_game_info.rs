@@ -17,61 +17,107 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		.get(&String::from("game_name"))
 		.unwrap_or(DEFAULT_STRING);
 
+	// If search is empty, respond with no choices to avoid unnecessary work
+	if game_search.is_empty() {
+		let data = CreateAutocompleteResponse::new().set_choices(Vec::<AutocompleteChoice>::new());
+		let builder = CreateInteractionResponse::Autocomplete(data);
+		let _ = autocomplete_interaction
+			.create_response(&ctx.http, builder)
+			.await;
+		return;
+	}
+
+	let search_lc = game_search.to_ascii_lowercase();
+
 	let guard = bot_data.apps.read().await;
 
-	let app_names: Vec<String> = guard
-		.clone()
-		.iter()
-		.map(|app| app.0.clone())
-		.filter(|a| a.contains(game_search))
-		.collect();
+	// Build a limited candidate set with priority to prefix matches, then substring matches (case-insensitive)
+	const MAX_CANDIDATES: usize = 500;
+	let mut prefix_candidates: Vec<&str> = Vec::with_capacity(128);
+	let mut contain_candidates: Vec<&str> = Vec::with_capacity(512);
 
-	let app_names: Vec<&str> = app_names.iter().map(|a| a.as_str()).collect();
+	for name in guard.keys() {
+		let name_str: &str = name.as_str();
+		// Fast path: exact or prefix (case-insensitive, no allocation for prefix compare)
+		if name_str.len() >= game_search.len()
+			&& name_str[..game_search.len()].eq_ignore_ascii_case(game_search.as_str())
+		{
+			prefix_candidates.push(name_str);
+			if prefix_candidates.len() >= MAX_CANDIDATES {
+				break;
+			}
+			continue;
+		}
+
+		// Fallback: case-sensitive contains (cheap) then case-insensitive contains
+		if name_str.contains(game_search.as_str()) {
+			contain_candidates.push(name_str);
+		} else if name_str.to_ascii_lowercase().contains(&search_lc) {
+			contain_candidates.push(name_str);
+		}
+
+		// Stop early if we already have enough candidates overall
+		if prefix_candidates.len() + contain_candidates.len() >= MAX_CANDIDATES {
+			break;
+		}
+	}
+
+	// Merge candidates, keeping prefixes first and truncating to MAX_CANDIDATES
+	let mut candidates: Vec<&str> = prefix_candidates;
+	if candidates.len() < MAX_CANDIDATES {
+		let remaining = MAX_CANDIDATES - candidates.len();
+		candidates.extend(contain_candidates.into_iter().take(remaining));
+	}
+
+	// If we still have no candidates, respond with empty choices
+	if candidates.is_empty() {
+		let data = CreateAutocompleteResponse::new().set_choices(Vec::<AutocompleteChoice>::new());
+		let builder = CreateInteractionResponse::Autocomplete(data);
+		let _ = autocomplete_interaction
+			.create_response(&ctx.http, builder)
+			.await;
+		return;
+	}
 
 	let result = distance_top_n(
 		game_search.as_str(),
-		app_names.clone(),
+		candidates,
 		AUTOCOMPLETE_COUNT_LIMIT as usize,
 	);
 
 	let result = match result {
 		Ok(r) => r,
 		Err(e) => {
-			debug!("Error: {:?}", e);
+			debug!("Error in fuzzy ranking: {:?}", e);
+			let data =
+				CreateAutocompleteResponse::new().set_choices(Vec::<AutocompleteChoice>::new());
+			let builder = CreateInteractionResponse::Autocomplete(data);
+			let _ = autocomplete_interaction
+				.create_response(&ctx.http, builder)
+				.await;
 			return;
 		},
 	};
 
-	debug!("Result: {:?}", result);
+	let mut choices: Vec<AutocompleteChoice> = Vec::with_capacity(result.len());
 
-	let mut choices: Vec<AutocompleteChoice> = Vec::new();
+	// Truncate the name to 100 characters (Discord limit) and map to app id
+	for (name, _) in result.into_iter() {
+		if name.is_empty() {
+			continue;
+		}
+		let name_show = if name.len() > 100 {
+			name.chars().take(100).collect::<String>()
+		} else {
+			name.clone()
+		};
 
-	// truncate the name are longer than 0 characters and less than 100 characters
-	// to prevent the discord api from returning an error
-	if !result.is_empty() {
-		for (name, _) in result {
-			let name_show = if name.len() > 100 {
-				// first 100 characters
-				name.chars().take(100).collect::<String>()
-			} else {
-				name.clone()
-			};
-
-			if !name.is_empty() {
-				choices.push(AutocompleteChoice::new(
-					name_show.clone(),
-					guard[&name].to_string(),
-				));
-			}
+		if let Some(app_id) = guard.get(name.as_str()) {
+			choices.push(AutocompleteChoice::new(name_show, app_id.to_string()));
 		}
 	}
 
-	debug!("Choices: {:?}", choices.len());
-
-	debug!("Choices: {:?}", choices);
-
 	let data = CreateAutocompleteResponse::new().set_choices(choices);
-
 	let builder = CreateInteractionResponse::Autocomplete(data);
 
 	if let Err(why) = autocomplete_interaction

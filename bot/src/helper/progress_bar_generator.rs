@@ -1,23 +1,12 @@
 use anyhow::{Context, Result};
 use image::codecs::png;
 use image::codecs::png::{CompressionType, PngEncoder};
-use image::{DynamicImage, GenericImage, Rgba, RgbaImage};
+use image::{DynamicImage, Rgba, RgbaImage};
 use image::{ExtendedColorType, ImageEncoder};
 use std::fs;
 use std::path::Path;
 use tracing::{debug, error, info};
 
-/// Generates a progress bar image with the specified percentage and color and saves it to disk.
-///
-/// # Arguments
-///
-/// * `percent` - The percentage of the progress bar to fill (0-100)
-/// * `user_color` - Optional RGB color to use for the progress bar (as [r, g, b])
-///
-/// # Returns
-///
-/// A `Result` containing the path to the generated image if successful.
-///
 pub fn generate_progress_bar_image(percent: u32, user_color: Option<[u8; 3]>) -> Result<()> {
 	// Ensure percent is between 0 and 100
 	let percent = percent.min(100);
@@ -183,30 +172,6 @@ pub fn generate_progress_bar_image_in_memory(percent: u32, user_color: [u8; 4]) 
 	)?;
 
 	Ok(image_data)
-}
-
-/// Converts a hexadecimal color string to an RGB value.
-///
-/// # Arguments
-///
-/// * `hex_color` - The hexadecimal color string in the format "#RRGGBB"
-///
-/// # Returns
-///
-/// An `Option<[u8; 3]>` containing the RGB values if the conversion was successful, or `None` if the conversion failed.
-///
-pub fn hex_to_rgb(hex_color: &str) -> Option<[u8; 3]> {
-	// Check if the hex color is in the correct format
-	if !hex_color.starts_with('#') || hex_color.len() != 7 {
-		return None;
-	}
-
-	// Parse the hex color
-	let r = u8::from_str_radix(&hex_color[1..3], 16).ok()?;
-	let g = u8::from_str_radix(&hex_color[3..5], 16).ok()?;
-	let b = u8::from_str_radix(&hex_color[5..7], 16).ok()?;
-
-	Some([r, g, b])
 }
 
 pub fn generate_all_progress_bar_images() -> Result<()> {
