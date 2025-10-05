@@ -40,7 +40,7 @@ async fn main() {
 	let config = match std::fs::read_to_string("config.toml") {
 		Ok(config) => config,
 		Err(e) => {
-			eprintln!("Error while reading config.toml: {:?}", e);
+			eprintln!("Error while reading config.toml: {e:?}", e);
 			process::exit(1);
 		},
 	};
@@ -172,7 +172,7 @@ async fn main() {
 	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
         // | GatewayIntents::MESSAGE_CONTENT
-		;
+        ;
 	info!(
 		"Privileged intents configured: {:?}",
 		gateway_intent_privileged

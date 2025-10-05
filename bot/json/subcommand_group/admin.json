@@ -454,23 +454,23 @@
                 {
                   "option_choice": "LEVEL",
                   "option_choice_localised": [
-                {
-                  "code": "en-US",
-                  "name": "Level"
-                },
-                {
-                  "code": "fr",
-                  "name": "Niveaux"
-                },
-                {
-                  "code": "de",
-                  "name": "Ebene"
-                },
-                {
-                  "code": "ja",
-                  "name": "ビジュアルノベル"
-                }
-                    ]
+                    {
+                      "code": "en-US",
+                      "name": "Level"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Niveaux"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Ebene"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "ビジュアルノベル"
+                    }
+                  ]
                 },
                 {
                   "option_choice": "MINIGAME",
@@ -491,7 +491,7 @@
                       "code": "ja",
                       "name": "ミニゲーム"
                     }
-                    ]
+                  ]
                 }
               ],
               "localised_args": [

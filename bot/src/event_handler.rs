@@ -57,6 +57,7 @@ pub struct BotData {
 	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 }
+use crate::background_task::background_launcher::thread_management_launcher;
 use crate::helper::load_items::load_items_from_json;
 use crate::music_events;
 use anyhow::{Context, Result};
@@ -66,7 +67,6 @@ use lavalink_rs::client::LavalinkClient;
 use lavalink_rs::model::events;
 use lavalink_rs::node::NodeBuilder;
 use lavalink_rs::prelude::NodeDistributionStrategy;
-use crate::background_task::background_launcher::thread_management_launcher;
 
 pub struct Handler;
 

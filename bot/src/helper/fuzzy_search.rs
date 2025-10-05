@@ -49,7 +49,7 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		return Ok(Vec::new());
 	}
 
- let distances: Mutex<BinaryHeap<(Reverse<usize>, String)>> = Mutex::new(BinaryHeap::new());
+	let distances: Mutex<BinaryHeap<(Reverse<usize>, String)>> = Mutex::new(BinaryHeap::new());
 
 	vector.par_iter().try_for_each(|item| {
 		let distance = jaro_winkler::distance(search.chars(), item.chars());

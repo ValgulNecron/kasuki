@@ -10,7 +10,6 @@ pub struct StudioAutocompleteVariables<'a> {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(graphql_type = "Query", variables = "StudioAutocompleteVariables")]
-
 pub struct StudioAutocomplete {
 	#[arguments(perPage: 25)]
 	#[cynic(rename = "Page")]
