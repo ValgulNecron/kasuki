@@ -40,7 +40,7 @@ async fn main() {
 	let config = match std::fs::read_to_string("config.toml") {
 		Ok(config) => config,
 		Err(e) => {
-			eprintln!("Error while reading config.toml: {e:?}", e);
+			eprintln!("Error while reading config.toml: {e:?}", );
 			process::exit(1);
 		},
 	};

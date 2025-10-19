@@ -1,3 +1,4 @@
+use sea_orm::ExprTrait;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::item::{Entity as Item, Model as ItemModel};

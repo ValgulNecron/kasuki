@@ -1,3 +1,4 @@
+use sea_orm::ExprTrait;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::item::{Entity as Item, Model as ItemModel};
@@ -229,7 +230,7 @@ async fn get_user_inventory(
 	let inventory_items = UserInventory::find()
 		.filter(
 			crate::database::user_inventory::Column::UserId
-				.eq(user_id.clone())
+				.eq(user_id.clone())	
 				.and(crate::database::user_inventory::Column::ServerId.eq(server_id.clone())),
 		)
 		.join(
