@@ -3,7 +3,7 @@
 //! for interacting with Discord and retrieving necessary data.
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
-	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+    ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
 };
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
@@ -11,9 +11,9 @@ use crate::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
-use anyhow::{Result, anyhow};
-use futures::StreamExt;
+use anyhow::{anyhow, Result};
 use futures::pin_mut;
+use futures::StreamExt;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
@@ -23,8 +23,8 @@ use tracing::trace;
 
 #[derive(Clone)]
 pub struct ListRegisterUser {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -98,8 +98,8 @@ impl_command!(
 ///     user,
 ///     anilist: String::
 struct Data {
-	pub user: User,
-	pub anilist: String,
+    pub user: User,
+    pub anilist: String,
 }
 
 /// Asynchronously retrieves a formatted list of AniList user links for the members of a given Discord guild.
@@ -118,56 +118,56 @@ struct Data {
 ///
 ///
 pub async fn get_the_list(
-	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
-	connection: Arc<DatabaseConnection>,
+    guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
+    connection: Arc<DatabaseConnection>,
 ) -> Result<(String, usize, Option<UserId>)> {
-	let mut anilist_user = Vec::new();
+    let mut anilist_user = Vec::new();
 
-	let mut last_id: Option<UserId> = last_id;
+    let mut last_id: Option<UserId> = last_id;
 
-	let members = guild.id.members_iter(&ctx.http);
-	pin_mut!(members);
-	while let Some(result) = members.next().await {
-		let member = match result {
-			Ok(member) => member,
-			Err(e) => return Err(anyhow!("Failed to get the members of the guild: {}", e)),
-		};
-		trace!("{:?}", member);
-		last_id = Some(member.user.id);
+    let members = guild.id.members_iter(&ctx.http);
+    pin_mut!(members);
+    while let Some(result) = members.next().await {
+        let member = match result {
+            Ok(member) => member,
+            Err(e) => return Err(anyhow!("Failed to get the members of the guild: {}", e)),
+        };
+        trace!("{:?}", member);
+        last_id = Some(member.user.id);
 
-		let user_id = member.user.id.to_string();
+        let user_id = member.user.id.to_string();
 
-		let row = match RegisteredUser::find()
-			.filter(Column::UserId.eq(user_id.clone()))
-			.one(&*connection)
-			.await?
-		{
-			Some(row) => row,
-			None => continue,
-		};
-		trace!("{:?}", row);
+        let row = match RegisteredUser::find()
+            .filter(Column::UserId.eq(user_id.clone()))
+            .one(&*connection)
+            .await?
+        {
+            Some(row) => row,
+            None => continue,
+        };
+        trace!("{:?}", row);
 
-		let user_data = row;
+        let user_data = row;
 
-		let data = Data {
-			user: member.user,
-			anilist: user_data.anilist_id.to_string(),
-		};
+        let data = Data {
+            user: member.user,
+            anilist: user_data.anilist_id.to_string(),
+        };
 
-		anilist_user.push(data)
-	}
+        anilist_user.push(data)
+    }
 
-	let user_links: Vec<String> = anilist_user
-		.iter()
-		.map(|data| {
-			format!(
-				"[{}](<https://anilist.co/user/{}>)",
-				data.user.name, data.anilist
-			)
-		})
-		.collect();
+    let user_links: Vec<String> = anilist_user
+        .iter()
+        .map(|data| {
+            format!(
+                "[{}](<https://anilist.co/user/{}>)",
+                data.user.name, data.anilist
+            )
+        })
+        .collect();
 
-	let joined_string = user_links.join("\n");
+    let joined_string = user_links.join("\n");
 
-	Ok((joined_string, anilist_user.len(), last_id))
+    Ok((joined_string, anilist_user.len(), last_id))
 }

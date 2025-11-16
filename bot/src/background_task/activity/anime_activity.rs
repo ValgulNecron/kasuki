@@ -8,7 +8,7 @@ use crate::database::activity_data::Model;
 use crate::database::prelude::ActivityData;
 use crate::helper::create_default_embed::get_default_embed;
 use crate::structure::message::anilist_user::send_activity::load_localization_send_activity;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::{DateTime, Utc};
@@ -24,198 +24,198 @@ use tokio::sync::RwLock;
 use tracing::{error, instrument, trace};
 
 pub async fn manage_activity(
-	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
-	db_connection: Arc<DatabaseConnection>,
+    ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_connection: Arc<DatabaseConnection>,
 ) {
-	send_activity(&ctx, anilist_cache, db_connection).await;
+    send_activity(&ctx, anilist_cache, db_connection).await;
 }
 
 async fn send_activity(
-	ctx: &SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
-	db_connection: Arc<DatabaseConnection>,
+    ctx: &SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_connection: Arc<DatabaseConnection>,
 ) {
-	let now = Utc::now().naive_utc();
+    let now = Utc::now().naive_utc();
 
-	let rows = match ActivityData::find()
-		.filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now))
-		.all(&*db_connection)
-		.await
-	{
-		Ok(rows) => rows,
-		Err(e) => {
-			error!("{}", e);
+    let rows = match ActivityData::find()
+        .filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now))
+        .all(&*db_connection)
+        .await
+    {
+        Ok(rows) => rows,
+        Err(e) => {
+            error!("{}", e);
 
-			return;
-		},
-	};
+            return;
+        }
+    };
 
-	for row in rows {
-		if now != row.timestamp {
-			continue;
-		}
+    for row in rows {
+        if now != row.timestamp {
+            continue;
+        }
 
-		let guild_id = row.server_id.clone();
+        let guild_id = row.server_id.clone();
 
-		if row.delay != 0 {
-			let anilist_cache = anilist_cache.clone();
+        if row.delay != 0 {
+            let anilist_cache = anilist_cache.clone();
 
-			let db_connection = db_connection.clone();
+            let db_connection = db_connection.clone();
 
-			let ctx_clone = ctx.clone();
-			tokio::spawn(async move {
-				tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
+            let ctx_clone = ctx.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
 
-				if let Err(e) =
-					send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_connection)
-						.await
-				{
-					error!("{}", e)
-				}
-			});
-		} else {
-			let anilist_cache = anilist_cache.clone();
+                if let Err(e) =
+                    send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_connection)
+                        .await
+                {
+                    error!("{}", e)
+                }
+            });
+        } else {
+            let anilist_cache = anilist_cache.clone();
 
-			let db_connection = db_connection.clone();
-			let ctx_clone = ctx.clone();
-			tokio::spawn(async move {
-				if let Err(e) =
-					send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_connection)
-						.await
-				{
-					error!("{}", e);
-				}
-			});
-		}
-	}
+            let db_connection = db_connection.clone();
+            let ctx_clone = ctx.clone();
+            tokio::spawn(async move {
+                if let Err(e) =
+                    send_specific_activity(&row, guild_id, &ctx_clone, anilist_cache, db_connection)
+                        .await
+                {
+                    error!("{}", e);
+                }
+            });
+        }
+    }
 }
 
 #[instrument(skip(ctx, anilist_cache))]
 async fn send_specific_activity(
-	row: &Model, guild_id: String, ctx: &SerenityContext,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>, db_connection: Arc<DatabaseConnection>,
+    row: &Model, guild_id: String, ctx: &SerenityContext,
+    anilist_cache: Arc<RwLock<Cache<String, String>>>, db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-	let localised_text =
-		load_localization_send_activity(guild_id.clone(), db_connection.clone()).await?;
+    let localised_text =
+        load_localization_send_activity(guild_id.clone(), db_connection.clone()).await?;
 
-	let mut webhook = Webhook::from_url(&ctx.http, &row.webhook).await?;
+    let mut webhook = Webhook::from_url(&ctx.http, &row.webhook).await?;
 
-	trace!("Decoding image");
+    trace!("Decoding image");
 
-	let decoded_bytes = decode_image(&row.image)?;
+    let decoded_bytes = decode_image(&row.image)?;
 
-	let trimmed_name = row.name.chars().take(100).collect::<String>();
+    let trimmed_name = row.name.chars().take(100).collect::<String>();
 
-	let filename = format!("{}_{}.png", guild_id, row.anime_id);
-	let attachment = CreateAttachment::bytes(decoded_bytes, filename);
-	let attachment = attachment.encode().await?;
+    let filename = format!("{}_{}.png", guild_id, row.anime_id);
+    let attachment = CreateAttachment::bytes(decoded_bytes, filename);
+    let attachment = attachment.encode().await?;
 
-	let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(attachment);
+    let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(attachment);
 
-	webhook.edit(&ctx.http, edit_webhook).await?;
+    webhook.edit(&ctx.http, edit_webhook).await?;
 
-	let embed = get_default_embed(None, &None)
-		.description(
-			localised_text
-				.desc
-				.replace("$ep$", &row.episode.to_string())
-				.replace("$anime$", &row.name),
-		)
-		.url(format!("https://anilist.co/anime/{}", row.anime_id))
-		.title(&localised_text.title);
+    let embed = get_default_embed(None, &None)
+        .description(
+            localised_text
+                .desc
+                .replace("$ep$", &row.episode.to_string())
+                .replace("$anime$", &row.name),
+        )
+        .url(format!("https://anilist.co/anime/{}", row.anime_id))
+        .title(&localised_text.title);
 
-	let builder_message = ExecuteWebhook::new().embed(embed);
+    let builder_message = ExecuteWebhook::new().embed(embed);
 
-	webhook.execute(&ctx.http, false, builder_message).await?;
-	let row_clone = row.clone();
-	tokio::spawn(async move {
-		if let Err(e) = update_info(&row_clone, &guild_id, anilist_cache, db_connection).await {
-			error!("Failed to update info: {}", e);
-		}
-	});
+    webhook.execute(&ctx.http, false, builder_message).await?;
+    let row_clone = row.clone();
+    tokio::spawn(async move {
+        if let Err(e) = update_info(&row_clone, &guild_id, anilist_cache, db_connection).await {
+            error!("Failed to update info: {}", e);
+        }
+    });
 
-	Ok(())
+    Ok(())
 }
 
 fn decode_image(image: &str) -> Result<Vec<u8>> {
-	let cursor = Cursor::new(image);
+    let cursor = Cursor::new(image);
 
-	let mut decoder = DecoderReader::new(cursor, &STANDARD);
+    let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
-	let mut decoded_bytes = Vec::new();
+    let mut decoded_bytes = Vec::new();
 
-	decoder.read_to_end(&mut decoded_bytes)?;
+    decoder.read_to_end(&mut decoded_bytes)?;
 
-	Ok(decoded_bytes)
+    Ok(decoded_bytes)
 }
 
 async fn update_info(
-	row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
-	db_connection: Arc<DatabaseConnection>,
+    row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-	let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
+    let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
 
-	let next_airing = match media.next_airing_episode {
-		Some(airing) => airing,
-		None => {
-			trace!("No next airing episode for anime_id: {}", row.anime_id);
+    let next_airing = match media.next_airing_episode {
+        Some(airing) => airing,
+        None => {
+            trace!("No next airing episode for anime_id: {}", row.anime_id);
 
-			remove_activity(row, guild_id, db_connection.clone())
-				.await
-				.context("failed to delete activity")?;
-			return Ok(());
-		},
-	};
+            remove_activity(row, guild_id, db_connection.clone())
+                .await
+                .context("failed to delete activity")?;
+            return Ok(());
+        }
+    };
 
-	let title = media.title.ok_or(anyhow!("No title"))?;
+    let title = media.title.ok_or(anyhow!("No title"))?;
 
-	let name = title
-		.english
-		.or(title.romaji)
-		.unwrap_or_else(|| "Unknown".to_string());
+    let name = title
+        .english
+        .or(title.romaji)
+        .unwrap_or_else(|| "Unknown".to_string());
 
-	let timestamp = DateTime::<Utc>::from_timestamp(next_airing.airing_at as i64, 0)
-		.unwrap_or_default()
-		.naive_utc();
+    let timestamp = DateTime::<Utc>::from_timestamp(next_airing.airing_at as i64, 0)
+        .unwrap_or_default()
+        .naive_utc();
 
-	let new_activity = activity_data::ActiveModel {
-		anime_id: Set(row.anime_id),
-		timestamp: Set(timestamp),
-		server_id: Set(guild_id.to_string()),
-		webhook: Set(row.webhook.clone()),
-		episode: Set(next_airing.episode),
-		name: Set(name),
-		delay: Set(row.delay),
-		image: Set(row.image.clone()),
-		..Default::default()
-	};
+    let new_activity = activity_data::ActiveModel {
+        anime_id: Set(row.anime_id),
+        timestamp: Set(timestamp),
+        server_id: Set(guild_id.to_string()),
+        webhook: Set(row.webhook.clone()),
+        episode: Set(next_airing.episode),
+        name: Set(name),
+        delay: Set(row.delay),
+        image: Set(row.image.clone()),
+        ..Default::default()
+    };
 
-	ActivityData::insert(new_activity)
-		.exec(&*db_connection)
-		.await?;
+    ActivityData::insert(new_activity)
+        .exec(&*db_connection)
+        .await?;
 
-	Ok(())
+    Ok(())
 }
 
 async fn remove_activity(
-	row: &Model, guild_id: &str, db_connection: Arc<DatabaseConnection>,
+    row: &Model, guild_id: &str, db_connection: Arc<DatabaseConnection>,
 ) -> Result<DeleteResult> {
-	trace!(
+    trace!(
 		"Attempting to remove activity for anime_id: {} in guild: {}",
 		row.anime_id, guild_id
 	);
 
-	let delete_result = ActivityData::delete(activity_data::ActiveModel {
-		anime_id: Set(row.anime_id),
-		server_id: Set(guild_id.to_string()),
-		..Default::default()
-	})
-	.exec(&*db_connection)
-	.await?;
+    let delete_result = ActivityData::delete(activity_data::ActiveModel {
+        anime_id: Set(row.anime_id),
+        server_id: Set(guild_id.to_string()),
+        ..Default::default()
+    })
+        .exec(&*db_connection)
+        .await?;
 
-	trace!(
+    trace!(
 		"Removed {} row(s) for anime_id: {} in guild: {}",
 		delete_result.rows_affected, row.anime_id, guild_id
 	);
 
-	Ok(delete_result)
+    Ok(delete_result)
 }

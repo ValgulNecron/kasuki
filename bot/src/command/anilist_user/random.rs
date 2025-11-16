@@ -49,7 +49,7 @@
 //! - `tracing`: For logging debug and trace information.
 //! - Custom modules for localization, caching, trimming, and AniList Markdown conversion.
 use cynic::{GraphQlResponse, QueryBuilder};
-use rand::{Rng, rng};
+use rand::{rng, Rng};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tracing::trace;
@@ -65,9 +65,9 @@ use crate::helper::trimer::trim;
 use crate::impl_command;
 use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
-	MediaType, RandomPageMedia, RandomPageMediaVariables,
+    MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 /// A `RandomCommand` struct that encapsulates the context and interaction details for a command
 /// in a Discord bot using the Serenity library.
@@ -104,8 +104,8 @@ use anyhow::{Result, anyhow};
 /// ```
 #[derive(Clone)]
 pub struct RandomCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

@@ -5,32 +5,32 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "guild_subscription")]
 pub struct Model {
-	#[sea_orm(primary_key, auto_increment = false, unique)]
-	pub guild_id: String,
-	pub entitlement_id: String,
-	#[sea_orm(primary_key, auto_increment = false, unique)]
-	pub sku_id: String,
-	pub created_at: DateTime,
-	pub updated_at: DateTime,
-	pub expired_at: DateTime,
+    #[sea_orm(primary_key, auto_increment = false, unique)]
+    pub guild_id: String,
+    pub entitlement_id: String,
+    #[sea_orm(primary_key, auto_increment = false, unique)]
+    pub sku_id: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    pub expired_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-	#[sea_orm(
-		belongs_to = "super::user_data::Entity",
-		from = "Column::GuildId",
-		to = "super::user_data::Column::UserId",
-		on_update = "Cascade",
-		on_delete = "Cascade"
-	)]
-	UserData,
+    #[sea_orm(
+        belongs_to = "super::user_data::Entity",
+        from = "Column::GuildId",
+        to = "super::user_data::Column::UserId",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    UserData,
 }
 
 impl Related<super::user_data::Entity> for Entity {
-	fn to() -> RelationDef {
-		Relation::UserData.def()
-	}
+    fn to() -> RelationDef {
+        Relation::UserData.def()
+    }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

@@ -106,8 +106,8 @@ use serenity::nonmax::NonMaxU64;
 ///                           and other relevant interaction details.
 #[derive(Clone)]
 pub struct GuildCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

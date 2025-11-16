@@ -72,11 +72,11 @@ use crate::helper::get_option::subcommand::{
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::impl_command;
 use crate::structure::message::ai::image::load_localization_image;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use image::EncodableLayout;
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{error, trace};
 use uuid::Uuid;
@@ -94,9 +94,9 @@ use uuid::Uuid;
 /// * `command_name` - The name of the image command being executed, as specified by the user.
 #[derive(Clone)]
 pub struct ImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-	pub command_name: String,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
+    pub command_name: String,
 }
 
 impl_command!(
@@ -277,30 +277,30 @@ impl_command!(
 /// ```
 /// ```
 fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Config>) -> Value {
-	let map = get_option_map_string_subcommand(command_interaction);
+    let map = get_option_map_string_subcommand(command_interaction);
 
-	let prompt = map
-		.get(&String::from("description"))
-		.unwrap_or(DEFAULT_STRING);
+    let prompt = map
+        .get(&String::from("description"))
+        .unwrap_or(DEFAULT_STRING);
 
-	let model = config.ai.image.ai_image_model.clone().unwrap_or_default();
+    let model = config.ai.image.ai_image_model.clone().unwrap_or_default();
 
-	let model = model.as_str();
+    let model = model.as_str();
 
-	let quality = config.ai.image.ai_image_style.clone();
+    let quality = config.ai.image.ai_image_style.clone();
 
-	let style = config.ai.image.ai_image_quality.clone();
+    let style = config.ai.image.ai_image_quality.clone();
 
-	let size = config
-		.ai
-		.image
-		.ai_image_size
-		.clone()
-		.unwrap_or(String::from("1024x1024"));
+    let size = config
+        .ai
+        .image
+        .ai_image_size
+        .clone()
+        .unwrap_or(String::from("1024x1024"));
 
-	let data: Value = match (quality, style) {
-		(Some(quality), Some(style)) => {
-			json!({
+    let data: Value = match (quality, style) {
+        (Some(quality), Some(style)) => {
+            json!({
 				"prompt": prompt,
 				"n": n,
 				"size": size,
@@ -309,9 +309,9 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 				"style": style,
 				"response_format": "url"
 			})
-		},
-		(None, Some(style)) => {
-			json!({
+        }
+        (None, Some(style)) => {
+            json!({
 				"prompt": prompt,
 				"n": n,
 				"size": size,
@@ -319,9 +319,9 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 				"style": style,
 				"response_format": "url"
 			})
-		},
-		(Some(quality), None) => {
-			json!({
+        }
+        (Some(quality), None) => {
+            json!({
 				"prompt": prompt,
 				"n": n,
 				"size": size,
@@ -329,19 +329,19 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 				"quality": quality,
 				"response_format": "url"
 			})
-		},
-		(None, None) => {
-			json!({
+        }
+        (None, None) => {
+            json!({
 				"prompt": prompt,
 				"n": n,
 				"size": size,
 				"model": model,
 				"response_format": "url"
 			})
-		},
-	};
+        }
+    };
 
-	data
+    data
 }
 
 /// Asynchronously creates an attachment from a single image with `n` equal to 1.
@@ -385,9 +385,9 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 /// }
 /// ```
 async fn image_with_n_equal_1(bytes: Vec<Bytes>) -> Vec<u8> {
-	let bytes = bytes[0].as_bytes().to_vec();
+    let bytes = bytes[0].as_bytes().to_vec();
 
-	bytes
+    bytes
 }
 
 /// Processes a vector of images and generates attachments with unique filenames.
@@ -432,19 +432,19 @@ async fn image_with_n_equal_1(bytes: Vec<Bytes>) -> Vec<u8> {
 /// byte data is correctly formatted and suitable for attachment creation.
 ///
 async fn image_with_n_greater_than_1<'a>(
-	filename: String, bytes: Vec<Bytes>,
+    filename: String, bytes: Vec<Bytes>,
 ) -> Vec<(Vec<u8>, String)> {
-	let attachments: Vec<(Vec<u8>, String)> = bytes
-		.iter()
-		.enumerate()
-		.map(|(index, byte)| {
-			let filename = format!("{}_{}.png", filename, index);
-			let byte = byte.as_bytes().to_vec();
-			(byte, format!("{}_{}.png", filename, index))
-		})
-		.collect();
+    let attachments: Vec<(Vec<u8>, String)> = bytes
+        .iter()
+        .enumerate()
+        .map(|(index, byte)| {
+            let filename = format!("{}_{}.png", filename, index);
+            let byte = byte.as_bytes().to_vec();
+            (byte, format!("{}_{}.png", filename, index))
+        })
+        .collect();
 
-	attachments
+    attachments
 }
 
 /// Asynchronously retrieves images from a JSON response, processes them, and optionally saves them to a server.
@@ -516,58 +516,58 @@ async fn image_with_n_greater_than_1<'a>(
 /// - Logs the extracted URLs at the `trace` level.
 /// - Logs errors related to saving images at the `error` level.
 async fn get_image_from_response(
-	json: Value, saver_server: String, token: Option<String>, save_type: Option<String>,
-	guild_id: String,
+    json: Value, saver_server: String, token: Option<String>, save_type: Option<String>,
+    guild_id: String,
 ) -> Result<Vec<Bytes>> {
-	let token = token.unwrap_or_default();
+    let token = token.unwrap_or_default();
 
-	let saver = save_type.unwrap_or_default();
+    let saver = save_type.unwrap_or_default();
 
-	let mut bytes = Vec::new();
+    let mut bytes = Vec::new();
 
-	let root: Root = match serde_json::from_value(json.clone()) {
-		Ok(root) => root,
-		Err(e) => {
-			let root1: Root1 = serde_json::from_value(json)?;
+    let root: Root = match serde_json::from_value(json.clone()) {
+        Ok(root) => root,
+        Err(e) => {
+            let root1: Root1 = serde_json::from_value(json)?;
 
-			return Err(anyhow!(format!(
+            return Err(anyhow!(format!(
 				"Error: {} ............ {:?}",
 				e, root1.error
 			)));
-		},
-	};
+        }
+    };
 
-	let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
+    let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
 
-	trace!("{:?}", urls);
+    trace!("{:?}", urls);
 
-	for (i, url) in urls.iter().enumerate() {
-		let client = reqwest::Client::new();
+    for (i, url) in urls.iter().enumerate() {
+        let client = reqwest::Client::new();
 
-		let res = client.get(url).send().await?;
+        let res = client.get(url).send().await?;
 
-		let body = res.bytes().await?;
+        let body = res.bytes().await?;
 
-		let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
+        let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
 
-		match image_saver(
-			guild_id.clone(),
-			filename.clone(),
-			Vec::from(body.clone()),
-			saver_server.clone(),
-			token.clone(),
-			saver.clone(),
-		)
-		.await
-		{
-			Ok(_) => (),
-			Err(e) => error!("Error saving image: {}", e),
-		}
+        match image_saver(
+            guild_id.clone(),
+            filename.clone(),
+            Vec::from(body.clone()),
+            saver_server.clone(),
+            token.clone(),
+            saver.clone(),
+        )
+            .await
+        {
+            Ok(_) => (),
+            Err(e) => error!("Error saving image: {}", e),
+        }
 
-		bytes.push(body);
-	}
+        bytes.push(body);
+    }
 
-	Ok(bytes)
+    Ok(bytes)
 }
 
 /// The `Root` struct is used to represent the root structure of a deserialized JSON object.
@@ -610,8 +610,8 @@ async fn get_image_from_response(
 #[derive(Debug, Deserialize)]
 
 struct Root {
-	#[serde(rename = "data")]
-	data: Vec<Data>,
+    #[serde(rename = "data")]
+    data: Vec<Data>,
 }
 
 /// A struct that represents a data model used for deserialization.
@@ -637,7 +637,7 @@ struct Root {
 #[derive(Debug, Deserialize)]
 
 struct Data {
-	url: String,
+    url: String,
 }
 
 /// Represents an AI-related error with detailed information.
@@ -684,11 +684,11 @@ struct Data {
 #[derive(Debug, Serialize, Deserialize)]
 
 struct AiError {
-	pub message: String,
-	#[serde(rename = "type")]
-	pub error_type: String,
-	pub param: Option<String>,
-	pub code: String,
+    pub message: String,
+    #[serde(rename = "type")]
+    pub error_type: String,
+    pub param: Option<String>,
+    pub code: String,
 }
 
 /// A structure `Root1` that serves as a wrapper or container for an instance of an `AiError`.
@@ -723,5 +723,5 @@ struct AiError {
 #[derive(Debug, Serialize, Deserialize)]
 
 struct Root1 {
-	pub error: AiError,
+    pub error: AiError,
 }

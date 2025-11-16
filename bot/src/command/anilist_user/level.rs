@@ -23,8 +23,8 @@ use small_fixed_array::FixedString;
 
 #[derive(Clone)]
 pub struct LevelCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -157,18 +157,18 @@ pub static LEVELS: Lazy<[(u32, f64, f64); TOTAL_LEVELS]> = Lazy::new(generate_le
 /// - The XP required to reach that level (`f64`)
 /// - The XP required to reach the
 fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
-	let mut levels = [(0, 0.0, 0.0); TOTAL_LEVELS];
-	for level in 0..=100 {
-		let required_xp = xp_required_for_level(level);
-		let next_level_xp = if level < 100 {
-			xp_required_for_level(level + 1)
-		} else {
-			MAX_XP
-		};
-		levels[level as usize] = (level, required_xp, next_level_xp);
-	}
-	levels[101] = (101, MAX_XP, MAX_XP);
-	levels
+    let mut levels = [(0, 0.0, 0.0); TOTAL_LEVELS];
+    for level in 0..=100 {
+        let required_xp = xp_required_for_level(level);
+        let next_level_xp = if level < 100 {
+            xp_required_for_level(level + 1)
+        } else {
+            MAX_XP
+        };
+        levels[level as usize] = (level, required_xp, next_level_xp);
+    }
+    levels[101] = (101, MAX_XP, MAX_XP);
+    levels
 }
 
 /// Determines the level of a user based on their experience points (XP)
@@ -181,14 +181,14 @@ fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
 /// A tuple containing:
 ///
 fn get_level(xp: f64) -> (u32, f64, f64) {
-	for &(level, required_xp, next_level_xp) in LEVELS.iter().rev() {
-		if xp >= required_xp {
-			let xp_in_current_level = xp - required_xp;
-			let xp_for_next_level = next_level_xp - required_xp;
-			return (level, xp_in_current_level, xp_for_next_level);
-		}
-	}
-	(0, 0.0, 100.0) // Default fallback
+    for &(level, required_xp, next_level_xp) in LEVELS.iter().rev() {
+        if xp >= required_xp {
+            let xp_in_current_level = xp - required_xp;
+            let xp_for_next_level = next_level_xp - required_xp;
+            return (level, xp_in_current_level, xp_for_next_level);
+        }
+    }
+    (0, 0.0, 100.0) // Default fallback
 }
 
 /// Calculates the experience points (XP) required to reach a given level.
@@ -200,25 +200,25 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 /// # Returns
 /// A `f64
 fn xp_required_for_level(level: u32) -> f64 {
-	/// Represents the base experience points (XP) value used as a reference for calculation purposes in the system.
-	///
-	/// # Constant
-	/// `BASE_XP` is a floating-point number initialized with a value of `100.0`.
-	///
-	/// # Usage
-	/// This value serves as the foundational XP value that other calculations or adjustments
-	/// (e
-	const BASE_XP: f64 = 100.0;
-	///
-	const GROWTH_RATE: f64 = 1.12;
+    /// Represents the base experience points (XP) value used as a reference for calculation purposes in the system.
+    ///
+    /// # Constant
+    /// `BASE_XP` is a floating-point number initialized with a value of `100.0`.
+    ///
+    /// # Usage
+    /// This value serves as the foundational XP value that other calculations or adjustments
+    /// (e
+    const BASE_XP: f64 = 100.0;
+    ///
+    const GROWTH_RATE: f64 = 1.12;
 
-	match level {
-		0 => 0.0,
-		1 => BASE_XP,
-		2..=25 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64),
-		26..=50 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.2,
-		51..=75 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.5,
-		76..=100 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 2.0,
-		_ => MAX_XP,
-	}
+    match level {
+        0 => 0.0,
+        1 => BASE_XP,
+        2..=25 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64),
+        26..=50 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.2,
+        51..=75 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.5,
+        76..=100 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 2.0,
+        _ => MAX_XP,
+    }
 }

@@ -52,7 +52,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
 use crate::structure::message::anime::random_image::load_localization_random_image;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use image::EncodableLayout;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{debug, error, info};
@@ -60,8 +60,8 @@ use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct AnimeRandomImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -194,44 +194,44 @@ impl_command!(
 /// - `uuid` for generating unique filenames
 /// ```
 pub async fn random_image_content<'a>(
-	image_type: String, title: String, endpoint: &'a str,
+    image_type: String, title: String, endpoint: &'a str,
 ) -> Result<EmbedsContents<'a>> {
-	// Construct the URL to fetch the image from
-	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
+    // Construct the URL to fetch the image from
+    let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
-	// Fetch the image from the URL
-	let resp = reqwest::get(&url).await?;
+    // Fetch the image from the URL
+    let resp = reqwest::get(&url).await?;
 
-	// Parse the response as JSON
-	let json: serde_json::Value = resp.json().await?;
+    // Parse the response as JSON
+    let json: serde_json::Value = resp.json().await?;
 
-	// Retrieve the URL of the image from the JSON
-	let image_url = json["url"]
-		.as_str()
-		.ok_or(anyhow!("No image found"))?
-		.to_string();
+    // Retrieve the URL of the image from the JSON
+    let image_url = json["url"]
+        .as_str()
+        .ok_or(anyhow!("No image found"))?
+        .to_string();
 
-	// Fetch the image from the image URL
-	let response = reqwest::get(image_url).await?;
+    // Fetch the image from the image URL
+    let response = reqwest::get(image_url).await?;
 
-	// Retrieve the bytes of the image from the response
-	let bytes = response.bytes().await?;
+    // Retrieve the bytes of the image from the response
+    let bytes = response.bytes().await?;
 
-	// Generate a UUID for the filename of the image
-	let uuid_name = Uuid::new_v4();
+    // Generate a UUID for the filename of the image
+    let uuid_name = Uuid::new_v4();
 
-	let filename = format!("{}.gif", uuid_name);
+    let filename = format!("{}.gif", uuid_name);
 
-	// Construct the attachment for the image
-	let bytes = bytes.as_bytes().to_vec();
-	let file = CommandFiles::new(filename.clone(), bytes);
+    // Construct the attachment for the image
+    let bytes = bytes.as_bytes().to_vec();
+    let file = CommandFiles::new(filename.clone(), bytes);
 
-	let embed_content =
-		EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
+    let embed_content =
+        EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
-		.add_file(file)
-		.clone();
+    let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
+        .add_file(file)
+        .clone();
 
-	Ok(embed_contents)
+    Ok(embed_contents)
 }

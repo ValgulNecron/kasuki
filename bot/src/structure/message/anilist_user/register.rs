@@ -7,16 +7,16 @@ use crate::structure::message::common::load_localization;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct RegisterLocalised {
-	pub desc: String,
+    pub desc: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_register(
-	guild_id: String, db_connection: Arc<DatabaseConnection>,
+    guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<RegisterLocalised> {
-	let path = "json/message/anilist_user/register.json";
+    let path = "json/message/anilist_user/register.json";
 
-	load_localization(guild_id, path, db_connection).await
+    load_localization(guild_id, path, db_connection).await
 }

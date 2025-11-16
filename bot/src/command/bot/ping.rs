@@ -9,8 +9,8 @@ use tracing::{debug, error, info, trace, warn};
 
 #[derive(Clone)]
 pub struct PingCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

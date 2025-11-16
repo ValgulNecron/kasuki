@@ -6,32 +6,32 @@ use crate::structure::message::common::load_localization;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StaffLocalised {
-	pub media: String,
+    pub media: String,
 
-	pub va: String,
+    pub va: String,
 
-	pub date_of_birth: String,
+    pub date_of_birth: String,
 
-	pub date_of_death: String,
+    pub date_of_death: String,
 
-	pub hometown: String,
+    pub hometown: String,
 
-	pub lang: String,
+    pub lang: String,
 
-	pub occupation: String,
+    pub occupation: String,
 
-	pub age: String,
+    pub age: String,
 
-	pub gender: String,
+    pub gender: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_staff(
-	guild_id: String, db_connection: Arc<DatabaseConnection>,
+    guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<StaffLocalised> {
-	let path = "json/message/anilist_user/staff.json";
+    let path = "json/message/anilist_user/staff.json";
 
-	load_localization(guild_id, path, db_connection).await
+    load_localization(guild_id, path, db_connection).await
 }

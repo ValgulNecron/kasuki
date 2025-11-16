@@ -1,4 +1,3 @@
-use sea_orm::ExprTrait;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::database::item::{Entity as Item, Model as ItemModel};
@@ -6,6 +5,7 @@ use crate::database::user_inventory::{Entity as UserInventory, Model as UserInve
 use crate::event_handler::BotData;
 use crate::impl_command;
 use anyhow::{Context as AnyhowContext, Result};
+use sea_orm::ExprTrait;
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
 };
@@ -15,8 +15,8 @@ use tracing::debug;
 
 #[derive(Clone)]
 pub struct InventoryCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -219,46 +219,46 @@ impl_command!(
 
 /// Get a user's inventory with item details
 async fn get_user_inventory(
-	db: &DatabaseConnection, user_id: String, server_id: String,
+    db: &DatabaseConnection, user_id: String, server_id: String,
 ) -> Result<Vec<(UserInventoryModel, ItemModel)>> {
-	debug!(
+    debug!(
 		"Getting inventory for user_id={}, server_id={}",
 		user_id, server_id
 	);
 
-	// Query the user's inventory with a join to the item table
-	let inventory_items = UserInventory::find()
-		.filter(
-			crate::database::user_inventory::Column::UserId
-				.eq(user_id.clone())	
-				.and(crate::database::user_inventory::Column::ServerId.eq(server_id.clone())),
-		)
-		.join(
-			JoinType::InnerJoin,
-			crate::database::user_inventory::Relation::Item.def(),
-		)
-		.all(db)
-		.await
-		.context("Failed to get user inventory from database")?;
+    // Query the user's inventory with a join to the item table
+    let inventory_items = UserInventory::find()
+        .filter(
+            crate::database::user_inventory::Column::UserId
+                .eq(user_id.clone())
+                .and(crate::database::user_inventory::Column::ServerId.eq(server_id.clone())),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::database::user_inventory::Relation::Item.def(),
+        )
+        .all(db)
+        .await
+        .context("Failed to get user inventory from database")?;
 
-	debug!("Found {} inventory items", inventory_items.len());
+    debug!("Found {} inventory items", inventory_items.len());
 
-	// Get the item details for each inventory item
-	let mut result = Vec::new();
+    // Get the item details for each inventory item
+    let mut result = Vec::new();
 
-	for inventory_item in inventory_items {
-		let item = Item::find_by_id(inventory_item.item_id.clone())
-			.one(db)
-			.await
-			.context(format!(
-				"Failed to get item details for item_id={}",
-				inventory_item.item_id
-			))?;
+    for inventory_item in inventory_items {
+        let item = Item::find_by_id(inventory_item.item_id.clone())
+            .one(db)
+            .await
+            .context(format!(
+                "Failed to get item details for item_id={}",
+                inventory_item.item_id
+            ))?;
 
-		if let Some(item) = item {
-			result.push((inventory_item, item));
-		}
-	}
+        if let Some(item) = item {
+            result.push((inventory_item, item));
+        }
+    }
 
-	Ok(result)
+    Ok(result)
 }

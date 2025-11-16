@@ -5,8 +5,8 @@ use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::music::queue::load_localization_queue;
 use anyhow::anyhow;
-use futures::StreamExt;
 use futures::future;
+use futures::StreamExt;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 /// Represents a command handler for managing queue-related interactions in a bot.
@@ -44,8 +44,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///
 #[derive(Clone)]
 pub struct QueueCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

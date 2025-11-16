@@ -12,8 +12,8 @@ use tracing::{debug, info, warn};
 
 #[derive(Clone)]
 pub struct VnCharacterCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

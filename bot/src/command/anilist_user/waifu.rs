@@ -32,8 +32,8 @@ use crate::structure::run::anilist::character::character_content;
 
 #[derive(Clone)]
 pub struct WaifuCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

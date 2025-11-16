@@ -5,29 +5,29 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "item")]
 pub struct Model {
-	#[sea_orm(primary_key, auto_increment = false)]
-	pub item_id: String,
-	pub name: String,
-	pub description: String,
-	pub price: i32,
-	pub minimum_rarity: i32,
-	pub maximum_rarity: i32,
-	pub r#type: String,
-	#[sea_orm(column_type = "Float")]
-	pub base_xp_boost: f32,
-	pub weight: i32,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub item_id: String,
+    pub name: String,
+    pub description: String,
+    pub price: i32,
+    pub minimum_rarity: i32,
+    pub maximum_rarity: i32,
+    pub r#type: String,
+    #[sea_orm(column_type = "Float")]
+    pub base_xp_boost: f32,
+    pub weight: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-	#[sea_orm(has_many = "super::user_inventory::Entity")]
-	UserInventory,
+    #[sea_orm(has_many = "super::user_inventory::Entity")]
+    UserInventory,
 }
 
 impl Related<super::user_inventory::Entity> for Entity {
-	fn to() -> RelationDef {
-		Relation::UserInventory.def()
-	}
+    fn to() -> RelationDef {
+        Relation::UserInventory.def()
+    }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

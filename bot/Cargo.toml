@@ -45,7 +45,7 @@ anyhow = "1.0.100"
 small-fixed-array = "0.4.8"
 lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
 async-trait = "0.1.89"
-dashmap ="6.1.0"
+dashmap = "6.1.0"
 bytes = "1.10.1"
 rust-fuzzy-search = "0.1.1"
 governor = "0.10.1"

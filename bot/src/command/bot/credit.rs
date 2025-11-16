@@ -9,8 +9,8 @@ use tracing::{debug, info};
 
 #[derive(Clone)]
 pub struct CreditCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

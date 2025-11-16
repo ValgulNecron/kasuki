@@ -56,8 +56,8 @@ use tokio::sync::RwLockReadGuard;
 /// ```
 #[derive(Clone)]
 pub struct CommandUsageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -184,17 +184,17 @@ impl_command!(
 ///
 /// No mutable operations are performed; this function strictly reads from the provided data structure.
 fn get_usage_for_id(
-	target_id: &str, root_usage: RwLockReadGuard<RootUsage>,
+    target_id: &str, root_usage: RwLockReadGuard<RootUsage>,
 ) -> Vec<(String, u128)> {
-	let mut usage = Vec::new();
+    let mut usage = Vec::new();
 
-	for (command, user_info) in root_usage.command_list.iter() {
-		for (id, user_usage) in user_info.user_info.iter() {
-			if id == target_id {
-				usage.push((command.clone(), user_usage.usage));
-			}
-		}
-	}
+    for (command, user_info) in root_usage.command_list.iter() {
+        for (id, user_usage) in user_info.user_info.iter() {
+            if id == target_id {
+                usage.push((command.clone(), user_usage.usage));
+            }
+        }
+    }
 
-	usage
+    usage
 }

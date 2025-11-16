@@ -5,13 +5,13 @@ use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
-	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::impl_command;
 use crate::structure::message::ai::transcript::load_localization_transcript;
-use anyhow::{Result, anyhow};
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
-use reqwest::{Url, multipart};
+use anyhow::{anyhow, Result};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use reqwest::{multipart, Url};
 use serde_json::Value;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use uuid::Uuid;
@@ -53,9 +53,9 @@ use uuid::Uuid;
 /// ```
 #[derive(Clone)]
 pub struct TranscriptCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-	pub command_name: String,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
+    pub command_name: String,
 }
 
 impl_command!(

@@ -7,7 +7,7 @@ use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
 use crate::impl_command;
 use crate::structure::message::levels::stats::load_localization_levels_stats;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, Condition};
@@ -18,8 +18,8 @@ use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct LevelsStatsCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -216,107 +216,107 @@ impl_command!(
 );
 
 fn get_level(xp: i128) -> i32 {
-	match xp {
-		0..=500 => 1,
-		501..=1500 => 2,
-		1501..=3000 => 3,
-		3001..=5000 => 4,
-		5001..=8000 => 5,
-		8001..=12000 => 6,
-		12001..=17000 => 7,
-		17001..=23000 => 8,
-		23001..=30000 => 9,
-		30001..=38000 => 10,
-		38001..=47000 => 11,
-		47001..=57000 => 12,
-		57001..=68000 => 13,
-		68001..=80000 => 14,
-		80001..=93000 => 15,
-		93001..=107000 => 16,
-		107001..=122000 => 17,
-		122001..=138000 => 18,
-		138001..=155000 => 19,
-		_ => 20,
-	}
+    match xp {
+        0..=500 => 1,
+        501..=1500 => 2,
+        1501..=3000 => 3,
+        3001..=5000 => 4,
+        5001..=8000 => 5,
+        8001..=12000 => 6,
+        12001..=17000 => 7,
+        17001..=23000 => 8,
+        23001..=30000 => 9,
+        30001..=38000 => 10,
+        38001..=47000 => 11,
+        47001..=57000 => 12,
+        57001..=68000 => 13,
+        68001..=80000 => 14,
+        80001..=93000 => 15,
+        93001..=107000 => 16,
+        107001..=122000 => 17,
+        122001..=138000 => 18,
+        138001..=155000 => 19,
+        _ => 20,
+    }
 }
 
 fn get_xp_for_level(level: i32) -> i128 {
-	match level {
-		1 => 0,
-		2 => 501,
-		3 => 1501,
-		4 => 3001,
-		5 => 5001,
-		6 => 8001,
-		7 => 12001,
-		8 => 17001,
-		9 => 23001,
-		10 => 30001,
-		11 => 38001,
-		12 => 47001,
-		13 => 57001,
-		14 => 68001,
-		15 => 80001,
-		16 => 93001,
-		17 => 107001,
-		18 => 122001,
-		19 => 138001,
-		20 => 155001,
-		_ => 155001, // Cap at level 20
-	}
+    match level {
+        1 => 0,
+        2 => 501,
+        3 => 1501,
+        4 => 3001,
+        5 => 5001,
+        6 => 8001,
+        7 => 12001,
+        8 => 17001,
+        9 => 23001,
+        10 => 30001,
+        11 => 38001,
+        12 => 47001,
+        13 => 57001,
+        14 => 68001,
+        15 => 80001,
+        16 => 93001,
+        17 => 107001,
+        18 => 122001,
+        19 => 138001,
+        20 => 155001,
+        _ => 155001, // Cap at level 20
+    }
 }
 
 fn get_xp_for_next_level(level: i32) -> i128 {
-	match level {
-		1 => 501,
-		2 => 1501,
-		3 => 3001,
-		4 => 5001,
-		5 => 8001,
-		6 => 12001,
-		7 => 17001,
-		8 => 23001,
-		9 => 30001,
-		10 => 38001,
-		11 => 47001,
-		12 => 57001,
-		13 => 68001,
-		14 => 80001,
-		15 => 93001,
-		16 => 107001,
-		17 => 122001,
-		18 => 138001,
-		19 => 155001,
-		_ => 999999, // No next level after 20
-	}
+    match level {
+        1 => 501,
+        2 => 1501,
+        3 => 3001,
+        4 => 5001,
+        5 => 8001,
+        6 => 12001,
+        7 => 17001,
+        8 => 23001,
+        9 => 30001,
+        10 => 38001,
+        11 => 47001,
+        12 => 57001,
+        13 => 68001,
+        14 => 80001,
+        15 => 93001,
+        16 => 107001,
+        17 => 122001,
+        18 => 138001,
+        19 => 155001,
+        _ => 999999, // No next level after 20
+    }
 }
 
 async fn create_progress_bar(
-	current: i128, max: i128, user_color: Option<Colour>,
+    current: i128, max: i128, user_color: Option<Colour>,
 ) -> Result<(CommandFiles, i32)> {
-	// Calculate percentage
-	let percent = if max > 0 {
-		((current as f64 / max as f64) * 100.0) as i32
-	} else {
-		100
-	};
+    // Calculate percentage
+    let percent = if max > 0 {
+        ((current as f64 / max as f64) * 100.0) as i32
+    } else {
+        100
+    };
 
-	// Ensure percentage is between 0 and 100
-	let percent = percent.max(0).min(100);
+    // Ensure percentage is between 0 and 100
+    let percent = percent.max(0).min(100);
 
-	let color = user_color.unwrap_or(COLOR);
-	let rgb_color = [color.r(), color.b(), color.g(), 255];
+    let color = user_color.unwrap_or(COLOR);
+    let rgb_color = [color.r(), color.b(), color.g(), 255];
 
-	// Generate the progress bar image with the user's color or default color
-	let image_data = generate_progress_bar_image_in_memory(percent as u32, rgb_color)
-		.map_err(|e| anyhow!("Failed to generate progress bar image: {}", e))?;
+    // Generate the progress bar image with the user's color or default color
+    let image_data = generate_progress_bar_image_in_memory(percent as u32, rgb_color)
+        .map_err(|e| anyhow!("Failed to generate progress bar image: {}", e))?;
 
-	// Generate a unique filename for the attachment
-	let uuid = Uuid::new_v4();
-	let filename = format!("progress_{}.png", uuid);
+    // Generate a unique filename for the attachment
+    let uuid = Uuid::new_v4();
+    let filename = format!("progress_{}.png", uuid);
 
-	// Create the CommandFiles object
-	let file = CommandFiles::new(filename.clone(), image_data);
+    // Create the CommandFiles object
+    let file = CommandFiles::new(filename.clone(), image_data);
 
-	Ok((file, percent))
+    Ok((file, percent))
 }

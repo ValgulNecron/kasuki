@@ -93,8 +93,8 @@ use tracing::{debug, error, info};
 
 #[derive(Clone)]
 pub struct AnimeRandomNsfwImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

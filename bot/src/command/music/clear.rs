@@ -96,8 +96,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// or performing other related administrative actions in a Discord server.
 #[derive(Clone)]
 pub struct ClearCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
