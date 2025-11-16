@@ -24,6 +24,8 @@ use crate::database::prelude::PingHistory;
 use crate::event_handler::BotData;
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::{Context as AnyhowContext, Result};
+use crate::cache::CacheInterface;
+
 /// Main function responsible for launching and managing all background tasks.
 ///
 /// This function orchestrates the initialization and execution of various background tasks
@@ -68,7 +70,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	debug!("Preparing shared resources for background tasks");
 
 	// Extract shared resources that will be used by multiple background tasks
-	let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+	let anilist_cache = bot_data.anilist_cache.clone();
 	let apps = bot_data.apps.clone();
 	let user_blacklist_server_image = bot_data.user_blacklist.clone();
 	let db_connection = bot_data.db_connection.clone();
@@ -1076,7 +1078,7 @@ async fn launch_game_management_thread(
 ///
 
 async fn launch_activity_management_thread(
-	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	ctx: SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig,
 ) {
 	// Create an interval for periodic updates
