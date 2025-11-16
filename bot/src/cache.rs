@@ -2,7 +2,6 @@ use crate::config::CacheConfig;
 use anyhow::Result;
 use moka::future::Cache;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub struct CacheInterface {
     pub conf: CacheConfig,
@@ -32,7 +31,7 @@ impl CacheInterface {
         Ok(())
     }
     
-    pub fn get_cache(&self) -> Arc<RwLock<Cache<String, String>>> {
+    pub fn get_cache(&self) -> Arc<Cache<String, String>> {
         self.cache.clone()
     }
 }
