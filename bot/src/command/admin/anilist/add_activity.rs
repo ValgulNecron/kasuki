@@ -684,7 +684,7 @@ async fn get_webhook(
 /// For logging purposes, the anime `id` will be traced to assist in identifying
 /// any potential issues during the request execution.
 pub async fn get_minimal_anime_by_id(
-	id: i32, cache: Arc<RwLock<Cache<String, String>>>,
+	id: i32, cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Media> {
 	trace!(?id);
 
@@ -751,7 +751,7 @@ pub async fn get_minimal_anime_by_id(
 /// }
 /// ```
 async fn get_minimal_anime_by_search(
-	query: &str, cache: Arc<RwLock<Cache<String, String>>>,
+	query: &str, cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Media> {
 	trace!(?query);
 

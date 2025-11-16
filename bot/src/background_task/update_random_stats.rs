@@ -44,7 +44,7 @@ impl Default for RandomStat {
 /// * `task_intervals` - Configuration for task intervals.
 
 pub async fn update_random_stats_launcher(
-	anilist_cache: Arc<RwLock<Cache<String, String>>>, task_intervals: TaskIntervalConfig,
+	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
 ) {
 	// Log the start of the random stats update task.
 	info!("Launching random stats update background task");
