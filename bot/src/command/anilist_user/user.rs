@@ -27,6 +27,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::cache::CacheInterface;
 
 #[derive(Clone)]
 pub struct UserCommand {
@@ -127,7 +128,7 @@ impl_command!(
 /// }
 /// ```
 pub async fn get_user(
-    value: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	value: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<User> {
     // If the value is a valid user ID, fetch the user's data by ID
     let user = if value.parse::<i32>().is_ok() {
