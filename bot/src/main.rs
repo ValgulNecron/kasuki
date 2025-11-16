@@ -324,7 +324,7 @@ async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
 
 	#[cfg(unix)]
 	{
-		let mut cmd = process::Command::new("./Migration");
+		let mut cmd = process::Command::new("./migration");
 
 		let child = cmd.spawn().context("Failed to run Migration")?;
 
