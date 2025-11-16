@@ -1,19 +1,19 @@
-use crate::config::{Config, DbConfig};
-use crate::constant::{CACHE_MAX_CAPACITY, COMMAND_USE_PATH, TIME_BETWEEN_CACHE_UPDATE};
-use crate::event_handler::{BotData, Handler, RootUsage};
-use crate::logger::{create_log_directory, init_logger};
-use anyhow::{Context, Result};
-use moka::future::Cache;
-use serenity::prelude::GatewayIntents;
-use serenity::secrets::Token;
-use serenity::Client;
-use songbird::driver::DecodeMode;
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+use anyhow::Context;
+use moka::future::Cache;
+use serenity::all::GatewayIntents;
+use serenity::Client;
+use serenity::secrets::Token;
+use songbird::driver::DecodeMode;
 use tokio::sync::{broadcast, RwLock};
 use tracing::{error, info, warn};
+use crate::cache::CacheInterface;
+use crate::config::{Config, DbConfig};
+use crate::event_handler::{BotData, Handler};
+use crate::logger::{create_log_directory, init_logger};
 
 pub mod autocomplete;
 mod background_task;
@@ -37,49 +37,23 @@ mod cache;
 #[tokio::main]
 async fn main() {
     println!("Preparing bot environment please wait...");
-
-    // read config.toml as string
-    let config = match std::fs::read_to_string("config.toml") {
-        Ok(config) => config,
+    let config: Config = match Config::new() {
+        Ok(conf) => conf,
         Err(e) => {
-            eprintln!("Error while reading config.toml: {e:?}", );
-            process::exit(1);
-        }
+            eprintln!("Error while reading config.toml: {:?}", e);
+            process::exit(2);
+        },
     };
-
-    let mut config: Config = match toml::from_str(&config) {
-        Ok(config) => config,
-        Err(e) => {
-            eprintln!("Error while parsing config.toml: {:?}", e);
-            process::exit(1);
-        }
-    };
-
-    config.set_default_value_on_none();
+    println!("Config loaded successfully");
 
     let log = config.logging.log_level.clone();
-
-    let discord_token = config.bot.discord_token.clone();
-
     let max_log_retention_days = config.logging.max_log_retention;
-
-    let config = Arc::new(config);
-
-    // Get the log level from the environment variable "RUST_LOG".
-    // If the variable is not set, default to "info".
-    let log = log.as_str();
-
-    // Create the log directory.
-    // If an error occurs, print the error and return.
     if let Err(e) = create_log_directory() {
         eprintln!("{:?}", e);
 
         process::exit(2);
     }
-
-    // Initialize the logger with the specified log level and configuration.
-    // If an error occurs, print the error and return.
-    let _guard = match init_logger(log, max_log_retention_days) {
+    let _guard = match init_logger(log.as_str(), max_log_retention_days) {
         Ok(guard) => {
             info!("Logger initialized successfully with level: {}", log);
             guard
@@ -89,65 +63,25 @@ async fn main() {
             process::exit(2);
         }
     };
-
-    info!("Configuration loaded successfully");
-    info!("Bot token length: {}", discord_token.len());
     info!("Log retention days: {}", max_log_retention_days);
 
-    // Initialize the SQL database.
+    let discord_token = config.bot.discord_token.clone();
+    info!("Bot token length: {}", discord_token.len());
+
     info!("Initializing database");
-    // If an error occurs, log the error and return.
-    if let Err(e) = init_db(config.clone()).await {
+    let db_config  = config.db.clone();
+    if let Err(e) = init_db(db_config).await {
         let e = e.to_string().replace("\\\\n", "\n");
         error!("Database initialization failed: {}", e);
         process::exit(4);
     }
     info!("Database initialized successfully");
 
-    let number_of_command_use_per_command: RootUsage;
-
-    // populate the number_of_command_use_per_command with the content of the file
-    info!("Loading command usage statistics");
-    if let Ok(content) = std::fs::read_to_string(COMMAND_USE_PATH) {
-        info!("Command usage file found, parsing content");
-        number_of_command_use_per_command = serde_json::from_str(&content).unwrap_or_else(|e| {
-            warn!(
-				"Failed to parse command usage file: {}, creating new usage tracking",
-				e
-			);
-            RootUsage::new()
-        });
-    } else {
-        info!("Command usage file not found, creating new usage tracking");
-        number_of_command_use_per_command = RootUsage::new();
-    }
-
-    let number_of_command_use_per_command =
-        Arc::new(RwLock::new(number_of_command_use_per_command));
-    info!("Command usage statistics loaded successfully");
-
+    let cache_config = config.cache.clone();
     info!("Initializing caches");
-    let cache: Cache<String, String> = Cache::builder()
-        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
-        .max_capacity(CACHE_MAX_CAPACITY)
-        .build();
-    info!(
-		"Anilist cache initialized with TTL: {}s, capacity: {}",
-		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY
-	);
-
-    let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
-
-    let cache: Cache<String, String> = Cache::builder()
-        .time_to_live(Duration::from_secs(TIME_BETWEEN_CACHE_UPDATE))
-        .max_capacity(CACHE_MAX_CAPACITY)
-        .build();
-    info!(
-		"VNDB cache initialized with TTL: {}s, capacity: {}",
-		TIME_BETWEEN_CACHE_UPDATE, CACHE_MAX_CAPACITY
-	);
-
-    let vndb_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(cache));
+    let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new(cache_config.clone())));
+    let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new(cache_config)));;
+    info!("Caches initialized successfully");
 
     info!("Connecting to database");
     let connection = match sea_orm::Database::connect(get_url(config.db.clone())).await {
@@ -160,8 +94,8 @@ async fn main() {
             return;
         }
     };
+    info!("Database connection established successfully");
 
-    // Get all the non-privileged intent.
     info!("Configuring Discord gateway intents");
     let gateway_intent_non_privileged =
         GatewayIntents::non_privileged() | GatewayIntents::GUILD_VOICE_STATES;
@@ -170,7 +104,6 @@ async fn main() {
 		gateway_intent_non_privileged
 	);
 
-    // Get the needed privileged intent.
     let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
         // | GatewayIntents::GUILD_PRESENCES
         // | GatewayIntents::MESSAGE_CONTENT
@@ -180,18 +113,13 @@ async fn main() {
 		gateway_intent_privileged
 	);
 
-    // Combine both intents for the client to consume.
     let mut intent = gateway_intent_non_privileged;
     intent |= gateway_intent_privileged;
     let gateway_intent = intent;
     info!("Combined gateway intents: {:?}", gateway_intent);
 
-    // Log a message indicating the bot is starting.
     info!("Finished preparing the environment. Starting the bot.");
 
-    // Create a new client instance using the provided token and gateway intents.
-    // The client is built with an event handler of type `Handler`.
-    // If the client creation fails, log the error and exit the process.
     info!("Parsing Discord token");
     let discord_token = match Token::from_str(discord_token.as_str()) {
         Ok(token) => {
@@ -214,14 +142,12 @@ async fn main() {
     let manager = songbird::Songbird::serenity_from_config(songbird_config);
     info!("Songbird voice client initialized successfully");
 
-    info!("Initializing bot data structure");
-    // Create a broadcast channel for shutdown signals
     let (shutdown_tx, _) = broadcast::channel(1);
     info!("Created shutdown signal channel");
 
+    info!("Initializing bot data structure");
     let bot_data: Arc<BotData> = Arc::new(BotData {
-        number_of_command_use_per_command,
-        config: config.clone(),
+        config: Arc::from(config.clone()),
         bot_info: Arc::new(RwLock::new(None)),
         anilist_cache,
         vndb_cache,
@@ -251,7 +177,6 @@ async fn main() {
     info!("Discord client created successfully");
 
     let data = bot_data.clone();
-
     info!("Setting up shard manager");
     let bot_data = data;
     let mut guard = bot_data.shard_manager.write().await;
@@ -371,9 +296,7 @@ async fn main() {
     }
 }
 
-async fn init_db(config: Arc<Config>) -> Result<()> {
-    let db_config = config.db.clone();
-
+async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
     let url = get_url(db_config);
     unsafe {
         std::env::set_var("DATABASE_URL", url);

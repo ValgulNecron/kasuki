@@ -37,11 +37,22 @@ use tokio::sync::RwLock;
 use tracing::{debug, error, info, instrument, trace};
 
 pub struct BotData {
-    pub number_of_command_use_per_command: Arc<RwLock<RootUsage>>,
     pub config: Arc<Config>,
     pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
-    pub anilist_cache: Arc<RwLock<Cache<String, String>>>,
-    pub vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    pub anilist_cache: Arc
+    <
+        RwLock
+        <
+            CacheInterface
+        >
+    >,
+    pub vndb_cache: Arc
+    <
+        RwLock
+        <
+            CacheInterface
+        >
+    >,
     pub already_launched: RwLock<bool>,
     pub apps: Arc<RwLock<HashMap<String, u128>>>,
     pub user_blacklist: Arc<RwLock<Vec<String>>>,
