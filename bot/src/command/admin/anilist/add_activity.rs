@@ -157,7 +157,7 @@ impl_command!(
 			.cloned()
 			.unwrap_or(String::new());
 
-		let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+		let anilist_cache = bot_data.anilist_cache.clone();
 		let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
 
 		let guild_id = match command_interaction.guild_id {

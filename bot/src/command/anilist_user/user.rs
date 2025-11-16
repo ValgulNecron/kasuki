@@ -44,7 +44,7 @@ impl_command!(
 
 		let config = bot_data.config.clone();
 
-	let anilist_cache = bot_data.anilist_cache;
+	let anilist_cache = bot_data.anilist_cache.clone();
 
 		let map = get_option_map_string(&command_interaction);
 

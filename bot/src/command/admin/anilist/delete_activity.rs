@@ -51,7 +51,7 @@ impl_command!(
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
-		let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+		let anilist_cache = bot_data.anilist_cache.clone();
 
 		let map = get_option_map_string_subcommand_group(&command_interaction);
 		let anime = map

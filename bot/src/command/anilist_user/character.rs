@@ -43,7 +43,7 @@ impl_command!(
 		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction().clone();
-	let anilist_cache = bot_data.anilist_cache;
+	let anilist_cache = bot_data.anilist_cache.clone();
 
 		let map = get_option_map_string(&command_interaction);
 		let value = map

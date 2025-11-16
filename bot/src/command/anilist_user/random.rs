@@ -115,7 +115,7 @@ impl_command!(
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
 
-	let anilist_cache = bot_data.anilist_cache;
+	let anilist_cache = bot_data.anilist_cache.clone();
 		let _config = bot_data.config.clone();
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
