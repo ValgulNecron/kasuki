@@ -41,7 +41,7 @@ impl_command!(
 		let command_interaction = self_.get_command_interaction().clone();
 
 		let _config = bot_data.config.clone();
-		let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+	let anilist_cache = bot_data.anilist_cache;
 
 		let map = get_option_map_string(&command_interaction);
 

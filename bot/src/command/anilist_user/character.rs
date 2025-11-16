@@ -29,6 +29,7 @@ use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
+use crate::cache::CacheInterface;
 
 #[derive(Clone)]
 pub struct CharacterCommand {
@@ -42,7 +43,7 @@ impl_command!(
 		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction().clone();
-		let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+	let anilist_cache = bot_data.anilist_cache;
 
 		let map = get_option_map_string(&command_interaction);
 		let value = map
@@ -139,7 +140,7 @@ impl_command!(
 /// Make sure the AniList API integration and cache handling is properly configured for this function to work as expected.
 /// The `Cache` and `GraphQlResponse` types should be pre-defined and available in your crate or the imported modules.
 pub async fn get_character_by_id(
-    value: i32, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	value: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Character> {
     let var = CharacterQuerryIdVariables { id: Some(value) };
 

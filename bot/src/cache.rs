@@ -22,8 +22,8 @@ impl CacheInterface {
         }
     }
     
-    pub async fn read(&self, key: String) -> Result<Option<String>> {
-        Ok(self.cache.get(&key).await)
+    pub async fn read(&self, key: &String) -> Result<Option<String>> {
+        Ok(self.cache.get(key).await)
     }
     
     pub async fn write(&self, key: String, value: String) -> Result<()> {

@@ -4,9 +4,10 @@ use std::sync::Arc;
 use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
+use crate::cache::CacheInterface;
 
 pub async fn get_producer(
-    value: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    value: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<ProducerRoot> {
     let value = value.to_lowercase();
 

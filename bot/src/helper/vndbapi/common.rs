@@ -3,9 +3,10 @@ use std::sync::Arc;
 
 use moka::future::Cache;
 use tokio::sync::RwLock;
+use crate::cache::CacheInterface;
 
 pub async fn do_request_cached(
-    path: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
     let cache = vndb_cache.read().await.get(&path).await;
 
@@ -17,7 +18,7 @@ pub async fn do_request_cached(
 }
 
 pub async fn do_request(
-    path: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
     let client = reqwest::Client::new();
 
@@ -35,18 +36,18 @@ pub async fn do_request(
     vndb_cache
         .write()
         .await
-        .insert(path, response_text.clone())
-        .await;
+        .write(path, response_text.clone())
+        .await?;
 
     Ok(response_text)
 }
 
 pub async fn do_request_cached_with_json(
-    path: String, json: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
     let key = format!("{}_{}", path, json);
 
-    let cache = vndb_cache.read().await.get(&key).await;
+    let cache = vndb_cache.read().await.read(&key).await;
 
     if let Some(cached) = cache {
         return Ok(cached);
@@ -56,7 +57,7 @@ pub async fn do_request_cached_with_json(
 }
 
 pub async fn do_request_with_json(
-    path: String, json: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
     let key = format!("{}_{}", path, json);
 
@@ -77,8 +78,8 @@ pub async fn do_request_with_json(
     vndb_cache
         .write()
         .await
-        .insert(key, response_text.clone())
-        .await;
+        .write(key, response_text.clone())
+        .await?;
 
     Ok(response_text)
 }

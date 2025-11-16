@@ -40,7 +40,7 @@ impl_command!(
 
 		let _config = bot_data.config.clone();
 
-		let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
+	let anilist_cache = bot_data.anilist_cache;
 		let staff = get_staff(&command_interaction, anilist_cache).await?;
 
 		let va = staff

@@ -19,8 +19,10 @@ pub struct VnUser {
 }
 
 use anyhow::Result;
+use crate::cache::CacheInterface;
+
 pub async fn get_user(
-    path: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<VnUser> {
     let response = do_request_cached(path.clone(), vndb_cache).await?;
 

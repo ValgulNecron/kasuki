@@ -5,9 +5,10 @@ use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tracing::info;
+use crate::cache::CacheInterface;
 
 pub async fn get_staff(
-    value: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
+    value: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<StaffRoot> {
     let value = value.to_lowercase();
 

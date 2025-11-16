@@ -23,7 +23,7 @@ impl_command!(
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
 		let db_connection = bot_data.db_connection.clone();
-		let vndb_cache = bot_data.vndb_cache.read().await.get_cache();
+		let vndb_cache = bot_data.vndb_cache;
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
