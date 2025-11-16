@@ -287,7 +287,7 @@ pub async fn update_random_stats(
 /// A `Result` containing the updated random statistics or an error.
 
 async fn update_random(
-	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
 	trace!("Starting update_random function");
 	debug!(
