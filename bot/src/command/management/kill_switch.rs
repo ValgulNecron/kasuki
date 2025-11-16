@@ -104,8 +104,8 @@ use small_fixed_array::FixedString;
 /// [`CommandInteraction`]: https://docs.rs/serenity/latest/serenity/model/interactions/application_command/struct.CommandInteraction.html
 #[derive(Clone)]
 pub struct KillSwitchCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

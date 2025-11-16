@@ -5,23 +5,23 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct CreditLocalisedLine {
-    pub desc: String,
+	pub desc: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct CreditLocalised {
-    pub title: String,
-    pub credits: Vec<CreditLocalisedLine>,
+	pub title: String,
+	pub credits: Vec<CreditLocalisedLine>,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_credit(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<CreditLocalised> {
-    let path = "json/message/bot/credit.json";
+	let path = "json/message/bot/credit.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

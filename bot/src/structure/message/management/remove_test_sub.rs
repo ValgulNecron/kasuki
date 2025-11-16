@@ -5,16 +5,16 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct RemoveTestLocalised {
-    pub success: String,
+	pub success: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_remove_test_sub(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<RemoveTestLocalised> {
-    let path = "json/message/management/remove_test_sub.json";
+	let path = "json/message/management/remove_test_sub.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

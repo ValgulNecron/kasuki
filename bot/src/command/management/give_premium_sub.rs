@@ -98,8 +98,8 @@ use small_fixed_array::FixedString;
 ///                           that contains the details and data of the command invoked.
 #[derive(Clone)]
 pub struct GivePremiumSubCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

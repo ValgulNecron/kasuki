@@ -5,6 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
+use crate::cache::CacheInterface;
 use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::database::prelude::RegisteredUser;
@@ -14,10 +15,10 @@ use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
-    User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
+	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
 use crate::{get_url, impl_command};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use sea_orm::ColumnTrait;
@@ -27,12 +28,11 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::cache::CacheInterface;
 
 #[derive(Clone)]
 pub struct UserCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -127,34 +127,32 @@ impl_command!(
 ///     Ok(())
 /// }
 /// ```
-pub async fn get_user(
-	value: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
-) -> Result<User> {
-    // If the value is a valid user ID, fetch the user's data by ID
-    let user = if value.parse::<i32>().is_ok() {
-        let id = value.parse::<i32>()?;
+pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -> Result<User> {
+	// If the value is a valid user ID, fetch the user's data by ID
+	let user = if value.parse::<i32>().is_ok() {
+		let id = value.parse::<i32>()?;
 
-        let var = UserQueryIdVariables { id: Some(id) };
+		let var = UserQueryIdVariables { id: Some(id) };
 
-        let operation = UserQueryId::build(var);
+		let operation = UserQueryId::build(var);
 
-        let data: GraphQlResponse<UserQueryId> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<UserQueryId> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().user.unwrap()
-    } else {
-        // If the value is not a valid user ID, fetch the user's data by username
-        let var = UserQuerySearchVariables {
-            search: Some(value),
-        };
+		data.data.unwrap().user.unwrap()
+	} else {
+		// If the value is not a valid user ID, fetch the user's data by username
+		let var = UserQuerySearchVariables {
+			search: Some(value),
+		};
 
-        let operation = UserQuerySearch::build(var);
+		let operation = UserQuerySearch::build(var);
 
-        let data: GraphQlResponse<UserQuerySearch> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<UserQuerySearch> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().user.unwrap()
-    };
+		data.data.unwrap().user.unwrap()
+	};
 
-    Ok(user)
+	Ok(user)
 }

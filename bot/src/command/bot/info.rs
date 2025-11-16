@@ -2,8 +2,8 @@
 //! Module implementing the `InfoCommand` structure and its functionality.
 use crate::command::command::Command;
 use crate::command::embed_content::{
-    ButtonV1, CommandType, ComponentVersion, ComponentVersion1, CreateFooter, EmbedContent,
-    EmbedsContents,
+	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, CreateFooter, EmbedContent,
+	EmbedsContents,
 };
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::database::prelude::UserColor;
@@ -18,8 +18,8 @@ use tracing::{debug, info};
 
 #[derive(Clone)]
 pub struct InfoCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

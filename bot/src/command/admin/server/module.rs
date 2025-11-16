@@ -7,7 +7,7 @@ use crate::database::module_activation::Model;
 use crate::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::{
-    get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
+	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::impl_command;
 use crate::structure::message::admin::server::module::load_localization_module_activation;
@@ -35,8 +35,8 @@ use tracing::debug;
 /// within a module in a bot powered by the Serenity library.
 #[derive(Clone)]
 pub struct ModuleCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -182,14 +182,14 @@ impl_command!(
 /// # Note
 /// This function returns `false` for any module name that does not match the predefined list of modules.
 pub async fn check_activation_status(module: &str, row: Model) -> bool {
-    match module {
-        "ANILIST" => row.anilist_module,
-        "AI" => row.ai_module,
-        "GAME" => row.game_module,
-        "ANIME" => row.anime_module,
-        "VN" => row.vn_module,
-        "LEVEL" => row.level_module,
-        "MINIGAME" => row.mini_game_module,
-        _ => false,
-    }
+	match module {
+		"ANILIST" => row.anilist_module,
+		"AI" => row.ai_module,
+		"GAME" => row.game_module,
+		"ANIME" => row.anime_module,
+		"VN" => row.vn_module,
+		"LEVEL" => row.level_module,
+		"MINIGAME" => row.mini_game_module,
+		_ => false,
+	}
 }

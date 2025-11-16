@@ -18,10 +18,10 @@ use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
-use anyhow::{anyhow, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use anyhow::{Result, anyhow};
 use reqwest::Client;
-use serde_json::{json, Value};
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use serde_json::{Value, json};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use tracing::trace;
@@ -41,9 +41,9 @@ use tracing::trace;
 ///   allowing the logic to dynamically reference or process specific command implementations.
 #[derive(Clone)]
 pub struct QuestionCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
-    pub command_name: String,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
+	pub command_name: String,
 }
 
 impl_command!(
@@ -161,46 +161,46 @@ impl_command!(
 /// log = "0.4"
 /// ```
 async fn question(
-    text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>,
+	text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>,
 ) -> Result<String> {
-    let api_url = api_base_url.to_string();
+	let api_url = api_base_url.to_string();
 
-    let api_url = question_api_url(api_url);
+	let api_url = question_api_url(api_url);
 
-    let client = http_client.clone();
+	let client = http_client.clone();
 
-    let mut headers = HeaderMap::new();
+	let mut headers = HeaderMap::new();
 
-    headers.insert(
-        AUTHORIZATION,
-        HeaderValue::from_str(&format!("Bearer {}", api_key))?,
-    );
+	headers.insert(
+		AUTHORIZATION,
+		HeaderValue::from_str(&format!("Bearer {}", api_key))?,
+	);
 
-    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+	headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-    let data = json!({
+	let data = json!({
 		 "model": model,
 		 "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": text}]
 	});
 
-    trace!("{:?}", data);
+	trace!("{:?}", data);
 
-    let res: Value = client
-        .post(api_url)
-        .headers(headers)
-        .json(&data)
-        .send()
-        .await?
-        .json()
-        .await?;
+	let res: Value = client
+		.post(api_url)
+		.headers(headers)
+		.json(&data)
+		.send()
+		.await?
+		.json()
+		.await?;
 
-    trace!("{:?}", res);
+	trace!("{:?}", res);
 
-    let content = res["choices"][0]["message"]["content"].to_string();
+	let content = res["choices"][0]["message"]["content"].to_string();
 
-    let content = content[1..content.len() - 1].to_string();
+	let content = content[1..content.len() - 1].to_string();
 
-    Ok(content.replace("\\n", " \n "))
+	Ok(content.replace("\\n", " \n "))
 }
 
 /// Constructs the URL for the OpenAI question API endpoint based on a given base URL.
@@ -243,11 +243,11 @@ async fn question(
 /// This function ensures the resulting URL always points to the `v1/chat/completions` endpoint,
 /// minimizing user input errors in constructing the correct API URL.
 pub fn question_api_url(api_url: String) -> String {
-    if api_url.ends_with("v1/") {
-        format!("{}chat/completions", api_url)
-    } else if api_url.ends_with("v1") {
-        format!("{}/chat/completions", api_url)
-    } else {
-        format!("{}/v1/chat/completions", api_url)
-    }
+	if api_url.ends_with("v1/") {
+		format!("{}chat/completions", api_url)
+	} else if api_url.ends_with("v1") {
+		format!("{}/chat/completions", api_url)
+	} else {
+		format!("{}/v1/chat/completions", api_url)
+	}
 }

@@ -25,8 +25,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// This structure allows easier handling and encapsulation of pause command functionality.
 #[derive(Clone)]
 pub struct PauseCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

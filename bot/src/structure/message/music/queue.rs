@@ -4,20 +4,20 @@ use std::sync::Arc;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct QueueLocalised {
-    pub title: String,
-    pub error_no_voice: String,
-    pub now_playing: String,
-    pub nothing_playing: String,
-    pub requested_by: String,
+	pub title: String,
+	pub error_no_voice: String,
+	pub now_playing: String,
+	pub nothing_playing: String,
+	pub requested_by: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_queue(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<QueueLocalised> {
-    let path = "json/message/music/queue.json";
+	let path = "json/message/music/queue.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

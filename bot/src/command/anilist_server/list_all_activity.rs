@@ -35,7 +35,7 @@
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
-    ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
 };
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
@@ -52,8 +52,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 #[derive(Clone)]
 pub struct ListAllActivity {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

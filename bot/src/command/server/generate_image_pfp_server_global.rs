@@ -59,8 +59,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 ///                            such as command arguments, user details, and the originating channel.
 #[derive(Clone)]
 pub struct GenerateGlobalImagePfPCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

@@ -1,85 +1,83 @@
 use anyhow::Result;
 use std::sync::Arc;
 
+use crate::cache::CacheInterface;
 use moka::future::Cache;
 use tokio::sync::RwLock;
-use crate::cache::CacheInterface;
 
 pub async fn do_request_cached(
-    path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
-    let cache = vndb_cache.read().await.get(&path).await;
+	let cache = vndb_cache.read().await.read(&path).await?;
 
-    if let Some(cached) = cache {
-        return Ok(cached);
-    }
+	if let Some(cached) = cache {
+		return Ok(cached);
+	}
 
-    do_request(path, vndb_cache).await
+	do_request(path, vndb_cache).await
 }
 
-pub async fn do_request(
-    path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
-) -> Result<String> {
-    let client = reqwest::Client::new();
+pub async fn do_request(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<String> {
+	let client = reqwest::Client::new();
 
-    let url = format!("https://api.vndb.org/kana{}", path);
+	let url = format!("https://api.vndb.org/kana{}", path);
 
-    let res = client
-        .get(url)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .send()
-        .await?;
+	let res = client
+		.get(url)
+		.header("Content-Type", "application/json")
+		.header("Accept", "application/json")
+		.send()
+		.await?;
 
-    let response_text = res.text().await?;
+	let response_text = res.text().await?;
 
-    vndb_cache
-        .write()
-        .await
-        .write(path, response_text.clone())
-        .await?;
+	vndb_cache
+		.write()
+		.await
+		.write(path, response_text.clone())
+		.await?;
 
-    Ok(response_text)
+	Ok(response_text)
 }
 
 pub async fn do_request_cached_with_json(
-    path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
-    let key = format!("{}_{}", path, json);
+	let key = format!("{}_{}", path, json);
 
-    let cache = vndb_cache.read().await.read(&key).await;
+	let cache = vndb_cache.read().await.read(&key).await?;
 
-    if let Some(cached) = cache {
-        return Ok(cached);
-    }
+	if let Some(cached) = cache {
+		return Ok(cached);
+	}
 
-    do_request_with_json(path, json, vndb_cache).await
+	do_request_with_json(path, json, vndb_cache).await
 }
 
 pub async fn do_request_with_json(
-    path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<String> {
-    let key = format!("{}_{}", path, json);
+	let key = format!("{}_{}", path, json);
 
-    let client = reqwest::Client::new();
+	let client = reqwest::Client::new();
 
-    let url = format!("https://api.vndb.org/kana{}", path);
+	let url = format!("https://api.vndb.org/kana{}", path);
 
-    let res = client
-        .post(url)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body(json)
-        .send()
-        .await?;
+	let res = client
+		.post(url)
+		.header("Content-Type", "application/json")
+		.header("Accept", "application/json")
+		.body(json)
+		.send()
+		.await?;
 
-    let response_text = res.text().await?;
+	let response_text = res.text().await?;
 
-    vndb_cache
-        .write()
-        .await
-        .write(key, response_text.clone())
-        .await?;
+	vndb_cache
+		.write()
+		.await
+		.write(key, response_text.clone())
+		.await?;
 
-    Ok(response_text)
+	Ok(response_text)
 }

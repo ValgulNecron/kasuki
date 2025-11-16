@@ -4,19 +4,19 @@ use std::sync::Arc;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StopLocalised {
-    pub title: String,
-    pub error_no_voice: String,
-    pub success: String,
-    pub nothing_to_stop: String,
+	pub title: String,
+	pub error_no_voice: String,
+	pub success: String,
+	pub nothing_to_stop: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_stop(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<StopLocalised> {
-    let path = "json/message/music/stop.json";
+	let path = "json/message/music/stop.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

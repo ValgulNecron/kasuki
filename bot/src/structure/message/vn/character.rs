@@ -5,38 +5,38 @@ use std::sync::Arc;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 
 pub struct CharacterLocalised {
-    pub blood_type: String,
+	pub blood_type: String,
 
-    pub height: String,
+	pub height: String,
 
-    pub weight: String,
+	pub weight: String,
 
-    pub age: String,
+	pub age: String,
 
-    pub bust: String,
+	pub bust: String,
 
-    pub waist: String,
+	pub waist: String,
 
-    pub hip: String,
+	pub hip: String,
 
-    pub cup: String,
+	pub cup: String,
 
-    pub sex: String,
+	pub sex: String,
 
-    pub birthday: String,
+	pub birthday: String,
 
-    pub vns: String,
+	pub vns: String,
 
-    pub traits: String,
+	pub traits: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_character(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<CharacterLocalised> {
-    let path = "json/message/vn/character.json";
+	let path = "json/message/vn/character.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

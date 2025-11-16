@@ -15,10 +15,10 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
 use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
-    FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
-    StaffQuerrySearchVariables,
+	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
+	StaffQuerrySearchVariables,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -27,8 +27,8 @@ use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct StaffCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -214,39 +214,39 @@ impl_command!(
 /// [`Cache`]: crate::Cache
 /// [`Staff`]: crate::Staff
 async fn get_staff(
-    command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Staff> {
-    let map = get_option_map_string(command_interaction);
+	let map = get_option_map_string(command_interaction);
 
-    let value = map
-        .get(&FixedString::from_str_trunc("staff_name"))
-        .ok_or(anyhow!("No staff name specified"))?;
+	let value = map
+		.get(&FixedString::from_str_trunc("staff_name"))
+		.ok_or(anyhow!("No staff name specified"))?;
 
-    let staff = if value.parse::<i32>().is_ok() {
-        let var = StaffQuerryIdVariables {
-            id: Some(value.parse()?),
-        };
+	let staff = if value.parse::<i32>().is_ok() {
+		let var = StaffQuerryIdVariables {
+			id: Some(value.parse()?),
+		};
 
-        let operation = StaffQuerryId::build(var);
+		let operation = StaffQuerryId::build(var);
 
-        let data: GraphQlResponse<StaffQuerryId> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<StaffQuerryId> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().staff.unwrap()
-    } else {
-        let var = StaffQuerrySearchVariables {
-            search: Some(value),
-        };
+		data.data.unwrap().staff.unwrap()
+	} else {
+		let var = StaffQuerrySearchVariables {
+			search: Some(value),
+		};
 
-        let operation = StaffQuerrySearch::build(var);
+		let operation = StaffQuerrySearch::build(var);
 
-        let data: GraphQlResponse<StaffQuerrySearch> =
-            make_request_anilist(operation, false, anilist_cache).await?;
+		let data: GraphQlResponse<StaffQuerrySearch> =
+			make_request_anilist(operation, false, anilist_cache).await?;
 
-        data.data.unwrap().staff.unwrap()
-    };
+		data.data.unwrap().staff.unwrap()
+	};
 
-    Ok(staff)
+	Ok(staff)
 }
 
 /// Generates a formatted string representation of a date, given an optional `FuzzyDate` object.
@@ -290,42 +290,42 @@ async fn get_staff(
 /// - Returns an empty string if the input `option` is `None`.
 /// - Handles combinations of missing date parts gracefully, providing the appropriate format based on the available components.
 fn get_date(option: Option<FuzzyDate>) -> String {
-    if option.is_none() {
-        return String::new();
-    }
-    let date = option.unwrap();
+	if option.is_none() {
+		return String::new();
+	}
+	let date = option.unwrap();
 
-    let mut date_string = String::new();
+	let mut date_string = String::new();
 
-    let mut day = false;
+	let mut day = false;
 
-    let mut month = false;
+	let mut month = false;
 
-    if let Some(m) = date.month {
-        month = true;
+	if let Some(m) = date.month {
+		month = true;
 
-        date_string.push_str(m.to_string().as_str())
-    }
+		date_string.push_str(m.to_string().as_str())
+	}
 
-    if let Some(d) = date.day {
-        day = true;
+	if let Some(d) = date.day {
+		day = true;
 
-        if month {
-            date_string.push('/')
-        }
+		if month {
+			date_string.push('/')
+		}
 
-        date_string.push_str(d.to_string().as_str())
-    }
+		date_string.push_str(d.to_string().as_str())
+	}
 
-    if let Some(y) = date.year {
-        if day {
-            date_string.push('/')
-        }
+	if let Some(y) = date.year {
+		if day {
+			date_string.push('/')
+		}
 
-        date_string.push_str(y.to_string().as_str())
-    }
+		date_string.push_str(y.to_string().as_str())
+	}
 
-    date_string
+	date_string
 }
 
 /// Returns a full name constructed by combining two optional string components.
@@ -363,10 +363,10 @@ fn get_date(option: Option<FuzzyDate>) -> String {
 /// assert_eq!(no_name, None);
 /// ```
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
-    match (a, b) {
-        (Some(a), Some(b)) => Some(format!("{}/{}", a, b)),
-        (Some(a), None) => Some(a.to_string()),
-        (None, Some(b)) => Some(b.to_string()),
-        (None, None) => None,
-    }
+	match (a, b) {
+		(Some(a), Some(b)) => Some(format!("{}/{}", a, b)),
+		(Some(a), None) => Some(a.to_string()),
+		(None, Some(b)) => Some(b.to_string()),
+		(None, None) => None,
+	}
 }

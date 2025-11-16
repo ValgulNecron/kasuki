@@ -115,8 +115,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// ```
 #[derive(Clone)]
 pub struct ResumeCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

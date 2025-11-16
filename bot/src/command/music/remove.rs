@@ -37,8 +37,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// Both fields are expected to be passed when this struct is instantiated.
 #[derive(Clone)]
 pub struct RemoveCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

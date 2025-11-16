@@ -5,16 +5,16 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct RandomImageNSFWLocalised {
-    pub title: String,
+	pub title: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_random_image_nsfw(
-    guild_id: String, db_connection: Arc<DatabaseConnection>,
+	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<RandomImageNSFWLocalised> {
-    let path = "json/message/anime_nsfw/random_image_nsfw.json";
+	let path = "json/message/anime_nsfw/random_image_nsfw.json";
 
-    load_localization(guild_id, path, db_connection).await
+	load_localization(guild_id, path, db_connection).await
 }

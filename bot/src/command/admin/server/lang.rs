@@ -28,8 +28,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// and the content of the command itself.
 #[derive(Clone)]
 pub struct LangCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

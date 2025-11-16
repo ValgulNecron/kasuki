@@ -10,8 +10,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 #[derive(Clone)]
 pub struct VnStaffCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -21,7 +21,7 @@ impl_command!(
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
-		let vndb_cache = bot_data.vndb_cache;
+		let vndb_cache = bot_data.vndb_cache.clone();
 
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),

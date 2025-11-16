@@ -11,7 +11,7 @@ use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::impl_command;
 use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -40,8 +40,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// ```
 #[derive(Clone)]
 pub struct DeleteActivityCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -127,16 +127,16 @@ impl_command!(
 /// }
 /// ```
 async fn remove_activity(guild_id: &str, anime_id: &i32, db_config: DbConfig) -> Result<()> {
-    let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
+	let connection = sea_orm::Database::connect(get_url(db_config.clone())).await?;
 
-    let activity = ActivityData::find()
-        .filter(crate::database::activity_data::Column::ServerId.eq(guild_id))
-        .filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
-        .one(&connection)
-        .await?
-        .ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
+	let activity = ActivityData::find()
+		.filter(crate::database::activity_data::Column::ServerId.eq(guild_id))
+		.filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
+		.one(&connection)
+		.await?
+		.ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;
 
-    activity.delete(&connection).await?;
+	activity.delete(&connection).await?;
 
-    Ok(())
+	Ok(())
 }

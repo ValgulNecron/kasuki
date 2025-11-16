@@ -102,8 +102,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// components for most command-processing logic.
 #[derive(Clone)]
 pub struct SwapCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

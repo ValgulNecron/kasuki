@@ -72,7 +72,7 @@
 //!    - Creates and sends a Discord webhook with activity information.
 //!    - Stores the activity in the database.
 //! 5. Sends feedback to the user either confirming the successful addition or reporting failure.
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
@@ -89,17 +89,17 @@ use crate::helper::trimer::trim_webhook;
 use crate::impl_command;
 use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 use crate::structure::run::anilist::minimal_anime::{
-    Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
-    MinimalAnimeSearchVariables,
+	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
+	MinimalAnimeSearchVariables,
 };
+use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::Engine as _;
 use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
+use image::{GenericImageView, ImageFormat, guess_format};
 use moka::future::Cache;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
@@ -108,8 +108,8 @@ use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serde_json::json;
 use serenity::all::{
-    ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
-    GenericChannelId,
+	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
+	GenericChannelId,
 };
 use tokio::sync::RwLock;
 use tracing::trace;
@@ -139,8 +139,8 @@ use tracing::trace;
 /// ```
 #[derive(Clone)]
 pub struct AddActivityCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -313,21 +313,21 @@ impl_command!(
 /// }
 /// ```
 async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
-    let image = image::load_from_memory_with_format(image_bytes, guess_format(image_bytes)?)?;
+	let image = image::load_from_memory_with_format(image_bytes, guess_format(image_bytes)?)?;
 
-    let (width, height) = image.dimensions();
+	let (width, height) = image.dimensions();
 
-    let (crop_x, crop_y, square_size) = calculate_crop_params(width, height);
+	let (crop_x, crop_y, square_size) = calculate_crop_params(width, height);
 
-    let resized_image = image
-        .crop_imm(crop_x, crop_y, square_size, square_size)
-        .resize_exact(128, 128, FilterType::Nearest);
+	let resized_image = image
+		.crop_imm(crop_x, crop_y, square_size, square_size)
+		.resize_exact(128, 128, FilterType::Nearest);
 
-    let mut buffer = Cursor::new(Vec::new());
+	let mut buffer = Cursor::new(Vec::new());
 
-    resized_image.write_to(&mut buffer, ImageFormat::Jpeg)?;
+	resized_image.write_to(&mut buffer, ImageFormat::Jpeg)?;
 
-    Ok(buffer)
+	Ok(buffer)
 }
 
 /// Calculates the cropping parameters required to extract a square crop
@@ -367,13 +367,13 @@ async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
 /// assert_eq!(square_size, 500);
 /// ```
 fn calculate_crop_params(width: u32, height: u32) -> (u32, u32, u32) {
-    let square_size = width.min(height);
+	let square_size = width.min(height);
 
-    let crop_x = (width - square_size) / 2;
+	let crop_x = (width - square_size) / 2;
 
-    let crop_y = (height - square_size) / 2;
+	let crop_y = (height - square_size) / 2;
 
-    (crop_x, crop_y, square_size)
+	(crop_x, crop_y, square_size)
 }
 
 /// Asynchronously checks whether a specific activity exists in the database.
@@ -415,21 +415,21 @@ fn calculate_crop_params(width: u32, height: u32) -> (u32, u32, u32) {
 /// and assumes the presence of the `ActivityData` entity and `Column` for filtering.
 /// Ensure that the database schema and configurations align with these assumptions.
 async fn check_if_activity_exist(
-    anime_id: i32, server_id: String, db_connection: Arc<DatabaseConnection>,
+	anime_id: i32, server_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> bool {
-    let row = match ActivityData::find()
-        .filter(Column::ServerId.eq(server_id))
-        .filter(Column::AnimeId.eq(anime_id))
-        .one(&*db_connection)
-        .await
-    {
-        Ok(row) => row,
-        Err(_) => return false,
-    };
+	let row = match ActivityData::find()
+		.filter(Column::ServerId.eq(server_id))
+		.filter(Column::AnimeId.eq(anime_id))
+		.one(&*db_connection)
+		.await
+	{
+		Ok(row) => row,
+		Err(_) => return false,
+	};
 
-    trace!(?row);
+	trace!(?row);
 
-    row.is_some()
+	row.is_some()
 }
 
 /// Retrieves the name of a media title by combining its English and Romaji representations,
@@ -490,20 +490,20 @@ async fn check_if_activity_exist(
 ///
 /// Be sure to configure your logger to capture trace-level logs if you wish to view the debug output.
 pub fn get_name(title: MediaTitle) -> String {
-    let english_title = title.english;
+	let english_title = title.english;
 
-    let romaji_title = title.romaji;
+	let romaji_title = title.romaji;
 
-    let title = match (romaji_title, english_title) {
-        (Some(romaji), Some(english)) => format!("{} / {}", english, romaji),
-        (Some(romaji), None) => romaji,
-        (None, Some(english)) => english,
-        (None, None) => String::new(),
-    };
+	let title = match (romaji_title, english_title) {
+		(Some(romaji), Some(english)) => format!("{} / {}", english, romaji),
+		(Some(romaji), None) => romaji,
+		(None, Some(english)) => english,
+		(None, None) => String::new(),
+	};
 
-    trace!(?title);
+	trace!(?title);
 
-    title
+	title
 }
 
 /// Asynchronously retrieves or creates a Discord webhook for a given channel, sets its properties based on the provided inputs,
@@ -552,85 +552,85 @@ pub fn get_name(title: MediaTitle) -> String {
 /// println!("Webhook URL: {}", webhook_url);
 /// ```
 async fn get_webhook(
-    ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String,
-    anime_name: String,
+	ctx: &SerenityContext, channel_id: GenericChannelId, image: String, base64: String,
+	anime_name: String,
 ) -> Result<String> {
-    trace!(?image);
+	trace!(?image);
 
-    trace!(?anime_name);
+	trace!(?anime_name);
 
-    let webhook_info = json!({
+	let webhook_info = json!({
 		"avatar": image,
 		"name": anime_name
 	});
 
-    let bot_id = ctx
-        .http
-        .get_current_application_info()
-        .await?
-        .id
-        .to_string();
+	let bot_id = ctx
+		.http
+		.get_current_application_info()
+		.await?
+		.id
+		.to_string();
 
-    trace!(?bot_id);
+	trace!(?bot_id);
 
-    let mut webhook_url = String::new();
+	let mut webhook_url = String::new();
 
-    let webhooks = ctx
-        .http
-        .get_channel_webhooks(ChannelId::new(channel_id.get()))
-        .await?;
+	let webhooks = ctx
+		.http
+		.get_channel_webhooks(ChannelId::new(channel_id.get()))
+		.await?;
 
-    if webhooks.is_empty() {
-        let webhook = ctx
-            .http
-            .create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
-            .await?;
+	if webhooks.is_empty() {
+		let webhook = ctx
+			.http
+			.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
+			.await?;
 
-        webhook_url = webhook.url()?;
-    } else {
-        for webhook in webhooks {
-            if webhook
-                .user
-                .clone()
-                .ok_or(anyhow!("webhook user not found"))?
-                .id
-                .to_string() == bot_id
-            {
-                webhook_url = webhook.url()?;
+		webhook_url = webhook.url()?;
+	} else {
+		for webhook in webhooks {
+			if webhook
+				.user
+				.clone()
+				.ok_or(anyhow!("webhook user not found"))?
+				.id
+				.to_string() == bot_id
+			{
+				webhook_url = webhook.url()?;
 
-                break;
-            }
-        }
+				break;
+			}
+		}
 
-        if webhook_url.is_empty() {
-            let webhook = ctx
-                .http
-                .create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
-                .await?;
+		if webhook_url.is_empty() {
+			let webhook = ctx
+				.http
+				.create_webhook(ChannelId::new(channel_id.get()), &webhook_info, None)
+				.await?;
 
-            webhook_url = webhook.url()?;
-        }
-    }
+			webhook_url = webhook.url()?;
+		}
+	}
 
-    trace!(?webhook_url);
+	trace!(?webhook_url);
 
-    let cursor = Cursor::new(base64);
+	let cursor = Cursor::new(base64);
 
-    let mut decoder = DecoderReader::new(cursor, &STANDARD);
+	let mut decoder = DecoderReader::new(cursor, &STANDARD);
 
-    let mut decoded_bytes = Vec::new();
+	let mut decoded_bytes = Vec::new();
 
-    decoder.read_to_end(&mut decoded_bytes)?;
+	decoder.read_to_end(&mut decoded_bytes)?;
 
-    let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
+	let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
 
-    let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-    let attachment = attachment.encode().await?;
-    let edit_webhook = EditWebhook::new().name(anime_name).avatar(attachment);
+	let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
+	let attachment = attachment.encode().await?;
+	let edit_webhook = EditWebhook::new().name(anime_name).avatar(attachment);
 
-    webhook.edit(&ctx.http, edit_webhook).await?;
+	webhook.edit(&ctx.http, edit_webhook).await?;
 
-    Ok(webhook_url)
+	Ok(webhook_url)
 }
 
 /// Asynchronously fetches minimal anime information by anime ID.
@@ -683,24 +683,24 @@ async fn get_webhook(
 /// For logging purposes, the anime `id` will be traced to assist in identifying
 /// any potential issues during the request execution.
 pub async fn get_minimal_anime_by_id(
-    id: i32, cache: Arc<RwLock<Cache<String, String>>>,
+	id: i32, cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media> {
-    trace!(?id);
+	trace!(?id);
 
-    let query = MinimalAnimeIdVariables { id: Some(id) };
+	let query = MinimalAnimeIdVariables { id: Some(id) };
 
-    let operation = MinimalAnimeId::build(query);
+	let operation = MinimalAnimeId::build(query);
 
-    let response: GraphQlResponse<MinimalAnimeId> =
-        make_request_anilist(operation, false, cache).await?;
+	let response: GraphQlResponse<MinimalAnimeId> =
+		make_request_anilist(operation, false, cache).await?;
 
-    let media = response
-        .data
-        .ok_or(anyhow!("Error with request"))?
-        .media
-        .ok_or(anyhow!("No media found"))?;
+	let media = response
+		.data
+		.ok_or(anyhow!("Error with request"))?
+		.media
+		.ok_or(anyhow!("No media found"))?;
 
-    Ok(media)
+	Ok(media)
 }
 
 /// Fetches the minimal anime information by performing a search query.
@@ -750,26 +750,26 @@ pub async fn get_minimal_anime_by_id(
 /// }
 /// ```
 async fn get_minimal_anime_by_search(
-    query: &str, cache: Arc<RwLock<Cache<String, String>>>,
+	query: &str, cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media> {
-    trace!(?query);
+	trace!(?query);
 
-    let search_query = MinimalAnimeSearchVariables {
-        search: Some(query),
-    };
+	let search_query = MinimalAnimeSearchVariables {
+		search: Some(query),
+	};
 
-    let operation = MinimalAnimeSearch::build(search_query);
+	let operation = MinimalAnimeSearch::build(search_query);
 
-    let response: GraphQlResponse<MinimalAnimeSearch> =
-        make_request_anilist(operation, false, cache).await?;
+	let response: GraphQlResponse<MinimalAnimeSearch> =
+		make_request_anilist(operation, false, cache).await?;
 
-    let media = response
-        .data
-        .ok_or(anyhow!("Error with request"))?
-        .media
-        .ok_or(anyhow!("No media found"))?;
+	let media = response
+		.data
+		.ok_or(anyhow!("Error with request"))?
+		.media
+		.ok_or(anyhow!("No media found"))?;
 
-    Ok(media)
+	Ok(media)
 }
 
 /// Retrieves minimal anime media details based on the provided anime identifier (ID or name).
@@ -816,15 +816,15 @@ async fn get_minimal_anime_by_search(
 /// ## Logging
 /// - Debug logs (`trace!`) are emitted with the retrieved `media` details for debugging purposes.
 pub async fn get_minimal_anime_media(
-    anime: String, cache: Arc<RwLock<Cache<String, String>>>,
+	anime: String, cache: Arc<RwLock<Cache<String, String>>>,
 ) -> Result<Media> {
-    let media = if let Ok(id) = anime.parse::<i32>() {
-        get_minimal_anime_by_id(id, cache).await?
-    } else {
-        get_minimal_anime_by_search(&anime, cache).await?
-    };
+	let media = if let Ok(id) = anime.parse::<i32>() {
+		get_minimal_anime_by_id(id, cache).await?
+	} else {
+		get_minimal_anime_by_search(&anime, cache).await?
+	};
 
-    trace!(?media);
+	trace!(?media);
 
-    Ok(media)
+	Ok(media)
 }

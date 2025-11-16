@@ -55,8 +55,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 /// ```
 #[derive(Clone)]
 pub struct CommandUsageCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -73,7 +73,7 @@ impl_command!(
 
 		// Query database for user's command usage
 		let db_connection = bot_data.db_connection.clone();
-		
+
 		let usage = get_usage_for_id(&user_id, &db_connection).await?;
 
 		let guild_id = command_interaction
@@ -157,26 +157,25 @@ impl_command!(
 /// }
 /// ```
 async fn get_usage_for_id(
-    target_id: &str,
-    db_connection: &sea_orm::DatabaseConnection,
+	target_id: &str, db_connection: &sea_orm::DatabaseConnection,
 ) -> Result<Vec<(String, u128)>, anyhow::Error> {
-    use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+	use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
-    // Query all command usage records for this user
-    let usage_results = crate::database::command_usage::Entity::find()
-        .filter(crate::database::command_usage::Column::User.eq(target_id))
-        .all(db_connection)
-        .await?;
+	// Query all command usage records for this user
+	let usage_results = crate::database::command_usage::Entity::find()
+		.filter(crate::database::command_usage::Column::User.eq(target_id))
+		.all(db_connection)
+		.await?;
 
-    // Group by command and count
-    let mut usage: std::collections::HashMap<String, u128> = std::collections::HashMap::new();
-    for record in usage_results {
-        *usage.entry(record.command).or_insert(0) += 1;
-    }
+	// Group by command and count
+	let mut usage: std::collections::HashMap<String, u128> = std::collections::HashMap::new();
+	for record in usage_results {
+		*usage.entry(record.command).or_insert(0) += 1;
+	}
 
-    // Convert to sorted vector (descending by usage count)
-    let mut usage: Vec<(String, u128)> = usage.into_iter().collect();
-    usage.sort_by(|a, b| b.1.cmp(&a.1));
+	// Convert to sorted vector (descending by usage count)
+	let mut usage: Vec<(String, u128)> = usage.into_iter().collect();
+	usage.sort_by(|a, b| b.1.cmp(&a.1));
 
-    Ok(usage)
+	Ok(usage)
 }

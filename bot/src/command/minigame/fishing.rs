@@ -14,8 +14,8 @@ use tracing::{debug, info};
 
 #[derive(Clone)]
 pub struct FishingCommand {
-    pub ctx: SerenityContext,
-    pub command_interaction: CommandInteraction,
+	pub ctx: SerenityContext,
+	pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -108,64 +108,64 @@ impl_command!(
 
 /// Get all fish items from the database
 async fn get_fish_items(db: &DatabaseConnection) -> Result<Vec<ItemModel>> {
-    debug!("Getting all fish items from the database");
+	debug!("Getting all fish items from the database");
 
-    let fish_items = Item::find()
-        .filter(crate::database::item::Column::Type.eq("fish"))
-        .all(db)
-        .await
-        .context("Failed to get fish items from database")?;
+	let fish_items = Item::find()
+		.filter(crate::database::item::Column::Type.eq("fish"))
+		.all(db)
+		.await
+		.context("Failed to get fish items from database")?;
 
-    debug!("Found {} fish items", fish_items.len());
+	debug!("Found {} fish items", fish_items.len());
 
-    Ok(fish_items)
+	Ok(fish_items)
 }
 
 /// Catch a random fish based on weights
 fn catch_random_fish(fish_items: &[ItemModel]) -> Result<&ItemModel> {
-    debug!("Generating random fish based on weights");
+	debug!("Generating random fish based on weights");
 
-    // Create a weighted distribution based on the weights of the fish
-    let weights: Vec<i32> = fish_items.iter().map(|item| item.weight).collect();
-    let dist = WeightedIndex::new(&weights).context("Failed to create weighted distribution")?;
+	// Create a weighted distribution based on the weights of the fish
+	let weights: Vec<i32> = fish_items.iter().map(|item| item.weight).collect();
+	let dist = WeightedIndex::new(&weights).context("Failed to create weighted distribution")?;
 
-    // Generate a random index based on the weights
-    let mut rng = rand::rng();
-    let index = dist.sample(&mut rng);
+	// Generate a random index based on the weights
+	let mut rng = rand::rng();
+	let index = dist.sample(&mut rng);
 
-    debug!("Selected fish: {}", fish_items[index].name);
+	debug!("Selected fish: {}", fish_items[index].name);
 
-    Ok(&fish_items[index])
+	Ok(&fish_items[index])
 }
 
 /// Add a fish to the user's inventory
 async fn add_fish_to_inventory(
-    db: &DatabaseConnection, user_id: String, server_id: String, item_id: String, size: i32,
-    rarity: i32, item_xp_boost: f32,
+	db: &DatabaseConnection, user_id: String, server_id: String, item_id: String, size: i32,
+	rarity: i32, item_xp_boost: f32,
 ) -> Result<()> {
-    debug!(
+	debug!(
 		"Adding fish to user's inventory: user_id={}, server_id={}, item_id={}",
 		user_id, server_id, item_id
 	);
-    let unique_id = uuid::Uuid::new_v4().to_string();
-    // Create a new inventory item
-    let inventory_item = UserInventoryActiveModel {
-        id: Set(unique_id),
-        item_id: Set(item_id),
-        user_id: Set(user_id),
-        server_id: Set(server_id),
-        size: Set(size),
-        rarity: Set(rarity),
-        item_xp_boost: Set(item_xp_boost),
-    };
+	let unique_id = uuid::Uuid::new_v4().to_string();
+	// Create a new inventory item
+	let inventory_item = UserInventoryActiveModel {
+		id: Set(unique_id),
+		item_id: Set(item_id),
+		user_id: Set(user_id),
+		server_id: Set(server_id),
+		size: Set(size),
+		rarity: Set(rarity),
+		item_xp_boost: Set(item_xp_boost),
+	};
 
-    // Insert the item into the database
-    inventory_item
-        .insert(db)
-        .await
-        .context("Failed to add fish to user's inventory")?;
+	// Insert the item into the database
+	inventory_item
+		.insert(db)
+		.await
+		.context("Failed to add fish to user's inventory")?;
 
-    info!("Fish added to user's inventory successfully");
+	info!("Fish added to user's inventory successfully");
 
-    Ok(())
+	Ok(())
 }
