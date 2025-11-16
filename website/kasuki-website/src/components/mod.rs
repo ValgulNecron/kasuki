@@ -7,3 +7,4 @@ pub mod screenshots;
 pub mod setup;
 pub mod privacy;
 pub mod terms;
+pub mod profile;
