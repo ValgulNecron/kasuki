@@ -32,7 +32,7 @@ pub async fn manage_activity(
 }
 
 async fn send_activity(
-	ctx: &SerenityContext, anilist_cache: Arc<RwLock<Cache>>,
+	ctx: &SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>,
 ) {
 	let now = Utc::now().naive_utc();
