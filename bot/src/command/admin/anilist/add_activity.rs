@@ -113,6 +113,7 @@ use serenity::all::{
 };
 use tokio::sync::RwLock;
 use tracing::trace;
+use crate::cache::CacheInterface;
 
 /// A struct representing the `AddActivityCommand`, which encapsulates the context and interaction
 /// details required for handling the "Add Activity" command in a Discord bot.
@@ -816,7 +817,7 @@ async fn get_minimal_anime_by_search(
 /// ## Logging
 /// - Debug logs (`trace!`) are emitted with the retrieved `media` details for debugging purposes.
 pub async fn get_minimal_anime_media(
-	anime: String, cache: Arc<RwLock<Cache<String, String>>>,
+    anime: String, cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Media> {
 	let media = if let Ok(id) = anime.parse::<i32>() {
 		get_minimal_anime_by_id(id, cache).await?

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace, warn};
-
+use crate::cache::CacheInterface;
 use crate::config::TaskIntervalConfig;
 use crate::constant::RANDOM_STATS_PATH;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -152,7 +152,7 @@ pub async fn update_random_stats_launcher(
 /// Returns the updated `RandomStat` on success, or an error on failure.
 
 pub async fn update_random_stats(
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
 	trace!("Starting update_random_stats function");
 	debug!(

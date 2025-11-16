@@ -24,6 +24,7 @@ use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
+use crate::cache::CacheInterface;
 
 #[derive(Clone)]
 pub struct StaffCommand {
@@ -214,7 +215,7 @@ impl_command!(
 /// [`Cache`]: crate::Cache
 /// [`Staff`]: crate::Staff
 async fn get_staff(
-	command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Staff> {
 	let map = get_option_map_string(command_interaction);
 
