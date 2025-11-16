@@ -26,6 +26,7 @@ mod m20250712_120918_create_inventory;
 mod m20250713_181925_remove_max_quantity;
 mod m20250716_151106_add_leaderboard;
 mod m20250716_151508_add_foreign_key;
+mod m20251116_190300_add_use_time_to_command_usage;
 
 pub struct Migrator;
 
@@ -59,6 +60,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250713_181925_remove_max_quantity::Migration),
             Box::new(m20250716_151106_add_leaderboard::Migration),
             Box::new(m20250716_151508_add_foreign_key::Migration),
+            Box::new(m20251116_190300_add_use_time_to_command_usage::Migration),
         ]
     }
 }

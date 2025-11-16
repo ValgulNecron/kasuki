@@ -25,7 +25,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
         &ctx,
         autocomplete_interaction,
         var,
-        bot_data.anilist_cache.clone(),
+        bot_data.anilist_cache.read().await.get_cache(),
     )
         .await;
 }

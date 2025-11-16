@@ -31,7 +31,6 @@ mod music_events;
 mod register;
 mod structure;
 mod task;
-mod new_main;
 mod cache;
 
 #[tokio::main]

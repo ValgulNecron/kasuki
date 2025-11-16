@@ -111,7 +111,7 @@ get_contents = |self_: AnimeCommand| async move {
 		Some(MediaFormat::Music),
 	]);
 
-	let anilist_cache = bot_data.anilist_cache.clone();
+	let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
 
 	let data: Media = if value.parse::<i32>().is_ok() {
 		let id = value.parse::<i32>().unwrap();

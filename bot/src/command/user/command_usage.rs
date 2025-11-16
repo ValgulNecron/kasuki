@@ -20,11 +20,10 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
-use crate::event_handler::{BotData, RootUsage};
+use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::user::command_usage::load_localization_command_usage;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use tokio::sync::RwLockReadGuard;
 
 /// A struct representing a command usage event within a Discord application.
 ///
@@ -68,21 +67,19 @@ impl_command!(
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
-		let command_usage = bot_data.number_of_command_use_per_command.clone();
 
 		let user_id = user.id.to_string();
-
 		let username = user.name.clone();
 
-		let read_command_usage = command_usage.read().await;
-
-		let usage = get_usage_for_id(&user_id, read_command_usage);
+		// Query database for user's command usage
+		let db_connection = bot_data.db_connection.clone();
+		
+		let usage = get_usage_for_id(&user_id, &db_connection).await?;
 
 		let guild_id = command_interaction
 			.guild_id
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
-		let db_connection = bot_data.db_connection.clone();
 
 		let localized_command_usage =
 			load_localization_command_usage(guild_id, db_connection).await?;
@@ -136,65 +133,50 @@ impl_command!(
 	}
 );
 
-/// Retrieves usage statistics for a specific user ID from the given `RootUsage` data structure.
+/// Retrieves usage statistics for a specific user ID from the database.
 ///
 /// # Arguments
 ///
 /// * `target_id` - A `&str` representing the target user ID whose usage information needs to be retrieved.
-/// * `root_usage` - A `RwLockReadGuard<RootUsage>` providing read access to the `RootUsage` instance
-///   which stores the overall command usage data for all users.
+/// * `db_connection` - Database connection to query the command_usage table
 ///
 /// # Returns
 ///
 /// A `Vec<(String, u128)>` where each element is a tuple containing:
 /// - `String`: The name of the command related to the usage.
-/// - `u128`: The usage value corresponding to the command.
-///
-/// # Workflow
-///
-/// 1. The function iterates through all the commands in the `command_list` of `RootUsage`.
-/// 2. For each command, it examines the usage details of all users.
-/// 3. If the `target_id` matches a user ID, it collects the command name and associated usage data as a tuple.
-/// 4. The collected tuples are stored in a `Vec` and returned.
+/// - `u128`: The usage count for that command.
 ///
 /// # Example
 ///
 /// ```rust
 /// let target_id = "user123";
-/// let root_usage = obtain_root_usage(); // Assume `obtain_root_usage` returns a valid RwLockReadGuard<RootUsage>.
-/// let user_usage = get_usage_for_id(target_id, root_usage);
+/// let user_usage = get_usage_for_id(target_id, &db_connection).await?;
 ///
 /// for (command, usage) in user_usage {
 ///     println!("Command: {}, Usage: {}", command, usage);
 /// }
 /// ```
-///
-/// # Notes
-///
-/// - This function assumes that `root_usage` provides a thread-safe read lock to the underlying data structure.
-/// - The result vector will be empty if `target_id` is not found in the usage data.
-/// - Since the function iterates through all commands and their associated user data, it may have performance implications for large datasets.
-///
-/// # Dependencies
-///
-/// - `RwLockReadGuard` must be properly instantiated before passing it to this function.
-/// - The `RootUsage` structure must include `command_list` data, where each entry associates a command with user-specific usage details.
-///
-/// # Safety
-///
-/// No mutable operations are performed; this function strictly reads from the provided data structure.
-fn get_usage_for_id(
-    target_id: &str, root_usage: RwLockReadGuard<RootUsage>,
-) -> Vec<(String, u128)> {
-    let mut usage = Vec::new();
+async fn get_usage_for_id(
+    target_id: &str,
+    db_connection: &sea_orm::DatabaseConnection,
+) -> Result<Vec<(String, u128)>, anyhow::Error> {
+    use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
-    for (command, user_info) in root_usage.command_list.iter() {
-        for (id, user_usage) in user_info.user_info.iter() {
-            if id == target_id {
-                usage.push((command.clone(), user_usage.usage));
-            }
-        }
+    // Query all command usage records for this user
+    let usage_results = crate::database::command_usage::Entity::find()
+        .filter(crate::database::command_usage::Column::User.eq(target_id))
+        .all(db_connection)
+        .await?;
+
+    // Group by command and count
+    let mut usage: std::collections::HashMap<String, u128> = std::collections::HashMap::new();
+    for record in usage_results {
+        *usage.entry(record.command).or_insert(0) += 1;
     }
 
-    usage
+    // Convert to sorted vector (descending by usage count)
+    let mut usage: Vec<(String, u128)> = usage.into_iter().collect();
+    usage.sort_by(|a, b| b.1.cmp(&a.1));
+
+    Ok(usage)
 }

@@ -7,15 +7,13 @@ use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
 use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
 use crate::config::Config;
-use crate::constant::COMMAND_USE_PATH;
 use crate::database::prelude::{
     GuildData, GuildSubscription, Message as DatabaseMessage, ServerUserRelation, UserData,
     UserSubscription, Vocal as DatabaseVocal,
 };
 use crate::error_management::error_dispatch;
 use crate::register::registration_dispatcher::command_registration;
-use chrono::{DateTime, Utc};
-use moka::future::Cache;
+use chrono::{DateTime, Timelike, Utc};
 use num_bigint::BigUint;
 use reqwest::Client;
 use sea_orm::ActiveValue::Set;
@@ -31,11 +29,10 @@ use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo, ShardRu
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use songbird::Songbird;
 use std::collections::HashMap;
-use std::ops::{Add, AddAssign};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, instrument, trace};
-
+use crate::CacheInterface;
 pub struct BotData {
     pub config: Arc<Config>,
     pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
@@ -116,7 +113,7 @@ impl RootUsage {
 
         for (_, user_info) in command_usage.command_list.iter() {
             for (_, user_usage) in user_info.user_info.iter() {
-                total.add_assign(user_usage.usage)
+                total += user_usage.usage;
             }
         }
 
@@ -124,74 +121,54 @@ impl RootUsage {
     }
 }
 
+use sea_orm::{ActiveModelTrait, ColumnTrait, PaginatorTrait, QueryFilter};
+
 impl BotData {
     pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
-        let number_of_command_use_per_command = self.number_of_command_use_per_command.clone();
+        // Query database for command usage in the current hour
+        let conn = self.db_connection.clone();
+        let now = chrono::Utc::now();
+        let hour_start = now
+            .date_naive()
+            .and_hms_opt(now.hour(), 0, 0)
+            .unwrap()
+            .and_utc();
+        let hour_end = hour_start + chrono::Duration::hours(1);
 
-        let guard = number_of_command_use_per_command.read().await;
-
-        let user_map = guard
-            .command_list
-            .get(&command_name)
-            .cloned()
-            .unwrap_or_default()
-            .user_info
-            .get(&user_id)
-            .cloned()
-            .unwrap_or_default();
-
-        *user_map
-            .hourly_usage
-            .get(&chrono::Local::now().format("%H").to_string())
-            .unwrap_or(&(0u128))
+        match crate::database::command_usage::Entity::find()
+            .filter(crate::database::command_usage::Column::Command.eq(command_name))
+            .filter(crate::database::command_usage::Column::User.eq(user_id))
+            .filter(crate::database::command_usage::Column::UseTime.gte(hour_start))
+            .filter(crate::database::command_usage::Column::UseTime.lt(hour_end))
+            .count(&*conn)
+            .await
+        {
+            Ok(count) => count as u128,
+            Err(e) => {
+                error!("DB error reading command usage: {}", e);
+                0u128
+            }
+        }
     }
 
-    // thread safe way to increment the number of command use per command
+    // Insert command usage record to DB
     pub async fn increment_command_use_per_command(
-        &self, command_name: String, user_id: String, user_name: String,
+        &self,
+        command_name: String,
+        user_id: String,
+        _user_name: String,
     ) {
-        let number_of_command_use_per_command = self.number_of_command_use_per_command.clone();
+        let conn = self.db_connection.clone();
+        let now = chrono::Utc::now();
 
-        let mut guard = number_of_command_use_per_command.write().await;
+        let am = crate::database::command_usage::ActiveModel {
+            command: Set(command_name.clone()),
+            user: Set(user_id.clone()),
+            use_time: Set(now),
+        };
 
-        let command_map = guard
-            .command_list
-            .entry(command_name)
-            .or_insert_with(|| UserInfo {
-                user_info: HashMap::new(),
-            });
-
-        let user_map = command_map
-            .user_info
-            .entry(user_id)
-            .or_insert_with(|| UserUsage {
-                user_name,
-                usage: 0,
-                hourly_usage: Default::default(),
-            });
-
-        user_map.usage = user_map.usage.add(1);
-
-        // create a timestamp in format dd:mm:aaaa:hh
-        let timestamp = chrono::Local::now().format("%d:%m:%Y:%H").to_string();
-
-        // insert or update the hourly usage
-        let hourly_usage = user_map.hourly_usage.entry(timestamp).or_insert(0);
-
-        *hourly_usage += 1;
-
-        // drop the guard
-        drop(guard);
-
-        // save the content as a json
-        match serde_json::to_string(&*self.number_of_command_use_per_command.read().await) {
-            Ok(content) => {
-                // save the content to the file
-                if let Err(e) = std::fs::write(COMMAND_USE_PATH, content) {
-                    error!("Failed to write to file: {}", e);
-                }
-            }
-            Err(e) => error!("Error serializing data: {}", e),
+        if let Err(e) = am.insert(&*conn).await {
+            error!("Failed to insert command usage in DB: {}", e);
         }
     }
 }
@@ -579,11 +556,14 @@ impl Handler {
 
                 let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
 
+                let music_config = bot_data.config.music.as_ref()
+                    .expect("Music configuration is required");
+
                 let node_local = NodeBuilder {
-                    hostname: bot_data.config.music.lavalink_hostname.clone(),
-                    is_ssl: bot_data.config.music.https,
+                    hostname: music_config.lavalink_hostname.clone(),
+                    is_ssl: music_config.https,
                     events: events::Events::default(),
-                    password: bot_data.config.music.lavalink_password.clone(),
+                    password: music_config.lavalink_password.clone(),
                     user_id,
                     session_id: None,
                 };

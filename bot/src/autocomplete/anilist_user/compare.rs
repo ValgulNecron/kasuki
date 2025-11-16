@@ -29,13 +29,13 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
         .get(&FixedString::from_str_trunc("username"))
         .unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user1, bot_data.anilist_cache.clone()).await);
+    choice.extend(get_choices(user1, bot_data.anilist_cache.read().await.get_cache()).await);
 
     let user2 = map
         .get(&FixedString::from_str_trunc("username2"))
         .unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user2, bot_data.anilist_cache.clone()).await);
+    choice.extend(get_choices(user2, bot_data.anilist_cache.read().await.get_cache()).await);
 
     let data = CreateAutocompleteResponse::new().set_choices(choice);
 

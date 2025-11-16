@@ -68,7 +68,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
     debug!("Preparing shared resources for background tasks");
 
     // Extract shared resources that will be used by multiple background tasks
-    let anilist_cache = bot_data.anilist_cache.clone();
+    let anilist_cache = bot_data.anilist_cache.read().await.get_cache();
     let apps = bot_data.apps.clone();
     let user_blacklist_server_image = bot_data.user_blacklist.clone();
     let db_connection = bot_data.db_connection.clone();
