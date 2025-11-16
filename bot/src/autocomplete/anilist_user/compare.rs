@@ -16,6 +16,7 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 use anyhow::Result;
 use small_fixed_array::FixedString;
+use crate::cache::CacheInterface;
 
 pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
     let mut choice = Vec::new();
@@ -29,13 +30,15 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
         .get(&FixedString::from_str_trunc("username"))
         .unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user1, bot_data.anilist_cache.read().await.get_cache()).await);
+    choice.extend(get_choices(user1,         bot_data.anilist_cache.clone(),
+    ).await);
 
     let user2 = map
         .get(&FixedString::from_str_trunc("username2"))
         .unwrap_or(DEFAULT_STRING);
 
-    choice.extend(get_choices(user2, bot_data.anilist_cache.read().await.get_cache()).await);
+    choice.extend(get_choices(user2,         bot_data.anilist_cache.clone(),
+    ).await);
 
     let data = CreateAutocompleteResponse::new().set_choices(choice);
 
@@ -47,7 +50,7 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 }
 
 async fn get_choices(
-    search: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    search: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Vec<AutocompleteChoice> {
     trace!("{:?}", search);
 

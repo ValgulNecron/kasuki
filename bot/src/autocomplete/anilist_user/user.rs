@@ -25,7 +25,8 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
     let operation = UserAutocomplete::build(var);
 
     let data: GraphQlResponse<UserAutocomplete> =
-        match make_request_anilist(operation, false, bot_data.anilist_cache.read().await.get_cache()).await {
+        match make_request_anilist(operation, false,         bot_data.anilist_cache.clone(),
+        ).await {
             Ok(data) => data,
             Err(e) => {
                 tracing::error!(?e);
