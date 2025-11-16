@@ -512,7 +512,7 @@ async fn update_random(
 ///
 /// Returns true if there are more pages to update, false otherwise.
 async fn update_page(
-	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 	update_anime: bool, update_manga: bool,
 ) -> bool {
 	// If neither anime nor manga updates are requested, return early
