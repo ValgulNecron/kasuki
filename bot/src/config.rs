@@ -10,6 +10,7 @@ pub struct Config {
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
 	pub task_intervals: TaskIntervalConfig,
+	pub api: ApiConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -107,6 +108,22 @@ pub struct TaskIntervalConfig {
 	pub bot_info_update: u64,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct ApiConfig {
+	pub enabled: bool,
+	pub port: u16,
+	pub api_key: String,
+	pub oauth: OAuthConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OAuthConfig {
+	pub discord_client_id: String,
+	pub discord_client_secret: String,
+	pub discord_redirect_uri: String,
+	pub frontend_url: String,
+}
+
 impl Default for Config {
 	fn default() -> Self {
 		Config {
@@ -172,6 +189,17 @@ impl Default for Config {
 				random_stats_update: 86_400,
 				anisong_update: 604_800,
 				bot_info_update: 1_800,
+			},
+			api: ApiConfig {
+				enabled: false,
+				port: 8080,
+				api_key: "your_secure_api_key_here".to_string(),
+				oauth: OAuthConfig {
+					discord_client_id: "".to_string(),
+					discord_client_secret: "".to_string(),
+					discord_redirect_uri: "http://localhost:8080/api/oauth/callback".to_string(),
+					frontend_url: "http://localhost:8000".to_string(),
+				},
 			},
 		}
 	}
