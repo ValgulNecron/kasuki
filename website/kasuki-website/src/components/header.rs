@@ -2,6 +2,7 @@
 use leptos::*;
 use leptos::prelude::*;
 use crate::app::User;
+use crate::config::Config;
 
 #[component]
 pub fn Header(
@@ -11,35 +12,11 @@ pub fn Header(
     let (menu_open, set_menu_open) = create_signal(false);
 
     let handle_login = move |_| {
-        // For now, simulate Discord OAuth login with demo data
-        // In production, this would redirect to Discord OAuth flow
+        // Redirect to the Discord OAuth login endpoint
         if let Some(window) = web_sys::window() {
-            let _ = window.alert_with_message("Discord OAuth login would happen here.\nFor demo purposes, logging you in with test data.");
+            let login_url = Config::oauth_login_url();
+            let _ = window.location().set_href(&login_url);
         }
-        
-        // Set demo user data
-        set_user.set(Some(User {
-            id: "123456789".to_string(),
-            username: "DemoUser".to_string(),
-            avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png".to_string(),
-            guilds: vec![
-                crate::app::Guild {
-                    id: "1".to_string(),
-                    name: "Anime Lovers".to_string(),
-                    icon_url: None,
-                },
-                crate::app::Guild {
-                    id: "2".to_string(),
-                    name: "Manga Readers".to_string(),
-                    icon_url: None,
-                },
-                crate::app::Guild {
-                    id: "3".to_string(),
-                    name: "Kasuki Support".to_string(),
-                    icon_url: None,
-                },
-            ],
-        }));
     };
 
     let handle_logout = move |_| {
