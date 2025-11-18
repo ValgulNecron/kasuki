@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace, warn};
-
+use crate::cache::CacheInterface;
 use crate::config::TaskIntervalConfig;
 use crate::constant::RANDOM_STATS_PATH;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -44,7 +44,7 @@ impl Default for RandomStat {
 /// * `task_intervals` - Configuration for task intervals.
 
 pub async fn update_random_stats_launcher(
-	anilist_cache: Arc<RwLock<Cache<String, String>>>, task_intervals: TaskIntervalConfig,
+	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
 ) {
 	// Log the start of the random stats update task.
 	info!("Launching random stats update background task");
@@ -152,7 +152,7 @@ pub async fn update_random_stats_launcher(
 /// Returns the updated `RandomStat` on success, or an error on failure.
 
 pub async fn update_random_stats(
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
+    anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
 	trace!("Starting update_random_stats function");
 	debug!(
@@ -287,7 +287,7 @@ pub async fn update_random_stats(
 /// A `Result` containing the updated random statistics or an error.
 
 async fn update_random(
-	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
 	trace!("Starting update_random function");
 	debug!(
@@ -512,7 +512,7 @@ async fn update_random(
 ///
 /// Returns true if there are more pages to update, false otherwise.
 async fn update_page(
-	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 	update_anime: bool, update_manga: bool,
 ) -> bool {
 	// If neither anime nor manga updates are requested, return early

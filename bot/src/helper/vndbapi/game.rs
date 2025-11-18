@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::fmt::Display;
 use std::sync::Arc;
 
+use crate::cache::CacheInterface;
 use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
@@ -79,9 +80,7 @@ pub struct VNRoot {
 	pub more: bool,
 }
 
-pub async fn get_vn(
-	value: String, vndb_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<VNRoot> {
+pub async fn get_vn(value: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<VNRoot> {
 	let value = value.to_lowercase();
 
 	let value = value.trim();

@@ -44,7 +44,7 @@ impl_command!(
 		let command_interaction = self_.get_command_interaction().clone();
 
 
-		let anilist_cache = bot_data.anilist_cache.clone();
+	let anilist_cache = bot_data.anilist_cache.clone();
 
 		// Execute the corresponding search function based on the specified type
 		// Fetch the data of the character with ID 156323 from AniList

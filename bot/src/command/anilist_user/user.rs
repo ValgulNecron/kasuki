@@ -5,6 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
+use crate::cache::CacheInterface;
 use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::database::prelude::RegisteredUser;
@@ -43,7 +44,7 @@ impl_command!(
 
 		let config = bot_data.config.clone();
 
-		let anilist_cache = bot_data.anilist_cache.clone();
+	let anilist_cache = bot_data.anilist_cache.clone();
 
 		let map = get_option_map_string(&command_interaction);
 
@@ -126,9 +127,7 @@ impl_command!(
 ///     Ok(())
 /// }
 /// ```
-pub async fn get_user(
-	value: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
-) -> Result<User> {
+pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -> Result<User> {
 	// If the value is a valid user ID, fetch the user's data by ID
 	let user = if value.parse::<i32>().is_ok() {
 		let id = value.parse::<i32>()?;

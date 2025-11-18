@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
+use crate::cache::CacheInterface;
+use crate::constant::DEFAULT_STRING;
+use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
 use moka::future::Cache;
 use serenity::all::{
-	AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
-	CreateInteractionResponse,
+	AutocompleteChoice, CommandInteraction, Context as SerenityContext, Context,
+	CreateAutocompleteResponse, CreateInteractionResponse,
 };
 use tokio::sync::RwLock;
-
-use crate::constant::DEFAULT_STRING;
-use crate::helper::make_graphql_cached::make_request_anilist;
 
 #[cynic::schema("anilist")]
 
@@ -79,7 +79,7 @@ pub enum MediaType {
 
 pub async fn send_auto_complete(
 	ctx: &SerenityContext, autocomplete_interaction: CommandInteraction,
-	media: MediaAutocompleteVariables<'_>, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	media: MediaAutocompleteVariables<'_>, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) {
 	let operation = MediaAutocomplete::build(media);
 

@@ -24,6 +24,8 @@ use crate::database::prelude::PingHistory;
 use crate::event_handler::BotData;
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::{Context as AnyhowContext, Result};
+use crate::cache::CacheInterface;
+
 /// Main function responsible for launching and managing all background tasks.
 ///
 /// This function orchestrates the initialization and execution of various background tasks
@@ -1076,7 +1078,7 @@ async fn launch_game_management_thread(
 ///
 
 async fn launch_activity_management_thread(
-	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	ctx: SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig,
 ) {
 	// Create an interval for periodic updates

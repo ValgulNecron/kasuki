@@ -12,6 +12,7 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
+use crate::cache::CacheInterface;
 use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
@@ -42,7 +43,7 @@ impl_command!(
 		let ctx = self_.get_ctx().clone();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction().clone();
-		let anilist_cache = bot_data.anilist_cache.clone();
+	let anilist_cache = bot_data.anilist_cache.clone();
 
 		let map = get_option_map_string(&command_interaction);
 		let value = map
@@ -139,7 +140,7 @@ impl_command!(
 /// Make sure the AniList API integration and cache handling is properly configured for this function to work as expected.
 /// The `Cache` and `GraphQlResponse` types should be pre-defined and available in your crate or the imported modules.
 pub async fn get_character_by_id(
-	value: i32, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	value: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Character> {
 	let var = CharacterQuerryIdVariables { id: Some(value) };
 

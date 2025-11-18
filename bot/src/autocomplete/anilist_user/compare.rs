@@ -9,6 +9,7 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::log::trace;
 
+use crate::cache::CacheInterface;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
@@ -47,7 +48,7 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 }
 
 async fn get_choices(
-	search: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	search: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Vec<AutocompleteChoice> {
 	trace!("{:?}", search);
 

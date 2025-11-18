@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::cache::CacheInterface;
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use moka::future::Cache;
@@ -38,8 +39,7 @@ pub async fn make_request_anilist<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, always_update: bool,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Starting GraphQL request to Anilist");
 	debug!("GraphQL query type: {}", std::any::type_name::<T>());
@@ -95,7 +95,7 @@ async fn check_cache<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Checking cache for GraphQL query");
 
@@ -114,7 +114,7 @@ async fn check_cache<
 
 	// Look up the query in the cache
 	trace!("Looking up query in cache");
-	let cache = guard.get(&operation.query).await;
+	let cache = guard.read(&operation.query).await?;
 
 	// Drop the lock as soon as possible to reduce contention
 	drop(guard);
@@ -169,7 +169,7 @@ async fn do_request<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
 	// Create a short hash of the query for logging purposes
 	let query_hash = operation.query.chars().take(20).collect::<String>();
@@ -228,8 +228,8 @@ async fn do_request<
 	anilist_cache
 		.write()
 		.await
-		.insert(operation.query.clone(), response_text.clone())
-		.await;
+		.write(operation.query.clone(), response_text.clone())
+		.await?;
 	trace!("Updated cache with new response");
 
 	// Deserialize the response to the requested type

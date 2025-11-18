@@ -22,16 +22,17 @@ use serenity::model::webhook::Webhook;
 use serenity::prelude::Context as SerenityContext;
 use tokio::sync::RwLock;
 use tracing::{error, instrument, trace};
+use crate::cache::CacheInterface;
 
 pub async fn manage_activity(
-	ctx: SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	ctx: SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>,
 ) {
 	send_activity(&ctx, anilist_cache, db_connection).await;
 }
 
 async fn send_activity(
-	ctx: &SerenityContext, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	ctx: &SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>,
 ) {
 	let now = Utc::now().naive_utc();
@@ -92,7 +93,7 @@ async fn send_activity(
 #[instrument(skip(ctx, anilist_cache))]
 async fn send_specific_activity(
 	row: &Model, guild_id: String, ctx: &SerenityContext,
-	anilist_cache: Arc<RwLock<Cache<String, String>>>, db_connection: Arc<DatabaseConnection>,
+	anilist_cache: Arc<RwLock<CacheInterface>>, db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
 	let localised_text =
 		load_localization_send_activity(guild_id.clone(), db_connection.clone()).await?;
@@ -149,7 +150,7 @@ fn decode_image(image: &str) -> Result<Vec<u8>> {
 }
 
 async fn update_info(
-	row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<Cache<String, String>>>,
+	row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
 	let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;

@@ -5,6 +5,7 @@ use crate::database::user_inventory::{Entity as UserInventory, Model as UserInve
 use crate::event_handler::BotData;
 use crate::impl_command;
 use anyhow::{Context as AnyhowContext, Result};
+use sea_orm::ExprTrait;
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
 };

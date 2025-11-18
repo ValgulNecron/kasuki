@@ -6,6 +6,7 @@ use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::minigame::fish_inventory::load_localization_fish_inventory;
 use anyhow::{Context as AnyhowContext, Result};
+use sea_orm::ExprTrait;
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
 };
