@@ -9,6 +9,7 @@ use crate::components::setup::Setup;
 use crate::components::privacy::Privacy;
 use crate::components::terms::Terms;
 use crate::components::profile::Profile;
+use crate::config::Config;
 use leptos::prelude::ClassAttribute;
 use leptos::prelude::ElementChild;
 use leptos::prelude::create_signal;
@@ -21,8 +22,11 @@ use leptos::prelude::CustomAttribute;
 use leptos::prelude::document;
 use leptos::prelude::create_effect;
 use leptos::prelude::IntoAny;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsCast;
-use web_sys::HashChangeEvent;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{HashChangeEvent, Request, RequestInit, RequestMode, Response};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Page {
@@ -32,7 +36,7 @@ pub enum Page {
     Profile,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub username: String,
@@ -40,11 +44,17 @@ pub struct User {
     pub guilds: Vec<Guild>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Guild {
     pub id: String,
     pub name: String,
     pub icon_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SessionValidationResponse {
+    valid: bool,
+    user: Option<User>,
 }
 
 #[component]
@@ -52,6 +62,15 @@ pub fn App() -> impl IntoView {
     let (is_dark, set_is_dark) = create_signal(false);
     let (current_page, set_current_page) = create_signal(Page::Home);
     let (user, set_user) = create_signal(None::<User>);
+
+    // Validate session on app load
+    create_effect(move |_| {
+        wasm_bindgen_futures::spawn_local(async move {
+            if let Ok(session_user) = validate_session().await {
+                set_user.set(session_user);
+            }
+        });
+    });
 
     // Handle initial page load based on hash
     create_effect(move |_| {
@@ -117,5 +136,38 @@ pub fn App() -> impl IntoView {
                 <i class={move || if is_dark.get() { "fas fa-sun" } else { "fas fa-moon" }}></i>
             </button>
         </div>
+    }
+}
+
+/// Validate the current session by calling the API
+async fn validate_session() -> Result<Option<User>, JsValue> {
+    let window = web_sys::window().ok_or(JsValue::from_str("No window"))?;
+    
+    let validation_url = format!("{}/api/session/validate", Config::api_url());
+    
+    let mut opts = RequestInit::new();
+    opts.method("GET");
+    opts.mode(RequestMode::Cors);
+    opts.credentials(web_sys::RequestCredentials::Include); // Important: include cookies
+    
+    let request = Request::new_with_str_and_init(&validation_url, &opts)?;
+    
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    let resp: Response = resp_value.dyn_into()?;
+    
+    if !resp.ok() {
+        return Ok(None);
+    }
+    
+    let json = JsFuture::from(resp.json()?).await?;
+    
+    let validation_response: SessionValidationResponse = 
+        serde_wasm_bindgen::from_value(json)
+            .map_err(|e| JsValue::from_str(&format!("Failed to parse response: {:?}", e)))?;
+    
+    if validation_response.valid {
+        Ok(validation_response.user)
+    } else {
+        Ok(None)
     }
 }

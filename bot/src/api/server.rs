@@ -35,6 +35,7 @@ pub async fn run_server(config: Arc<Config>, db: DatabaseConnection) -> Result<(
 		.route("/api/oauth/login", get(oauth::oauth_login))
 		.route("/api/oauth/callback", get(oauth::oauth_callback))
 		.route("/api/session/validate", get(oauth::validate_session))
+		.route("/api/session/logout", get(oauth::logout))
 		.layer(cors)
 		.with_state(state);
 

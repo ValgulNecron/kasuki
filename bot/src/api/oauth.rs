@@ -515,3 +515,35 @@ fn extract_session_token(headers: &HeaderMap) -> Option<String> {
 	
 	None
 }
+
+/// Logout endpoint - deletes session and clears cookie
+pub async fn logout(
+	State(state): State<ApiState>,
+	headers: HeaderMap,
+) -> impl IntoResponse {
+	// Extract session token from cookies
+	if let Some(session_token) = extract_session_token(&headers) {
+		// Delete session from database
+		let _ = user_session::Entity::delete_by_id(session_token)
+			.exec(&state.db)
+			.await;
+	}
+
+	// Create response with expired cookie to clear it
+	let mut response = Json(serde_json::json!({
+		"success": true,
+		"message": "Logged out successfully"
+	})).into_response();
+
+	// Clear session cookie by setting it to expire immediately
+	let cookie_value = "session_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+	
+	if let Ok(_) = response.headers_mut().try_insert(
+		header::SET_COOKIE,
+		cookie_value.parse().unwrap()
+	) {
+		info!("Session cookie cleared");
+	}
+
+	response
+}

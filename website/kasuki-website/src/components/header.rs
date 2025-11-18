@@ -3,6 +3,9 @@ use leptos::*;
 use leptos::prelude::*;
 use crate::app::User;
 use crate::config::Config;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{Request, RequestInit, RequestMode, Response};
 
 #[component]
 pub fn Header(
@@ -20,11 +23,15 @@ pub fn Header(
     };
 
     let handle_logout = move |_| {
-        set_user.set(None);
-        // Navigate to home
-        if let Some(window) = web_sys::window() {
-            let _ = window.location().set_hash("");
-        }
+        // Call logout endpoint
+        wasm_bindgen_futures::spawn_local(async move {
+            let _ = call_logout().await;
+            set_user.set(None);
+            // Navigate to home
+            if let Some(window) = web_sys::window() {
+                let _ = window.location().set_hash("");
+            }
+        });
     };
 
     view! {
@@ -83,4 +90,22 @@ pub fn Header(
             </div>
         </header>
     }
+}
+
+/// Call the logout endpoint
+async fn call_logout() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or(JsValue::from_str("No window"))?;
+    
+    let logout_url = format!("{}/api/session/logout", Config::api_url());
+    
+    let mut opts = RequestInit::new();
+    opts.method("GET");
+    opts.mode(RequestMode::Cors);
+    opts.credentials(web_sys::RequestCredentials::Include); // Important: include cookies
+    
+    let request = Request::new_with_str_and_init(&logout_url, &opts)?;
+    
+    let _ = JsFuture::from(window.fetch_with_request(&request)).await?;
+    
+    Ok(())
 }
