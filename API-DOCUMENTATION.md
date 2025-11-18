@@ -305,3 +305,138 @@ async function getCounts() {
 }
 
 getCounts();
+```
+
+## OAuth & Session Management
+
+The API also provides OAuth endpoints for user authentication with Discord. These endpoints are used by the web frontend.
+
+### OAuth Login
+
+```
+GET /api/oauth/login
+```
+
+Redirects the user to Discord's OAuth authorization page. After authorization, Discord redirects back to the callback endpoint.
+
+**No authentication required.**
+
+### OAuth Callback
+
+```
+GET /api/oauth/callback?code=...
+```
+
+Handles the OAuth callback from Discord. This endpoint:
+1. Exchanges the authorization code for Discord access and refresh tokens
+2. Creates a session in the database
+3. Sets an HTTP-only session cookie
+4. Redirects to the frontend profile page
+
+**Query Parameters:**
+- `code`: Authorization code from Discord
+- `error` (optional): Error code if authorization failed
+
+**No authentication required.**
+
+### Session Validation
+
+```
+GET /api/session/validate
+```
+
+Validates the current session and returns user information if logged in. Automatically refreshes expired Discord tokens.
+
+**Authentication:** Session cookie (automatically sent by browser)
+
+**Response:**
+```json
+{
+  "valid": true,
+  "user": {
+    "id": "123456789012345678",
+    "username": "JohnDoe",
+    "avatar_url": "https://cdn.discordapp.com/avatars/123.../avatar.png",
+    "guilds": [
+      {
+        "id": "987654321098765432",
+        "name": "My Server",
+        "icon_url": "https://cdn.discordapp.com/icons/987.../icon.png"
+      }
+    ]
+  }
+}
+```
+
+If not logged in or session invalid:
+```json
+{
+  "valid": false,
+  "user": null
+}
+```
+
+### Logout
+
+```
+GET /api/session/logout
+```
+
+Logs out the current user by:
+1. Deleting the session from the database
+2. Clearing the session cookie
+
+**Authentication:** Session cookie (automatically sent by browser)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+## OAuth Configuration
+
+To enable OAuth authentication, add the following to your `config.toml` file:
+
+```toml
+[api]
+enabled = true
+port = 8080
+api_key = "your_secure_api_key_here"
+
+[api.oauth]
+discord_client_id = "your_discord_client_id"
+discord_client_secret = "your_discord_client_secret"
+discord_redirect_uri = "http://localhost:8080/api/oauth/callback"
+frontend_url = "http://localhost:8000"
+```
+
+### Setting up Discord OAuth:
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Select your application or create a new one
+3. Navigate to OAuth2 → General
+4. Add `http://localhost:8080/api/oauth/callback` (or your production URL) to "Redirects"
+5. Under OAuth2 → URL Generator, select scopes: `identify`, `guilds`, `email`
+6. Copy your Client ID and Client Secret to your `config.toml`
+
+### Database Setup:
+
+The OAuth system requires a `user_session` table. Run the migration:
+
+```bash
+psql -U your_user -d kasuki -f migrations/create_user_session_table.sql
+```
+
+See `migrations/README.md` for more details.
+
+## Security Notes
+
+- Session cookies are HTTP-only to prevent XSS attacks
+- Cookies use SameSite=Lax to prevent CSRF attacks
+- Discord tokens are stored encrypted in the database
+- Sessions automatically expire after 7 days of inactivity
+- Expired Discord tokens are automatically refreshed
+
