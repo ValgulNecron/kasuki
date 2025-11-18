@@ -31,6 +31,7 @@ mod logger;
 mod music_events;
 mod register;
 mod structure;
+mod api;
 mod task;
 
 #[tokio::main]
@@ -195,6 +196,12 @@ async fn main() {
 
 		info!("Discord client shutdown gracefully");
 		drop(client);
+	});
+
+	// Start API server if enabled
+	let api_config = config.clone();
+	tokio::spawn(async move {
+		api::start_api_server(api_config).await;
 	});
 
 	#[cfg(unix)]

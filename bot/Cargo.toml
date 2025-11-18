@@ -49,6 +49,8 @@ dashmap = "6.1.0"
 bytes = "1.10.1"
 rust-fuzzy-search = "0.1.1"
 governor = "0.10.1"
+axum = "0.8.1"
+tower-http = { version = "0.6.2", features = ["cors"] }
 
 [patch.crates-io]
 serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2" }

@@ -9,6 +9,12 @@ enabled = true
 port = 8080
 api_key = "your_secure_api_key_here"
 
+[api.oauth]
+discord_client_id = "your_discord_client_id"
+discord_client_secret = "your_discord_client_secret"
+discord_redirect_uri = "http://localhost:8080/api/oauth/callback"
+frontend_url = "http://localhost:8000"
+
 [music]
 lavalink_hostname = ""
 lavalink_password = ""

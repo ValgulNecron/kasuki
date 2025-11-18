@@ -35,8 +35,8 @@ pub fn Footer() -> impl IntoView {
                         <ul class="footer-links">
                             <li><a href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer">"GitHub Repository"</a></li>
                             <li><a href="https://github.com/ValgulNecron/kasuki/issues" target="_blank" rel="noopener noreferrer">"Report an Issue"</a></li>
-                            <li><a href="terms.html">"Terms of Service"</a></li>
-                            <li><a href="privacy.html">"Privacy Policy"</a></li>
+                            <li><a href="#/terms">"Terms of Service"</a></li>
+                            <li><a href="#/privacy">"Privacy Policy"</a></li>
                         </ul>
                     </div>
                 </div>

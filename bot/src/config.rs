@@ -10,6 +10,7 @@ pub struct Config {
 	pub logging: LoggingConfig,
 	pub ai: AICfg,
 	pub task_intervals: TaskIntervalConfig,
+	pub api: ApiConfig,
 	pub cache: CacheConfig,
 }
 
@@ -106,6 +107,22 @@ pub struct TaskIntervalConfig {
 	pub random_stats_update: u64,
 	pub anisong_update: u64,
 	pub bot_info_update: u64,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ApiConfig {
+	pub enabled: bool,
+	pub port: u16,
+	pub api_key: String,
+	pub oauth: OAuthConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct OAuthConfig {
+	pub discord_client_id: String,
+	pub discord_client_secret: String,
+	pub discord_redirect_uri: String,
+	pub frontend_url: String,
 }
 
 impl Config {
