@@ -21,5 +21,6 @@ pub mod server_user_relation;
 pub mod user_color;
 pub mod user_data;
 pub mod user_inventory;
+pub mod user_session;
 pub mod user_subscription;
 pub mod vocal;

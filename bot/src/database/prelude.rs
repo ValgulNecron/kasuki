@@ -14,5 +14,6 @@ pub use super::server_image::Entity as ServerImage;
 pub use super::server_user_relation::Entity as ServerUserRelation;
 pub use super::user_color::Entity as UserColor;
 pub use super::user_data::Entity as UserData;
+pub use super::user_session::Entity as UserSession;
 pub use super::user_subscription::Entity as UserSubscription;
 pub use super::vocal::Entity as Vocal;

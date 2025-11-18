@@ -200,8 +200,9 @@ async fn main() {
 
 	// Start API server if enabled
 	let api_config = config.clone();
+	let api_db = connection.clone();
 	tokio::spawn(async move {
-		api::start_api_server(api_config).await;
+		api::start_api_server(api_config, api_db).await;
 	});
 
 	#[cfg(unix)]
