@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
+
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
 use tokio::sync::RwLock;
-use tracing::log::trace;
+use tracing::{error, trace};
 
 use crate::cache::CacheInterface;
 use crate::constant::DEFAULT_STRING;
@@ -49,7 +49,7 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 
 async fn get_choices(
 	search: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
-) -> Vec<AutocompleteChoice> {
+) -> Vec<AutocompleteChoice<'_>> {
 	trace!("{:?}", search);
 
 	let var = UserAutocompleteVariables {
@@ -64,7 +64,7 @@ async fn get_choices(
 	let data = match data {
 		Ok(data) => data,
 		Err(e) => {
-			tracing::error!(?e);
+			error!(?e);
 
 			return Vec::new();
 		},
@@ -79,7 +79,7 @@ async fn get_choices(
 			None => return Vec::new(),
 		},
 		None => {
-			tracing::error!(?data.errors);
+			error!(?data.errors);
 
 			return Vec::new();
 		},

@@ -1,17 +1,16 @@
 use crate::command::embed_content::{
-	CommandType, ComponentVersion, ComponentVersion1, EmbedsContents,
+	CommandType, ComponentVersion, EmbedsContents,
 };
 use crate::helper::create_default_embed::get_default_embed;
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
-use serenity::all::{CommandInteraction, MessageFlags, SkuId};
+use serenity::all::{CommandInteraction, MessageFlags};
 use serenity::builder::{
-	CreateActionRow, CreateAttachment, CreateButton, CreateComponent, CreateEmbedAuthor,
+	CreateAttachment, CreateEmbedAuthor,
 	CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup,
 	CreateInteractionResponseMessage,
 };
 use serenity::prelude::Context as SerenityContext;
-use std::borrow::Cow;
 
 pub trait Command {
 	fn get_ctx(&self) -> &SerenityContext;
@@ -48,8 +47,6 @@ pub trait CommandRun {
 	async fn run_user(&self) -> Result<()>;
 
 	async fn run_slash(&self) -> Result<()>;
-
-	async fn run_message(&self) -> Result<()>;
 }
 
 impl<T: Command> CommandRun for T {
@@ -103,47 +100,9 @@ impl<T: Command> CommandRun for T {
 		}
 
 		let mut component = None;
-		let mut is_v2 = false;
 		if let Some(action_row) = contents.action_row {
 			match action_row {
-				ComponentVersion::V1(v1) => match v1 {
-					ComponentVersion1::Buttons(buttons) => {
-						let mut components = vec![];
-						for button in buttons {
-							let mut button_builder =
-								match (button.custom_id, button.url, button.sku_id) {
-									(Some(id), None, None) => CreateButton::new(id),
-									(None, Some(url), None) => CreateButton::new_link(url),
-									(None, None, Some(sku_id)) => {
-										CreateButton::new_premium(SkuId::new(sku_id.parse()?))
-									},
-									_ => {
-										return Err(anyhow!("Invalid button"));
-									},
-								};
-							if let Some(emoji) = button.emoji {
-								button_builder = button_builder.emoji(emoji);
-							}
-							if let Some(style) = button.style {
-								button_builder = button_builder.style(style);
-							}
-							button_builder = button_builder.label(button.label);
-							button_builder = button_builder.disabled(button.disabled);
-							components.push(button_builder)
-						}
-						component = Some(Cow::Owned(vec![CreateComponent::ActionRow(
-							CreateActionRow::Buttons(Cow::Owned(components)),
-						)]))
-					},
-					ComponentVersion1::SelectMenu(_select_menu) => {
-						return Err(anyhow!("Component V1 SelectMenu is not supported yet"));
-					},
-					ComponentVersion1::InputText(_input_text) => {
-						return Err(anyhow!("Component V1 InputText is not supported yet"));
-					},
-				},
 				ComponentVersion::V2(v2) => {
-					is_v2 = true;
 					component = Some(v2.components)
 				},
 			};
@@ -158,16 +117,9 @@ impl<T: Command> CommandRun for T {
 				if has_embed {
 					builder = builder.embeds(embeds);
 				} else if let Some(component) = component.clone() {
-					if is_v2 {
-						builder = builder
-							.components(component)
-							.flags(MessageFlags::IS_COMPONENTS_V2);
-					}
-				}
-				if let Some(component) = component {
-					if !is_v2 {
-						builder = builder.components(component);
-					}
+					builder = builder
+						.components(component)
+						.flags(MessageFlags::IS_COMPONENTS_V2);
 				}
 				let builder = CreateInteractionResponse::Message(builder);
 				command_interaction
@@ -179,16 +131,9 @@ impl<T: Command> CommandRun for T {
 				if has_embed {
 					builder = builder.embeds(embeds);
 				} else if let Some(component) = component.clone() {
-					if is_v2 {
-						builder = builder
-							.components(component)
-							.flags(MessageFlags::IS_COMPONENTS_V2);
-					}
-				}
-				if let Some(component) = component {
-					if !is_v2 {
-						builder = builder.components(component);
-					}
+					builder = builder
+						.components(component)
+						.flags(MessageFlags::IS_COMPONENTS_V2);
 				}
 				command_interaction
 					.create_followup(&ctx.http, builder)
@@ -219,11 +164,6 @@ impl<T: Command> CommandRun for T {
 	}
 
 	async fn run_slash(&self) -> Result<()> {
-		let embed_contents = self.get_contents().await?;
-		self.send_embed(embed_contents).await
-	}
-
-	async fn run_message(&self) -> Result<()> {
 		let embed_contents = self.get_contents().await?;
 		self.send_embed(embed_contents).await
 	}

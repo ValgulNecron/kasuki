@@ -32,7 +32,7 @@ use songbird::Songbird;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, instrument, trace};
+use tracing::{error, info, instrument, trace, warn};
 pub struct BotData {
 	pub config: Arc<Config>,
 	pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
@@ -56,7 +56,7 @@ pub struct BotData {
 use crate::background_task::background_launcher::thread_management_launcher;
 use crate::helper::load_items::load_items_from_json;
 use crate::music_events;
-use anyhow::{Context, Result};
+use anyhow::{Result};
 use dashmap::DashMap;
 use futures::channel::mpsc::UnboundedSender;
 use lavalink_rs::client::LavalinkClient;
@@ -87,12 +87,6 @@ pub struct RootUsage {
 }
 
 impl RootUsage {
-	pub fn new() -> Self {
-		RootUsage {
-			command_list: HashMap::new(),
-		}
-	}
-
 	#[allow(dead_code)]
 	pub fn get_total_command_use(&self) -> String {
 		let mut total = BigUint::ZERO;
@@ -216,16 +210,20 @@ impl Handler {
 		&self, ctx: SerenityContext, old: Option<VoiceState>, new: VoiceState,
 	) {
 		let user_id = new.user_id;
-
-		debug!(user_id = %user_id, "Voice state update received");
+		trace!(user_id = %user_id, "Voice state update received for user");
 
 		if let Some(old) = old {
+			trace!(
+				user_id = %user_id,
+				"Old voice state is present for user"
+			);
+
 			match (new.channel_id, old.channel_id) {
 				(None, None) => {
-					debug!(user_id = %user_id, "No channel change detected");
+					trace!(user_id = %user_id, "User is not in a voice channel");
 				},
 				(Some(_), Some(_)) => {
-					debug!(user_id = %user_id, "User switched channels");
+					trace!(user_id = %user_id, "User switched voice channels");
 				},
 				(Some(new_channel_id), None) => {
 					info!(user_id = %user_id, channel_id = %new_channel_id, "User joined a voice channel");
@@ -236,11 +234,11 @@ impl Handler {
 					let sessions = rw_guard.get(&key).cloned();
 					match sessions {
 						Some(_) => {
-							debug!(user_id = %user_id, channel_id = %new_channel_id, "Session already exists");
+							trace!(user_id = %user_id, channel_id = %new_channel_id, "Session already exists for user in channel");
 						},
 						None => {
 							rw_guard.insert(key.clone(), Utc::now());
-							info!(user_id = %user_id, channel_id = %new_channel_id, "Started new vocal session");
+							info!(user_id = %user_id, channel_id = %new_channel_id, "Started new vocal session for user in channel");
 						},
 					}
 					drop(rw_guard);
@@ -253,6 +251,7 @@ impl Handler {
 					let read = bot_data.vocal_session.read().await;
 					let sessions = read.get(&key).cloned();
 					drop(read);
+
 					match sessions {
 						Some(start_time) => {
 							let mut write = bot_data.vocal_session.write().await;
@@ -263,16 +262,15 @@ impl Handler {
 
 							let start = start_time.naive_utc();
 							let end = Utc::now().naive_utc();
-							let duration = end.signed_duration_since(start);
-							let duration = duration.as_seconds_f64();
+							let duration = end.signed_duration_since(start).as_seconds_f64();
 							let db_connection = bot_data.db_connection.clone();
 
 							let id = format!("{}-{}-{}", user_id, old_channel_id, session_id);
 
 							info!(
-							user_id = %user_id, channel_id = %old_channel_id, session_id = %session_id,
-							start = %start, end = %end, duration = duration,
-							"Saving vocal session to database"
+								user_id = %user_id, channel_id = %old_channel_id, session_id = %session_id,
+								start = %start, end = %end, duration = duration,
+								"Saving vocal session to database"
 							);
 
 							match DatabaseVocal::insert(crate::database::vocal::ActiveModel {
@@ -287,21 +285,21 @@ impl Handler {
 							.await
 							{
 								Ok(_) => {
-									info!(user_id = %user_id, channel_id = %old_channel_id, "Session saved to database");
+									info!(user_id = %user_id, channel_id = %old_channel_id, "Vocal session saved to database");
 								},
 								Err(e) => {
-									error!(user_id = %user_id, channel_id = %old_channel_id, error = %e, "Failed to insert server user relation")
+									warn!(user_id = %user_id, channel_id = %old_channel_id, error = %e, "Failed to insert vocal session into database");
 								},
 							};
 						},
 						None => {
-							debug!(user_id = %user_id, channel_id = %old_channel_id, "No session found to end");
+							trace!(user_id = %user_id, channel_id = %old_channel_id, "No session found to end for user in channel");
 						},
 					}
 				},
 			}
 		} else {
-			debug!(user_id = %user_id, "No old state detected");
+			trace!(user_id = %user_id, "Old voice state is not present for user");
 			if let Some(new_channel_id) = new.channel_id {
 				info!(user_id = %user_id, channel_id = %new_channel_id, "User joined a voice channel");
 				let bot_data = ctx.data::<BotData>().clone();
@@ -311,11 +309,11 @@ impl Handler {
 				let sessions = rw_guard.get(&key).cloned();
 				match sessions {
 					Some(_) => {
-						debug!(user_id = %user_id, channel_id = %new_channel_id, "Session already exists");
+						trace!(user_id = %user_id, channel_id = %new_channel_id, "Session already exists for user in channel");
 					},
 					None => {
 						rw_guard.insert(key.clone(), Utc::now());
-						info!(user_id = %user_id, channel_id = %new_channel_id, "Started new vocal session");
+						info!(user_id = %user_id, channel_id = %new_channel_id, "Started new vocal session for user in channel");
 					},
 				}
 				drop(rw_guard);
@@ -332,35 +330,47 @@ impl Handler {
 		if read_guard.contains(&user_id.to_string()) {
 			return;
 		}
+		trace!(
+			message_id = %message.id,
+			user_id = %user_id,
+			"New message received"
+		);
 
 		let db_connection = bot_data.db_connection.clone();
 		let message_id = message.id.to_string();
 		let data = message.content.to_string();
 		let length = data.len();
 		let channel_id = message.channel_id.to_string();
-		match DatabaseMessage::insert(crate::database::message::ActiveModel {
+
+		let active_message = crate::database::message::ActiveModel {
 			id: Set(message_id),
 			user_id: Set(user_id.to_string()),
 			data: Set(data),
 			chat_length: Set(length as i32),
 			channel_id: Set(channel_id),
-		})
-		.exec(&*db_connection.clone())
-		.await
-		{
-			Ok(_) => {},
-			Err(e) => error!("Failed to insert server user relation. {}", e),
 		};
+
+		if let Err(e) = DatabaseMessage::insert(active_message)
+			.exec(&*db_connection)
+			.await
+		{
+			warn!(
+				message_id = %message.id,
+				user_id = %user_id,
+				error = %e,
+				"Failed to insert message into database"
+			);
+		}
 	}
+
 	async fn guild_create(&self, ctx: SerenityContext, guild: Guild, is_new: Option<bool>) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let image_config = bot_data.config.image.clone();
-
 		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 		let db_connection = bot_data.db_connection.clone();
 
 		if is_new.unwrap_or_default() {
+			info!(guild_id = %guild.id, "Joined a new guild");
 			color_management(
 				&ctx.cache.guilds(),
 				&ctx,
@@ -368,56 +378,56 @@ impl Handler {
 				bot_data.clone(),
 			)
 			.await;
-
 			server_image_management(&ctx, image_config, db_connection.clone()).await;
-
-			debug!("Joined a new guild: {} at {}", guild.name, guild.joined_at);
 		} else {
-			debug!("Got info from guild: {} at {}", guild.name, guild.joined_at);
+			info!(guild_id = %guild.id, "Guild already exists, skipping setup");
 		}
 
-		match GuildData::insert(crate::database::guild_data::ActiveModel {
+		let active_guild = crate::database::guild_data::ActiveModel {
 			guild_id: Set(guild.id.to_string()),
 			guild_name: Set(guild.name.to_string()),
 			updated_at: Set(guild.joined_at.naive_utc()),
-		})
-		.on_conflict(
-			sea_orm::sea_query::OnConflict::column(crate::database::guild_data::Column::GuildId)
+		};
+
+		if let Err(e) = GuildData::insert(active_guild)
+			.on_conflict(
+				sea_orm::sea_query::OnConflict::column(
+					crate::database::guild_data::Column::GuildId,
+				)
 				.update_column(crate::database::guild_data::Column::GuildName)
 				.update_column(crate::database::guild_data::Column::UpdatedAt)
 				.to_owned(),
-		)
-		.exec(&*db_connection)
-		.await
+			)
+			.exec(&*db_connection)
+			.await
 		{
-			Ok(_) => {},
-			Err(e) => error!("Failed to insert guild data. {}", e),
-		};
+			warn!(
+				guild_id = %guild.id,
+				error = %e,
+				"Failed to insert or update guild data in database"
+			);
+		}
 	}
 
 	async fn guild_member_addition(&self, ctx: SerenityContext, member: Member) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let user_blacklist_server_image = bot_data.user_blacklist.clone();
-
 		let guild_id = member.guild_id.to_string();
-
 		let image_config = bot_data.config.image.clone();
 
-		debug!(
-			"Member {} joined guild {}",
-			member.user.tag(),
-			guild_id.clone()
+		info!(
+			user_id = %member.user.id,
+			guild_id = %guild_id,
+			"New member joined guild"
 		);
 
-		let is_module_on =
-			check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", bot_data.config.db.clone())
-				.await
-				.unwrap_or_else(|e| {
-					error!("Failed to get the module status. {}", e);
-
-					false
-				});
+		let is_module_on = check_if_module_is_on(
+			guild_id.clone(),
+			"NEW_MEMBER",
+			bot_data.config.db.clone(),
+		)
+		.await
+		.unwrap_or(false);
 
 		color_management(
 			&ctx.cache.guilds(),
@@ -434,26 +444,35 @@ impl Handler {
 		let user = match member.user.id.to_user(&ctx.http).await {
 			Ok(user) => user,
 			Err(e) => {
-				error!("Failed to get user. {}", e);
-
+				warn!(
+					user_id = %member.user.id,
+					error = %e,
+					"Failed to get user object"
+				);
 				return;
 			},
 		};
 
-		match add_user_data_to_db(user, bot_data.db_connection.clone()).await {
-			Ok(_) => {},
-			Err(e) => error!("Failed to insert user data. {}", e),
-		};
+		if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
+			warn!(
+				user_id = %member.user.id,
+				error = ?e,
+				"Failed to insert user data into database"
+			);
+		}
 	}
 
 	async fn guild_members_chunk(&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent) {
 		let bot_data = ctx.data::<BotData>().clone();
-
-		let members = chunk.members;
+		let members = &chunk.members;
 
 		if members.is_empty() {
 			return;
 		}
+		trace!(
+			guild_id = %chunk.guild_id,
+			"Received a chunk of guild members"
+		);
 
 		let db_connection = bot_data.db_connection.clone();
 
@@ -461,35 +480,47 @@ impl Handler {
 			let user = match member.user.id.to_user(&ctx.http).await {
 				Ok(user) => user,
 				Err(e) => {
-					error!("Failed to get user. {}", e);
-
-					return;
+					warn!(
+						user_id = %member.user.id,
+						error = %e,
+						"Failed to get user object from chunk"
+					);
+					continue;
 				},
 			};
 
-			match add_user_data_to_db(user.clone(), db_connection.clone()).await {
-				Ok(_) => {},
-				Err(e) => error!("Failed to insert user data. {}", e),
-			};
+			if let Err(e) = add_user_data_to_db(user.clone(), db_connection.clone()).await {
+				warn!(
+					user_id = %user.id,
+					error = ?e,
+					"Failed to insert user data from chunk into database"
+				);
+			}
 
-			match ServerUserRelation::insert(crate::database::server_user_relation::ActiveModel {
+			let active_relation = crate::database::server_user_relation::ActiveModel {
 				guild_id: Set(chunk.guild_id.to_string()),
 				user_id: Set(user.id.to_string()),
-			})
-			.on_conflict(
-				sea_orm::sea_query::OnConflict::columns([
-					crate::database::server_user_relation::Column::GuildId,
-					crate::database::server_user_relation::Column::UserId,
-				])
-				.do_nothing()
-				.to_owned(),
-			)
-			.exec(&*db_connection.clone())
-			.await
-			{
-				Ok(_) => {},
-				Err(e) => error!("Failed to insert server user relation. {:?}", e),
 			};
+
+			if let Err(e) = ServerUserRelation::insert(active_relation)
+				.on_conflict(
+					sea_orm::sea_query::OnConflict::columns([
+						crate::database::server_user_relation::Column::GuildId,
+						crate::database::server_user_relation::Column::UserId,
+					])
+					.do_nothing()
+					.to_owned(),
+				)
+				.exec(&*db_connection.clone())
+				.await
+			{
+				warn!(
+					user_id = %user.id,
+					guild_id = %chunk.guild_id,
+					error = %e,
+					"Failed to insert server-user relation from chunk into database"
+				);
+			}
 		}
 	}
 
@@ -497,18 +528,14 @@ impl Handler {
 		&self, ctx: SerenityContext, _old_data: Option<Presence>, new_data: Presence,
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let user_blacklist_server_image = bot_data.user_blacklist.clone();
-
 		let user_id = new_data.user.id;
-
-		debug!("Member {} updated presence", user_id);
+		trace!(user_id = %user_id, "Presence update received");
 
 		let user = match new_data.user.id.to_user(&ctx).await {
 			Ok(user) => user,
 			Err(e) => {
-				error!("Failed to get the user. {}", e);
-
+				warn!(user_id = %user_id, error = %e, "Failed to get user object from presence update");
 				return;
 			},
 		};
@@ -520,79 +547,66 @@ impl Handler {
 		)
 		.await;
 
-		match add_user_data_to_db(user, bot_data.db_connection.clone()).await {
-			Ok(_) => {},
-			Err(e) => error!("Failed to insert user data. {}", e),
-		};
+		if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
+			warn!(
+				user_id = %user_id,
+				error = ?e,
+				"Failed to insert user data from presence update into database"
+			);
+		}
 	}
 
 	async fn ready(&self, ctx: SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
-		let guard = bot_data.lavalink.read().await;
-		match *guard {
-			None => {
-				drop(guard);
-				let events = events::Events {
-					raw: Some(music_events::raw_event),
-					ready: Some(music_events::ready_event),
-					track_start: Some(music_events::track_start),
-					..Default::default()
-				};
+		if bot_data.lavalink.read().await.is_none() {
+			let events = events::Events {
+				raw: Some(music_events::raw_event),
+				ready: Some(music_events::ready_event),
+				track_start: Some(music_events::track_start),
+				..Default::default()
+			};
 
-				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+			let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
 
-				let music_config = bot_data
-					.config
-					.music
-					.as_ref()
-					.expect("Music configuration is required");
+			let music_config = bot_data
+				.config
+				.music
+				.as_ref()
+				.expect("Music configuration is required");
 
-				let node_local = NodeBuilder {
-					hostname: music_config.lavalink_hostname.clone(),
-					is_ssl: music_config.https,
-					events: events::Events::default(),
-					password: music_config.lavalink_password.clone(),
-					user_id,
-					session_id: None,
-				};
+			let node_local = NodeBuilder {
+				hostname: music_config.lavalink_hostname.clone(),
+				is_ssl: music_config.https,
+				events: events::Events::default(),
+				password: music_config.lavalink_password.clone(),
+				user_id,
+				session_id: None,
+			};
 
-				let client = LavalinkClient::new(
-					events,
-					vec![node_local],
-					NodeDistributionStrategy::round_robin(),
-				)
-				.await;
-				let mut write_guard = bot_data.lavalink.write().await;
-
-				*write_guard = Some(client);
-				drop(write_guard)
-			},
-			_ => {
-				drop(guard);
-			},
+			let client = LavalinkClient::new(
+				events,
+				vec![node_local],
+				NodeDistributionStrategy::round_robin(),
+			)
+			.await;
+			*bot_data.lavalink.write().await = Some(client);
 		}
 
 		for guild in ctx.cache.guilds() {
-			// Retrieves partial guild information
 			let partial_guild = match guild.to_partial_guild(&ctx.http).await {
 				Ok(guild) => guild,
 				Err(e) => {
-					error!("Failed to get the guild. {}", e);
-
+					warn!(guild_id = %guild, error = %e, "Failed to get partial guild");
 					continue;
 				},
 			};
-			// Iterates over each guild the bot is in
 			ctx.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
-
-			debug!(
-				"guild name {} (guild id: {})",
-				&partial_guild.name,
-				&partial_guild.id.to_string()
-			)
+			trace!(
+				guild_id = %partial_guild.id,
+				"Chunking guild"
+			);
 		}
 
-		// Logs a message indicating that the shard is connected
 		info!(
 			"Shard {:?} of {} is connected!",
 			ready.shard, ready.user.name
@@ -600,148 +614,150 @@ impl Handler {
 		ctx.set_activity(Some(ActivityData::custom(
 			bot_data.config.bot.bot_activity.clone(),
 		)));
-		let guard = bot_data.already_launched.read().await;
 
-		if !(*guard) {
-			drop(guard);
-
-			let mut write_guard = bot_data.already_launched.write().await;
-
-			*write_guard = true;
-
+		if !*bot_data.already_launched.read().await {
+			*bot_data.already_launched.write().await = true;
 			tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
-
-			drop(write_guard);
-
-			let remove_old_command = bot_data.config.bot.remove_old_commands;
-
-			command_registration(&ctx.http, remove_old_command).await;
+			command_registration(&ctx.http, bot_data.config.bot.remove_old_commands).await;
 		}
+
 		let db = bot_data.db_connection.clone();
 		if let Err(e) = load_items_from_json(&db).await {
-			error!("Failed to load items from JSON: {}", e);
+			warn!(error = %e, "Failed to load items from JSON");
 		}
 	}
 
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
 		let mut user = None;
-
 		let bot_data = ctx.data::<BotData>().clone();
+		trace!(
+			"Interaction received: {:?}",
+			interaction.kind()
+		);
 
-		if let Interaction::Command(command_interaction) = interaction.clone() {
-			let mut message = String::from("");
-
-			if command_interaction.data.kind == CommandType::ChatInput {
-				match dispatch_command(&ctx, &command_interaction).await {
-					Ok(()) => return,
-					Err(e) => {
-						message = e.to_string();
+		match interaction.clone() {
+			Interaction::Command(command_interaction) => {
+				let mut message = String::from("");
+				match command_interaction.data.kind {
+					CommandType::ChatInput => {
+						if let Err(e) = dispatch_command(&ctx, &command_interaction).await {
+							message = e.to_string();
+						} else {
+							return;
+						}
 					},
-				}
-			} else if command_interaction.data.kind == CommandType::User {
-				match dispatch_user_command(&ctx, &command_interaction).await {
-					Ok(()) => return,
-					Err(e) => {
-						message = e.to_string();
+					CommandType::User => {
+						if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
+							message = e.to_string();
+						} else {
+							return;
+						}
 					},
+					CommandType::Message => trace!("{:?}", command_interaction),
+					_ => {},
 				}
-			} else if command_interaction.data.kind == CommandType::Message {
-				trace!("{:?}", command_interaction)
-			}
+				error_dispatch::command_dispatching(message, &command_interaction, &ctx).await;
+				user = Some(command_interaction.user.clone());
+			},
+			Interaction::Autocomplete(autocomplete_interaction) => {
+				user = Some(autocomplete_interaction.user.clone());
+				autocomplete_dispatching(ctx, autocomplete_interaction).await;
+			},
+			Interaction::Component(component_interaction) => {
+				user = Some(component_interaction.user.clone());
+				let db_connection = bot_data.db_connection.clone();
+				if let Err(e) =
+					components_dispatching(ctx, component_interaction, db_connection).await
+				{
+					warn!(error = ?e, "Failed to dispatch component interaction");
+				}
+			},
+			_ => {},
+		}
 
-			error_dispatch::command_dispatching(message, &command_interaction, &ctx).await;
-
-			user = Some(command_interaction.user.clone());
-		} else if let Interaction::Autocomplete(autocomplete_interaction) = interaction.clone() {
-			// Dispatch the autocomplete interaction
-			user = Some(autocomplete_interaction.user.clone());
-
-			autocomplete_dispatching(ctx, autocomplete_interaction).await;
-		} else if let Interaction::Component(component_interaction) = interaction.clone() {
-			// Dispatch the component interaction
-			user = Some(component_interaction.user.clone());
-			let db_connection = bot_data.db_connection.clone();
-			if let Err(e) = components_dispatching(ctx, component_interaction, db_connection).await
+		if let Some(user) = user {
+			if let Err(e) = add_user_data_to_db(user.clone(), bot_data.db_connection.clone()).await
 			{
-				// If an error occurs, log it
-				error!("{:?}", e)
+				warn!(
+					user_id = %user.id,
+					error = ?e,
+					"Failed to insert user data from interaction into database"
+				);
 			}
 		}
-
-		if user.is_none() {
-			return;
-		}
-
-		match add_user_data_to_db(user.unwrap(), bot_data.db_connection.clone()).await {
-			Ok(_) => {},
-			Err(e) => error!("Failed to insert user data. {}", e),
-		};
 	}
 
 	async fn entitlement_create(&self, ctx: SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let connection = bot_data.db_connection.clone();
-
+		info!(
+			entitlement_id = %entitlement.id,
+			"New entitlement created"
+		);
 		insert_subscription(entitlement, connection).await;
 	}
 
 	async fn entitlement_update(&self, ctx: SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let connection = bot_data.db_connection.clone();
-
+		info!(
+			entitlement_id = %entitlement.id,
+			"Entitlement updated"
+		);
 		insert_subscription(entitlement, connection).await;
 	}
 
 	async fn entitlement_delete(&self, ctx: SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
-
 		let connection = bot_data.db_connection.clone();
+		info!(
+			entitlement_id = %entitlement.id,
+			"Entitlement deleted"
+		);
+		let (guild_id, user_id) = (entitlement.guild_id, entitlement.user_id);
+		let sku_id = entitlement.sku_id.to_string();
 
-		match (entitlement.guild_id, entitlement.user_id) {
-			(Some(guild_id), None) => {
-				let guild_id = guild_id.to_string();
-
-				let sku_id = entitlement.sku_id.to_string();
-
-				match GuildSubscription::delete_by_id((guild_id, sku_id))
-					.exec(&*connection.clone())
-					.await
-				{
-					Ok(_) => {},
-					Err(e) => error!("Failed to delete guild subscription. {}", e),
-				};
-			},
-			(None, Some(user_id)) => {
-				let user_id = user_id.to_string();
-
-				let sku_id = entitlement.sku_id.to_string();
-
-				match UserSubscription::delete_by_id((user_id, sku_id))
-					.exec(&*connection.clone())
-					.await
-				{
-					Ok(_) => {},
-					Err(e) => error!("Failed to delete user subscription. {}", e),
-				};
-			},
-			_ => {},
+		if let Some(guild_id) = guild_id {
+			let guild_id = guild_id.to_string();
+			if let Err(e) = GuildSubscription::delete_by_id((guild_id.clone(), sku_id.clone()))
+				.exec(&*connection)
+				.await
+			{
+				warn!(
+					guild_id = %guild_id,
+					sku_id = %sku_id,
+					error = %e,
+					"Failed to delete guild subscription"
+				);
+			}
+		} else if let Some(user_id) = user_id {
+			let user_id = user_id.to_string();
+			if let Err(e) = UserSubscription::delete_by_id((user_id.clone(), sku_id.clone()))
+				.exec(&*connection)
+				.await
+			{
+				warn!(
+					user_id = %user_id,
+					sku_id = %sku_id,
+					error = %e,
+					"Failed to delete user subscription"
+				);
+			}
 		}
 	}
 }
 
 async fn insert_subscription(entitlement: Entitlement, connection: Arc<DatabaseConnection>) {
+	info!(
+		entitlement_id = %entitlement.id,
+		"Inserting or updating subscription"
+	);
 	match (entitlement.guild_id, entitlement.user_id) {
 		(Some(guild_id), None) => {
-			let guild_id = guild_id.to_string();
-
-			insert_guild_subscription(entitlement, guild_id, connection.clone()).await;
+			insert_guild_subscription(entitlement, guild_id.to_string(), connection).await
 		},
 		(None, Some(user_id)) => {
-			let user_id = user_id.to_string();
-
-			insert_user_subscription(entitlement, user_id, connection.clone()).await;
+			insert_user_subscription(entitlement, user_id.to_string(), connection).await
 		},
 		_ => {},
 	}
@@ -750,85 +766,104 @@ async fn insert_subscription(entitlement: Entitlement, connection: Arc<DatabaseC
 async fn insert_guild_subscription(
 	entitlement: Entitlement, guild_id: String, connection: Arc<DatabaseConnection>,
 ) {
-	match GuildSubscription::insert(crate::database::guild_subscription::ActiveModel {
-		guild_id: Set(guild_id),
+	let model = crate::database::guild_subscription::ActiveModel {
+		guild_id: Set(guild_id.clone()),
 		entitlement_id: Set(entitlement.id.to_string()),
 		sku_id: Set(entitlement.sku_id.to_string()),
 		created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
 		updated_at: Default::default(),
 		expired_at: Default::default(),
-	})
-	.on_conflict(
-		sea_orm::sea_query::OnConflict::columns([
-			crate::database::guild_subscription::Column::GuildId,
-			crate::database::guild_subscription::Column::SkuId,
-		])
-		.update_columns([
-			crate::database::guild_subscription::Column::EntitlementId,
-			crate::database::guild_subscription::Column::ExpiredAt,
-			crate::database::guild_subscription::Column::UpdatedAt,
-		])
-		.to_owned(),
-	)
-	.exec(&*connection.clone())
-	.await
-	{
-		Ok(_) => {},
-		Err(e) => error!("Failed to insert guild subscription. {}", e),
 	};
+	if let Err(e) = GuildSubscription::insert(model)
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::columns([
+				crate::database::guild_subscription::Column::GuildId,
+				crate::database::guild_subscription::Column::SkuId,
+			])
+			.update_columns([
+				crate::database::guild_subscription::Column::EntitlementId,
+				crate::database::guild_subscription::Column::ExpiredAt,
+				crate::database::guild_subscription::Column::UpdatedAt,
+			])
+			.to_owned(),
+		)
+		.exec(&*connection)
+		.await
+	{
+		warn!(
+			guild_id = %guild_id,
+			sku_id = %entitlement.sku_id,
+			error = %e,
+			"Failed to insert or update guild subscription"
+		);
+	}
 }
 
 async fn insert_user_subscription(
 	entitlement: Entitlement, user_id: String, connection: Arc<DatabaseConnection>,
 ) {
-	match UserSubscription::insert(crate::database::user_subscription::ActiveModel {
-		user_id: Set(user_id),
+	let model = crate::database::user_subscription::ActiveModel {
+		user_id: Set(user_id.clone()),
 		entitlement_id: Set(entitlement.id.to_string()),
 		sku_id: Set(entitlement.sku_id.to_string()),
 		created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
 		updated_at: Default::default(),
-		expired_at: Default::default(),
-	})
-	.on_conflict(
-		sea_orm::sea_query::OnConflict::columns([
-			crate::database::user_subscription::Column::UserId,
-			crate::database::user_subscription::Column::SkuId,
-		])
-		.update_columns([
-			crate::database::user_subscription::Column::EntitlementId,
-			crate::database::user_subscription::Column::ExpiredAt,
-			crate::database::user_subscription::Column::UpdatedAt,
-		])
-		.to_owned(),
-	)
-	.exec(&*connection.clone())
-	.await
-	{
-		Ok(_) => {},
-		Err(e) => error!("Failed to insert user subscription. {:?}", e),
+expired_at: Default::default(),
 	};
+	if let Err(e) = UserSubscription::insert(model)
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::columns([
+				crate::database::user_subscription::Column::UserId,
+				crate::database::user_subscription::Column::SkuId,
+			])
+			.update_columns([
+				crate::database::user_subscription::Column::EntitlementId,
+				crate::database::user_subscription::Column::ExpiredAt,
+				crate::database::user_subscription::Column::UpdatedAt,
+			])
+			.to_owned(),
+		)
+		.exec(&*connection)
+		.await
+	{
+		warn!(
+			user_id = %user_id,
+			sku_id = %entitlement.sku_id,
+			error = %e,
+			"Failed to insert or update user subscription"
+		);
+	}
 }
 
 pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>) -> Result<()> {
-	UserData::insert(crate::database::user_data::ActiveModel {
+	trace!(user_id = %user.id, "Adding user data to database");
+	let model = crate::database::user_data::ActiveModel {
 		user_id: Set(user.id.to_string()),
 		username: Set(user.name.to_string()),
 		added_at: Set(Utc::now().naive_utc()),
 		is_bot: Set(user.bot()),
 		banner: Set(user.banner_url().unwrap_or_default()),
-	})
-	.on_conflict(
-		sea_orm::sea_query::OnConflict::column(crate::database::user_data::Column::UserId)
-			.update_columns([
-				crate::database::user_data::Column::Username,
-				crate::database::user_data::Column::Banner,
-				crate::database::user_data::Column::IsBot,
-			])
-			.to_owned(),
-	)
-	.exec(&*connection)
-	.await
-	.context("Failed to add user to db")?;
-
-	Ok(())
+	};
+	if let Err(e) = UserData::insert(model)
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::column(crate::database::user_data::Column::UserId)
+				.update_columns([
+					crate::database::user_data::Column::Username,
+					crate::database::user_data::Column::Banner,
+					crate::database::user_data::Column::IsBot,
+				])
+				.to_owned(),
+		)
+		.exec(&*connection)
+		.await
+	{
+		warn!(
+			user_id = %user.id,
+			error = %e,
+			"Failed to insert or update user data in database"
+		);
+		Err(e.into())
+	} else {
+		Ok(())
+	}
 }

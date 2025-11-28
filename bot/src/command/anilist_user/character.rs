@@ -26,7 +26,6 @@ use crate::structure::run::anilist::character::{
 };
 use anyhow::{Context, Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;

@@ -9,6 +9,7 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
+use tracing::{debug, error, trace};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
@@ -17,6 +18,8 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 	let user_search = map
 		.get(&FixedString::from_str_trunc("username"))
 		.unwrap_or(DEFAULT_STRING);
+
+	trace!("user_search: {}", user_search);
 
 	let var = UserAutocompleteVariables {
 		search: Some(user_search),

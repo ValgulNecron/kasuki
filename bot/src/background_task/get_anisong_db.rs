@@ -36,6 +36,7 @@ use tracing::{debug, error, info, trace, warn};
 /// - API requests fail
 /// - Response parsing fails
 /// - Database operations fail
+#[tracing::instrument(skip(connection), level = "info")]
 pub async fn get_anisong(connection: Arc<DatabaseConnection>) -> Result<usize> {
 	let start_time = Instant::now();
 	info!(

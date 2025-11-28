@@ -1,5 +1,6 @@
 pub mod oauth;
 pub mod server;
+pub mod auth;
 
 use crate::config::Config;
 use std::sync::Arc;

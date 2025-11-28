@@ -1,62 +1,3 @@
-//! The `ImageCommand` structure and implementation encapsulate the logic for generating AI-based images
-//! via a bot command interaction with Discord's serenity library. This includes calling a configurable AI service
-//! and handling the resulting image data. It also supports saving the generated images to a server or local path.
-//!
-//! # Fields
-//! - `ctx`: The context of the Serenity bot needed to derive bot information or make external HTTP requests.
-//! - `command_interaction`: Represents the command interaction object triggering this image command logic.
-//! - `command_name`: The specific name of the command being invoked.
-//!
-//! # Trait Implementations
-//! Implements the `Command` trait to handle and parse user-provided options, perform API interactions, and upload responses.
-//!
-//! ## `get_ctx`
-//! Provides a reference to the `SerenityContext`. It's used mostly to retrieve bot state or data.
-//!
-//! ## `get_command_interaction`
-//! Returns a reference to the interaction object to parse user inputs or access server-specific data.
-//!
-//! ## `get_contents`
-//! Main logic for the command. Processes user inputs, interacts with the AI image generation API, and
-//! uploads the generated image(s) as a follow-up response.
-//!
-//! # Helper Functions
-//!
-//! ## `get_value`
-//! Generates the payload required for the AI image generation API, dynamically handling configurations and user inputs.
-//!
-//! - **Inputs**:
-//!   - `command_interaction`: Interaction data for retrieving user-defined command options.
-//!   - `n`: Number of images to generate.
-//!   - `config`: A reference to the configuration struct to retrieve AI-specific settings.
-//!
-//! - **Output**: A JSON `Value` object representing the payload for the API.
-//!
-//! ## `image_with_n_equal_1`
-//! Creates an attachment for single image responses.
-//!
-//! - **Inputs**:
-//!   - `filename`: The name for the attachment file.
-//!   - `bytes`: Byte data of the single generated image.
-//!   
-//! - **Output**: A `CreateAttachment` for embedding in the Discord message response.
-//!
-//! ## `image_with_n_greater_than_1`
-//! Creates multiple attachments for when more than one image is requested.
-//!
-//! - **Inputs**:
-//!   - `filename`: A base filename for the generated images (appends index numbers for unique filenames).
-//!   - `bytes`: A vector of byte data for generated images.
-//!   
-//! - **Outputs**: A tuple containing a vector of `CreateAttachment` objects and corresponding filenames.
-//!
-//! # API Interaction
-//! Uses the `reqwest` library to make HTTP POST requests to the AI service, specifying the desired image parameters
-//! like prompt, size, and style. Ensures proper authentication and header configuration.
-//!
-//! # Error Handling
-//! Returns Result types for most methods to ensure graceful handling of issues like API errors, byte processing failures,
-//! or limits breached on user commands.
 use bytes::Bytes;
 use std::sync::Arc;
 
@@ -81,17 +22,6 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{error, trace};
 use uuid::Uuid;
 
-/// A structure representing an image command in the context of a Discord bot.
-///
-/// This structure is used to encapsulate the necessary data for handling
-/// an image-related command issued by a user via interactions in Discord.
-///
-/// # Fields
-/// * `ctx` - The context of the bot, which provides access to the Discord API and
-///           other utilities necessary for handling the interaction.
-/// * `command_interaction` - Represents the interaction data for the command, including
-///                           details about the user who triggered it and how it was invoked.
-/// * `command_name` - The name of the image command being executed, as specified by the user.
 #[derive(Clone)]
 pub struct ImageCommand {
 	pub ctx: SerenityContext,
@@ -226,56 +156,6 @@ impl_command!(
 	}
 );
 
-/// Generates a JSON `Value` containing the information required to create an AI-generated image based on the provided input parameters.
-///
-/// # Arguments
-///
-/// * `command_interaction` - A reference to a `CommandInteraction` instance that contains the user's command input data.
-/// * `n` - An integer specifying the number of image results to generate.
-/// * `config` - A reference to an `Arc<Config>` containing configuration settings for the AI image generation.
-///
-/// # Returns
-///
-/// Returns a `serde_json::Value` containing the image generation configuration in JSON format.
-///
-/// The JSON object has the following fields:
-/// - `prompt`: The description for the image, derived from the user input or a default value.
-/// - `n`: The number of images to generate.
-/// - `size`: The output image dimensions, retrieved from configuration or defaults to "1024x1024".
-/// - `model`: The AI model to use for image generation, retrieved from configuration or defaults to an empty string.
-/// - `quality` (optional): The quality setting for the generated image, if specified in the configuration.
-/// - `style` (optional): The style of the generated image, if specified in the configuration.
-/// - `response_format`: The response format, statically set to "url".
-///
-/// # Behavior
-///
-/// Depending on the configuration provided, the function dynamically adjusts the JSON output:
-/// - If both `quality` and `style` are set in the configuration, they will be included in the output JSON.
-/// - If only one of `quality` or `style` is set, only the present field will be included.
-/// - If neither `quality` nor `style` are set, the JSON excludes these fields.
-///
-/// # Example Usage
-///
-/// ```
-/// let command_interaction = ...; // CommandInteraction instance from user input.
-/// let config = Arc::new(Config::default());
-/// let n = 2;
-/// let data = get_value(&command_interaction, n, &config);
-///
-/// println!("{}", data);
-/// ```
-///
-/// The resulting JSON might look like:
-/// ```json
-/// {
-///     "prompt": "A beautiful landscape",
-///     "n": 2,
-///     "size": "1024x1024",
-///     "model": "default_model",
-///     "response_format": "url"
-/// }
-/// ```
-/// ```
 fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Config>) -> Value {
 	let map = get_option_map_string_subcommand(command_interaction);
 
@@ -344,93 +224,12 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 	data
 }
 
-/// Asynchronously creates an attachment from a single image with `n` equal to 1.
-///
-/// This function assumes that the input `bytes` vector contains exactly one `Bytes` object,
-/// and it extracts the raw byte data from the first element to create an attachment using
-/// the provided `filename`.
-///
-/// # Generic Parameters
-///
-/// - `'a`: The lifetime parameter for the created attachment.
-///
-/// # Parameters
-///
-/// - `filename`: A string representing the file name for the attachment.
-/// - `bytes`: A vector of `Bytes` where the first element's byte data will be used to
-///   create the attachment. It is expected that the vector contains at least one element,
-///   as this function accesses `bytes[0]`.
-///
-/// # Returns
-///
-/// Returns a `CreateAttachment<'a>` containing the byte data from the first element of
-/// the `bytes` vector, associated with the given `filename`.
-///
-/// # Panics
-///
-/// This function will panic if the `bytes` vector is empty, as it tries to access `bytes[0]`.
-///
-/// # Example
-///
-/// ```rust
-/// use some_crate::CreateAttachment;
-/// use bytes::Bytes;
-///
-/// async fn example() {
-///     let filename = String::from("image.png");
-///     let data = Bytes::from_static(b"image data");
-///
-///     let attachment = image_with_n_equal_1(filename, vec![data]).await;
-///     // Use the `attachment` as needed.
-/// }
-/// ```
 async fn image_with_n_equal_1(bytes: Vec<Bytes>) -> Vec<u8> {
 	let bytes = bytes[0].as_bytes().to_vec();
 
 	bytes
 }
 
-/// Processes a vector of images and generates attachments with unique filenames.
-///
-/// This asynchronous function takes a filename and a vector of `Bytes`,
-/// and associates each byte slice with a unique filename by appending an index.
-/// It then creates a list of `CreateAttachment` objects and corresponding filenames.
-///
-/// # Arguments
-///
-/// * `filename` - A `String` which serves as the base name for the generated files.
-/// * `bytes` - A vector of `Bytes` where each element represents an image's data.
-///
-/// # Returns
-///
-/// A tuple containing:
-/// 1. A vector of `CreateAttachment` objects, each containing the respective byte data and unique filename.
-/// 2. A vector of `String` where each entry is the unique filename corresponding to the `CreateAttachment`.
-///
-/// # Example
-///
-/// ```rust
-/// use bytes::Bytes;
-///
-/// let filename = "image".to_string();
-/// let image_data = vec![Bytes::from(vec![1, 2, 3]), Bytes::from(vec![4, 5, 6])];
-///
-/// let (attachments, filenames) = image_with_n_greater_than_1(filename, image_data).await;
-///
-/// assert_eq!(filenames, vec!["image_0_0.png", "image_0_1.png"]);
-/// // `attachments` will contain the corresponding `CreateAttachment` objects
-/// ```
-///
-/// # Note
-///
-/// Ensure that the function is called with a vector of `Bytes` that contains at least one element,
-/// as the function assumes the presence of valid byte data.
-///
-/// # Errors
-///
-/// No specific errors are handled within this function. It is assumed that the input
-/// byte data is correctly formatted and suitable for attachment creation.
-///
 async fn image_with_n_greater_than_1<'a>(
 	filename: String, bytes: Vec<Bytes>,
 ) -> Vec<(Vec<u8>, String)> {
@@ -447,74 +246,6 @@ async fn image_with_n_greater_than_1<'a>(
 	attachments
 }
 
-/// Asynchronously retrieves images from a JSON response, processes them, and optionally saves them to a server.
-///
-/// # Parameters
-/// - `json` (`Value`): A JSON object that contains the data from which image URLs will be extracted.
-/// - `saver_server` (`String`): The server URL to which the images will be saved, if specified.
-/// - `token` (`Option<String>`): An optional token for authentication on the saver server.
-/// - `save_type` (`Option<String>`): An optional parameter specifying the save method/type.
-/// - `guild_id` (`String`): The identifier of the guild associated with the operation.
-///
-/// # Returns
-/// Returns a `Result` containing:
-/// - `Ok(Vec<Bytes>)`: A vector of binary data (`Bytes`) for each downloaded image if successful.
-/// - `Err`: An error if something goes wrong during the process (e.g., JSON parsing, image download, or saving error).
-///
-/// # Behavior
-/// 1. Parses the input JSON to extract image-related data.
-/// 2. Retrieves image URLs from the parsed JSON data.
-/// 3. Fetches each image URL concurrently.
-/// 4. Saves the images to a remote server (if applicable) using the provided `saver_server` and `token`.
-/// 5. Collects and returns the binary image data as a vector of `Bytes`.
-///
-/// # Errors
-/// The function may return an error in these cases:
-/// - If deserialization of the JSON fails.
-/// - If the images cannot be downloaded from their URLs.
-/// - If saving the images to the remote server fails.
-///
-/// # Example
-/// ```rust
-/// use serde_json::json;
-/// use bytes::Bytes;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let json = json!({
-///         "data": [
-///             { "url": "https://example.com/image1.png" },
-///             { "url": "https://example.com/image2.png" }
-///         ]
-///     });
-///     
-///     let saver_server = "https://saver-server.example.com".to_string();
-///     let token = Some("example-token".to_string());
-///     let save_type = Some("type1".to_string());
-///     let guild_id = "12345".to_string();
-///     
-///     match get_image_from_response(json, saver_server, token, save_type, guild_id).await {
-///         Ok(images) => println!("Successfully retrieved {} images.", images.len()),
-///         Err(e) => eprintln!("Failed to retrieve images: {}", e),
-///     }
-/// }
-/// ```
-///
-/// # Notes
-/// - This function leverages the `reqwest` library to perform HTTP requests.
-/// - Image saving is handled by the `image_saver` function, which must be implemented separately.
-/// - Logging calls such as `trace!` and `error!` are used for debug and error reporting as part of system tracing.
-///
-/// # Dependencies
-/// - `serde_json`: For JSON parsing.
-/// - `reqwest`: For HTTP client functionality.
-/// - `bytes`: For handling binary data.
-/// - `uuid`: For generating unique file names for the images.
-/// - `anyhow`: For error handling.
-///
-/// # Logging
-/// - Logs the extracted URLs at the `trace` level.
-/// - Logs errors related to saving images at the `error` level.
 async fn get_image_from_response(
 	json: Value, saver_server: String, token: Option<String>, save_type: Option<String>,
 	guild_id: String,
@@ -528,6 +259,8 @@ async fn get_image_from_response(
 	let root: Root = match serde_json::from_value(json.clone()) {
 		Ok(root) => root,
 		Err(e) => {
+			error!("Failed to deserialize response into Root: {}", e);
+			error!("Raw response body: {}", json);
 			let root1: Root1 = serde_json::from_value(json)?;
 
 			return Err(anyhow!(format!(
@@ -537,7 +270,7 @@ async fn get_image_from_response(
 		},
 	};
 
-	let urls: Vec<String> = root.data.iter().map(|data| data.url.clone()).collect();
+	let urls: Vec<String> = root.data.iter().filter_map(|data| data.url.clone()).collect();
 
 	trace!("{:?}", urls);
 
@@ -570,43 +303,6 @@ async fn get_image_from_response(
 	Ok(bytes)
 }
 
-/// The `Root` struct is used to represent the root structure of a deserialized JSON object.
-///
-/// This struct leverages the `serde` library for serializing and deserializing data and derives
-/// the `Debug` and `Deserialize` traits for debugging and JSON deserialization purposes.
-///
-/// # Fields
-///
-/// * `data` - A vector containing `Data` elements, representing the data section of the JSON object.
-///   This field is annotated with `#[serde(rename = "data")]`, which means it maps to a JSON key named "data".
-///
-/// # Example JSON Representation
-///
-/// ```json
-/// {
-///   "data": [
-///     {
-///       // fields that correspond to the `Data` struct
-///     },
-///     {
-///       // additional `Data` objects
-///     }
-///   ]
-/// }
-/// ```
-///
-/// In this example, the `data` key in the JSON object corresponds to the `data` field in the `Root` struct.
-///
-/// # Dependencies
-///
-/// The struct requires the `serde` crate along with the `serde_derive` procedural macros for the `Deserialize`
-/// attribute. Use the following in your Cargo.toml:
-///
-/// ```toml
-/// [dependencies]
-/// serde = { version = "1.0", features = ["derive"] }
-/// serde_derive = "1.0"
-/// ```
 #[derive(Debug, Deserialize)]
 
 struct Root {
@@ -614,73 +310,12 @@ struct Root {
 	data: Vec<Data>,
 }
 
-/// A struct that represents a data model used for deserialization.
-///
-/// The `Data` struct is designed to store a single field `url`
-/// which is a `String` value. This struct implements the `Debug`
-/// and `Deserialize` traits.
-///
-/// # Attributes
-/// * `url` - A `String` that holds a URL value.
-///
-/// # Examples
-///
-/// ```
-/// use serde::Deserialize;
-/// use your_crate::Data;
-///
-/// let json_data = r#"{"url": "https://example.com"}"#;
-/// let deserialized_data: Data = serde_json::from_str(json_data).unwrap();
-///
-/// assert_eq!(deserialized_data.url, "https://example.com");
-/// ```
 #[derive(Debug, Deserialize)]
 
 struct Data {
-	url: String,
+	url: Option<String>,
 }
 
-/// Represents an AI-related error with detailed information.
-///
-/// This struct is used to define the structure of an error message
-/// for an AI-related operation, containing specific details about
-/// the error type, message, optional parameter, and code.
-///
-/// # Fields
-///
-/// * `message` - A human-readable description of the error.
-/// * `error_type` - A string indicating the type of the error. This field is serialized and deserialized
-///   with the name `"type"`.
-/// * `param` - An optional string that represents the parameter related to the error, if applicable.
-/// * `code` - A string representing a specific error code associated with the issue.
-///
-/// # Traits
-///
-/// The `AiError` struct derives the following traits:
-/// * `Debug` - Allows the struct to be formatted using a debugging representation.
-/// * `Serialize` - Enables serialization of the struct into formats such as JSON.
-/// * `Deserialize` - Enables deserialization of the struct from formats such as JSON.
-///
-/// # Usage Example
-///
-/// ```
-/// use serde_json;
-/// use your_crate_name::AiError;
-///
-/// let error_json = r#"
-/// {
-///     "message": "Invalid API key",
-///     "type": "authentication_error",
-///     "param": null,
-///     "code": "401"
-/// }
-/// "#;
-///
-/// let ai_error: AiError = serde_json::from_str(error_json).unwrap();
-/// println!("{:?}", ai_error);
-/// // Output will display structured error information, e.g.,
-/// // AiError { message: "Invalid API key", error_type: "authentication_error", param: None, code: "401" }
-/// ```
 #[derive(Debug, Serialize, Deserialize)]
 
 struct AiError {
@@ -691,37 +326,10 @@ struct AiError {
 	pub code: String,
 }
 
-/// A structure `Root1` that serves as a wrapper or container for an instance of an `AiError`.
-///
-/// # Derives
-/// - `Debug`: Enables debugging output for instances of this structure, allowing detailed print statements.
-/// - `Serialize`: Provides serialization support, enabling the structure to be converted into formats such as JSON or YAML.
-/// - `Deserialize`: Allows deserialization from formats such as JSON or YAML into the structure.
-///
-/// # Fields
-/// - `error` (`AiError`): A public field of type `AiError` that holds error-related information.
-///
-/// # Example
-/// ```rust
-/// use serde::{Serialize, Deserialize};
-///
-/// #[derive(Debug, Serialize, Deserialize)]
-/// struct Root1 {
-///     pub error: AiError,
-/// }
-///
-/// #[derive(Debug, Serialize, Deserialize)]
-/// struct AiError {
-///     pub code: u32,
-///     pub message: String,
-/// }
-///
-/// let example_error = AiError { code: 404, message: String::from("Not Found") };
-/// let root = Root1 { error: example_error };
-/// println!("{:?}", root);
-/// ```
 #[derive(Debug, Serialize, Deserialize)]
 
 struct Root1 {
 	pub error: AiError,
 }
+
+

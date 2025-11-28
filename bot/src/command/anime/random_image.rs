@@ -229,9 +229,8 @@ pub async fn random_image_content<'a>(
 	let embed_content =
 		EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
-		.add_file(file)
-		.clone();
+	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	embed_contents.add_files(vec![file]);
 
 	Ok(embed_contents)
 }

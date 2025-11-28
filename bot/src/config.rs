@@ -16,11 +16,6 @@ pub struct Config {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CacheConfig {
-	pub cache_type: String,
-	pub host: Option<String>,
-	pub port: Option<u16>,
-	pub user: Option<String>,
-	pub password: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -63,8 +58,6 @@ pub struct LoggingConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AICfg {
-	pub ai_token: String,
-	pub ai_base_url: String,
 	pub image: AICfgImage,
 	pub question: AICfgQuestion,
 	pub transcription: AICfgTranscription,
@@ -100,7 +93,6 @@ pub struct TaskIntervalConfig {
 	pub before_server_image: u64,
 	pub server_image_update: u64,
 	pub game_update: u64,
-	pub cache_update: u64,
 	pub bot_info: u64,
 	pub blacklisted_user_update: u64,
 	pub activity_check: u64,
@@ -113,7 +105,6 @@ pub struct TaskIntervalConfig {
 pub struct ApiConfig {
 	pub enabled: bool,
 	pub port: u16,
-	pub api_key: String,
 	pub oauth: OAuthConfig,
 }
 
@@ -123,6 +114,7 @@ pub struct OAuthConfig {
 	pub discord_client_secret: String,
 	pub discord_redirect_uri: String,
 	pub frontend_url: String,
+	pub jwt_secret: String, // New field for JWT secret
 }
 
 impl Config {

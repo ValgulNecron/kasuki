@@ -2,7 +2,6 @@ use anyhow::Result;
 use std::sync::Arc;
 
 use crate::cache::CacheInterface;
-use moka::future::Cache;
 use tokio::sync::RwLock;
 
 pub async fn do_request_cached(

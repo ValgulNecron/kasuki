@@ -3,9 +3,6 @@ use crate::constant::UNKNOWN;
 use crate::database::anime_song::Column::AnilistId;
 use crate::database::prelude::AnimeSong;
 use crate::event_handler::BotData;
-use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
-use crate::helper::general_channel_info::get_nsfw;
-use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::media::load_localization_media;
 use anyhow::{Result, anyhow};
 use sea_orm::{DatabaseConnection, entity::*, query::*};
@@ -52,43 +49,16 @@ pub struct MediaQuerrySearch {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
 pub struct Media {
 	pub id: i32,
 	pub cover_image: Option<MediaCoverImage>,
 	pub title: Option<MediaTitle>,
-	pub volumes: Option<i32>,
-	pub updated_at: Option<i32>,
-	#[cynic(rename = "type")]
-	pub type_: Option<MediaType>,
-	pub trending: Option<i32>,
-	pub synonyms: Option<Vec<Option<String>>>,
-	pub tags: Option<Vec<Option<MediaTag>>>,
-	pub status: Option<MediaStatus>,
 	pub source: Option<MediaSource>,
 	pub site_url: Option<String>,
-	pub season_year: Option<i32>,
-	pub season_int: Option<i32>,
-	pub season: Option<MediaSeason>,
-	pub popularity: Option<i32>,
-	pub mod_notes: Option<String>,
-	pub mean_score: Option<i32>,
-	pub is_licensed: Option<bool>,
-	pub is_adult: Option<bool>,
-	pub hashtag: Option<String>,
 	pub genres: Option<Vec<Option<String>>>,
 	pub favourites: Option<i32>,
 	pub format: Option<MediaFormat>,
-	pub episodes: Option<i32>,
-	pub end_date: Option<FuzzyDate>,
 	pub duration: Option<i32>,
-	pub description: Option<String>,
-	pub country_of_origin: Option<CountryCode>,
-	pub chapters: Option<i32>,
-	pub banner_image: Option<String>,
-	pub average_score: Option<i32>,
-	pub auto_create_forum_thread: Option<bool>,
-	pub characters: Option<CharacterConnection>,
 	pub staff: Option<StaffConnection>,
 	pub start_date: Option<FuzzyDate>,
 }
@@ -109,7 +79,6 @@ pub struct StaffEdge {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct Staff {
-	pub id: i32,
 	pub name: Option<StaffName>,
 }
 
@@ -117,39 +86,20 @@ pub struct Staff {
 
 pub struct StaffName {
 	pub user_preferred: Option<String>,
-	pub native: Option<String>,
 	pub full: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct MediaTag {
-	pub category: Option<String>,
-	pub description: Option<String>,
-	pub id: i32,
-	pub is_adult: Option<bool>,
-	pub is_general_spoiler: Option<bool>,
-	pub is_media_spoiler: Option<bool>,
-	pub name: String,
-	pub rank: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct MediaTitle {
 	pub english: Option<String>,
-	pub native: Option<String>,
 	pub romaji: Option<String>,
-	pub user_preferred: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct MediaCoverImage {
 	pub extra_large: Option<String>,
-	pub medium: Option<String>,
-	pub large: Option<String>,
-	pub color: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -169,14 +119,12 @@ pub struct CharacterConnection {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct CharacterEdge {
-	pub role: Option<CharacterRole>,
 	pub node: Option<Character>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct Character {
-	pub id: i32,
 	pub name: Option<CharacterName>,
 }
 
@@ -184,7 +132,6 @@ pub struct Character {
 
 pub struct CharacterName {
 	pub user_preferred: Option<String>,
-	pub native: Option<String>,
 	pub full: Option<String>,
 }
 
@@ -386,51 +333,6 @@ fn embed_title(title: &MediaTitle) -> String {
 	title
 }
 
-fn embed_desc(media: &Media) -> String {
-	let mut desc = media.description.clone().unwrap_or_default();
-
-	desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-
-	let length_diff = 4096 - desc.len() as i32;
-
-	if length_diff <= 0 {
-		desc = trim(desc, length_diff)
-	}
-
-	desc
-}
-
-fn get_genre(genres: &[Option<String>]) -> String {
-	genres
-		.iter()
-		.map(|string| string.clone().unwrap_or_default())
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n")
-}
-
-fn get_tag(tags: &[Option<MediaTag>]) -> String {
-	tags.iter()
-		.map(|media_tag| {
-			media_tag
-				.clone()
-				.unwrap_or(MediaTag {
-					category: None,
-					description: None,
-					id: 0,
-					is_adult: None,
-					is_general_spoiler: None,
-					is_media_spoiler: None,
-					name: "".to_string(),
-					rank: None,
-				})
-				.name
-		})
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n")
-}
-
 fn get_url(media: &Media) -> String {
 	media
 		.site_url
@@ -440,50 +342,6 @@ fn get_url(media: &Media) -> String {
 
 pub fn get_banner(media: &Media) -> String {
 	format!("https://img.anili.st/media/{}", media.id)
-}
-
-fn get_date(date: &FuzzyDate) -> String {
-	let date_y = date.year.unwrap_or(0);
-
-	let date_d = date.day.unwrap_or(0);
-
-	let date_m = date.month.unwrap_or(0);
-
-	if date_y == 0 && date_d == 0 && date_m == 0 {
-		UNKNOWN.to_string()
-	} else {
-		let mut date_of_birth_string = String::new();
-
-		let mut has_month: bool = false;
-
-		let mut has_day: bool = false;
-
-		if let Some(m) = date.month {
-			date_of_birth_string.push_str(format!("{:02}", m).as_str());
-
-			has_month = true
-		}
-
-		if let Some(d) = date.day {
-			if has_month {
-				date_of_birth_string.push('/')
-			}
-
-			date_of_birth_string.push_str(format!("{:02}", d).as_str());
-
-			has_day = true
-		}
-
-		if let Some(y) = date.year {
-			if has_day {
-				date_of_birth_string.push('/')
-			}
-
-			date_of_birth_string.push_str(format!("{:04}", y).as_str());
-		}
-
-		date_of_birth_string
-	}
 }
 
 fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
@@ -516,9 +374,7 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 
 		let user_pref = name.user_preferred;
 
-		let native = name.native;
-
-		let staff_name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())));
+		let staff_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
 
 		let s_role = s.role.clone();
 
@@ -532,58 +388,10 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 	staff_text
 }
 
-fn get_character(character: Vec<Option<CharacterEdge>>) -> String {
-	let mut character_text = String::new();
-
-	// iterate over staff with index
-	let mut i = 0;
-
-	for s in character.into_iter() {
-		if i > 4 {
-			break;
-		}
-
-		let name = match s {
-			Some(s) => {
-				let node = match s.node {
-					Some(n) => n,
-					None => continue,
-				};
-
-				let name = match node.name {
-					Some(n) => n,
-					None => continue,
-				};
-
-				let full = name.full;
-
-				let user_pref = name.user_preferred;
-
-				let native = name.native;
-
-				user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(UNKNOWN.to_string())))
-			},
-			None => UNKNOWN.to_string(),
-		};
-
-		character_text.push_str(name.as_str());
-		character_text.push('\n');
-
-		i += 1;
-	}
-
-	character_text
-}
-
 pub async fn media_content<'a>(
-	ctx: SerenityContext, command_interaction: CommandInteraction, data: Media,
+	_ctx: SerenityContext, command_interaction: CommandInteraction, data: Media,
 	db_connection: Arc<DatabaseConnection>, bot_data: Arc<BotData>,
 ) -> Result<EmbedsContents<'a>> {
-	let is_adult = data.is_adult.unwrap_or(true);
-
-	if is_adult && !get_nsfw(&command_interaction, &ctx).await {
-		return Err(anyhow!("This an adult media in a non adult channel"));
-	}
 
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
@@ -639,31 +447,11 @@ pub async fn media_content<'a>(
 		.take(5)
 		.collect::<Vec<String>>();
 
-	let tag = data.tags.clone().unwrap_or_default();
-
-	let tag = tag
-		.into_iter()
-		.filter_map(|t| if let Some(t) = t { Some(t.name) } else { None })
-		.take(5)
-		.collect::<Vec<String>>();
-
-	fields.push((media_localised.tag, tag.join(", "), true));
-
-	fields.push((media_localised.genre, genres.join(", "), true));
-
 	if let Some(staff) = data.staff.clone() {
 		if let Some(edges) = staff.edges {
 			let staffs = get_staff(edges);
 
 			fields.push((media_localised.staffs, staffs, false));
-		}
-	}
-
-	if let Some(characters) = data.characters.clone() {
-		if let Some(edges) = characters.edges {
-			let characters = get_character(edges);
-
-			fields.push((media_localised.characters, characters, true));
 		}
 	}
 
@@ -693,24 +481,6 @@ pub async fn media_content<'a>(
 		fields.push((media_localised.start_date, start_date_str, true));
 	}
 
-	if let Some(end_date) = data.end_date.clone() {
-		let mut end_date_str = String::new();
-
-		if let Some(day) = end_date.day {
-			end_date_str.push_str(format!("{}/", day).as_str());
-		}
-
-		if let Some(month) = end_date.month {
-			end_date_str.push_str(format!("{}/", month).as_str());
-		}
-
-		if let Some(year) = end_date.year {
-			end_date_str.push_str(year.to_string().as_str());
-		}
-
-		fields.push((media_localised.end_date, end_date_str, true));
-	}
-
 	if let Some(favourites) = data.favourites {
 		fields.push((media_localised.fav, favourites.to_string(), true))
 	}
@@ -724,13 +494,6 @@ pub async fn media_content<'a>(
 			));
 		},
 		None => {
-			if let Some(chapters) = data.chapters {
-				fields.push((
-					media_localised.duration,
-					format!("{} {}", chapters, media_localised.chapter),
-					true,
-				));
-			}
 		},
 	}
 

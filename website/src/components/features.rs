@@ -2,10 +2,6 @@
 use leptos::*;
 use leptos::prelude::ClassAttribute;
 use leptos::prelude::ElementChild;
-use leptos::prelude::create_signal;
-use leptos::prelude::Update;
-use leptos::prelude::Get;
-use leptos::prelude::OnAttribute;
 use leptos::prelude::GlobalAttributes;
 #[component]
 pub fn Features() -> impl IntoView {

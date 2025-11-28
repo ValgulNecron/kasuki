@@ -4,70 +4,7 @@ use std::env;
 use once_cell::sync::Lazy;
 use serenity::all::Colour;
 
-pub const COMMAND_MODULE: Lazy<HashMap<&str, Vec<&str>>> = Lazy::new(|| {
-	let command_module = vec![
-		(
-			"ANILIST",
-			vec![
-				"list_user",
-				"list_activity",
-				"anime",
-				"character",
-				"compare",
-				"level",
-				"ln",
-				"manga",
-				"anilist_user",
-				"waifu",
-				"random",
-				"register",
-				"staff",
-				"studio",
-				"seiyuu",
-			],
-		),
-		(
-			"AI",
-			vec!["ai_image", "ai_question", "ai_transcript", "ai_translation"],
-		),
-		("GAME", vec!["steam_game"]),
-		(
-			"ANIME",
-			vec!["random_anime_random_image", "random_hanime_random_himage"],
-		),
-		(
-			"VN",
-			vec!["vn_game", "vn_character", "vn_staff", "vn_user", "vn_producer", "vn_stats"],
-		),
-		("LEVEL", vec!["levels_stats"]),
-		(
-			"MINIGAME",
-			vec!["minigame_fishing", "minigame_inventory", "minigame_fish_inventory"],
-		),
-	];
-
-	command_module.iter().cloned().collect()
-});
-
-/// Time between cache updates.
-pub const TIME_BETWEEN_CACHE_UPDATE: u64 = 259_200;
-
-/// Max capacity for the cache.
-pub const CACHE_MAX_CAPACITY: u64 = 100_000;
-
-/// Limit for autocomplete count.
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
-
-pub const THREAD_POOL_SIZE: usize = 25;
-
-/// Limit for member list.
-pub const MEMBER_LIST_LIMIT: u16 = 10;
-
-/// Limit for activity list.
-pub const ACTIVITY_LIST_LIMIT: u64 = 10;
-
-/// Path to the data SQLite database.
-pub const COMMAND_USE_PATH: &str = "db/command_use.json";
 
 pub const RANDOM_STATS_PATH: &str = "db/random_stats.json";
 
@@ -136,3 +73,7 @@ pub const PAID_TRANSLATION_MULTIPLIER: f64 = 5.0;
 pub const MAX_FREE_AI_TRANSCRIPTS: usize = 5;
 
 pub const PAID_TRANSCRIPT_MULTIPLIER: f64 = 5.0;
+
+pub const ACTIVITY_LIST_LIMIT: u64 = 10;
+pub const MEMBER_LIST_LIMIT: u16 = 10;
+pub const THREAD_POOL_SIZE: usize = 25;

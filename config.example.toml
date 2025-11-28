@@ -14,6 +14,7 @@ discord_client_id = "your_discord_client_id"
 discord_client_secret = "your_discord_client_secret"
 discord_redirect_uri = "http://localhost:8080/api/oauth/callback"
 frontend_url = "http://localhost:8000"
+jwt_secret = ""
 
 [music]
 lavalink_hostname = ""

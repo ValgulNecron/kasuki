@@ -48,13 +48,15 @@
 //! - `rand`: For generating random page numbers.
 //! - `tracing`: For logging debug and trace information.
 //! - Custom modules for localization, caching, trimming, and AniList Markdown conversion.
+use crate::background_task::update_random_stats::RandomStat;
+use crate::constant::RANDOM_STATS_PATH;
+use anyhow::Context;
 use cynic::{GraphQlResponse, QueryBuilder};
 use rand::{Rng, rng};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 use tracing::trace;
 
-use crate::background_task::update_random_stats::update_random_stats;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
@@ -115,7 +117,7 @@ impl_command!(
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
 
-	let anilist_cache = bot_data.anilist_cache.clone();
+		let anilist_cache = bot_data.anilist_cache.clone();
 		let _config = bot_data.config.clone();
 		let guild_id = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
@@ -135,7 +137,10 @@ impl_command!(
 
 		self_.defer().await?;
 
-		let random_stats = update_random_stats(anilist_cache.clone()).await?;
+		let stats =
+			std::fs::read_to_string(RANDOM_STATS_PATH).context("Failed to read random stats")?;
+		let random_stats: RandomStat =
+			serde_json::from_str(&stats).context("Failed to parse random stats")?;
 
 		let last_page = if random_type.as_str() == "anime" {
 			random_stats.anime_last_page
@@ -167,9 +172,17 @@ impl_command!(
 
 		let data = data?;
 
-		let data = data.data.unwrap();
+		let data = data.data.ok_or(anyhow!("No data found"))?;
 
-		let inside_media = data.page.unwrap().media.unwrap()[0].clone().unwrap();
+		let inside_media = data
+			.page
+			.ok_or(anyhow!("No page found"))?
+			.media
+			.ok_or(anyhow!("No media found"))?
+			.get(0)
+			.cloned()
+			.ok_or(anyhow!("No media found"))?
+			.ok_or(anyhow!("No media found"))?;
 
 		let id = inside_media.id;
 
@@ -181,25 +194,25 @@ impl_command!(
 
 		let media = inside_media;
 
-		let format = media.format.unwrap();
+		let format = media.format.ok_or(anyhow!("No format found"))?;
 
 		let genres = media
 			.genres
-			.unwrap()
+			.ok_or(anyhow!("No genres found"))?
 			.into_iter()
-			.map(|genre| genre.unwrap().clone())
+			.map(|genre| genre.unwrap_or_default())
 			.collect::<Vec<String>>()
 			.join("/");
 
 		let tags = media
 			.tags
-			.unwrap()
+			.ok_or(anyhow!("No tags found"))?
 			.into_iter()
 			.map(|tag| tag.unwrap().name.clone())
 			.collect::<Vec<String>>()
 			.join("/");
 
-		let mut desc = media.description.unwrap();
+		let mut desc = media.description.ok_or(anyhow!("No description found"))?;
 
 		desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
 
@@ -209,7 +222,7 @@ impl_command!(
 			desc = trim(desc.clone(), length_diff);
 		}
 
-		let title = media.title.clone().unwrap();
+		let title = media.title.clone().ok_or(anyhow!("No title found"))?;
 
 		let rj = title.native.unwrap_or_default();
 

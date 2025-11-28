@@ -1,45 +1,57 @@
 use leptos::*;
 use leptos::prelude::*;
-use crate::app::{User, Guild};
+use crate::app::{UserSessionData};
 
 #[component]
 pub fn Profile(
-    #[prop(into)] user: Signal<Option<User>>,
+    #[prop(into)] user_session_data: Signal<Option<UserSessionData>>,
 ) -> impl IntoView {
     view! {
         <main class="legal-page">
             <div class="legal-container">
                 {move || {
-                    if let Some(user_data) = user.get() {
+                    if let Some(data) = user_session_data.get() {
                         view! {
                             <div>
                                 <header style="text-align: center;">
-                                    <img 
-                                        src={user_data.avatar_url.clone()} 
-                                        alt="Profile Avatar" 
-                                        style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px;"
-                                    />
+                                    {if let Some(avatar_hash) = &data.user.avatar {
+                                        view! {
+                                            <img
+                                                src={format!("https://cdn.discordapp.com/avatars/{}/{}.png", data.user.id, avatar_hash)}
+                                                alt="Profile Avatar"
+                                                style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px;"
+                                            />
+                                        }.into_any()
+                                    } else {
+                                        view! {
+                                            <img
+                                                src={"https://cdn.discordapp.com/embed/avatars/0.png"} // Generic default Discord avatar
+                                                alt="Default Profile Avatar"
+                                                style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px;"
+                                            />
+                                        }.into_any()
+                                    }}
                                     <h1>"You are logged in"</h1>
-                                    <p class="last-updated">"Welcome, " {user_data.username.clone()}</p>
+                                    <p class="last-updated">"Welcome, " {data.user.username.clone()}</p>
                                 </header>
 
                                 <h2>"Your Discord Servers"</h2>
-                                {if user_data.guilds.is_empty() {
+                                {if data.guilds.is_empty() {
                                     view! {
                                         <p>"You are not in any servers with this bot."</p>
                                     }.into_any()
                                 } else {
                                     view! {
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
-                                            {user_data.guilds.iter().map(|guild| {
+                                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                                            {data.guilds.iter().map(|guild| {
                                                 let guild_clone = guild.clone();
                                                 view! {
                                                     <div style="background: var(--light); padding: 20px; border-radius: var(--border-radius); display: flex; align-items: center; gap: 15px;">
                                                         {if let Some(icon_url) = &guild_clone.icon_url {
                                                             view! {
-                                                                <img 
-                                                                    src={icon_url.clone()} 
-                                                                    alt="Server Icon" 
+                                                                <img
+                                                                    src={icon_url.clone()}
+                                                                    alt="Server Icon"
                                                                     style="width: 50px; height: 50px; border-radius: 50%;"
                                                                 />
                                                             }.into_any()

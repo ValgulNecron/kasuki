@@ -2,7 +2,6 @@ use anyhow::Result;
 use std::sync::Arc;
 
 use crate::cache::CacheInterface;
-use moka::future::Cache;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
 

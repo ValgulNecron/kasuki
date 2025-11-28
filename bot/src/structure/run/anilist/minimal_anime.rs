@@ -45,9 +45,7 @@ pub struct Media {
 
 pub struct MediaTitle {
 	pub english: Option<String>,
-	pub native: Option<String>,
 	pub romaji: Option<String>,
-	pub user_preferred: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -61,12 +59,4 @@ pub struct MediaCoverImage {
 pub struct AiringSchedule {
 	pub airing_at: i32,
 	pub episode: i32,
-	pub time_until_airing: i32,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-
-pub enum MediaType {
-	Anime,
-	Manga,
 }

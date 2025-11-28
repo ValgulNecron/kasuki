@@ -34,12 +34,9 @@ pub struct Media {
 	pub id: i32,
 	pub title: Option<MediaTitle>,
 	pub description: Option<String>,
-	pub mean_score: Option<i32>,
 	pub tags: Option<Vec<Option<MediaTag>>>,
 	pub genres: Option<Vec<Option<String>>>,
 	pub format: Option<MediaFormat>,
-	pub status: Option<MediaStatus>,
-	pub cover_image: Option<MediaCoverImage>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]

@@ -2,7 +2,7 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-use tracing::debug;
+use tracing::{debug, trace};
 
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::event_handler::BotData;
@@ -16,6 +16,8 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 	let game_search = map
 		.get(&String::from("game_name"))
 		.unwrap_or(DEFAULT_STRING);
+
+	trace!("game_search: {}", game_search);
 
 	// If search is empty, respond with no choices to avoid unnecessary work
 	if game_search.is_empty() {

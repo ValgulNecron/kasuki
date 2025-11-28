@@ -1,15 +1,13 @@
-
-use leptos::*;
 use leptos::prelude::*;
-use crate::app::User;
+use crate::app::{UserSessionData};
 use crate::config::Config;
 
 #[component]
 pub fn Header(
-    #[prop(into)] user: Signal<Option<User>>,
-    #[prop(into)] set_user: WriteSignal<Option<User>>,
+    #[prop(into)] user_session_data: Signal<Option<UserSessionData>>,
+    #[prop(into)] set_user_session_data: WriteSignal<Option<UserSessionData>>,
 ) -> impl IntoView {
-    let (menu_open, set_menu_open) = create_signal(false);
+    let (menu_open, set_menu_open) = signal(false);
 
     let handle_login = move |_| {
         // Redirect to the Discord OAuth login endpoint
@@ -20,7 +18,7 @@ pub fn Header(
     };
 
     let handle_logout = move |_| {
-        set_user.set(None);
+        set_user_session_data.set(None);
         // Navigate to home
         if let Some(window) = web_sys::window() {
             let _ = window.location().set_hash("");
@@ -45,16 +43,28 @@ pub fn Header(
                         </a></li>
                         <li>
                             {move || {
-                                if let Some(user_data) = user.get() {
+                                if let Some(user_data) = user_session_data.get() {
                                     view! {
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <a href="#/profile" on:click=move |_| set_menu_open.set(false) style="display: flex; align-items: center; gap: 8px;">
-                                                <img 
-                                                    src={user_data.avatar_url.clone()} 
-                                                    alt="Profile" 
-                                                    style="width: 32px; height: 32px; border-radius: 50%;"
-                                                />
-                                                <span>{user_data.username.clone()}</span>
+                                                {if let Some(avatar_hash) = &user_data.user.avatar {
+                                                    view! {
+                                                        <img 
+                                                            src={format!("https://cdn.discordapp.com/avatars/{}/{}.png", user_data.user.id, avatar_hash)} 
+                                                            alt="Profile" 
+                                                            style="width: 32px; height: 32px; border-radius: 50%;"
+                                                        />
+                                                    }.into_any()
+                                                } else {
+                                                    view! {
+                                                        <img 
+                                                            src={"https://cdn.discordapp.com/embed/avatars/0.png"} // Generic default Discord avatar
+                                                            alt="Default Profile" 
+                                                            style="width: 32px; height: 32px; border-radius: 50%;"
+                                                        />
+                                                    }.into_any()
+                                                }}
+                                                <span>{user_data.user.username.clone()}</span>
                                             </a>
                                             <button 
                                                 on:click=handle_logout 

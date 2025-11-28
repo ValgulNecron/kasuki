@@ -3,7 +3,7 @@ use crate::config::{Config, DbConfig};
 use crate::event_handler::{BotData, Handler};
 use crate::logger::{create_log_directory, init_logger};
 use anyhow::Context;
-use moka::future::Cache;
+
 use serenity::Client;
 use serenity::all::GatewayIntents;
 use serenity::secrets::Token;
@@ -201,7 +201,7 @@ async fn main() {
 	// Start API server if enabled
 	let api_config = config.clone();
 	tokio::spawn(async move {
-		api::start_api_server(api_config).await;
+		api::start_api_server(Arc::new(api_config)).await;
 	});
 
 	#[cfg(unix)]

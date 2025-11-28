@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
@@ -43,6 +42,7 @@ impl Default for RandomStat {
 /// * `anilist_cache` - A cache for storing Anilist API responses.
 /// * `task_intervals` - Configuration for task intervals.
 
+#[tracing::instrument(skip(anilist_cache, task_intervals), level = "info")]
 pub async fn update_random_stats_launcher(
 	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
 ) {
@@ -151,6 +151,7 @@ pub async fn update_random_stats_launcher(
 ///
 /// Returns the updated `RandomStat` on success, or an error on failure.
 
+#[tracing::instrument(skip(anilist_cache), level = "info")]
 pub async fn update_random_stats(
     anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
@@ -286,6 +287,7 @@ pub async fn update_random_stats(
 ///
 /// A `Result` containing the updated random statistics or an error.
 
+#[tracing::instrument(skip(random_stats, anilist_cache), level = "debug")]
 async fn update_random(
 	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<RandomStat> {
@@ -511,6 +513,7 @@ async fn update_random(
 /// # Returns
 ///
 /// Returns true if there are more pages to update, false otherwise.
+#[tracing::instrument(skip(random_stats, anilist_cache), level = "debug")]
 async fn update_page(
 	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
 	update_anime: bool, update_manga: bool,

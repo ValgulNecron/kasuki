@@ -3,7 +3,6 @@ use std::sync::Arc;
 use crate::cache::CacheInterface;
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
-use moka::future::Cache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;

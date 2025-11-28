@@ -51,12 +51,9 @@ pub struct Character {
 	pub description: Option<String>,
 	pub favourites: Option<i32>,
 	pub gender: Option<String>,
-	pub id: i32,
 	pub image: Option<CharacterImage>,
-	pub mod_notes: Option<String>,
 	pub name: Option<CharacterName>,
 	pub site_url: Option<String>,
-	pub updated_at: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -64,13 +61,11 @@ pub struct Character {
 pub struct CharacterName {
 	pub user_preferred: Option<String>,
 	pub native: Option<String>,
-	pub full: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct CharacterImage {
-	pub medium: Option<String>,
 	pub large: Option<String>,
 }
 

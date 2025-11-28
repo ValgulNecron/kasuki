@@ -8,6 +8,7 @@ use crate::structure::message::common::load_localization;
 
 pub struct LevelLocalised {
 	pub desc: String,
+	pub max: String,
 }
 
 use anyhow::Result;

@@ -5,7 +5,7 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-use tracing::trace;
+use tracing::{error, trace};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
@@ -36,7 +36,10 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let builder = CreateInteractionResponse::Autocomplete(data);
 
-	let _ = autocomplete_interaction
+	if let Err(e) = autocomplete_interaction
 		.create_response(&ctx.http, builder)
-		.await;
+		.await
+	{
+		tracing::error!("Error sending response: {:?}", e);
+	}
 }

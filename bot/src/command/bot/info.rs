@@ -1,8 +1,6 @@
-//! Module implementing the `InfoCommand` structure and its functionality.
-//! Module implementing the `InfoCommand` structure and its functionality.
 use crate::command::command::Command;
 use crate::command::embed_content::{
-	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, CreateFooter, EmbedContent,
+	CommandType, CreateFooter, EmbedContent,
 	EmbedsContents,
 };
 use crate::constant::{APP_VERSION, LIBRARY};
@@ -13,7 +11,7 @@ use crate::impl_command;
 use crate::structure::message::bot::info::load_localization_info;
 use anyhow::anyhow;
 use sea_orm::EntityTrait;
-use serenity::all::{ButtonStyle, CommandInteraction, Context as SerenityContext};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{debug, info};
 
 #[derive(Clone)]
@@ -114,40 +112,6 @@ impl_command!(
 		let lib = LIBRARY.to_string();
 		debug!("Library: {}", lib);
 
-		debug!("Creating buttons for embed");
-		let mut buttons = vec![];
-
-		// Add buttons for various actions
-		buttons.push(
-			ButtonV1::new(info_localised.button_see_on_github)
-				.url("https://github.com/ValgulNecron/kasuki".to_string())
-				.style(ButtonStyle::Primary),
-		);
-
-		buttons.push(
-			ButtonV1::new(info_localised.button_official_website)
-				.url("https://kasuki.moe/".to_string())
-				.style(ButtonStyle::Primary),
-		);
-
-		buttons.push(
-			ButtonV1::new(info_localised.button_official_discord)
-				.url("https://discord.gg/JwdYfnXaeK".to_string())
-				.style(ButtonStyle::Primary),
-		);
-
-		buttons.push(
-			ButtonV1::new(info_localised.button_add_the_bot)
-				.url("https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=395677134144&scope=bot".to_string())
-				.style(ButtonStyle::Success),
-		);
-
-		buttons.push(
-			ButtonV1::new(info_localised.button_add_the_beta_bot)
-				.url("https://discord.com/api/oauth2/authorize?client_id=1122304053620260924&permissions=395677134144&scope=bot".to_string())
-				.style(ButtonStyle::Secondary),
-		);
-
 		debug!("Creating embed content");
 		let title = info_localised.title.clone();
 		let embed_content = EmbedContent::new(info_localised.title)
@@ -173,8 +137,7 @@ impl_command!(
 		debug!("Embed content created with title: {}", title);
 
 		debug!("Creating final embed contents with buttons");
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content])
-			.action_row(ComponentVersion::V1(ComponentVersion1::Buttons(buttons)));
+		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
 		info!("Info command processed successfully");
 		Ok(embed_contents)

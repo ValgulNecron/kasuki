@@ -20,7 +20,6 @@ use crate::structure::run::anilist::user::{
 use crate::{get_url, impl_command};
 use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

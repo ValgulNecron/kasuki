@@ -29,9 +29,7 @@ pub struct Page {
 #[cynic(variables = "SeiyuuIdVariables")]
 
 pub struct Staff {
-	pub site_url: Option<String>,
 	pub image: Option<StaffImage>,
-	pub name: Option<StaffName>,
 	#[arguments(perPage: $ per_page, sort: "FAVOURITES")]
 	pub characters: Option<CharacterConnection>,
 }
@@ -39,8 +37,6 @@ pub struct Staff {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct StaffName {
-	pub user_preferred: Option<String>,
-	pub native: Option<String>,
 	pub full: Option<String>,
 }
 
@@ -60,32 +56,16 @@ pub struct CharacterConnection {
 
 pub struct Character {
 	pub image: Option<CharacterImage>,
-	pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct CharacterName {
 	pub full: Option<String>,
-	pub native: Option<String>,
-	pub user_preferred: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct CharacterImage {
 	pub large: Option<String>,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-
-pub enum CharacterSort {
-	Id,
-	IdDesc,
-	Role,
-	RoleDesc,
-	SearchMatch,
-	Favourites,
-	FavouritesDesc,
-	Relevance,
 }

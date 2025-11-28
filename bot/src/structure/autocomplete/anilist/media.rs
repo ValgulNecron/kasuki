@@ -4,9 +4,8 @@ use crate::cache::CacheInterface;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
-use moka::future::Cache;
 use serenity::all::{
-	AutocompleteChoice, CommandInteraction, Context as SerenityContext, Context,
+	AutocompleteChoice, CommandInteraction, Context as SerenityContext,
 	CreateAutocompleteResponse, CreateInteractionResponse,
 };
 use tokio::sync::RwLock;

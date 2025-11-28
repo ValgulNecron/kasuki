@@ -207,7 +207,7 @@ impl_command!(
 
 		debug!("Creating final embed contents with CommandType::Followup");
 		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-		embed_contents.add_file(progress_file);
+		embed_contents.add_files(vec![progress_file]);
 		debug!("Added progress bar file to embed contents");
 
 		info!("Levels stats command processed successfully");

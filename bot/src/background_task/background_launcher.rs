@@ -1,6 +1,5 @@
 use dashmap::DashMap;
 use futures::channel::mpsc::UnboundedSender;
-use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ConnectionTrait, DatabaseConnection, EntityTrait};
 use serde_json::Value;
@@ -65,8 +64,8 @@ use crate::cache::CacheInterface;
 /// * `ctx` - Serenity context for Discord API interactions
 /// * `bot_data` - Shared bot data including caches and configuration
 ///
+#[tracing::instrument(skip(ctx, bot_data), level = "info")]
 pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotData>) {
-	info!("Initializing background task manager");
 	debug!("Preparing shared resources for background tasks");
 
 	// Extract shared resources that will be used by multiple background tasks
@@ -319,6 +318,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 /// * `db` - An Arc-wrapped database connection
 /// * `task_intervals` - Configuration for task intervals
 ///
+#[tracing::instrument(skip(db, task_intervals), level = "debug")]
 async fn update_anisong_db(db: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig) {
 	info!("Launching the anisongdb update background task");
 	debug!(
@@ -736,6 +736,7 @@ async fn test_database_connection(db: &Arc<DatabaseConnection>) -> Result<()> {
 /// * `db_config` - Database configuration for connecting to the database
 /// * `task_intervals` - Configuration for how frequently to check and record latency
 ///
+#[tracing::instrument(skip(ctx, db_connection, task_intervals), level = "info")]
 async fn ping_manager_thread(
 	ctx: SerenityContext, db_connection: Arc<DatabaseConnection>,
 	task_intervals: TaskIntervalConfig,
@@ -925,6 +926,7 @@ async fn ping_manager_thread(
 /// * `apps` - An `Arc` wrapped `RwLock` containing a `HashMap` of `String` keys and `u128` values.
 ///
 
+#[tracing::instrument(skip(apps, task_intervals), level = "info")]
 async fn launch_game_management_thread(
 	apps: Arc<RwLock<HashMap<String, u128>>>, task_intervals: TaskIntervalConfig,
 ) {
@@ -1077,6 +1079,7 @@ async fn launch_game_management_thread(
 /// The task is cloned from the `Context` and `db_type` arguments.
 ///
 
+#[tracing::instrument(skip(ctx, anilist_cache, db_connection, task_intervals), level = "info")]
 async fn launch_activity_management_thread(
 	ctx: SerenityContext, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>, task_intervals: TaskIntervalConfig,
@@ -1144,6 +1147,7 @@ async fn launch_activity_management_thread(
 /// * `ctx` - A `Context` instance which is used in the server image management function.
 ///
 
+#[tracing::instrument(skip(ctx, image_config, connection, task_intervals), level = "info")]
 async fn launch_server_image_management_thread(
 	ctx: SerenityContext, image_config: ImageConfig, connection: Arc<DatabaseConnection>,
 	task_intervals: TaskIntervalConfig,
@@ -1328,6 +1332,7 @@ async fn launch_server_image_management_thread(
 /// * `blacklist_lock` - Thread-safe shared storage for the blacklist
 /// * `task_intervals` - Configuration for how frequently to update the blacklist
 ///
+#[tracing::instrument(skip(blacklist_lock, task_intervals), level = "info")]
 async fn update_user_blacklist(
 	blacklist_lock: Arc<RwLock<Vec<String>>>, task_intervals: TaskIntervalConfig,
 ) {
@@ -1630,6 +1635,7 @@ async fn update_user_blacklist(
 /// * `bot_data` - An `Arc` reference to the `BotData` struct.
 ///
 
+#[tracing::instrument(skip(context, bot_info, task_intervals), level = "debug")]
 async fn update_bot_info(
 	context: SerenityContext, bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
 	task_intervals: TaskIntervalConfig,

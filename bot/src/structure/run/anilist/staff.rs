@@ -74,9 +74,6 @@ pub struct MediaConnection {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct MediaEdge {
-	pub role_notes: Option<String>,
-	pub staff_role: Option<String>,
-	pub relation_type: Option<MediaRelation>,
 	pub node: Option<Media>,
 }
 
@@ -89,8 +86,6 @@ pub struct Media {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct MediaTitle {
-	pub user_preferred: Option<String>,
-	pub native: Option<String>,
 	pub romaji: Option<String>,
 	pub english: Option<String>,
 }
@@ -112,16 +107,14 @@ pub struct CharacterConnection {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct Character {
-	pub image: Option<CharacterImage>,
 	pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct CharacterName {
-	pub user_preferred: Option<String>,
-	pub native: Option<String>,
 	pub full: Option<String>,
+	pub native: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]

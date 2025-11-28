@@ -144,9 +144,8 @@ pub async fn get_content<'a>(
 	let embed_content = EmbedContent::new(pfp_server_image_localised_text.title)
 		.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
-		.add_file(file)
-		.clone();
+	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	embed_contents.add_files(vec![file]);
 
 	Ok(embed_contents)
 }

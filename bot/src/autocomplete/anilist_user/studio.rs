@@ -11,6 +11,7 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
+use tracing::{debug, error, trace};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
@@ -19,6 +20,8 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 	let studio_search = map
 		.get(&FixedString::from_str_trunc("studio"))
 		.unwrap_or(DEFAULT_STRING);
+
+	trace!("studio_search: {}", studio_search);
 
 	let var = StudioAutocompleteVariables {
 		search: Some(studio_search),

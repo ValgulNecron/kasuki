@@ -131,7 +131,7 @@ async fn remove_activity(guild_id: &str, anime_id: &i32, db_config: DbConfig) ->
 
 	let activity = ActivityData::find()
 		.filter(crate::database::activity_data::Column::ServerId.eq(guild_id))
-		.filter(crate::database::activity_data::Column::AnimeId.eq(anime_id.to_string()))
+		.filter(crate::database::activity_data::Column::AnimeId.eq(*anime_id))
 		.one(&connection)
 		.await?
 		.ok_or(anyhow!(format!("Anime with id {} not found", anime_id)))?;

@@ -4,12 +4,11 @@ use moka::future::Cache;
 use std::sync::Arc;
 
 pub struct CacheInterface {
-	pub conf: CacheConfig,
 	pub cache: Arc<Cache<String, String>>,
 }
 
 impl CacheInterface {
-	pub fn new(conf: CacheConfig) -> Self {
+	pub fn new(_conf: CacheConfig) -> Self {
 		// Use default cache configuration
 		let cache = Cache::builder()
             .max_capacity(10_000) // Default max capacity
@@ -17,7 +16,6 @@ impl CacheInterface {
             .build();
 
 		Self {
-			conf,
 			cache: Arc::new(cache),
 		}
 	}
@@ -29,9 +27,5 @@ impl CacheInterface {
 	pub async fn write(&self, key: String, value: String) -> Result<()> {
 		self.cache.insert(key, value).await;
 		Ok(())
-	}
-
-	pub fn get_cache(&self) -> Arc<Cache<String, String>> {
-		self.cache.clone()
 	}
 }

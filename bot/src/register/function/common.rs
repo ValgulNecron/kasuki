@@ -17,7 +17,7 @@ use crate::register::structure::common::{
 use crate::register::structure::subcommand::Command;
 use crate::register::structure::subcommand_group::SubCommand;
 
-pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption> {
+pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption<'_>> {
 	let mut options = Vec::new();
 
 	for arg in args {
@@ -83,7 +83,7 @@ fn add_choices_localised<'a>(
 	option.add_string_choice_localized(name, name, vec)
 }
 
-pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption> {
+pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption<'_>> {
 	let mut options = Vec::new();
 
 	for command in commands {
@@ -110,7 +110,7 @@ pub fn get_subcommand_option(commands: &Vec<Command>) -> Vec<CreateCommandOption
 	options
 }
 
-pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateCommandOption> {
+pub fn get_subcommand_group_option(subcommands: &Vec<SubCommand>) -> Vec<CreateCommandOption<'_>> {
 	let mut options = Vec::new();
 
 	for subcommand in subcommands {

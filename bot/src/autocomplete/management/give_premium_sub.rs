@@ -3,7 +3,7 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::debug;
+use tracing::{debug, trace};
 
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::command::get_option_map_string;
@@ -16,6 +16,8 @@ pub async fn give_premium_sub_autocomplete(
 	let _subscription = map
 		.get(&FixedString::from_str_trunc("subscription"))
 		.unwrap_or(DEFAULT_STRING);
+
+	trace!("subscription: {}", _subscription);
 
 	let sku_list = ctx.http.get_skus().await.unwrap();
 
@@ -68,6 +70,8 @@ pub async fn give_premium_sub_autocomplete(
 		.map(|sku| AutocompleteChoice::new(sku.0, sku.1))
 		.take(25)
 		.collect::<Vec<AutocompleteChoice>>();
+
+	trace!("sku_list: {:?}", sku_list);
 
 	if sku_list.is_empty() {
 		return;

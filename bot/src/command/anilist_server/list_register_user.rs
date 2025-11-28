@@ -3,7 +3,7 @@
 //! for interacting with Discord and retrieving necessary data.
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
-	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+	CommandType, EmbedContent, EmbedsContents,
 };
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::database::prelude::RegisteredUser;
@@ -48,18 +48,13 @@ impl_command!(
 			load_localization_list_user(guild_id.to_string(), db_connection).await?;
 		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
-		let (desc, len, last_id): (String, usize, Option<UserId>) =
+		let (desc, len, _last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, &ctx, None, connection).await?;
 		let embed_content = EmbedContent::new(list_user_localised.title).description(desc);
 
 		let action_row;
 		if len >= MEMBER_LIST_LIMIT as usize {
-			let buttons = vec![
-				ButtonV1::new(list_user_localised.next)
-					.custom_id(format!("user_{}_0", last_id.unwrap())),
-			];
-			let v1 = ComponentVersion1::buttons(buttons);
-			action_row = Some(ComponentVersion::V1(v1));
+			action_row = None
 		} else {
 			action_row = None
 		}

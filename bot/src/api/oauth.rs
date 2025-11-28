@@ -1,13 +1,27 @@
 use crate::config::Config;
 use axum::{
 	extract::{Query, State},
-	http::StatusCode,
 	response::{IntoResponse, Redirect},
 	Json,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{error, info};
+use tracing::{debug, error, info, trace, warn};
+use dashmap::DashMap;
+use std::sync::LazyLock;
+use jsonwebtoken::{encode, Header, EncodingKey}; // Added
+use chrono::{Utc, Duration}; // Added
+use base64::{engine::general_purpose::STANDARD, Engine as _};
+
+// Global cache for user data, mapping user ID to (UserInfo, Vec<Guild>)
+static USER_CACHE: LazyLock<DashMap<String, (UserInfo, Vec<Guild>)>> = LazyLock::new(DashMap::new);
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Claims {
+    pub sub: String,    // Subject (user ID)
+    pub username: String, // Username
+    pub exp: usize,     // Expiration time
+}
 
 #[derive(Debug, Deserialize)]
 pub struct OAuthCallbackQuery {
@@ -16,8 +30,8 @@ pub struct OAuthCallbackQuery {
 	error_description: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct TokenResponse {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TokenResponse {
 	access_token: String,
 	token_type: String,
 	expires_in: u64,
@@ -25,22 +39,33 @@ struct TokenResponse {
 	scope: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct UserInfo {
-	id: String,
-	username: String,
-	discriminator: String,
-	avatar: Option<String>,
-	email: Option<String>,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserInfo {
+	pub id: String,
+	pub username: String,
+	pub discriminator: String,
+	pub avatar: Option<String>,
+	pub email: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Guild {
-	id: String,
-	name: String,
-	icon: Option<String>,
-	owner: bool,
-	permissions: String,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Guild {
+	pub id: String,
+	pub name: String,
+	pub icon_hash: Option<String>, // Renamed from 'icon'
+	pub icon_url: Option<String>,  // New field for the full URL
+	pub owner: bool,
+	pub permissions: String,
+}
+
+// Struct to deserialize the raw Discord API response for guilds
+#[derive(Debug, Deserialize)]
+struct RawDiscordGuild {
+    id: String,
+    name: String,
+    icon: Option<String>, // Raw icon hash from Discord
+    owner: bool,
+    permissions: String,
 }
 
 /// Initiates the OAuth flow by redirecting to Discord
@@ -57,7 +82,7 @@ pub async fn oauth_login(State(config): State<Arc<Config>>) -> impl IntoResponse
 	let query_string = serde_urlencoded::to_string(&params).unwrap();
 	let discord_auth_url = format!("https://discord.com/api/oauth2/authorize?{}", query_string);
 
-	info!("Redirecting to Discord OAuth: {}", discord_auth_url);
+	debug!("Redirecting to Discord OAuth: {}", discord_auth_url);
 	Redirect::temporary(&discord_auth_url)
 }
 
@@ -66,11 +91,11 @@ pub async fn oauth_callback(
 	State(config): State<Arc<Config>>,
 	Query(query): Query<OAuthCallbackQuery>,
 ) -> impl IntoResponse {
-	info!("OAuth callback received");
+	trace!("OAuth callback received");
 
 	// Check for errors
 	if let Some(error) = query.error {
-		error!("OAuth error: {} - {:?}", error, query.error_description);
+		warn!("OAuth error: {} - {:?}", error, query.error_description);
 		return Redirect::temporary(&format!(
 			"{}/?error={}",
 			config.api.oauth.frontend_url, error
@@ -82,7 +107,7 @@ pub async fn oauth_callback(
 	let code = match query.code {
 		Some(code) => code,
 		None => {
-			error!("No code provided in callback");
+			warn!("No code provided in callback");
 			return Redirect::temporary(&format!(
 				"{}/?error=no_code",
 				config.api.oauth.frontend_url
@@ -91,7 +116,7 @@ pub async fn oauth_callback(
 		},
 	};
 
-	info!("Received authorization code");
+	trace!("Received authorization code");
 
 	// Exchange code for access token
 	let token_response = match exchange_code_for_token(&config, &code).await {
@@ -106,7 +131,7 @@ pub async fn oauth_callback(
 		},
 	};
 
-	info!("Successfully exchanged code for token");
+	trace!("Successfully exchanged code for token");
 
 	// Get user info
 	let user_info = match get_user_info(&token_response.access_token).await {
@@ -140,22 +165,49 @@ pub async fn oauth_callback(
 		guilds.len()
 	);
 
-	// In a real implementation, you would:
-	// 1. Store the token securely (e.g., in Redis or a database)
-	// 2. Create a session token
-	// 3. Return the session token to the frontend
-	
-	// For now, we'll redirect back to the frontend with a success flag
-	// The frontend would need to be updated to handle this properly
+	// Store user info and guilds in the cache
+	USER_CACHE.insert(user_info.id.clone(), (user_info.clone(), guilds.clone()));
+	debug!("User data for {} cached.", user_info.id);
+
+	// Generate JWT
+    let jwt_secret = &config.api.oauth.jwt_secret;
+    let expiration = Utc::now() + Duration::hours(24); // Token valid for 24 hours
+    let claims = Claims {
+        sub: user_info.id.clone(),
+        username: user_info.username.clone(),
+        exp: expiration.timestamp() as usize,
+    };
+
+    let secret = STANDARD.decode(jwt_secret).unwrap();
+
+    let token = match encode(&Header::default(), &claims, &EncodingKey::from_secret(&secret)) {
+        Ok(t) => t,
+        Err(e) => {
+            error!("Failed to generate JWT: {}", e);
+            return Redirect::temporary(&format!(
+                "{}/?error=jwt_generation_failed",
+                config.api.oauth.frontend_url
+            ))
+            .into_response();
+        }
+    };
+    debug!("Generated JWT for user {}", user_info.username);
+
+	// Redirect back to the frontend with the JWT
 	Redirect::temporary(&format!(
-		"{}/#/profile?logged_in=true&user_id={}",
-		config.api.oauth.frontend_url, user_info.id
+		"{}/#/profile?jwt={}",
+		config.api.oauth.frontend_url, token
 	))
 	.into_response()
 }
 
+/// Retrieve cached user data
+pub fn get_cached_user_data(user_id: &str) -> Option<(UserInfo, Vec<Guild>)> {
+    USER_CACHE.get(user_id).map(|entry| entry.to_owned())
+}
+
 /// Exchange authorization code for access token
-async fn exchange_code_for_token(config: &Config, code: &str) -> Result<TokenResponse, String> {
+async fn exchange_code_for_token(config: &Config, code: &str) -> Result<TokenResponse, Box<dyn std::error::Error>> {
 	let oauth_config = &config.api.oauth;
 
 	let params = [
@@ -168,78 +220,107 @@ async fn exchange_code_for_token(config: &Config, code: &str) -> Result<TokenRes
 
 	let client = reqwest::Client::new();
 	let response = client
-		.post("https://discord.com/api/oauth2/token")
+		.post("https://discord.com/api/v10/oauth2/token")
 		.form(&params)
 		.send()
-		.await
-		.map_err(|e| format!("Failed to send token request: {}", e))?;
+		.await?;
 
 	if !response.status().is_success() {
 		let status = response.status();
 		let body = response
 			.text()
-			.await
-			.unwrap_or_else(|_| "Unable to read response".to_string());
-		return Err(format!("Token exchange failed with status {}: {}", status, body));
+			.await?;
+        let err_msg = format!("Token exchange failed with status {}: {}", status, body);
+        error!("{}", err_msg);
+		return Err(err_msg.into());
 	}
 
 	response
 		.json::<TokenResponse>()
 		.await
-		.map_err(|e| format!("Failed to parse token response: {}", e))
+		.map_err(|e| {
+            error!("Failed to parse token response: {}", e);
+            e.into()
+        })
 }
 
 /// Get user information from Discord
-async fn get_user_info(access_token: &str) -> Result<UserInfo, String> {
+async fn get_user_info(access_token: &str) -> Result<UserInfo, Box<dyn std::error::Error>> {
 	let client = reqwest::Client::new();
 	let response = client
-		.get("https://discord.com/api/users/@me")
+		.get("https://discord.com/api/v10/users/@me")
 		.header("Authorization", format!("Bearer {}", access_token))
 		.send()
-		.await
-		.map_err(|e| format!("Failed to get user info: {}", e))?;
+		.await?;
 
 	if !response.status().is_success() {
 		let status = response.status();
 		let body = response
 			.text()
-			.await
-			.unwrap_or_else(|_| "Unable to read response".to_string());
-		return Err(format!("Get user info failed with status {}: {}", status, body));
+			.await?;
+        let err_msg = format!("Get user info failed with status {}: {}", status, body);
+        error!("{}", err_msg);
+		return Err(err_msg.into());
 	}
 
 	response
 		.json::<UserInfo>()
 		.await
-		.map_err(|e| format!("Failed to parse user info: {}", e))
+		.map_err(|e| {
+            error!("Failed to parse user info: {}", e);
+            e.into()
+        })
 }
 
 /// Get user's guilds from Discord
-async fn get_user_guilds(access_token: &str) -> Result<Vec<Guild>, String> {
+async fn get_user_guilds(access_token: &str) -> Result<Vec<Guild>, Box<dyn std::error::Error>> {
 	let client = reqwest::Client::new();
 	let response = client
-		.get("https://discord.com/api/users/@me/guilds")
+		.get("https://discord.com/api/v10/users/@me/guilds")
 		.header("Authorization", format!("Bearer {}", access_token))
 		.send()
-		.await
-		.map_err(|e| format!("Failed to get user guilds: {}", e))?;
+		.await?;
 
 	if !response.status().is_success() {
 		let status = response.status();
 		let body = response
 			.text()
-			.await
-			.unwrap_or_else(|_| "Unable to read response".to_string());
-		return Err(format!(
-			"Get user guilds failed with status {}: {}",
-			status, body
-		));
+			.await?;
+        let err_msg = format!("Get user guilds failed with status {}: {}", status, body);
+		error!("{}", err_msg);
+        return Err(err_msg.into());
 	}
 
 	response
-		.json::<Vec<Guild>>()
+		.json::<Vec<RawDiscordGuild>>()
 		.await
-		.map_err(|e| format!("Failed to parse guilds: {}", e))
+		.map_err(|e| {
+            error!("Failed to parse guilds: {}", e);
+            e.into()
+        })
+		.map(|raw_guilds| {
+			raw_guilds
+				.into_iter()
+				.map(|raw_guild| {
+					let icon_url = if let Some(icon_hash) = raw_guild.icon.clone() {
+						Some(format!(
+							"https://cdn.discordapp.com/icons/{}/{}.png",
+							raw_guild.id, icon_hash
+						))
+					} else {
+						None
+					};
+					Guild {
+						id: raw_guild.id,
+						name: raw_guild.name,
+						icon_hash: raw_guild.icon,
+						icon_url,
+						owner: raw_guild.owner,
+						permissions: raw_guild.permissions,
+					}
+				})
+				.collect()
+		})
 }
 
 /// Health check endpoint

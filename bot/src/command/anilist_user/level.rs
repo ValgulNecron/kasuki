@@ -115,15 +115,24 @@ impl_command!(
 		// Calculate the level and progress
 		let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
+		let next_level_display = if next_xp <= 1.0 {
+			// Using 1.0 as a threshold assuming xp_for_next_level won't be fractional in practice.
+			// This effectively means MAX_XP if next_xp is calculated to be 0 or less,
+			// which would happen if current XP is already at or beyond the max level XP.
+			level_localised.max.clone()
+		} else {
+			next_xp.to_string()
+		};
+
 		let mut embed_content = EmbedContent::new(user.clone().name)
 			.description(
 				level_localised
 					.desc
 					.replace("$username$", username.as_str())
 					.replace("$level$", level.to_string().as_str())
-					.replace("$xp$", xp.to_string().as_str())
-					.replace("$actual$", actual.to_string().as_str())
-					.replace("$next$", next_xp.to_string().as_str()),
+					.replace("$xp$", format!("{:.2}", xp).as_str())
+					.replace("$actual$", format!("{:.2}", actual).as_str())
+					.replace("$next$", next_level_display.as_str()),
 			)
 			.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
 			.url(get_user_url(&user.id))
@@ -155,19 +164,18 @@ pub static LEVELS: Lazy<[(u32, f64, f64); TOTAL_LEVELS]> = Lazy::new(generate_le
 /// This function initializes an array where each element represents a level and contains three values:
 /// - The level number (`u32`)
 /// - The XP required to reach that level (`f64`)
-/// - The XP required to reach the
+/// - The XP required to reach the next level (`f64`)
 fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
 	let mut levels = [(0, 0.0, 0.0); TOTAL_LEVELS];
-	for level in 0..=100 {
+	for level in 0..(TOTAL_LEVELS as u32) {
 		let required_xp = xp_required_for_level(level);
-		let next_level_xp = if level < 100 {
+		let next_level_xp = if level < (TOTAL_LEVELS as u32 - 1) {
 			xp_required_for_level(level + 1)
 		} else {
 			MAX_XP
 		};
 		levels[level as usize] = (level, required_xp, next_level_xp);
 	}
-	levels[101] = (101, MAX_XP, MAX_XP);
 	levels
 }
 
@@ -179,16 +187,20 @@ fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
 ///
 /// # Returns
 /// A tuple containing:
-///
+/// - `u32`: The user's current level.
+/// - `f64`: The amount of XP the user has accumulated within their current level.
+/// - `f64`: The amount of XP required to reach the next level from the start of the current level.
 fn get_level(xp: f64) -> (u32, f64, f64) {
 	for &(level, required_xp, next_level_xp) in LEVELS.iter().rev() {
 		if xp >= required_xp {
 			let xp_in_current_level = xp - required_xp;
 			let xp_for_next_level = next_level_xp - required_xp;
+			// Ensure next_xp is not zero to prevent division by zero in description
+			let xp_for_next_level = if xp_for_next_level <= 0.0 { 1.0 } else { xp_for_next_level };
 			return (level, xp_in_current_level, xp_for_next_level);
 		}
 	}
-	(0, 0.0, 100.0) // Default fallback
+	(0, 0.0, xp_required_for_level(1)) // Fallback: level 0, 0 XP in current, XP to level 1
 }
 
 /// Calculates the experience points (XP) required to reach a given level.
@@ -198,18 +210,9 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 ///   Level must be a non-negative integer (`u32`).
 ///
 /// # Returns
-/// A `f64
+/// A `f64` representing the total experience points needed to reach the specified level.
 fn xp_required_for_level(level: u32) -> f64 {
-	/// Represents the base experience points (XP) value used as a reference for calculation purposes in the system.
-	///
-	/// # Constant
-	/// `BASE_XP` is a floating-point number initialized with a value of `100.0`.
-	///
-	/// # Usage
-	/// This value serves as the foundational XP value that other calculations or adjustments
-	/// (e
 	const BASE_XP: f64 = 100.0;
-	///
 	const GROWTH_RATE: f64 = 1.12;
 
 	match level {
@@ -219,6 +222,6 @@ fn xp_required_for_level(level: u32) -> f64 {
 		26..=50 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.2,
 		51..=75 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.5,
 		76..=100 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 2.0,
-		_ => MAX_XP,
+		_ => xp_required_for_level(100) + (level - 100) as f64 * 10000.0, // Linear growth after level 100
 	}
 }

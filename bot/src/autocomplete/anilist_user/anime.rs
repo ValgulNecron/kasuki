@@ -29,7 +29,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 	.await;
 }
 
-pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables {
+pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables<'_> {
 	MediaAutocompleteVariables {
 		search: Some(anime_search),
 		in_media_format: Some(vec![

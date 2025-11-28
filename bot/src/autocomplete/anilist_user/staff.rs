@@ -11,7 +11,7 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::trace;
+use tracing::{debug, error, trace};
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
@@ -42,17 +42,17 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 			Some(page) => match page.staff {
 				Some(staff) => staff,
 				None => {
-					tracing::error!("No staff");
+					tracing::debug!("No staff");
 					return;
 				},
 			},
 			None => {
-				tracing::error!("No page");
+				tracing::debug!("No page");
 				return;
 			},
 		},
 		None => {
-			tracing::error!("No data");
+			tracing::debug!("No data");
 			return;
 		},
 	};

@@ -35,7 +35,7 @@
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{
-	ButtonV1, CommandType, ComponentVersion, ComponentVersion1, EmbedContent, EmbedsContents,
+	CommandType, EmbedContent, EmbedsContents,
 };
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
@@ -76,7 +76,6 @@ impl_command!(
 			.all(&*connection)
 			.await?;
 		let len = list.len();
-		let next_page = 1;
 
 		let activity: Vec<String> = get_formatted_activity_list(list, 0);
 		let join_activity = activity.join("\n");
@@ -89,12 +88,7 @@ impl_command!(
 			EmbedContent::new(list_activity_localised_text.title).description(join_activity);
 		let action_row;
 		if len > ACTIVITY_LIST_LIMIT as usize {
-			let buttons = vec![
-				ButtonV1::new(list_activity_localised_text.next)
-					.custom_id(format!("next_activity_{}", next_page)),
-			];
-			let v1 = ComponentVersion1::buttons(buttons);
-			action_row = Some(ComponentVersion::V1(v1));
+			action_row = None
 		} else {
 			action_row = None
 		}

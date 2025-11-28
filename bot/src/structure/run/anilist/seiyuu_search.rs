@@ -104,8 +104,6 @@ impl From<CharacterName> for seiyuu_id::CharacterName {
 	fn from(character_name: CharacterName) -> Self {
 		Self {
 			full: character_name.full,
-			native: character_name.native,
-			user_preferred: character_name.user_preferred,
 		}
 	}
 }
@@ -114,7 +112,6 @@ impl From<Character> for seiyuu_id::Character {
 	fn from(character: Character) -> Self {
 		Self {
 			image: character.image.map(|image| image.into()),
-			name: character.name.map(|name| name.into()),
 		}
 	}
 }
@@ -151,8 +148,6 @@ impl From<StaffName> for seiyuu_id::StaffName {
 	fn from(staff_name: StaffName) -> Self {
 		Self {
 			full: staff_name.full,
-			native: staff_name.native,
-			user_preferred: staff_name.user_preferred,
 		}
 	}
 }
@@ -160,9 +155,7 @@ impl From<StaffName> for seiyuu_id::StaffName {
 impl From<Staff> for seiyuu_id::Staff {
 	fn from(staff: Staff) -> Self {
 		Self {
-			site_url: staff.site_url,
 			image: staff.image.map(|image| image.into()),
-			name: staff.name.map(|name| name.into()),
 			characters: staff.characters.map(|characters| characters.into()),
 		}
 	}

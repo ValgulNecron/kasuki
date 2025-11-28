@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serenity::all::{
-	Attachment, ChannelId, CommandInteraction, GenericChannelId, ResolvedValue, RoleId, UserId,
+	Attachment, CommandInteraction, ResolvedValue, UserId,
 };
 
 pub fn get_option_map_string_subcommand(
@@ -52,31 +52,6 @@ pub fn get_option_map_integer_subcommand(interaction: &CommandInteraction) -> Ha
 	map
 }
 
-pub fn get_option_map_boolean_subcommand(
-	interaction: &CommandInteraction,
-) -> HashMap<String, bool> {
-	let mut map = HashMap::new();
-
-	let binding = interaction.data.options();
-
-	let subcommand = &binding.first().unwrap().value;
-
-	if let ResolvedValue::SubCommand(op) = subcommand {
-		for option in op {
-			let name = option.name.to_string();
-
-			let value = match option.value {
-				ResolvedValue::Boolean(a) => a,
-				_ => false,
-			};
-
-			map.insert(name, value);
-		}
-	}
-
-	map
-}
-
 pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashMap<String, UserId> {
 	let mut map = HashMap::new();
 
@@ -91,54 +66,6 @@ pub fn get_option_map_user_subcommand(interaction: &CommandInteraction) -> HashM
 			let value = match &option.value {
 				ResolvedValue::User(user, _partial_member) => user.id,
 				_ => UserId::new(1),
-			};
-
-			map.insert(name, value);
-		}
-	}
-
-	map
-}
-
-pub fn get_option_map_channel_subcommand(
-	interaction: &CommandInteraction,
-) -> HashMap<String, GenericChannelId> {
-	let mut map = HashMap::new();
-
-	let binding = interaction.data.options();
-
-	let subcommand = &binding.first().unwrap().value;
-
-	if let ResolvedValue::SubCommand(op) = subcommand {
-		for option in op {
-			let name = option.name.to_string();
-
-			let value = match &option.value {
-				ResolvedValue::Channel(a) => a.id(),
-				_ => GenericChannelId::from(ChannelId::new(1)),
-			};
-
-			map.insert(name, value);
-		}
-	}
-
-	map
-}
-
-pub fn get_option_map_role_subcommand(interaction: &CommandInteraction) -> HashMap<String, RoleId> {
-	let mut map = HashMap::new();
-
-	let binding = interaction.data.options();
-
-	let subcommand = &binding.first().unwrap().value;
-
-	if let ResolvedValue::SubCommand(op) = subcommand {
-		for option in op {
-			let name = option.name.to_string();
-
-			let value = match &option.value {
-				ResolvedValue::Role(a) => a.id,
-				_ => RoleId::new(1),
 			};
 
 			map.insert(name, value);
