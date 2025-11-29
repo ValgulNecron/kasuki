@@ -28,6 +28,9 @@ jobs:
           toolchain: stable
           components: "rust-src"
 
+      - name: Install wasm target
+        run: rustup target add wasm32-unknown-unknown
+
       - name: install trunk
         uses: jetli/trunk-action@v0.4.0
         with:
