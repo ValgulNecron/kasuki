@@ -363,5 +363,3 @@ pkg/
 
 cache.db
 data.db
-
-migration
