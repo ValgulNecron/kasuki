@@ -4,19 +4,17 @@ use std::time::Duration;
 
 use cynic::{GraphQlResponse, QueryBuilder};
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
-use tokio::time::{interval, sleep};
-use tracing::{debug, error, info, trace, warn};
-use shared::cache::CacheInterface;
-use shared::config::TaskIntervalConfig;
 use shared::anilist::make_request::make_request_anilist;
 use shared::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use shared::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
+use shared::cache::CacheInterface;
+use shared::config::TaskIntervalConfig;
 use shared::random_stats_json::RandomStat;
+use tokio::sync::RwLock;
+use tokio::time::{interval, sleep};
+use tracing::{debug, error, info, trace, warn};
 
 const RANDOM_STATS_PATH: &str = "db/random_stats.json";
-
-
 
 /// Launches a background task to update the random statistics at regular intervals.
 ///
@@ -133,9 +131,7 @@ pub async fn update_random_stats_launcher(
 ///
 /// Returns the updated `RandomStat` on success, or an error on failure.
 #[tracing::instrument(skip(anilist_cache), level = "info")]
-pub async fn update_random_stats(
-    anilist_cache: Arc<RwLock<CacheInterface>>,
-) -> Result<RandomStat> {
+pub async fn update_random_stats(anilist_cache: Arc<RwLock<CacheInterface>>) -> Result<RandomStat> {
 	trace!("Starting update_random_stats function");
 	debug!(
 		"Attempting to load random stats from file: {}",
@@ -203,7 +199,8 @@ pub async fn update_random_stats(
 	debug!("Calling update_random function to fetch latest statistics");
 	trace!(
 		"Current stats before update: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page, random_stats.manga_last_page
+		random_stats.anime_last_page,
+		random_stats.manga_last_page
 	);
 
 	let start_time = chrono::Utc::now();
@@ -228,9 +225,9 @@ pub async fn update_random_stats(
 	debug!("Serialized JSON size: {} bytes", random_stats_json.len());
 
 	trace!("Writing random stats to file: {}", RANDOM_STATS_PATH);
-    if let Some(parent) = std::path::Path::new(RANDOM_STATS_PATH).parent() {
-        std::fs::create_dir_all(parent).context("Failed to create directory for random stats")?;
-    }
+	if let Some(parent) = std::path::Path::new(RANDOM_STATS_PATH).parent() {
+		std::fs::create_dir_all(parent).context("Failed to create directory for random stats")?;
+	}
 	match std::fs::write(RANDOM_STATS_PATH, &random_stats_json) {
 		Ok(_) => debug!(
 			"Successfully wrote random stats to file: {}",
@@ -498,8 +495,8 @@ async fn update_random(
 /// Returns true if there are more pages to update, false otherwise.
 #[tracing::instrument(skip(random_stats, anilist_cache), level = "debug")]
 async fn update_page(
-	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
-	update_anime: bool, update_manga: bool,
+	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>, update_anime: bool,
+	update_manga: bool,
 ) -> bool {
 	// If neither anime nor manga updates are requested, return early
 	if !update_anime && !update_manga {
@@ -583,7 +580,8 @@ async fn update_page(
 		Ok(data) => {
 			trace!(
 				"Successfully received API response for {} page {}",
-				page_type, page_num
+				page_type,
+				page_num
 			);
 			data
 		},

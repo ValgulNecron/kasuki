@@ -15,8 +15,7 @@ pub struct Config {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct CacheConfig {
-}
+pub struct CacheConfig {}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BotConfig {
@@ -123,10 +122,10 @@ impl Config {
 		let config: Config = toml::from_str(&config)?;
 		Ok(config)
 	}
-    
-    pub fn load_from_path(path: &str) -> Result<Self> {
-        let config = std::fs::read_to_string(path)?;
-        let config: Config = toml::from_str(&config)?;
-        Ok(config)
-    }
+
+	pub fn load_from_path(path: &str) -> Result<Self> {
+		let config = std::fs::read_to_string(path)?;
+		let config: Config = toml::from_str(&config)?;
+		Ok(config)
+	}
 }

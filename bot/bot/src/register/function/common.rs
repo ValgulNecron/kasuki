@@ -9,13 +9,13 @@ use serenity::all::{
 };
 use tracing::trace;
 
-use shared::helper::read_file::read_file_as_string;
 use crate::register::structure::common::{
 	Arg, Choice, ChoiceLocalised, CommandInstallationContext, CommandIntegrationContext,
 	DefaultPermission, Localised,
 };
 use crate::register::structure::subcommand::Command;
 use crate::register::structure::subcommand_group::SubCommand;
+use shared::helper::read_file::read_file_as_string;
 
 pub fn get_option(args: &Vec<Arg>) -> Vec<CreateCommandOption<'_>> {
 	let mut options = Vec::new();

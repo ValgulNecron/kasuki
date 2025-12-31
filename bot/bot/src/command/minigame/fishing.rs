@@ -1,7 +1,5 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::item::{Entity as Item, Model as ItemModel};
-use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::minigame::fishing::load_localization_fishing;
@@ -10,6 +8,8 @@ use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::item::{Entity as Item, Model as ItemModel};
+use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
 use tracing::{debug, info};
 
 #[derive(Clone)]

@@ -1,12 +1,12 @@
-use shared::cache::CacheInterface;
-use shared::config::{Config, DbConfig};
 use crate::event_handler::{BotData, Handler};
 use crate::logger::{create_log_directory, init_logger};
 use anyhow::Context;
+use shared::cache::CacheInterface;
+use shared::config::{Config, DbConfig};
 
-use serenity::Client;
 use serenity::all::GatewayIntents;
 use serenity::secrets::Token;
+use serenity::Client;
 use songbird::driver::DecodeMode;
 use std::process;
 use std::str::FromStr;
@@ -15,6 +15,7 @@ use std::time::Duration;
 use tokio::sync::{broadcast, RwLock};
 use tracing::{error, info, warn};
 
+mod api;
 pub mod autocomplete;
 mod command;
 mod components;
@@ -23,13 +24,12 @@ mod custom_serenity_impl;
 pub mod error_management;
 mod event_handler;
 mod helper;
+pub mod launch_task;
 mod logger;
 mod music_events;
 mod register;
 mod server_image;
 mod structure;
-mod api;
-pub mod launch_task;
 
 #[tokio::main]
 async fn main() {
@@ -76,10 +76,8 @@ async fn main() {
 
 	let cache_config = config.cache.clone();
 	info!("Initializing caches");
-	let anilist_cache: Arc<RwLock<CacheInterface>> =
-		Arc::new(RwLock::new(CacheInterface::new()));
-	let vndb_cache: Arc<RwLock<CacheInterface>> =
-		Arc::new(RwLock::new(CacheInterface::new()));
+	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));
+	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
@@ -196,11 +194,11 @@ async fn main() {
 		drop(client);
 	});
 
-	        // Start API server if enabled
-	        let api_config = config.clone();
-	        tokio::spawn(async move {
-	            api::start_api_server(Arc::new(api_config)).await;
-	        });	
+	// Start API server if enabled
+	let api_config = config.clone();
+	tokio::spawn(async move {
+		api::start_api_server(Arc::new(api_config)).await;
+	});
 	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");

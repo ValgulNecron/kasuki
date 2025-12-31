@@ -1,64 +1,60 @@
-use crate::api::oauth::{get_cached_user_data};
-use crate::api::oauth;
 use crate::api::auth::{auth_middleware, Claims};
-use shared::config::Config;
+use crate::api::oauth;
+use crate::api::oauth::get_cached_user_data;
 use axum::{
-	routing::get,
-	Json, Router, http::StatusCode,
-    response::IntoResponse,
-    middleware,
-    Extension,
+	http::StatusCode, middleware, response::IntoResponse, routing::get, Extension, Json, Router,
 };
+use serde::{Deserialize, Serialize};
+use shared::config::Config;
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
-use serde::{Deserialize, Serialize};
 
 // This struct combines UserInfo and Guilds for the API response
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserDataResponse {
-    pub user: User,
-    pub guilds: Vec<Guild>,
+	pub user: User,
+	pub guilds: Vec<Guild>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct User {
-    pub id: String,
-    pub username: String,
-    pub avatar: Option<String>,
+	pub id: String,
+	pub username: String,
+	pub avatar: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Guild {
-    pub id: String,
-    pub name: String,
-    pub icon_url: Option<String>,
+	pub id: String,
+	pub name: String,
+	pub icon_url: Option<String>,
 }
 
 // Handler for the /api/user/:user_id endpoint
 #[axum::debug_handler]
 pub async fn get_user_profile(Extension(claims): Extension<Claims>) -> impl IntoResponse {
-    let user_id = claims.sub; // Get user_id from JWT claims
-    if let Some((user_info, guilds)) = get_cached_user_data(&user_id) {
-        let user = User {
-            id: user_info.id,
-            username: user_info.username,
-            avatar: user_info.avatar,
-        };
-        let guilds = guilds.into_iter().map(|g| Guild {
-            id: g.id,
-            name: g.name,
-            icon_url: g.icon_url,
-        }).collect();
+	let user_id = claims.sub; // Get user_id from JWT claims
+	if let Some((user_info, guilds)) = get_cached_user_data(&user_id) {
+		let user = User {
+			id: user_info.id,
+			username: user_info.username,
+			avatar: user_info.avatar,
+		};
+		let guilds = guilds
+			.into_iter()
+			.map(|g| Guild {
+				id: g.id,
+				name: g.name,
+				icon_url: g.icon_url,
+			})
+			.collect();
 
-        let response = UserDataResponse {
-            user,
-            guilds,
-        };
-        (StatusCode::OK, Json(response)).into_response()
-    } else {
-        (StatusCode::NOT_FOUND, "User not found".into_response()).into_response()
-    }
+		let response = UserDataResponse { user, guilds };
+		(StatusCode::OK, Json(response)).into_response()
+	} else {
+		(StatusCode::NOT_FOUND, "User not found".into_response()).into_response()
+	}
 }
 
 pub async fn run_server(config: Arc<Config>) -> Result<(), Box<dyn std::error::Error>> {
@@ -70,16 +66,20 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), Box<dyn std::error::E
 		.allow_methods(Any)
 		.allow_headers(Any);
 
-	let user_router = Router::new()
-        .route("/me", get(get_user_profile))
-        .layer(middleware::from_fn_with_state(config.clone(), auth_middleware));
+	let user_router =
+		Router::new()
+			.route("/me", get(get_user_profile))
+			.layer(middleware::from_fn_with_state(
+				config.clone(),
+				auth_middleware,
+			));
 
 	// Build the router
 	let app = Router::new()
 		.route("/api/health", get(oauth::health_check))
 		.route("/api/oauth/login", get(oauth::oauth_login))
 		.route("/api/oauth/callback", get(oauth::oauth_callback))
-        .nest("/api/user", user_router)
+		.nest("/api/user", user_router)
 		.layer(cors)
 		.with_state(config);
 

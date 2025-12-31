@@ -1,12 +1,12 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::UNKNOWN;
-use shared::database::anime_song::Column::AnilistId;
-use shared::database::prelude::AnimeSong;
 use crate::event_handler::BotData;
 use crate::structure::message::anilist_user::media::load_localization_media;
-use anyhow::{Result, anyhow};
-use sea_orm::{DatabaseConnection, entity::*, query::*};
+use anyhow::{anyhow, Result};
+use sea_orm::{entity::*, query::*, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::anime_song::Column::AnilistId;
+use shared::database::prelude::AnimeSong;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -392,7 +392,6 @@ pub async fn media_content<'a>(
 	_ctx: SerenityContext, command_interaction: CommandInteraction, data: Media,
 	db_connection: Arc<DatabaseConnection>, bot_data: Arc<BotData>,
 ) -> Result<EmbedsContents<'a>> {
-
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id.to_string(),
 		None => String::from("0"),
@@ -493,8 +492,7 @@ pub async fn media_content<'a>(
 				true,
 			));
 		},
-		None => {
-		},
+		None => {},
 	}
 
 	let title = match data.title.clone() {

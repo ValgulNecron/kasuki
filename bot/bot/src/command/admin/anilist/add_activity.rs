@@ -72,16 +72,13 @@
 //!    - Creates and sends a Discord webhook with activity information.
 //!    - Stores the activity in the database.
 //! 5. Sends feedback to the user either confirming the successful addition or reporting failure.
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::command::command::Command;
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::activity_data;
-use shared::database::activity_data::Column;
-use shared::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -92,14 +89,14 @@ use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
 	MinimalAnimeSearchVariables,
 };
-use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
+use base64::Engine as _;
 use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
 use image::imageops::FilterType;
-use image::{GenericImageView, ImageFormat, guess_format};
+use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -110,9 +107,12 @@ use serenity::all::{
 	ChannelId, CommandInteraction, Context as SerenityContext, CreateAttachment, EditWebhook,
 	GenericChannelId,
 };
+use shared::cache::CacheInterface;
+use shared::database::activity_data;
+use shared::database::activity_data::Column;
+use shared::database::prelude::ActivityData;
 use tokio::sync::RwLock;
 use tracing::trace;
-use shared::cache::CacheInterface;
 
 /// A struct representing the `AddActivityCommand`, which encapsulates the context and interaction
 /// details required for handling the "Add Activity" command in a Discord bot.
@@ -682,9 +682,7 @@ async fn get_webhook(
 ///
 /// For logging purposes, the anime `id` will be traced to assist in identifying
 /// any potential issues during the request execution.
-pub async fn get_minimal_anime_by_id(
-	id: i32, cache: Arc<RwLock<CacheInterface>>,
-) -> Result<Media> {
+pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>) -> Result<Media> {
 	trace!(?id);
 
 	let query = MinimalAnimeIdVariables { id: Some(id) };
@@ -816,7 +814,7 @@ async fn get_minimal_anime_by_search(
 /// ## Logging
 /// - Debug logs (`trace!`) are emitted with the retrieved `media` details for debugging purposes.
 pub async fn get_minimal_anime_media(
-    anime: String, cache: Arc<RwLock<CacheInterface>>,
+	anime: String, cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Media> {
 	let media = if let Ok(id) = anime.parse::<i32>() {
 		get_minimal_anime_by_id(id, cache).await?

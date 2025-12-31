@@ -2,28 +2,28 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 use std::time::Duration;
 
-use shared::database::activity_data;
-use shared::database::activity_data::Model;
-use shared::database::prelude::ActivityData;
-use shared::cache::CacheInterface;
-use shared::anilist::minimal_anime::get_minimal_anime_media;
-use shared::localization::load_localization;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
 use chrono::{DateTime, Utc};
+use shared::anilist::minimal_anime::get_minimal_anime_media;
+use shared::cache::CacheInterface;
+use shared::database::activity_data;
+use shared::database::activity_data::Model;
+use shared::database::prelude::ActivityData;
+use shared::localization::load_localization;
 
 use sea_orm::ActiveValue::Set;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DeleteResult};
 use sea_orm::{DatabaseConnection, EntityTrait};
-use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
+use serde::{Deserialize, Serialize};
 use serenity::all::ImageData;
-use serenity::model::webhook::Webhook;
+use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
 use serenity::http::Http;
+use serenity::model::webhook::Webhook;
 use tokio::sync::RwLock;
 use tracing::{error, instrument, trace};
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SendActivityLocalised {
@@ -72,9 +72,14 @@ async fn send_activity(
 			tokio::spawn(async move {
 				tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
 
-				if let Err(e) =
-					send_specific_activity(&row, guild_id, &http_clone, anilist_cache, db_connection)
-						.await
+				if let Err(e) = send_specific_activity(
+					&row,
+					guild_id,
+					&http_clone,
+					anilist_cache,
+					db_connection,
+				)
+				.await
 				{
 					error!("{}", e)
 				}
@@ -86,9 +91,14 @@ async fn send_activity(
 			let row = row.clone();
 
 			tokio::spawn(async move {
-				if let Err(e) =
-					send_specific_activity(&row, guild_id, &http_clone, anilist_cache, db_connection)
-						.await
+				if let Err(e) = send_specific_activity(
+					&row,
+					guild_id,
+					&http_clone,
+					anilist_cache,
+					db_connection,
+				)
+				.await
 				{
 					error!("{}", e);
 				}
@@ -99,11 +109,15 @@ async fn send_activity(
 
 #[instrument(skip(http, anilist_cache))]
 async fn send_specific_activity(
-	row: &Model, guild_id: String, http: &Arc<Http>,
-	anilist_cache: Arc<RwLock<CacheInterface>>, db_connection: Arc<DatabaseConnection>,
+	row: &Model, guild_id: String, http: &Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-	let localised_text: SendActivityLocalised =
-		load_localization(guild_id.clone(), "json/message/anilist_user/send_activity.json", db_connection.clone()).await?;
+	let localised_text: SendActivityLocalised = load_localization(
+		guild_id.clone(),
+		"json/message/anilist_user/send_activity.json",
+		db_connection.clone(),
+	)
+	.await?;
 
 	let mut webhook = Webhook::from_url(&http, &row.webhook).await?;
 
@@ -114,8 +128,8 @@ async fn send_specific_activity(
 	let trimmed_name = row.name.chars().take(100).collect::<String>();
 
 	// Create ImageData from bytes
-    // Try From<&[u8]>
-    // let image_data = ImageData::from(decoded_bytes.as_slice());
+	// Try From<&[u8]>
+	// let image_data = ImageData::from(decoded_bytes.as_slice());
 
 	let filename = format!("{}_{}.png", guild_id, row.anime_id);
 	let attachment = CreateAttachment::bytes(decoded_bytes, filename);
@@ -149,11 +163,11 @@ async fn send_specific_activity(
 }
 
 fn decode_image(image: &str) -> Result<Vec<u8>> {
-    let base64_str = if let Some(idx) = image.find(',') {
-        &image[idx + 1..]
-    } else {
-        image
-    };
+	let base64_str = if let Some(idx) = image.find(',') {
+		&image[idx + 1..]
+	} else {
+		image
+	};
 
 	let cursor = Cursor::new(base64_str);
 
@@ -219,7 +233,8 @@ async fn remove_activity(
 ) -> Result<DeleteResult> {
 	trace!(
 		"Attempting to remove activity for anime_id: {} in guild: {}",
-		row.anime_id, guild_id
+		row.anime_id,
+		guild_id
 	);
 
 	let delete_result = ActivityData::delete(activity_data::ActiveModel {
@@ -232,7 +247,9 @@ async fn remove_activity(
 
 	trace!(
 		"Removed {} row(s) for anime_id: {} in guild: {}",
-		delete_result.rows_affected, row.anime_id, guild_id
+		delete_result.rows_affected,
+		row.anime_id,
+		guild_id
 	);
 
 	Ok(delete_result)

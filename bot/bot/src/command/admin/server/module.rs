@@ -2,9 +2,6 @@
 //! It contains context and interaction details necessary for processing the command.
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::module_activation;
-use shared::database::module_activation::Model;
-use shared::database::prelude::ModuleActivation;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
@@ -15,6 +12,9 @@ use anyhow::anyhow;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::module_activation;
+use shared::database::module_activation::Model;
+use shared::database::prelude::ModuleActivation;
 use tracing::debug;
 
 /// A structure representing a command executed within a module,

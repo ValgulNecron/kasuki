@@ -2,7 +2,7 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use crate::structure::message::anilist_user::character::load_localization_character;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
 use std::sync::Arc;

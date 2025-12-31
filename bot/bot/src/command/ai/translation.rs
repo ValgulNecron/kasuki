@@ -90,10 +90,10 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::impl_command;
 use crate::structure::message::ai::translation::load_localization_translation;
-use anyhow::{Result, anyhow};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
-use reqwest::{Url, multipart};
-use serde_json::{Value, json};
+use anyhow::{anyhow, Result};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::{multipart, Url};
+use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use uuid::Uuid;

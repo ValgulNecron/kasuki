@@ -99,7 +99,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
 use std::collections::HashMap;

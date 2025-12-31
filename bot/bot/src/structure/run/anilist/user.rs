@@ -1,7 +1,7 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
-use crate::structure::message::anilist_user::user::{UserLocalised, load_localization_user};
-use anyhow::{Result, anyhow};
+use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
+use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
 use serenity::model::Colour;

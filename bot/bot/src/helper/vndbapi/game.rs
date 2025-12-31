@@ -2,8 +2,8 @@ use anyhow::Result;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

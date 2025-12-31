@@ -10,7 +10,7 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::music::join::load_localization_join;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;

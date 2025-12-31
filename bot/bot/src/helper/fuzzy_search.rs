@@ -70,7 +70,7 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 				.peek()
 				.context("Failed to peek at the binary heap, which should not be empty")?;
 
-			if item.0.0 > min.0.0 {
+			if item.0 .0 > min.0 .0 {
 				distances.pop();
 				distances.push(item);
 			}

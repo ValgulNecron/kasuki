@@ -1,1 +1,3 @@
-fn main() { println!("API Server"); }
+fn main() {
+	println!("API Server");
+}

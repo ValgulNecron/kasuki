@@ -1,19 +1,11 @@
-use shared::cache::CacheInterface;
 use crate::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::server_image::calculate_user_color::{
-	color_management, get_specific_user_color,
-};
-use crate::server_image::generate_server_image::server_image_management;
 use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
 use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
-use shared::config::Config;
-use shared::database::prelude::{
-	GuildData, GuildSubscription, Message as DatabaseMessage, ServerUserRelation, UserData,
-	UserSubscription, Vocal as DatabaseVocal,
-};
 use crate::error_management::error_dispatch;
 use crate::register::registration_dispatcher::command_registration;
+use crate::server_image::calculate_user_color::{color_management, get_specific_user_color};
+use crate::server_image::generate_server_image::server_image_management;
 use chrono::{DateTime, Timelike, Utc};
 use num_bigint::BigUint;
 use reqwest::Client;
@@ -28,10 +20,16 @@ use serenity::all::{FullEvent, VoiceState};
 use serenity::async_trait;
 use serenity::gateway::{ActivityData, ChunkGuildFilter, ShardRunnerInfo, ShardRunnerMessage};
 use serenity::prelude::{Context as SerenityContext, EventHandler};
+use shared::cache::CacheInterface;
+use shared::config::Config;
+use shared::database::prelude::{
+	GuildData, GuildSubscription, Message as DatabaseMessage, ServerUserRelation, UserData,
+	UserSubscription, Vocal as DatabaseVocal,
+};
 use songbird::Songbird;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, instrument, trace, warn};
 pub struct BotData {
@@ -55,10 +53,10 @@ pub struct BotData {
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 	pub user_color_update_count: Arc<AtomicUsize>,
 }
-use crate::launch_task::thread_management_launcher;
 use crate::helper::load_items::load_items_from_json;
+use crate::launch_task::thread_management_launcher;
 use crate::music_events;
-use anyhow::{Result};
+use anyhow::Result;
 use dashmap::DashMap;
 use futures::channel::mpsc::UnboundedSender;
 use lavalink_rs::client::LavalinkClient;
@@ -423,13 +421,10 @@ impl Handler {
 			"New member joined guild"
 		);
 
-		let is_module_on = check_if_module_is_on(
-			guild_id.clone(),
-			"NEW_MEMBER",
-			bot_data.config.db.clone(),
-		)
-		.await
-		.unwrap_or(false);
+		let is_module_on =
+			check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", bot_data.config.db.clone())
+				.await
+				.unwrap_or(false);
 
 		get_specific_user_color(
 			user_blacklist_server_image,
@@ -651,10 +646,7 @@ impl Handler {
 	async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
 		let mut user = None;
 		let bot_data = ctx.data::<BotData>().clone();
-		trace!(
-			"Interaction received: {:?}",
-			interaction.kind()
-		);
+		trace!("Interaction received: {:?}", interaction.kind());
 
 		match interaction.clone() {
 			Interaction::Command(command_interaction) => {
@@ -829,7 +821,7 @@ async fn insert_user_subscription(
 		sku_id: Set(entitlement.sku_id.to_string()),
 		created_at: Set(entitlement.starts_at.unwrap_or_default().naive_utc()),
 		updated_at: Default::default(),
-expired_at: Default::default(),
+		expired_at: Default::default(),
 	};
 	if let Err(e) = UserSubscription::insert(model)
 		.on_conflict(

@@ -17,8 +17,8 @@ pub struct VnUser {
 	pub username: String,
 }
 
-use shared::cache::CacheInterface;
 use anyhow::Result;
+use shared::cache::CacheInterface;
 
 pub async fn get_user(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<VnUser> {
 	let response = do_request_cached(path.clone(), vndb_cache).await?;

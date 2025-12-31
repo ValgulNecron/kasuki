@@ -1,6 +1,6 @@
+pub mod auth;
 pub mod oauth;
 pub mod server;
-pub mod auth;
 
 use shared::config::Config;
 use std::sync::Arc;
@@ -12,10 +12,7 @@ pub async fn start_api_server(config: Arc<Config>) {
 		return;
 	}
 
-	info!(
-		"Starting API server on port {}",
-		config.api.port
-	);
+	info!("Starting API server on port {}", config.api.port);
 
 	if let Err(e) = server::run_server(config).await {
 		tracing::error!("API server error: {}", e);

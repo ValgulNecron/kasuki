@@ -12,7 +12,6 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
 use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
@@ -24,9 +23,10 @@ use crate::structure::run::anilist::character::{
 	Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
 	CharacterQuerrySearchVariables,
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::cache::CacheInterface;
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 

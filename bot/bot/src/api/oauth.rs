@@ -1,26 +1,26 @@
-use shared::config::Config;
 use axum::{
 	extract::{Query, State},
 	response::{IntoResponse, Redirect},
 	Json,
 };
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tracing::{debug, error, info, trace, warn};
-use dashmap::DashMap;
-use std::sync::LazyLock;
-use jsonwebtoken::{encode, Header, EncodingKey}; // Added
-use chrono::{Utc, Duration}; // Added
 use base64::{engine::general_purpose::STANDARD, Engine as _};
+use chrono::{Duration, Utc}; // Added
+use dashmap::DashMap;
+use jsonwebtoken::{encode, EncodingKey, Header}; // Added
+use serde::{Deserialize, Serialize};
+use shared::config::Config;
+use std::sync::Arc;
+use std::sync::LazyLock;
+use tracing::{debug, error, info, trace, warn};
 
 // Global cache for user data, mapping user ID to (UserInfo, Vec<Guild>)
 static USER_CACHE: LazyLock<DashMap<String, (UserInfo, Vec<Guild>)>> = LazyLock::new(DashMap::new);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    pub sub: String,    // Subject (user ID)
-    pub username: String, // Username
-    pub exp: usize,     // Expiration time
+	pub sub: String,      // Subject (user ID)
+	pub username: String, // Username
+	pub exp: usize,       // Expiration time
 }
 
 #[derive(Debug, Deserialize)]
@@ -61,17 +61,17 @@ pub struct Guild {
 // Struct to deserialize the raw Discord API response for guilds
 #[derive(Debug, Deserialize)]
 struct RawDiscordGuild {
-    id: String,
-    name: String,
-    icon: Option<String>, // Raw icon hash from Discord
-    owner: bool,
-    permissions: String,
+	id: String,
+	name: String,
+	icon: Option<String>, // Raw icon hash from Discord
+	owner: bool,
+	permissions: String,
 }
 
 /// Initiates the OAuth flow by redirecting to Discord
 pub async fn oauth_login(State(config): State<Arc<Config>>) -> impl IntoResponse {
 	let oauth_config = &config.api.oauth;
-	
+
 	let params = vec![
 		("client_id", oauth_config.discord_client_id.as_str()),
 		("redirect_uri", oauth_config.discord_redirect_uri.as_str()),
@@ -88,8 +88,7 @@ pub async fn oauth_login(State(config): State<Arc<Config>>) -> impl IntoResponse
 
 /// Handles the OAuth callback from Discord
 pub async fn oauth_callback(
-	State(config): State<Arc<Config>>,
-	Query(query): Query<OAuthCallbackQuery>,
+	State(config): State<Arc<Config>>, Query(query): Query<OAuthCallbackQuery>,
 ) -> impl IntoResponse {
 	trace!("OAuth callback received");
 
@@ -170,28 +169,32 @@ pub async fn oauth_callback(
 	debug!("User data for {} cached.", user_info.id);
 
 	// Generate JWT
-    let jwt_secret = &config.api.oauth.jwt_secret;
-    let expiration = Utc::now() + Duration::hours(24); // Token valid for 24 hours
-    let claims = Claims {
-        sub: user_info.id.clone(),
-        username: user_info.username.clone(),
-        exp: expiration.timestamp() as usize,
-    };
+	let jwt_secret = &config.api.oauth.jwt_secret;
+	let expiration = Utc::now() + Duration::hours(24); // Token valid for 24 hours
+	let claims = Claims {
+		sub: user_info.id.clone(),
+		username: user_info.username.clone(),
+		exp: expiration.timestamp() as usize,
+	};
 
-    let secret = STANDARD.decode(jwt_secret).unwrap();
+	let secret = STANDARD.decode(jwt_secret).unwrap();
 
-    let token = match encode(&Header::default(), &claims, &EncodingKey::from_secret(&secret)) {
-        Ok(t) => t,
-        Err(e) => {
-            error!("Failed to generate JWT: {}", e);
-            return Redirect::temporary(&format!(
-                "{}/?error=jwt_generation_failed",
-                config.api.oauth.frontend_url
-            ))
-            .into_response();
-        }
-    };
-    debug!("Generated JWT for user {}", user_info.username);
+	let token = match encode(
+		&Header::default(),
+		&claims,
+		&EncodingKey::from_secret(&secret),
+	) {
+		Ok(t) => t,
+		Err(e) => {
+			error!("Failed to generate JWT: {}", e);
+			return Redirect::temporary(&format!(
+				"{}/?error=jwt_generation_failed",
+				config.api.oauth.frontend_url
+			))
+			.into_response();
+		},
+	};
+	debug!("Generated JWT for user {}", user_info.username);
 
 	// Redirect back to the frontend with the JWT
 	Redirect::temporary(&format!(
@@ -203,11 +206,13 @@ pub async fn oauth_callback(
 
 /// Retrieve cached user data
 pub fn get_cached_user_data(user_id: &str) -> Option<(UserInfo, Vec<Guild>)> {
-    USER_CACHE.get(user_id).map(|entry| entry.to_owned())
+	USER_CACHE.get(user_id).map(|entry| entry.to_owned())
 }
 
 /// Exchange authorization code for access token
-async fn exchange_code_for_token(config: &Config, code: &str) -> Result<TokenResponse, Box<dyn std::error::Error>> {
+async fn exchange_code_for_token(
+	config: &Config, code: &str,
+) -> Result<TokenResponse, Box<dyn std::error::Error>> {
 	let oauth_config = &config.api.oauth;
 
 	let params = [
@@ -227,21 +232,16 @@ async fn exchange_code_for_token(config: &Config, code: &str) -> Result<TokenRes
 
 	if !response.status().is_success() {
 		let status = response.status();
-		let body = response
-			.text()
-			.await?;
-        let err_msg = format!("Token exchange failed with status {}: {}", status, body);
-        error!("{}", err_msg);
+		let body = response.text().await?;
+		let err_msg = format!("Token exchange failed with status {}: {}", status, body);
+		error!("{}", err_msg);
 		return Err(err_msg.into());
 	}
 
-	response
-		.json::<TokenResponse>()
-		.await
-		.map_err(|e| {
-            error!("Failed to parse token response: {}", e);
-            e.into()
-        })
+	response.json::<TokenResponse>().await.map_err(|e| {
+		error!("Failed to parse token response: {}", e);
+		e.into()
+	})
 }
 
 /// Get user information from Discord
@@ -255,21 +255,16 @@ async fn get_user_info(access_token: &str) -> Result<UserInfo, Box<dyn std::erro
 
 	if !response.status().is_success() {
 		let status = response.status();
-		let body = response
-			.text()
-			.await?;
-        let err_msg = format!("Get user info failed with status {}: {}", status, body);
-        error!("{}", err_msg);
+		let body = response.text().await?;
+		let err_msg = format!("Get user info failed with status {}: {}", status, body);
+		error!("{}", err_msg);
 		return Err(err_msg.into());
 	}
 
-	response
-		.json::<UserInfo>()
-		.await
-		.map_err(|e| {
-            error!("Failed to parse user info: {}", e);
-            e.into()
-        })
+	response.json::<UserInfo>().await.map_err(|e| {
+		error!("Failed to parse user info: {}", e);
+		e.into()
+	})
 }
 
 /// Get user's guilds from Discord
@@ -283,21 +278,19 @@ async fn get_user_guilds(access_token: &str) -> Result<Vec<Guild>, Box<dyn std::
 
 	if !response.status().is_success() {
 		let status = response.status();
-		let body = response
-			.text()
-			.await?;
-        let err_msg = format!("Get user guilds failed with status {}: {}", status, body);
+		let body = response.text().await?;
+		let err_msg = format!("Get user guilds failed with status {}: {}", status, body);
 		error!("{}", err_msg);
-        return Err(err_msg.into());
+		return Err(err_msg.into());
 	}
 
 	response
 		.json::<Vec<RawDiscordGuild>>()
 		.await
 		.map_err(|e| {
-            error!("Failed to parse guilds: {}", e);
-            e.into()
-        })
+			error!("Failed to parse guilds: {}", e);
+			e.into()
+		})
 		.map(|raw_guilds| {
 			raw_guilds
 				.into_iter()

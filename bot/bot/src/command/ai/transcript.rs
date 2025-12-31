@@ -9,9 +9,9 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::impl_command;
 use crate::structure::message::ai::transcript::load_localization_transcript;
-use anyhow::{Result, anyhow};
-use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
-use reqwest::{Url, multipart};
+use anyhow::{anyhow, Result};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use reqwest::{multipart, Url};
 use serde_json::Value;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use uuid::Uuid;

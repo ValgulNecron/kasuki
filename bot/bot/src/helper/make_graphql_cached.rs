@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace, warn};
 

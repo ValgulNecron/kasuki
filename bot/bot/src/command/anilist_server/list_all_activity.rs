@@ -34,13 +34,9 @@
 //!       - `Result<Vec<EmbedContent<'_, '_>>>`: A vector of `EmbedContent` containing the activity list for display.
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
 use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::{
-	CommandType, EmbedContent, EmbedsContents,
-};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
-use shared::database::activity_data::Column;
-use shared::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
@@ -49,6 +45,8 @@ use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::activity_data::Column;
+use shared::database::prelude::ActivityData;
 
 #[derive(Clone)]
 pub struct ListAllActivity {

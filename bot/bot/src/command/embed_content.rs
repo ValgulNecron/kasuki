@@ -1,6 +1,4 @@
-use serenity::all::{
-	Colour,
-};
+use serenity::all::Colour;
 use std::borrow::Cow;
 
 #[derive(Clone)]
@@ -146,8 +144,7 @@ pub struct CreateAuthor {
 	pub icon_url: Option<String>,
 }
 
-impl CreateAuthor {
-}
+impl CreateAuthor {}
 
 #[derive(Clone)]
 pub enum ComponentVersion<'a> {

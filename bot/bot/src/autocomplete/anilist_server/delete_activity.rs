@@ -1,6 +1,4 @@
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
-use shared::database::activity_data::Column;
-use shared::database::prelude::ActivityData;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
@@ -11,6 +9,8 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
+use shared::database::activity_data::Column;
+use shared::database::prelude::ActivityData;
 use tracing::error;
 
 pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {

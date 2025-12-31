@@ -60,8 +60,6 @@
 //! ```
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::kill_switch::{ActiveModel, Column};
-use shared::database::prelude::KillSwitch;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
@@ -73,6 +71,8 @@ use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::kill_switch::{ActiveModel, Column};
+use shared::database::prelude::KillSwitch;
 use small_fixed_array::FixedString;
 
 /// A struct representing a kill switch command to be executed within the context of a Discord bot.

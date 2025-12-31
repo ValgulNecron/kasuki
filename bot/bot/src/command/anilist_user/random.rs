@@ -48,12 +48,12 @@
 //! - `rand`: For generating random page numbers.
 //! - `tracing`: For logging debug and trace information.
 //! - Custom modules for localization, caching, trimming, and AniList Markdown conversion.
-use shared::random_stats_json::RandomStat;
 use crate::constant::RANDOM_STATS_PATH;
 use anyhow::Context;
 use cynic::{GraphQlResponse, QueryBuilder};
-use rand::{Rng, rng};
+use rand::{rng, Rng};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::random_stats_json::RandomStat;
 use small_fixed_array::FixedString;
 use tracing::trace;
 
@@ -69,7 +69,7 @@ use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 /// A `RandomCommand` struct that encapsulates the context and interaction details for a command
 /// in a Discord bot using the Serenity library.

@@ -1,14 +1,11 @@
-use crate::command::embed_content::{
-	CommandType, ComponentVersion, EmbedsContents,
-};
+use crate::command::embed_content::{CommandType, ComponentVersion, EmbedsContents};
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, MessageFlags};
 use serenity::builder::{
-	CreateAttachment, CreateEmbedAuthor,
-	CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup,
-	CreateInteractionResponseMessage,
+	CreateAttachment, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse,
+	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
 };
 use serenity::prelude::Context as SerenityContext;
 
@@ -102,9 +99,7 @@ impl<T: Command> CommandRun for T {
 		let mut component = None;
 		if let Some(action_row) = contents.action_row {
 			match action_row {
-				ComponentVersion::V2(v2) => {
-					component = Some(v2.components)
-				},
+				ComponentVersion::V2(v2) => component = Some(v2.components),
 			};
 		};
 

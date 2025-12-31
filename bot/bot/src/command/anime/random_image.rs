@@ -52,7 +52,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
 use crate::structure::message::anime::random_image::load_localization_random_image;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use image::EncodableLayout;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use tracing::{debug, error, info};

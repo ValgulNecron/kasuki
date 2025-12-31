@@ -22,13 +22,13 @@ use small_fixed_array::FixedString;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::prelude::RegisteredUser;
-use shared::database::registered_user::{ActiveModel, Column};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::impl_command;
 use crate::structure::message::anilist_user::register::load_localization_register;
-use crate::structure::run::anilist::user::{User, get_color, get_user_url};
+use crate::structure::run::anilist::user::{get_color, get_user_url, User};
+use shared::database::prelude::RegisteredUser;
+use shared::database::registered_user::{ActiveModel, Column};
 
 #[derive(Clone)]
 pub struct RegisterCommand {

@@ -5,11 +5,8 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
-use shared::cache::CacheInterface;
 use crate::command::command::Command;
 use crate::command::embed_content::EmbedsContents;
-use shared::database::prelude::RegisteredUser;
-use shared::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -18,12 +15,15 @@ use crate::structure::run::anilist::user::{
 	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
 use crate::{get_url, impl_command};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::cache::CacheInterface;
+use shared::database::prelude::RegisteredUser;
+use shared::database::registered_user::Column;
 use small_fixed_array::FixedString;
 use std::sync::Arc;
 use tokio::sync::RwLock;

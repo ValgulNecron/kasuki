@@ -9,8 +9,6 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::prelude::RegisteredUser;
-use shared::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::message::anilist_user::level::load_localization_level;
@@ -19,6 +17,8 @@ use crate::{get_url, impl_command};
 use anyhow::anyhow;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
+use shared::database::prelude::RegisteredUser;
+use shared::database::registered_user::Column;
 use small_fixed_array::FixedString;
 
 #[derive(Clone)]
@@ -196,7 +196,11 @@ fn get_level(xp: f64) -> (u32, f64, f64) {
 			let xp_in_current_level = xp - required_xp;
 			let xp_for_next_level = next_level_xp - required_xp;
 			// Ensure next_xp is not zero to prevent division by zero in description
-			let xp_for_next_level = if xp_for_next_level <= 0.0 { 1.0 } else { xp_for_next_level };
+			let xp_for_next_level = if xp_for_next_level <= 0.0 {
+				1.0
+			} else {
+				xp_for_next_level
+			};
 			return (level, xp_in_current_level, xp_for_next_level);
 		}
 	}

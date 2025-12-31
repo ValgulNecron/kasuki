@@ -2,22 +2,20 @@
 //! in a Discord guild. It implements the `Command` trait to define specific behaviors
 //! for interacting with Discord and retrieving necessary data.
 use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::{
-	CommandType, EmbedContent, EmbedsContents,
-};
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
-use shared::database::prelude::RegisteredUser;
-use shared::database::registered_user::Column;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
-use anyhow::{Result, anyhow};
-use futures::StreamExt;
+use anyhow::{anyhow, Result};
 use futures::pin_mut;
+use futures::StreamExt;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext, PartialGuild, User, UserId};
+use shared::database::prelude::RegisteredUser;
+use shared::database::registered_user::Column;
 use std::sync::Arc;
 use tracing::trace;
 

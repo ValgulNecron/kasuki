@@ -1,9 +1,9 @@
 use std::sync::{Arc, RwLock};
 use std::thread;
 
-use anyhow::{Context, Result, anyhow};
-use base64::Engine;
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose;
+use base64::Engine;
 use image::codecs::png;
 use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
@@ -16,19 +16,19 @@ use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
 
+use crate::constant::THREAD_POOL_SIZE;
+use crate::event_handler::BotData;
+use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
 	change_to_x128_url, get_image_from_url, get_member, return_average_user_color,
 };
 use crate::server_image::common::{
-	Color, ColorWithUrl, create_color_vector_from_tuple, create_color_vector_from_user_color,
-	find_closest_color,
+	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
+	ColorWithUrl,
 };
 use shared::config::ImageConfig;
-use crate::constant::THREAD_POOL_SIZE;
 use shared::database::prelude::{ServerImage, UserColor};
 use shared::database::server_image::{ActiveModel, Column};
-use crate::event_handler::BotData;
-use crate::helper::image_saver::general_image_saver::image_saver;
 
 pub async fn generate_local_server_image(
 	ctx: &SerenityContext, guild_id: GuildId, image_config: ImageConfig,

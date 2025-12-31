@@ -1,4 +1,4 @@
-//! This file implements Lavalink event hooks to handle various events such as raw Lavalink events, 
+//! This file implements Lavalink event hooks to handle various events such as raw Lavalink events,
 //! ready events, and track start events in a Discord bot using both `lavalink_rs` and `serenity` libraries.
 use lavalink_rs::{hook, model::events, prelude::*};
 use serenity::all::ChannelId;
@@ -93,7 +93,10 @@ pub async fn track_start(client: LavalinkClient, _session_id: String, event: &ev
 	let player_context = match client.get_player_context(event.guild_id) {
 		Some(context) => context,
 		None => {
-			warn!("Could not get player context for guild {:?}", event.guild_id);
+			warn!(
+				"Could not get player context for guild {:?}",
+				event.guild_id
+			);
 			return;
 		},
 	};
@@ -131,4 +134,3 @@ pub async fn track_start(client: LavalinkClient, _session_id: String, event: &ev
 		}
 	};
 }
-

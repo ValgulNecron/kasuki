@@ -9,13 +9,13 @@ use serenity::all::{
 use tokio::sync::RwLock;
 use tracing::{error, trace};
 
-use shared::cache::CacheInterface;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
 use anyhow::Result;
+use shared::cache::CacheInterface;
 use small_fixed_array::FixedString;
 
 pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {

@@ -12,12 +12,12 @@ use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace, warn};
 
-use shared::config::{ImageConfig, TaskIntervalConfig};
-use shared::database::ping_history::ActiveModel;
-use shared::database::prelude::PingHistory;
 use crate::event_handler::BotData;
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::{Context as AnyhowContext, Result};
+use shared::config::{ImageConfig, TaskIntervalConfig};
+use shared::database::ping_history::ActiveModel;
+use shared::database::prelude::PingHistory;
 
 /// Main function responsible for launching and managing all background tasks.
 ///
@@ -347,7 +347,8 @@ async fn ping_manager_thread(
 			// Then execute the insert operation with proper error context
 			trace!(
 				"Inserting ping history record for shard {} with latency {}",
-				shard_id, latency
+				shard_id,
+				latency
 			);
 			let result = PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),

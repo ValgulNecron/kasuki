@@ -5,20 +5,20 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "anime_song")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub anilist_id: String,
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub ann_id: String,
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub ann_song_id: String,
-    pub anime_en_name: String,
-    pub anime_jp_name: String,
-    pub anime_alt_name: String,
-    pub song_type: String,
-    pub song_name: String,
-    pub hq: String,
-    pub mq: String,
-    pub audio: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub anilist_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub ann_id: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub ann_song_id: String,
+	pub anime_en_name: String,
+	pub anime_jp_name: String,
+	pub anime_alt_name: String,
+	pub song_type: String,
+	pub song_name: String,
+	pub hq: String,
+	pub mq: String,
+	pub audio: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

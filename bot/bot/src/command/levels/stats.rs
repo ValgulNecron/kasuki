@@ -1,18 +1,18 @@
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
-use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
-use shared::database::{message, vocal};
 use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
 use crate::impl_command;
 use crate::structure::message::levels::stats::load_localization_levels_stats;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, Condition};
 use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
 use serenity::model::Colour;
+use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
+use shared::database::{message, vocal};
 use tracing::{debug, info};
 use uuid::Uuid;
 

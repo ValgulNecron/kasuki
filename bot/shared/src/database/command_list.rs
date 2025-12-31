@@ -5,41 +5,41 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "command_list")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub command_name: String,
+	#[sea_orm(primary_key, auto_increment = false)]
+	pub command_name: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::command_usage::Entity")]
-    CommandUsage,
-    #[sea_orm(has_many = "super::server_user_relation::Entity")]
-    ServerUserRelation,
+	#[sea_orm(has_many = "super::command_usage::Entity")]
+	CommandUsage,
+	#[sea_orm(has_many = "super::server_user_relation::Entity")]
+	ServerUserRelation,
 }
 
 impl Related<super::command_usage::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::CommandUsage.def()
-    }
+	fn to() -> RelationDef {
+		Relation::CommandUsage.def()
+	}
 }
 
 impl Related<super::server_user_relation::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::ServerUserRelation.def()
-    }
+	fn to() -> RelationDef {
+		Relation::ServerUserRelation.def()
+	}
 }
 
 impl Related<super::user_data::Entity> for Entity {
-    fn to() -> RelationDef {
-        super::server_user_relation::Relation::UserData.def()
-    }
-    fn via() -> Option<RelationDef> {
-        Some(
-            super::server_user_relation::Relation::CommandList
-                .def()
-                .rev(),
-        )
-    }
+	fn to() -> RelationDef {
+		super::server_user_relation::Relation::UserData.def()
+	}
+	fn via() -> Option<RelationDef> {
+		Some(
+			super::server_user_relation::Relation::CommandList
+				.def()
+				.rev(),
+		)
+	}
 }
 
 impl ActiveModelBehavior for ActiveModel {}

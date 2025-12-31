@@ -1,22 +1,22 @@
 //! This module defines the `GenerateImagePfPCommand` structure and related functionality
 //! for handling a command interaction that generates server profile picture images.
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
-use shared::database::prelude::ServerImage;
-use shared::database::server_image::Column;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
-use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::prelude::ServerImage;
+use shared::database::server_image::Column;
 use uuid::Uuid;
 
 /// The `GenerateImagePfPCommand` struct is used to encapsulate the necessary data

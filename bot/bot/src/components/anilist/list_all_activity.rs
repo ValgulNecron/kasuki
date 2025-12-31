@@ -1,13 +1,13 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use shared::database::activity_data::{Column, Model};
-use shared::database::prelude::ActivityData;
 use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed,
 	CreateInteractionResponse, CreateInteractionResponseMessage, Timestamp,
 };
+use shared::database::activity_data::{Column, Model};
+use shared::database::prelude::ActivityData;
 use std::sync::Arc;
 use tracing::trace;
 

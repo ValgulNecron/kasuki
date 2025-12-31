@@ -1,10 +1,6 @@
 use crate::command::command::Command;
-use crate::command::embed_content::{
-	CommandType, CreateFooter, EmbedContent,
-	EmbedsContents,
-};
+use crate::command::embed_content::{CommandType, CreateFooter, EmbedContent, EmbedsContents};
 use crate::constant::{APP_VERSION, LIBRARY};
-use shared::database::prelude::UserColor;
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::impl_command;
@@ -12,6 +8,7 @@ use crate::structure::message::bot::info::load_localization_info;
 use anyhow::anyhow;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::prelude::UserColor;
 use tracing::{debug, info};
 
 #[derive(Clone)]

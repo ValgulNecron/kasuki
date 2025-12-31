@@ -18,12 +18,12 @@ use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::cache::CacheInterface;
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
-use shared::cache::CacheInterface;
 
 #[derive(Clone)]
 pub struct StaffCommand {

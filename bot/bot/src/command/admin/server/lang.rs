@@ -3,8 +3,6 @@
 //! includes the context and command interaction necessary to process the command.
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use shared::database::guild_lang;
-use shared::database::prelude::GuildLang;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::impl_command;
@@ -13,6 +11,8 @@ use anyhow::anyhow;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::guild_lang;
+use shared::database::prelude::GuildLang;
 
 /// The `LangCommand` struct is used to represent language-related commands within a Discord bot context.
 ///

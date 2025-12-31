@@ -30,7 +30,7 @@ impl CacheInterface {
 }
 
 impl Default for CacheInterface {
-    fn default() -> Self {
-        Self::new()
-    }
+	fn default() -> Self {
+		Self::new()
+	}
 }

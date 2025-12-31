@@ -1,9 +1,9 @@
-use shared::database::user_color::Model;
-use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
 use image::DynamicImage;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
+use shared::database::user_color::Model;
 
 /// `Color` is a struct that represents a color in the CIELAB color space.
 /// It contains a single field, `cielab`, which is a `Lab` object from the `palette` crate.

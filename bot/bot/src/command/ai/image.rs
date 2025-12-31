@@ -4,7 +4,6 @@ use std::sync::Arc;
 use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
-use shared::config::Config;
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
@@ -13,12 +12,13 @@ use crate::helper::get_option::subcommand::{
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::impl_command;
 use crate::structure::message::ai::image::load_localization_image;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use image::EncodableLayout;
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::config::Config;
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -270,7 +270,11 @@ async fn get_image_from_response(
 		},
 	};
 
-	let urls: Vec<String> = root.data.iter().filter_map(|data| data.url.clone()).collect();
+	let urls: Vec<String> = root
+		.data
+		.iter()
+		.filter_map(|data| data.url.clone())
+		.collect();
 
 	trace!("{:?}", urls);
 
@@ -331,5 +335,3 @@ struct AiError {
 struct Root1 {
 	pub error: AiError,
 }
-
-

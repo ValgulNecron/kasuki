@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
 use serde::{Deserialize, Serialize};
+use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

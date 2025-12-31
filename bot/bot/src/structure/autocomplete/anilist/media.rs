@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
-	AutocompleteChoice, CommandInteraction, Context as SerenityContext,
-	CreateAutocompleteResponse, CreateInteractionResponse,
+	AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
+	CreateInteractionResponse,
 };
+use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 #[cynic::schema("anilist")]

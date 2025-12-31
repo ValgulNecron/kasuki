@@ -101,12 +101,12 @@ async fn do_request<
 
 	trace!("Sending GraphQL request");
 	let resp = match client
-        .post("https://graphql.anilist.co/")
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&operation)
-        .send()
-        .await
+		.post("https://graphql.anilist.co/")
+		.header("Content-Type", "application/json")
+		.header("Accept", "application/json")
+		.json(&operation)
+		.send()
+		.await
 	{
 		Ok(resp) => {
 			debug!("Received response with status: {}", resp.status());
