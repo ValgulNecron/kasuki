@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "Here's the banner of $user$",
+    "no_banner": "$user$ does not have a banner",
+    "no_banner_title": "No banner"
+  },
+  "fr": {
+    "title": "Voici la bannière de $user$",
+    "no_banner": "$user$ n'a pas de bannière",
+    "no_banner_title": "Pas de bannière"
+  },
+  "jp": {
+    "title": "$user$のバナーです",
+    "no_banner": "$user$にはバナーがありません",
+    "no_banner_title": "バナーなし"
+  },
+  "de": {
+    "title": "Hier ist das Banner von $user$",
+    "no_banner": "$user$ hat kein Banner",
+    "no_banner_title": "Kein Banner"
+  }
+}

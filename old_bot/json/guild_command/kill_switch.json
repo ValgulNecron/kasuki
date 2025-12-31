@@ -1,0 +1,270 @@
+{
+  "guild_id": 1117152661620408531,
+  "name": "kill_switch",
+  "desc": "Globally turn on or off a module",
+  "nsfw": false,
+  "permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "args": [
+    {
+      "name": "name",
+      "desc": "The module you want to change the state of.",
+      "required": true,
+      "autocomplete": false,
+      "arg_type": "String",
+      "choices": [
+        {
+          "option_choice": "AI",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "AI"
+            },
+            {
+              "code": "fr",
+              "name": "IA"
+            },
+            {
+              "code": "de",
+              "name": "KI"
+            },
+            {
+              "code": "ja",
+              "name": "AI"
+            }
+          ]
+        },
+        {
+          "option_choice": "ANILIST",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "ANILIST"
+            },
+            {
+              "code": "fr",
+              "name": "ANILIST"
+            },
+            {
+              "code": "de",
+              "name": "ANILIST"
+            },
+            {
+              "code": "ja",
+              "name": "アニリスト"
+            }
+          ]
+        },
+        {
+          "option_choice": "GAME",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "Game"
+            },
+            {
+              "code": "fr",
+              "name": "Jeu"
+            },
+            {
+              "code": "de",
+              "name": "Spiel"
+            },
+            {
+              "code": "ja",
+              "name": "ゲーム"
+            }
+          ]
+        },
+        {
+          "option_choice": "NEW_MEMBER",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "New Member"
+            },
+            {
+              "code": "fr",
+              "name": "Nouveau Membre"
+            },
+            {
+              "code": "de",
+              "name": "Neues Mitglied"
+            },
+            {
+              "code": "ja",
+              "name": "新メンバー"
+            }
+          ]
+        },
+        {
+          "option_choice": "ANIME",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "Anime"
+            },
+            {
+              "code": "fr",
+              "name": "Anime"
+            },
+            {
+              "code": "de",
+              "name": "Anime"
+            },
+            {
+              "code": "ja",
+              "name": "アニメ"
+            }
+          ]
+        },
+        {
+          "option_choice": "VN",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "Visual Novel"
+            },
+            {
+              "code": "fr",
+              "name": "Roman Visuel"
+            },
+            {
+              "code": "de",
+              "name": "Visueller Roman"
+            },
+            {
+              "code": "ja",
+              "name": "ビジュアルノベル"
+            }
+          ]
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "module_name",
+          "desc": "The module you want to change the state of."
+        },
+        {
+          "code": "fr",
+          "name": "nom_du_module",
+          "desc": "Le module dont vous voulez changer l'état."
+        },
+        {
+          "code": "de",
+          "name": "modulname",
+          "desc": "Das Modul, dessen Zustand Sie ändern möchten."
+        },
+        {
+          "code": "ja",
+          "name": "モジュール名",
+          "desc": "状態を変更したいモジュール。"
+        }
+      ]
+    },
+    {
+      "name": "state",
+      "desc": "The state you want to to.",
+      "required": true,
+      "autocomplete": false,
+      "arg_type": "Boolean",
+      "choices": [
+        {
+          "option_choice": "True",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "True"
+            },
+            {
+              "code": "fr",
+              "name": "Vrai"
+            },
+            {
+              "code": "de",
+              "name": "Wahr"
+            },
+            {
+              "code": "ja",
+              "name": "真"
+            }
+          ]
+        },
+        {
+          "option_choice": "False",
+          "option_choice_localised": [
+            {
+              "code": "en-US",
+              "name": "False"
+            },
+            {
+              "code": "fr",
+              "name": "Faux"
+            },
+            {
+              "code": "de",
+              "name": "Falsch"
+            },
+            {
+              "code": "ja",
+              "name": "偽"
+            }
+          ]
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "module_state",
+          "desc": "The state you want to to."
+        },
+        {
+          "code": "fr",
+          "name": "statut",
+          "desc": "L'état que vous voulez appliquer."
+        },
+        {
+          "code": "de",
+          "name": "status",
+          "desc": "Der Zustand den Sie anwenden möchten."
+        },
+        {
+          "code": "ja",
+          "name": "状態",
+          "desc": "適用したい状態。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "kill_switch",
+      "desc": "Globally turn on or off a module"
+    },
+    {
+      "code": "fr",
+      "name": "kill_switch",
+      "desc": "Activer ou désactiver un module"
+    },
+    {
+      "code": "de",
+      "name": "kill_switch",
+      "desc": "Modul ein oder ausschalten"
+    },
+    {
+      "code": "ja",
+      "name": "kill_switch",
+      "desc": "モジュールを有効または無効にする"
+    },
+    {
+      "code": "ja",
+      "name": "kill_switch",
+      "desc": "モジュールを有効または無効にする"
+    }
+  ]
+}

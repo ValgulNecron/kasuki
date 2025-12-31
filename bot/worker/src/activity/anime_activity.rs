@@ -1,0 +1,239 @@
+use std::io::{Cursor, Read};
+use std::sync::Arc;
+use std::time::Duration;
+
+use shared::database::activity_data;
+use shared::database::activity_data::Model;
+use shared::database::prelude::ActivityData;
+use shared::cache::CacheInterface;
+use shared::anilist::minimal_anime::get_minimal_anime_media;
+use shared::localization::load_localization;
+use anyhow::{Context, Result, anyhow};
+use base64::engine::general_purpose::STANDARD;
+use base64::read::DecoderReader;
+use chrono::{DateTime, Utc};
+
+use sea_orm::ActiveValue::Set;
+use sea_orm::QueryFilter;
+use sea_orm::{ColumnTrait, DeleteResult};
+use sea_orm::{DatabaseConnection, EntityTrait};
+use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
+use serenity::all::ImageData;
+use serenity::model::webhook::Webhook;
+use serenity::http::Http;
+use tokio::sync::RwLock;
+use tracing::{error, instrument, trace};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SendActivityLocalised {
+	pub title: String,
+	pub desc: String,
+}
+
+pub async fn manage_activity(
+	http: Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	db_connection: Arc<DatabaseConnection>,
+) {
+	send_activity(&http, anilist_cache, db_connection).await;
+}
+
+async fn send_activity(
+	http: &Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	db_connection: Arc<DatabaseConnection>,
+) {
+	let now = Utc::now().naive_utc();
+
+	let rows = match ActivityData::find()
+		.filter(<activity_data::Entity as EntityTrait>::Column::Timestamp.eq(now))
+		.all(&*db_connection)
+		.await
+	{
+		Ok(rows) => rows,
+		Err(e) => {
+			error!("{}", e);
+			return;
+		},
+	};
+
+	for row in rows {
+		if now != row.timestamp {
+			continue;
+		}
+
+		let guild_id = row.server_id.clone();
+
+		if row.delay != 0 {
+			let anilist_cache = anilist_cache.clone();
+			let db_connection = db_connection.clone();
+			let http_clone = http.clone();
+			let row = row.clone();
+
+			tokio::spawn(async move {
+				tokio::time::sleep(Duration::from_secs(row.delay as u64)).await;
+
+				if let Err(e) =
+					send_specific_activity(&row, guild_id, &http_clone, anilist_cache, db_connection)
+						.await
+				{
+					error!("{}", e)
+				}
+			});
+		} else {
+			let anilist_cache = anilist_cache.clone();
+			let db_connection = db_connection.clone();
+			let http_clone = http.clone();
+			let row = row.clone();
+
+			tokio::spawn(async move {
+				if let Err(e) =
+					send_specific_activity(&row, guild_id, &http_clone, anilist_cache, db_connection)
+						.await
+				{
+					error!("{}", e);
+				}
+			});
+		}
+	}
+}
+
+#[instrument(skip(http, anilist_cache))]
+async fn send_specific_activity(
+	row: &Model, guild_id: String, http: &Arc<Http>,
+	anilist_cache: Arc<RwLock<CacheInterface>>, db_connection: Arc<DatabaseConnection>,
+) -> Result<()> {
+	let localised_text: SendActivityLocalised =
+		load_localization(guild_id.clone(), "json/message/anilist_user/send_activity.json", db_connection.clone()).await?;
+
+	let mut webhook = Webhook::from_url(&http, &row.webhook).await?;
+
+	trace!("Decoding image");
+
+	let decoded_bytes = decode_image(&row.image)?;
+
+	let trimmed_name = row.name.chars().take(100).collect::<String>();
+
+	// Create ImageData from bytes
+    // Try From<&[u8]>
+    // let image_data = ImageData::from(decoded_bytes.as_slice());
+
+	let filename = format!("{}_{}.png", guild_id, row.anime_id);
+	let attachment = CreateAttachment::bytes(decoded_bytes, filename);
+	let attachment = attachment.encode().await?;
+
+	let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(attachment);
+
+	webhook.edit(&http, edit_webhook).await?;
+
+	let embed = serenity::builder::CreateEmbed::new()
+		.description(
+			localised_text
+				.desc
+				.replace("$ep$", &row.episode.to_string())
+				.replace("$anime$", &row.name),
+		)
+		.url(format!("https://anilist.co/anime/{}", row.anime_id))
+		.title(&localised_text.title);
+
+	let builder_message = ExecuteWebhook::new().embed(embed);
+
+	webhook.execute(&http, false, builder_message).await?;
+	let row_clone = row.clone();
+	tokio::spawn(async move {
+		if let Err(e) = update_info(&row_clone, &guild_id, anilist_cache, db_connection).await {
+			error!("Failed to update info: {}", e);
+		}
+	});
+
+	Ok(())
+}
+
+fn decode_image(image: &str) -> Result<Vec<u8>> {
+    let base64_str = if let Some(idx) = image.find(',') {
+        &image[idx + 1..]
+    } else {
+        image
+    };
+
+	let cursor = Cursor::new(base64_str);
+
+	let mut decoder = DecoderReader::new(cursor, &STANDARD);
+
+	let mut decoded_bytes = Vec::new();
+
+	decoder.read_to_end(&mut decoded_bytes)?;
+
+	Ok(decoded_bytes)
+}
+
+async fn update_info(
+	row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
+	db_connection: Arc<DatabaseConnection>,
+) -> Result<()> {
+	let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
+
+	let next_airing = match media.next_airing_episode {
+		Some(airing) => airing,
+		None => {
+			trace!("No next airing episode for anime_id: {}", row.anime_id);
+
+			remove_activity(row, guild_id, db_connection.clone())
+				.await
+				.context("failed to delete activity")?;
+			return Ok(());
+		},
+	};
+
+	let title = media.title.ok_or(anyhow!("No title"))?;
+
+	let name = title
+		.english
+		.or(title.romaji)
+		.unwrap_or_else(|| "Unknown".to_string());
+
+	let timestamp = DateTime::<Utc>::from_timestamp(next_airing.airing_at as i64, 0)
+		.unwrap_or_default()
+		.naive_utc();
+
+	let new_activity = activity_data::ActiveModel {
+		anime_id: Set(row.anime_id),
+		timestamp: Set(timestamp),
+		server_id: Set(guild_id.to_string()),
+		webhook: Set(row.webhook.clone()),
+		episode: Set(next_airing.episode),
+		name: Set(name),
+		delay: Set(row.delay),
+		image: Set(row.image.clone()),
+		..Default::default()
+	};
+
+	ActivityData::insert(new_activity)
+		.exec(&*db_connection)
+		.await?;
+
+	Ok(())
+}
+
+async fn remove_activity(
+	row: &Model, guild_id: &str, db_connection: Arc<DatabaseConnection>,
+) -> Result<DeleteResult> {
+	trace!(
+		"Attempting to remove activity for anime_id: {} in guild: {}",
+		row.anime_id, guild_id
+	);
+
+	let delete_result = ActivityData::delete(activity_data::ActiveModel {
+		anime_id: Set(row.anime_id),
+		server_id: Set(guild_id.to_string()),
+		..Default::default()
+	})
+	.exec(&*db_connection)
+	.await?;
+
+	trace!(
+		"Removed {} row(s) for anime_id: {} in guild: {}",
+		delete_result.rows_affected, row.anime_id, guild_id
+	);
+
+	Ok(delete_result)
+}

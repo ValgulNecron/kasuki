@@ -1,0 +1,36 @@
+{
+  "name": "list_user",
+  "desc": "Get the list of all registered users.",
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "list_user",
+      "desc": "Get the list of all registered users."
+    },
+    {
+      "code": "fr",
+      "name": "liste_utilisateurs",
+      "desc": "Obtenez la liste de tous les utilisateurs enregistrés."
+    },
+    {
+      "code": "de",
+      "name": "benutzerliste",
+      "desc": "Erhalten Sie die Liste aller registrierten Benutzer."
+    },
+    {
+      "code": "ja",
+      "name": "ユーザーリスト",
+      "desc": "登録されているすべてのユーザーのリストを取得します。"
+    }
+  ],
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": false
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
+  "nsfw": false
+}

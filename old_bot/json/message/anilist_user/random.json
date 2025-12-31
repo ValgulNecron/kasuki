@@ -1,0 +1,14 @@
+{
+  "en": {
+    "desc": "**Info** \n Format: $format$ \n Tags: $tags$\n Genres: $genres$\n \n Description: $desc$"
+  },
+  "fr": {
+    "desc": "**Info** \n Format: $format$ \n Tags: $tags$\n Genres: $genres$\n \n Description: $desc$"
+  },
+  "jp": {
+    "desc": "**情報** \n フォーマット: $format$ \n タグ: $tags$\n ジャンル: $genres$\n \n 説明: $desc$"
+  },
+  "de": {
+    "desc": "**Info** \n Format: $format$ \n Tags: $tags$\n Genres: $genres$\n \n Beschreibung: $desc$"
+  }
+}

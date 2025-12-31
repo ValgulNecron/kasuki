@@ -1,0 +1,18 @@
+{
+  "en": {
+    "title": "New Episode",
+    "desc": "Episode $ep$ of $anime$ just released."
+  },
+  "fr": {
+    "title": "Nouvel Épisode",
+    "desc": "Épisode $ep$ de $anime$ vient de sortir."
+  },
+  "jp": {
+    "title": "新エピソード",
+    "desc": "$anime$のエピソード$ep$がリリースされました。"
+  },
+  "de": {
+    "title": "Neue Folge",
+    "desc": "Folge $ep$ von $anime$ wurde gerade veröffentlicht."
+  }
+}

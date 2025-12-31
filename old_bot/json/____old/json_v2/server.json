@@ -1,0 +1,122 @@
+{
+  "name": "server",
+  "desc": "General purpose commands for server.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 7,
+  "args": [
+    {
+      "name": "guild",
+      "desc": "Get information on the guild.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "server/guild.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild",
+          "desc": "Get information on the guild."
+        },
+        {
+          "code": "fr",
+          "name": "guilde",
+          "desc": "Obtenir des informations sur la guilde."
+        },
+        {
+          "code": "de",
+          "name": "gilde",
+          "desc": "Erhalten Sie Informationen über die Gilde."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド",
+          "desc": "ギルドの情報を取得します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image",
+      "desc": "Generate an image using the guild server image and the user pfp.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "server/guild_image.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild_image",
+          "desc": "Generate an image using the guild server image and the user pfp."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde",
+          "desc": "Génère une image en utilisant l'image du serveur de guilde et le pfp de l'utilisateur."
+        },
+        {
+          "code": "de",
+          "name": "gildenbild",
+          "desc": "Generieren Sie ein Bild mit dem Gilden-Serverbild und dem Benutzer-Pfp."
+        },
+        {
+          "code": "ja",
+          "name": "ギルド画像",
+          "desc": "ギルドサーバー画像とユーザーpfpを使用して画像を生成します。"
+        }
+      ]
+    },
+    {
+      "name": "guild_image_g",
+      "desc": "Generate an image using the guild server image and the global pfp cache.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "server/guild_image_g.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "guild_image_g",
+          "desc": "Generate an image using the guild server image and the global pfp cache."
+        },
+        {
+          "code": "fr",
+          "name": "image_guilde_g",
+          "desc": "Créer une image avec l'image du serveur et le cache global de photos de profil."
+        },
+        {
+          "code": "de",
+          "name": "bild_gilde_g",
+          "desc": "Generiere ein Bild mit dem Serverbild der Gilde und dem globalen Profilbild-Cache."
+        },
+        {
+          "code": "ja",
+          "name": "guild_image_gを生成",
+          "desc": "ギルドサーバーの画像とグローバルpfpキャッシュを使用して画像を生成します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "general",
+      "desc": "General purpose commands."
+    },
+    {
+      "code": "fr",
+      "name": "général",
+      "desc": "Commandes à usage général."
+    },
+    {
+      "code": "de",
+      "name": "allgemein",
+      "desc": "Allgemeine Zweckbefehle."
+    },
+    {
+      "code": "ja",
+      "name": "一般",
+      "desc": "一般的な目的のコマンド。"
+    }
+  ]
+}

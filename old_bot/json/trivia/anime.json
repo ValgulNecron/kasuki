@@ -1,0 +1,296 @@
+[
+  {
+    "id": "anime_01",
+    "difficulty": "1",
+    "question": {
+      "en": "In 'Naruto', what is the name of the main character's signature jutsu?",
+      "fr": "Dans 'Naruto', quel est le nom du jutsu signature du personnage principal ?",
+      "de": "Wie heißt das charakteristische Jutsu des Hauptcharakters in 'Naruto'?",
+      "ja": "「NARUTO -ナルト-」の主人公の得意な術の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Chidori",
+          "fr": "Chidori",
+          "de": "Chidori",
+          "ja": "千鳥"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Rasengan",
+          "fr": "Rasengan",
+          "de": "Rasengan",
+          "ja": "螺旋丸"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Kamehameha",
+          "fr": "Kamehameha",
+          "de": "Kamehameha",
+          "ja": "かめはめ波"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Getsuga Tensho",
+          "fr": "Getsuga Tensho",
+          "de": "Getsuga Tensho",
+          "ja": "月牙天衝"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "anime_02",
+    "difficulty": "2",
+    "question": {
+      "en": "What is the name of the titan-slaying organization in 'Attack on Titan'?",
+      "fr": "Quel est le nom de l'organisation qui tue les titans dans 'L'Attaque des Titans' ?",
+      "de": "Wie heißt die Titanen-tötende Organisation in 'Attack on Titan'?",
+      "ja": "「進撃の巨人」で巨人を倒す組織の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "The Survey Corps",
+          "fr": "Le Bataillon d'exploration",
+          "de": "Der Aufklärungstrupp",
+          "ja": "調査兵団"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "The Military Police Brigade",
+          "fr": "La Brigade de la Police Militaire",
+          "de": "Die Militärpolizei-Brigade",
+          "ja": "憲兵団"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "The Garrison",
+          "fr": "La Garnison",
+          "de": "Die Garnison",
+          "ja": "駐屯兵団"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "The Titan Shifters",
+          "fr": "Les Titans Primordiaux",
+          "de": "Die Titanenwandler",
+          "ja": "巨人の継承者"
+        }
+      }
+    ],
+    "valid_response": "a"
+  },
+  {
+    "id": "anime_03",
+    "difficulty": "1",
+    "question": {
+      "en": "In 'Dragon Ball Z', what is the name of Goku's signature attack?",
+      "fr": "Dans 'Dragon Ball Z', quel est le nom de l'attaque signature de Goku ?",
+      "de": "Wie heißt Gokus charakteristischer Angriff in 'Dragon Ball Z'?",
+      "ja": "「ドラゴンボールZ」で、悟空の得意技の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Spirit Bomb",
+          "fr": "Genkidama",
+          "de": "Genkidama",
+          "ja": "元気玉"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Final Flash",
+          "fr": "Final Flash",
+          "de": "Final Flash",
+          "ja": "ファイナルフラッシュ"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Kamehameha",
+          "fr": "Kamehameha",
+          "de": "Kamehameha",
+          "ja": "かめはめ波"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Destructo Disc",
+          "fr": "Kienzan",
+          "de": "Kienzan",
+          "ja": "気円斬"
+        }
+      }
+    ],
+    "valid_response": "c"
+  },
+  {
+    "id": "anime_04",
+    "difficulty": "1",
+    "question": {
+      "en": "In 'One Piece', what is the name of the main character?",
+      "fr": "Dans 'One Piece', quel est le nom du personnage principal ?",
+      "de": "Wie heißt der Hauptcharakter in 'One Piece'?",
+      "ja": "「ONE PIECE」の主人公の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Roronoa Zoro",
+          "fr": "Roronoa Zoro",
+          "de": "Roronoa Zoro",
+          "ja": "ロロノア・ゾロ"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Monkey D. Luffy",
+          "fr": "Monkey D. Luffy",
+          "de": "Monkey D. Luffy",
+          "ja": "モンキー・D・ルフィ"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Sanji",
+          "fr": "Sanji",
+          "de": "Sanji",
+          "ja": "サンジ"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Nami",
+          "fr": "Nami",
+          "de": "Nami",
+          "ja": "ナミ"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "anime_05",
+    "difficulty": "2",
+    "question": {
+      "en": "In 'Death Note', what is the name of the detective who opposes Light Yagami?",
+      "fr": "Dans 'Death Note', quel est le nom du détective qui s'oppose à Light Yagami ?",
+      "de": "Wie heißt der Detektiv in 'Death Note', der sich Light Yagami widersetzt?",
+      "ja": "「デスノート」で、夜神月と対立する探偵の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "L",
+          "fr": "L",
+          "de": "L",
+          "ja": "L"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Mello",
+          "fr": "Mello",
+          "de": "Mello",
+          "ja": "メロ"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Near",
+          "fr": "Near",
+          "de": "Near",
+          "ja": "ニア"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Soichiro Yagami",
+          "fr": "Soichiro Yagami",
+          "de": "Soichiro Yagami",
+          "ja": "夜神総一郎"
+        }
+      }
+    ],
+    "valid_response": "a"
+  },
+  {
+    "id": "anime_06",
+    "difficulty": "3",
+    "question": {
+      "en": "What is the name of the highest-grossing anime film of all time?",
+      "fr": "Quel est le nom du film d'animation japonais le plus rentable de tous les temps ?",
+      "de": "Wie heißt der umsatzstärkste Anime-Film aller Zeiten?",
+      "ja": "史上最も興行収入の高いアニメ映画の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Spirited Away",
+          "fr": "Le Voyage de Chihiro",
+          "de": "Chihiros Reise ins Zauberland",
+          "ja": "千と千尋の神隠し"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Your Name",
+          "fr": "Your Name",
+          "de": "Your Name",
+          "ja": "君の名は。"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Demon Slayer: Mugen Train",
+          "fr": "Demon Slayer: Le train de l'infini",
+          "de": "Demon Slayer: Mugen Train",
+          "ja": "鬼滅の刃 無限列車編"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Howl's Moving Castle",
+          "fr": "Le Château ambulant",
+          "de": "Das wandelnde Schloss",
+          "ja": "ハウルの動く城"
+        }
+      }
+    ],
+    "valid_response": "c"
+  }
+]

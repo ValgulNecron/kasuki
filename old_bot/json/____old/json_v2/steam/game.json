@@ -1,0 +1,58 @@
+{
+  "name": "game",
+  "desc": "Get info of a steam game.",
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "game_name",
+      "desc": "Name of the game you want info about.",
+      "required": true,
+      "autocomplete": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "game_name",
+          "desc": "Name of the game you want info about."
+        },
+        {
+          "code": "fr",
+          "name": "nom_du_jeu",
+          "desc": "Nom du jeu dont vous souhaitez obtenir des informations."
+        },
+        {
+          "code": "de",
+          "name": "spiel_name",
+          "desc": "Name des Spiels, für das Sie Informationen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "geemu_no_namae",
+          "desc": "情報を取得したいゲームの名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "game",
+      "desc": "Get info of a steam game."
+    },
+    {
+      "code": "fr",
+      "name": "jeu",
+      "desc": "Obtenir des informations sur un jeu Steam."
+    },
+    {
+      "code": "de",
+      "name": "spiel",
+      "desc": "Informationen zu einem Steam-Spiel erhalten."
+    },
+    {
+      "code": "ja",
+      "name": "game",
+      "desc": "Steamゲームの情報を取得します。"
+    }
+  ]
+}

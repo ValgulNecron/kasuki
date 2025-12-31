@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "Remove",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Removed successfully"
+  },
+  "fr": {
+    "title": "Supprimer",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "Supprimé avec succès"
+  },
+  "jp": {
+    "title": "削除",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "正常に削除されました"
+  },
+  "de": {
+    "title": "Entfernen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "Erfolgreich entfernt"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "list_activity",
+  "desc": "Get the list of all registered activity.",
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "list_activity",
+      "desc": "Get the list of all registered activity."
+    },
+    {
+      "code": "fr",
+      "name": "liste_activite",
+      "desc": "Obtenir la liste de toutes les activités enregistrées."
+    },
+    {
+      "code": "de",
+      "name": "aktivitat_liste",
+      "desc": "Erhalten Sie die Liste aller registrierten Aktivitäten."
+    },
+    {
+      "code": "ja",
+      "name": "regisutaredo_katsudo_no_rireki",
+      "desc": "登録されたすべてのアクティビティのリストを取得します。"
+    }
+  ],
+  "integration_context": {
+    "bot_dm": false,
+    "guild": true,
+    "private_channel": false
+  },
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
+  "nsfw": false
+}

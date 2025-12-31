@@ -1,0 +1,26 @@
+{
+  "en": {
+    "title": "Stop",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Stopped {0}",
+    "nothing_to_stop": "Nothing to stop"
+  },
+  "fr": {
+    "title": "Arrêter",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "Arrêté {0}",
+    "nothing_to_stop": "Rien à arrêter"
+  },
+  "jp": {
+    "title": "停止",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "{0}を停止しました",
+    "nothing_to_stop": "停止するものがありません"
+  },
+  "de": {
+    "title": "Stoppen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "{0} gestoppt",
+    "nothing_to_stop": "Nichts zu stoppen"
+  }
+}

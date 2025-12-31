@@ -1,0 +1,26 @@
+{
+  "en": {
+    "title": "Skip",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Skipped {0}",
+    "nothing_to_skip": "Nothing to skip"
+  },
+  "fr": {
+    "title": "Passer",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "Passé {0}",
+    "nothing_to_skip": "Rien à passer"
+  },
+  "jp": {
+    "title": "スキップ",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "{0}をスキップしました",
+    "nothing_to_skip": "スキップするものがありません"
+  },
+  "de": {
+    "title": "Überspringen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "{0} übersprungen",
+    "nothing_to_skip": "Nichts zu überspringen"
+  }
+}

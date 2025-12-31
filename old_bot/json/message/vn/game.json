@@ -1,0 +1,38 @@
+{
+  "en": {
+    "released": "Released",
+    "platforms": "Platforms",
+    "playtime": "Playtime",
+    "tags": "Genres",
+    "developers": "Developers",
+    "staff": "Staff",
+    "characters": "Characters"
+  },
+  "ja": {
+    "released": "発売日",
+    "platforms": "プラットフォーム",
+    "playtime": "プレイ時間",
+    "tags": "ジャンル",
+    "developers": "開発者",
+    "staff": "スタッフ",
+    "characters": "キャラクター"
+  },
+  "fr": {
+    "released": "Sorti",
+    "platforms": "Plateformes",
+    "playtime": "Temps de jeu",
+    "tags": "Genres",
+    "developers": "Développeurs",
+    "staff": "Personnel",
+    "characters": "Personnages"
+  },
+  "de": {
+    "released": "Veröffentlicht",
+    "platforms": "Plattformen",
+    "playtime": "Spielzeit",
+    "tags": "Genres",
+    "developers": "Entwickler",
+    "staff": "Mitarbeiter",
+    "characters": "Charaktere"
+  }
+}

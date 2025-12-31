@@ -1,0 +1,62 @@
+{
+  "en": {
+    "title": "Server Activity Statistics",
+    "vocal_title": "Voice Activity",
+    "vocal": "**Sessions:** {session}",
+    "vocal_len": "**Time Spent:** {hours}h {minutes}m {seconds}s",
+    "message_title": "Message Activity",
+    "message": "**Messages Sent:** {message}",
+    "xp_title": "XP Breakdown",
+    "xp_message": "**From Messages:** {xp} XP",
+    "xp_vocal": "**From Voice Sessions:** {xp} XP",
+    "xp_vocal_len": "**From Voice Duration:** {xp} XP",
+    "xp_total": "**Total XP:** {xp}",
+    "level_progress_title": "Level Progression",
+    "level_progress": "**Level {current_level}** → **Level {next_level}** ({current_xp}/{next_level_xp} XP)"
+  },
+  "fr": {
+    "title": "Statistiques d'Activité du Serveur",
+    "vocal_title": "Activité Vocale",
+    "vocal": "**Sessions:** {session}",
+    "vocal_len": "**Temps Passé:** {hours}h {minutes}m {seconds}s",
+    "message_title": "Activité des Messages",
+    "message": "**Messages Envoyés:** {message}",
+    "xp_title": "Répartition de l'XP",
+    "xp_message": "**Des Messages:** {xp} XP",
+    "xp_vocal": "**Des Sessions Vocales:** {xp} XP",
+    "xp_vocal_len": "**De la Durée Vocale:** {xp} XP",
+    "xp_total": "**XP Total:** {xp}",
+    "level_progress_title": "Progression de Niveau",
+    "level_progress": "**Niveau {current_level}** → **Niveau {next_level}** ({current_xp}/{next_level_xp} XP)"
+  },
+  "de": {
+    "title": "Server-Aktivitätsstatistik",
+    "vocal_title": "Sprachaktivität",
+    "vocal": "**Sitzungen:** {session}",
+    "vocal_len": "**Verbrachte Zeit:** {hours}h {minutes}m {seconds}s",
+    "message_title": "Nachrichtenaktivität",
+    "message": "**Gesendete Nachrichten:** {message}",
+    "xp_title": "XP-Aufschlüsselung",
+    "xp_message": "**Von Nachrichten:** {xp} XP",
+    "xp_vocal": "**Von Sprachsitzungen:** {xp} XP",
+    "xp_vocal_len": "**Von Sprachdauer:** {xp} XP",
+    "xp_total": "**Gesamt-XP:** {xp}",
+    "level_progress_title": "Levelfortschritt",
+    "level_progress": "**Level {current_level}** → **Level {next_level}** ({current_xp}/{next_level_xp} XP)"
+  },
+  "ja": {
+    "title": "サーバーアクティビティ統計",
+    "vocal_title": "ボイスアクティビティ",
+    "vocal": "**セッション数:** {session}",
+    "vocal_len": "**経過時間:** {hours}時間 {minutes}分 {seconds}秒",
+    "message_title": "メッセージアクティビティ",
+    "message": "**送信メッセージ:** {message}",
+    "xp_title": "XP内訳",
+    "xp_message": "**メッセージから:** {xp} XP",
+    "xp_vocal": "**ボイスセッションから:** {xp} XP",
+    "xp_vocal_len": "**ボイス時間から:** {xp} XP",
+    "xp_total": "**合計XP:** {xp}",
+    "level_progress_title": "レベル進行状況",
+    "level_progress": "**レベル {current_level}** → **レベル {next_level}** ({current_xp}/{next_level_xp} XP)"
+  }
+}

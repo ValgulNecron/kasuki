@@ -1,0 +1,14 @@
+{
+  "name": "example",
+  "permissions": [
+    {
+      "permission": "SendMessages"
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "example"
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "items": [
+    {
+      "item_id": "minigame_coin",
+      "name": "Minigame Coin",
+      "description": "A coin earned from playing minigames. Can be used to purchase items from the shop.",
+      "price": 10,
+      "minimum_rarity": 1,
+      "maximum_rarity": 3,
+      "type": "minigame",
+      "base_xp_boost": 0.05,
+      "weight": 10
+    },
+    {
+      "item_id": "minigame_token",
+      "name": "Minigame Token",
+      "description": "A special token earned from winning minigames. Can be exchanged for rare items.",
+      "price": 50,
+      "minimum_rarity": 2,
+      "maximum_rarity": 4,
+      "type": "minigame",
+      "base_xp_boost": 0.1,
+      "weight": 5
+    },
+    {
+      "item_id": "minigame_trophy",
+      "name": "Minigame Trophy",
+      "description": "A trophy awarded for exceptional performance in minigames. Provides a significant XP boost.",
+      "price": 200,
+      "minimum_rarity": 4,
+      "maximum_rarity": 5,
+      "type": "minigame",
+      "base_xp_boost": 0.25,
+      "weight": 2
+    },
+    {
+      "item_id": "shop_amulet",
+      "name": "Lucky Amulet",
+      "description": "An amulet that increases the chance of finding rare items.",
+      "price": 150,
+      "minimum_rarity": 3,
+      "maximum_rarity": 5,
+      "type": "shop",
+      "base_xp_boost": 0.1,
+      "weight": 6
+    },
+    {
+      "item_id": "quest_map",
+      "name": "Treasure Map",
+      "description": "A map that leads to hidden treasures. Obtained from completing quests.",
+      "price": 0,
+      "minimum_rarity": 3,
+      "maximum_rarity": 5,
+      "type": "quest",
+      "base_xp_boost": 0.2,
+      "weight": 4
+    },
+    {
+      "item_id": "event_badge",
+      "name": "Event Badge",
+      "description": "A special badge awarded during limited-time events.",
+      "price": 0,
+      "minimum_rarity": 4,
+      "maximum_rarity": 5,
+      "type": "event",
+      "base_xp_boost": 0.3,
+      "weight": 1
+    },
+    {
+      "item_id": "fish_common",
+      "name": "Perch",
+      "description": "A common freshwater fish found in many lakes and rivers. Provides a small XP boost.",
+      "price": 5,
+      "minimum_rarity": 1,
+      "maximum_rarity": 2,
+      "type": "fish",
+      "base_xp_boost": 0.02,
+      "weight": 200
+    },
+    {
+      "item_id": "fish_uncommon",
+      "name": "Rainbow Trout",
+      "description": "A colorful trout that's harder to catch. Provides a modest XP boost.",
+      "price": 25,
+      "minimum_rarity": 2,
+      "maximum_rarity": 3,
+      "type": "fish",
+      "base_xp_boost": 0.08,
+      "weight": 80
+    },
+    {
+      "item_id": "fish_rare",
+      "name": "Blue Tang",
+      "description": "A vibrant blue tropical fish that's challenging to catch. Provides a good XP boost.",
+      "price": 75,
+      "minimum_rarity": 3,
+      "maximum_rarity": 4,
+      "type": "fish",
+      "base_xp_boost": 0.15,
+      "weight": 30
+    },
+    {
+      "item_id": "fish_epic",
+      "name": "Mahi-Mahi",
+      "description": "A colorful and powerful game fish that's very difficult to catch. Provides a substantial XP boost.",
+      "price": 150,
+      "minimum_rarity": 4,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.25,
+      "weight": 15
+    },
+    {
+      "item_id": "fish_legendary",
+      "name": "Great White Shark",
+      "description": "A massive predator that's extremely rare to catch. Provides a significant XP boost.",
+      "price": 300,
+      "minimum_rarity": 5,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.5,
+      "weight": 5
+    },
+    {
+      "item_id": "fish_mythical",
+      "name": "Coelacanth",
+      "description": "A living fossil thought extinct for millions of years. Provides the maximum possible XP boost.",
+      "price": 500,
+      "minimum_rarity": 5,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 1.0,
+      "weight": 2
+    },
+    {
+      "item_id": "fish_common_2",
+      "name": "Guppy",
+      "description": "A small, colorful freshwater fish popular in aquariums. Provides a small XP boost.",
+      "price": 8,
+      "minimum_rarity": 1,
+      "maximum_rarity": 2,
+      "type": "fish",
+      "base_xp_boost": 0.03,
+      "weight": 190
+    },
+    {
+      "item_id": "fish_common_3",
+      "name": "Anchovy",
+      "description": "A small, common saltwater fish found in schools. Provides a small XP boost.",
+      "price": 10,
+      "minimum_rarity": 1,
+      "maximum_rarity": 2,
+      "type": "fish",
+      "base_xp_boost": 0.04,
+      "weight": 180
+    },
+    {
+      "item_id": "fish_uncommon_2",
+      "name": "Salmon",
+      "description": "A popular game fish known for swimming upstream to spawn. Provides a modest XP boost.",
+      "price": 35,
+      "minimum_rarity": 2,
+      "maximum_rarity": 3,
+      "type": "fish",
+      "base_xp_boost": 0.1,
+      "weight": 70
+    },
+    {
+      "item_id": "fish_uncommon_3",
+      "name": "Tuna",
+      "description": "A fast-swimming predatory fish prized for its meat. Provides a modest XP boost.",
+      "price": 45,
+      "minimum_rarity": 2,
+      "maximum_rarity": 3,
+      "type": "fish",
+      "base_xp_boost": 0.12,
+      "weight": 60
+    },
+    {
+      "item_id": "fish_rare_2",
+      "name": "Clownfish",
+      "description": "A vibrant reef fish known for its symbiotic relationship with sea anemones. Provides a good XP boost.",
+      "price": 90,
+      "minimum_rarity": 3,
+      "maximum_rarity": 4,
+      "type": "fish",
+      "base_xp_boost": 0.18,
+      "weight": 25
+    },
+    {
+      "item_id": "fish_rare_3",
+      "name": "Swordfish",
+      "description": "A large predatory fish with a distinctive bill resembling a sword. Provides a good XP boost.",
+      "price": 110,
+      "minimum_rarity": 3,
+      "maximum_rarity": 4,
+      "type": "fish",
+      "base_xp_boost": 0.2,
+      "weight": 20
+    },
+    {
+      "item_id": "fish_epic_2",
+      "name": "Lionfish",
+      "description": "A venomous fish with distinctive zebra-like stripes and fan-like fins. Provides a substantial XP boost.",
+      "price": 180,
+      "minimum_rarity": 4,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.3,
+      "weight": 12
+    },
+    {
+      "item_id": "fish_epic_3",
+      "name": "Arapaima",
+      "description": "One of the largest freshwater fish in the world, native to the Amazon basin. Provides a substantial XP boost.",
+      "price": 220,
+      "minimum_rarity": 4,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.35,
+      "weight": 10
+    },
+    {
+      "item_id": "fish_legendary_2",
+      "name": "Oarfish",
+      "description": "A rarely seen deep-sea fish with a ribbon-like body that can grow up to 36 feet long. Provides a significant XP boost.",
+      "price": 350,
+      "minimum_rarity": 5,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.6,
+      "weight": 4
+    },
+    {
+      "item_id": "fish_legendary_3",
+      "name": "Sunfish",
+      "description": "The heaviest known bony fish in the world with a distinctive flattened body. Provides a significant XP boost.",
+      "price": 400,
+      "minimum_rarity": 5,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.7,
+      "weight": 3
+    },
+    {
+      "item_id": "fish_mythical_2",
+      "name": "Whale Shark",
+      "description": "The largest known living fish species, reaching lengths of up to 40 feet. Provides a near-maximum XP boost.",
+      "price": 600,
+      "minimum_rarity": 5,
+      "maximum_rarity": 5,
+      "type": "fish",
+      "base_xp_boost": 0.9,
+      "weight": 1
+    }
+  ]
+}

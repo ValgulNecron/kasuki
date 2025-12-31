@@ -1,0 +1,11 @@
+pub mod character;
+pub mod media;
+pub mod minimal_anime;
+pub mod random;
+pub mod seiyuu_id;
+pub mod seiyuu_search;
+pub mod site_statistic_anime;
+pub mod site_statistic_manga;
+pub mod staff;
+pub mod studio;
+pub mod user;

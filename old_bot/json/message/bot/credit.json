@@ -1,0 +1,34 @@
+{
+  "en": {
+    "title": "Credit",
+    "credits": [
+      {
+        "desc": "valgul: Main dev / original creator / French and English translation / dev of the website \n"
+      }
+    ]
+  },
+  "fr": {
+    "title": "Crédit",
+    "credits": [
+      {
+        "desc": "valgul: Développeur principal / créateur original / traduction française et anglaise / Développeur du site web \n"
+      }
+    ]
+  },
+  "jp": {
+    "title": "クレジット",
+    "credits": [
+      {
+        "desc": "valgul: メイン開発者 / 元のクリエーター / フランス語と英語の翻訳 / ウェブサイトの開発者 \n"
+      }
+    ]
+  },
+  "de": {
+    "title": "Kredit",
+    "credits": [
+      {
+        "desc": "valgul: Hauptentwickler / ursprünglicher Schöpfer / französische und englische Übersetzung / webseiten-Entwickler \n"
+      }
+    ]
+  }
+}

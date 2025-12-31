@@ -1,0 +1,10 @@
+[package]
+name = "api-server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+shared.workspace = true

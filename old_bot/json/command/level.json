@@ -1,0 +1,68 @@
+{
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "name": "level",
+  "desc": "Get the level of a user.",
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the Anilist user you want to check.",
+      "required": false,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "username",
+          "desc": "Username of the Anilist user you want to check."
+        },
+        {
+          "code": "fr",
+          "name": "nom_d_utilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur Anilist que vous souhaitez vérifier."
+        },
+        {
+          "code": "de",
+          "name": "benutzername",
+          "desc": "Benutzername des Anilist-Benutzers, den Sie überprüfen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザーネーム",
+          "desc": "チェックしたいアニリストユーザーのユーザーネーム。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "level",
+      "desc": "Get the level of a user."
+    },
+    {
+      "code": "fr",
+      "name": "level",
+      "desc": "Obtenez le niveau d'un utilisateur."
+    },
+    {
+      "code": "de",
+      "name": "level",
+      "desc": "Erhalten Sie das Level eines Benutzers."
+    },
+    {
+      "code": "ja",
+      "name": "level",
+      "desc": "ユーザーのレベルを取得します。"
+    }
+  ]
+}
+

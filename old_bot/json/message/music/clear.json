@@ -1,0 +1,22 @@
+{
+  "en": {
+    "title": "Clear Queue",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Queue cleared successfully"
+  },
+  "fr": {
+    "title": "Vider la File",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "File d'attente vidée avec succès"
+  },
+  "jp": {
+    "title": "キューをクリア",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "キューが正常にクリアされました"
+  },
+  "de": {
+    "title": "Warteschlange Leeren",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "Warteschlange erfolgreich geleert"
+  }
+}

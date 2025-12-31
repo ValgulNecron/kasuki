@@ -1,0 +1,50 @@
+{
+  "en": {
+    "manga": "**[Manga]($url$)** \n $count$ read and $complete$ completed \n $chap$ chapter read \n with a mean score of $score$ and a standard deviation of $sd$ \n here a list of his preferred tag (by mean score): \n $tag_list$ \n and here for the genre: \n $genre_list$",
+    "anime": "**[Anime]($url$)** \n $count$ watch and $complete$ completed \n Time watched: $duration$ \n with a mean score of $score$ and a standard deviation of $sd$ \n here a list of his preferred tag (by mean score): \n $tag_list$ \n and here for the genre: \n $genre_list$",
+    "week": "week : ",
+    "day": "day : ",
+    "hour": "hour : ",
+    "minute": "minute",
+    "weeks": "weeks : ",
+    "days": "days : ",
+    "hours": "hours : ",
+    "minutes": "minutes"
+  },
+  "fr": {
+    "manga": "**[Manga]($url$)** \n $count$ lu et $complete$ terminé \n $chap$ chapitre lu \n avec une note moyenne de $score$ et un écart type de $sd$ \n voici une liste de ses tags préférés (par note moyenne) : \n $tag_list$ \n et ici pour le genre : \n $genre_list$",
+    "anime": "**[Anime]($url$)** \n $count$ regardé et $complete$ terminé \n Durée regardée: $duration$ \n avec une note moyenne de $score$ et un écart type de $sd$ \n voici une liste de ses tags préférés (par note moyenne) : \n $tag_list$ \n et ici pour le genre : \n $genre_list$",
+    "week": "semaine : ",
+    "day": "jour : ",
+    "hour": "heure : ",
+    "minute": "minute",
+    "weeks": "semaines : ",
+    "days": "jours : ",
+    "hours": "heures : ",
+    "minutes": "minutes"
+  },
+  "jp": {
+    "manga": "**[マンガ]($url$)** \n $count$ 読んで、$complete$ 完了しました \n $chap$ 章を読んだ \n 平均スコアは $score$ 、標準偏差は $sd$ です \n 以下は彼の好きなタグのリストです(平均スコアによる): \n $tag_list$ \n そして、ここにジャンルがあります: \n $genre_list$",
+    "anime": "**[アニメ]($url$)** \n $count$ を観て、$complete$ 完了しました \n 視聴時間: $duration$ \n 平均スコアは $score$ 、標準偏差は $sd$ です \n 以下は彼の好きなタグのリストです(平均スコアによる): \n $tag_list$ \n そして、ここにジャンルがあります: \n $genre_list$",
+    "week": "週 : ",
+    "day": "日 : ",
+    "hour": "時間 : ",
+    "minute": "分",
+    "weeks": "週間 : ",
+    "days": "日々 : ",
+    "hours": "時間 : ",
+    "minutes": "分"
+  },
+  "de": {
+    "manga": "**[Manga]($url$)** \n $count$ gelesen und $complete$ abgeschlossen \n $chap$ Kapitel gelesen \n Mit einem Durchschnittswert von $score$ und einer Standardabweichung von $sd$ \n Hier eine Liste seiner bevorzugten Tags (nach Durchschnittswert): \n $tag_list$ \n und hier für das Genre: \n $genre_list$",
+    "anime": "**[Anime]($url$)** \n $count$ gesehen und $complete$ abgeschlossen \n Gesehene Dauer: $duration$ \n Mit einem Durchschnittswert von $score$ und einer Standardabweichung von $sd$ \n Hier eine Liste seiner bevorzugten Tags (nach Durchschnittswert): \n $tag_list$ \n und hier für das Genre: \n $genre_list$",
+    "week": "Woche : ",
+    "day": "Tag : ",
+    "hour": "Stunde : ",
+    "minute": "Minute",
+    "weeks": "Wochen : ",
+    "days": "Tage : ",
+    "hours": "Stunden : ",
+    "minutes": "Minuten"
+  }
+}
