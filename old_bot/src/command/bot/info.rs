@@ -1,7 +1,7 @@
 use crate::command::command::Command;
 use crate::command::embed_content::{
-	CommandType, CreateFooter, EmbedContent,
-	EmbedsContents,
+    CommandType, CreateFooter, EmbedContent,
+    EmbedsContents,
 };
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::database::prelude::UserColor;
@@ -16,8 +16,8 @@ use tracing::{debug, info};
 
 #[derive(Clone)]
 pub struct InfoCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

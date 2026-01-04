@@ -55,6 +55,11 @@ impl_command!(
 			lang: Set(lang.clone()),
 			..Default::default()
 		})
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::column(guild_lang::Column::GuildId)
+				.update_column(guild_lang::Column::Lang)
+				.to_owned(),
+		)
 		.exec(&*db_connection)
 		.await?;
 

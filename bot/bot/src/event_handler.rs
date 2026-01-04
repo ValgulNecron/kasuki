@@ -523,12 +523,17 @@ impl Handler {
 				.exec(&*db_connection.clone())
 				.await
 			{
-				warn!(
-					user_id = %user.id,
-					guild_id = %chunk.guild_id,
-					error = %e,
-					"Failed to insert server-user relation from chunk into database"
-				);
+				match e {
+					sea_orm::DbErr::RecordNotInserted => {},
+					_ => {
+						warn!(
+							user_id = %user.id,
+							guild_id = %chunk.guild_id,
+							error = %e,
+							"Failed to insert server-user relation from chunk into database"
+						);
+					}
+				}
 			}
 		}
 	}

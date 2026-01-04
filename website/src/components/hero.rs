@@ -1,7 +1,6 @@
-
-use leptos::*;
 use leptos::prelude::ClassAttribute;
 use leptos::prelude::ElementChild;
+use leptos::*;
 #[component]
 pub fn Hero() -> impl IntoView {
     view! {

@@ -4,90 +4,90 @@ use serenity::all::{CommandInteraction, GenericChannelId, UserId};
 use small_fixed_array::FixedString;
 
 pub fn get_option_map_string(interaction: &CommandInteraction) -> HashMap<FixedString, String> {
-	let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-	for option in &interaction.data.options {
-		let name = option.name.clone();
+    for option in &interaction.data.options {
+        let name = option.name.clone();
 
-		let value = match option.value.as_str() {
-			Some(value) => value.to_string(),
-			None => continue,
-		};
+        let value = match option.value.as_str() {
+            Some(value) => value.to_string(),
+            None => continue,
+        };
 
-		map.insert(name, value);
-	}
+        map.insert(name, value);
+    }
 
-	map
+    map
 }
 
 #[allow(dead_code)]
 pub fn get_option_map_integer(interaction: &CommandInteraction) -> HashMap<FixedString, i64> {
-	let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-	for option in &interaction.data.options {
-		let name = option.name.clone();
+    for option in &interaction.data.options {
+        let name = option.name.clone();
 
-		let value = match option.value.as_i64() {
-			Some(value) => value,
-			None => continue,
-		};
+        let value = match option.value.as_i64() {
+            Some(value) => value,
+            None => continue,
+        };
 
-		map.insert(name, value);
-	}
+        map.insert(name, value);
+    }
 
-	map
+    map
 }
 
 pub fn get_option_map_boolean(interaction: &CommandInteraction) -> HashMap<FixedString, bool> {
-	let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-	for option in &interaction.data.options {
-		let name = option.name.clone();
+    for option in &interaction.data.options {
+        let name = option.name.clone();
 
-		let value = match option.value.as_bool() {
-			Some(value) => value,
-			None => continue,
-		};
+        let value = match option.value.as_bool() {
+            Some(value) => value,
+            None => continue,
+        };
 
-		map.insert(name, value);
-	}
+        map.insert(name, value);
+    }
 
-	map
+    map
 }
 
 pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<FixedString, UserId> {
-	let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-	for option in &interaction.data.options {
-		let name = option.name.clone();
+    for option in &interaction.data.options {
+        let name = option.name.clone();
 
-		let value = match option.value.as_user_id() {
-			Some(value) => value,
-			None => continue,
-		};
+        let value = match option.value.as_user_id() {
+            Some(value) => value,
+            None => continue,
+        };
 
-		map.insert(name, value);
-	}
+        map.insert(name, value);
+    }
 
-	map
+    map
 }
 
 #[allow(dead_code)]
 pub fn get_option_map_channel(
-	interaction: &CommandInteraction,
+    interaction: &CommandInteraction,
 ) -> HashMap<FixedString, GenericChannelId> {
-	let mut map = HashMap::new();
+    let mut map = HashMap::new();
 
-	for option in &interaction.data.options {
-		let name = option.name.clone();
+    for option in &interaction.data.options {
+        let name = option.name.clone();
 
-		let value = match option.value.as_channel_id() {
-			Some(value) => value,
-			None => continue,
-		};
+        let value = match option.value.as_channel_id() {
+            Some(value) => value,
+            None => continue,
+        };
 
-		map.insert(name, value);
-	}
+        map.insert(name, value);
+    }
 
-	map
+    map
 }

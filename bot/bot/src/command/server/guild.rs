@@ -169,7 +169,7 @@ impl_command!(
 			.owner_id
 			.to_user(&ctx.http)
 			.await
-			.map(|u| u.tag())
+			.map(|u| u.tag().to_string())
 			.unwrap_or_default();
 
 		let roles = guild.roles.len();
@@ -210,7 +210,7 @@ impl_command!(
 
 		fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
 
-		fields.push((guild_localised.owner, owner, true));
+		fields.push((guild_localised.owner, owner.to_string(), true));
 
 		fields.push((guild_localised.roles, roles.to_string(), true));
 

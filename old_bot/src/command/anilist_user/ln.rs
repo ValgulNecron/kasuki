@@ -13,8 +13,8 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
 use crate::structure::run::anilist::media;
 use crate::structure::run::anilist::media::{
-	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
-	MediaQuerrySearchVariables, MediaType,
+    Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
+    MediaQuerrySearchVariables, MediaType,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -22,8 +22,8 @@ use small_fixed_array::FixedString;
 
 #[derive(Clone)]
 pub struct LnCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

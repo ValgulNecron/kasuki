@@ -657,28 +657,28 @@ footer {
         gap: 1.5rem;
         align-items: flex-start;
     }
-    
+
     .nav-links.active {
         right: 0;
     }
-    
+
     .menu-toggle {
         display: flex;
         z-index: 1001; /* Ensure it's above the nav panel */
     }
-    
+
     .menu-toggle.active span:nth-child(1) {
         transform: rotate(-45deg) translate(-5px, 5px);
     }
-    
+
     .menu-toggle.active span:nth-child(2) {
         opacity: 0;
     }
-    
+
     .menu-toggle.active span:nth-child(3) {
         transform: rotate(45deg) translate(-5px, -5px);
     }
-    
+
     .hero h2 {
         font-size: 2.2rem;
     }

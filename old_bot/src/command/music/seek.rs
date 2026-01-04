@@ -94,8 +94,8 @@ use std::time::Duration;
 /// to adjust playback state accordingly.
 #[derive(Clone)]
 pub struct SeekCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

@@ -6,20 +6,20 @@ use sea_orm::{ColumnTrait, DatabaseConnection};
 use std::sync::Arc;
 
 pub async fn get_guild_language(
-	guild_id: String, db_connection: Arc<DatabaseConnection>,
+    guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> String {
-	if guild_id == *"0" {
-		return String::from("en");
-	};
+    if guild_id == *"0" {
+        return String::from("en");
+    };
 
-	let guild_lang: Option<Model> = GuildLang::find()
-		.filter(Column::GuildId.eq(guild_id))
-		.one(&*db_connection)
-		.await
-		.unwrap_or(None);
+    let guild_lang: Option<Model> = GuildLang::find()
+        .filter(Column::GuildId.eq(guild_id))
+        .one(&*db_connection)
+        .await
+        .unwrap_or(None);
 
-	match guild_lang {
-		Some(lang) => lang.lang,
-		None => String::from("en"),
-	}
+    match guild_lang {
+        Some(lang) => lang.lang,
+        None => String::from("en"),
+    }
 }

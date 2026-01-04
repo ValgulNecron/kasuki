@@ -33,41 +33,41 @@ use tracing::{debug, error, info, trace, warn};
 /// appropriately.
 ///
 pub async fn make_request_anilist<
-	'a,
-	T: QueryFragment,
-	S: QueryVariables + Serialize,
-	U: for<'de> Deserialize<'de>,
+    'a,
+    T: QueryFragment,
+    S: QueryVariables + Serialize,
+    U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
+    operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
-	trace!("Starting GraphQL request to Anilist");
-	debug!("GraphQL query type: {}", std::any::type_name::<T>());
-	debug!("Always update cache: {}", always_update);
+    trace!("Starting GraphQL request to Anilist");
+    debug!("GraphQL query type: {}", std::any::type_name::<T>());
+    debug!("Always update cache: {}", always_update);
 
-	// The parameter name is counterintuitive - when always_update is false,
-	// we bypass the cache and always make a network request.
-	// When always_update is true, we check the cache first.
-	if !always_update {
-		info!("Bypassing cache check, making direct GraphQL request");
-		do_request(operation, anilist_cache)
-			.await
-			.with_context(|| "Failed to make direct GraphQL request to Anilist")
-	} else {
-		debug!("Checking cache before making GraphQL request");
-		let return_data: GraphQlResponse<U> = match check_cache(operation, anilist_cache).await {
-			Ok(data) => {
-				debug!("Successfully retrieved GraphQL response");
-				data
-			},
-			Err(e) => {
-				error!("GraphQL request failed: {:#}", e);
-				return Err(e).with_context(|| "Failed to check cache or make GraphQL request");
-			},
-		};
+    // The parameter name is counterintuitive - when always_update is false,
+    // we bypass the cache and always make a network request.
+    // When always_update is true, we check the cache first.
+    if !always_update {
+        info!("Bypassing cache check, making direct GraphQL request");
+        do_request(operation, anilist_cache)
+            .await
+            .with_context(|| "Failed to make direct GraphQL request to Anilist")
+    } else {
+        debug!("Checking cache before making GraphQL request");
+        let return_data: GraphQlResponse<U> = match check_cache(operation, anilist_cache).await {
+            Ok(data) => {
+                debug!("Successfully retrieved GraphQL response");
+                data
+            }
+            Err(e) => {
+                error!("GraphQL request failed: {:#}", e);
+                return Err(e).with_context(|| "Failed to check cache or make GraphQL request");
+            }
+        };
 
-		trace!("GraphQL request completed successfully");
-		Ok(return_data)
-	}
+        trace!("GraphQL request completed successfully");
+        Ok(return_data)
+    }
 }
 
 /// Checks if a GraphQL query is in the cache and returns the cached result if found.
@@ -89,51 +89,51 @@ pub async fn make_request_anilist<
 /// with different variables or selections are cached separately.
 ///
 async fn check_cache<
-	'a,
-	T: QueryFragment,
-	S: QueryVariables + Serialize,
-	U: for<'de> Deserialize<'de>,
+    'a,
+    T: QueryFragment,
+    S: QueryVariables + Serialize,
+    U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+    operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
-	trace!("Checking cache for GraphQL query");
+    trace!("Checking cache for GraphQL query");
 
-	// Create a short hash of the query for logging purposes
-	// This makes logs more readable while still allowing query identification
-	let query_hash = operation.query.chars().take(20).collect::<String>();
-	debug!("Query hash: {}...", query_hash);
+    // Create a short hash of the query for logging purposes
+    // This makes logs more readable while still allowing query identification
+    let query_hash = operation.query.chars().take(20).collect::<String>();
+    debug!("Query hash: {}...", query_hash);
 
-	// Clone the cache reference to avoid ownership issues
-	let anilist_cache_clone = anilist_cache.clone();
+    // Clone the cache reference to avoid ownership issues
+    let anilist_cache_clone = anilist_cache.clone();
 
-	// Acquire a read lock on the cache
-	// Using a read lock allows multiple concurrent readers
-	trace!("Acquiring read lock on cache");
-	let guard = anilist_cache_clone.read().await;
+    // Acquire a read lock on the cache
+    // Using a read lock allows multiple concurrent readers
+    trace!("Acquiring read lock on cache");
+    let guard = anilist_cache_clone.read().await;
 
-	// Look up the query in the cache
-	trace!("Looking up query in cache");
-	let cache = guard.read(&operation.query).await?;
+    // Look up the query in the cache
+    trace!("Looking up query in cache");
+    let cache = guard.read(&operation.query).await?;
 
-	// Drop the lock as soon as possible to reduce contention
-	drop(guard);
-	trace!("Released cache read lock");
+    // Drop the lock as soon as possible to reduce contention
+    drop(guard);
+    trace!("Released cache read lock");
 
-	match cache {
-		Some(data) => {
-			// Cache hit - deserialize the cached JSON string
-			info!("Cache hit for GraphQL query");
-			debug!("Deserializing cached response");
-			get_type(data).with_context(|| "Failed to deserialize cached GraphQL response")
-		},
-		None => {
-			// Cache miss - make a network request
-			info!("Cache miss for GraphQL query, making network request");
-			do_request(operation, anilist_cache)
-				.await
-				.with_context(|| "Failed to make GraphQL request after cache miss")
-		},
-	}
+    match cache {
+        Some(data) => {
+            // Cache hit - deserialize the cached JSON string
+            info!("Cache hit for GraphQL query");
+            debug!("Deserializing cached response");
+            get_type(data).with_context(|| "Failed to deserialize cached GraphQL response")
+        }
+        None => {
+            // Cache miss - make a network request
+            info!("Cache miss for GraphQL query, making network request");
+            do_request(operation, anilist_cache)
+                .await
+                .with_context(|| "Failed to make GraphQL request after cache miss")
+        }
+    }
 }
 
 /// Makes a network request to the Anilist GraphQL API and caches the response.
@@ -164,81 +164,81 @@ async fn check_cache<
 /// rate limit detection and backoff logic.
 ///
 async fn do_request<
-	T: QueryFragment,
-	S: QueryVariables + Serialize,
-	U: for<'de> Deserialize<'de>,
+    T: QueryFragment,
+    S: QueryVariables + Serialize,
+    U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+    operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
-	// Create a short hash of the query for logging purposes
-	let query_hash = operation.query.chars().take(20).collect::<String>();
-	info!("Making GraphQL request to Anilist API");
-	debug!("Query hash: {}...", query_hash);
+    // Create a short hash of the query for logging purposes
+    let query_hash = operation.query.chars().take(20).collect::<String>();
+    info!("Making GraphQL request to Anilist API");
+    debug!("Query hash: {}...", query_hash);
 
-	// Create a new HTTP client for this request
-	// reqwest clients are relatively cheap to create and can be reused
-	trace!("Creating HTTP client");
-	let client = Client::new();
+    // Create a new HTTP client for this request
+    // reqwest clients are relatively cheap to create and can be reused
+    trace!("Creating HTTP client");
+    let client = Client::new();
 
-	// Prepare the GraphQL request with appropriate headers
-	// Content-Type and Accept headers are required for GraphQL requests
-	trace!("Preparing GraphQL request");
-	debug!("Request URL: https://graphql.anilist.co/");
+    // Prepare the GraphQL request with appropriate headers
+    // Content-Type and Accept headers are required for GraphQL requests
+    trace!("Preparing GraphQL request");
+    debug!("Request URL: https://graphql.anilist.co/");
 
-	// Send the request and handle any network errors
-	trace!("Sending GraphQL request");
-	let resp = match client
+    // Send the request and handle any network errors
+    trace!("Sending GraphQL request");
+    let resp = match client
         .post("https://graphql.anilist.co/")
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
         .json(&operation)  // Serialize the operation to JSON
         .send()
         .await
-	{
-		Ok(resp) => {
-			debug!("Received response with status: {}", resp.status());
-			resp
-		},
-		Err(e) => {
-			error!("Failed to send GraphQL request: {}", e);
-			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
-				.with_context(|| "Failed to send GraphQL request to Anilist API");
-		},
-	};
+    {
+        Ok(resp) => {
+            debug!("Received response with status: {}", resp.status());
+            resp
+        }
+        Err(e) => {
+            error!("Failed to send GraphQL request: {}", e);
+            return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+                .with_context(|| "Failed to send GraphQL request to Anilist API");
+        }
+    };
 
-	// Extract the response text and handle any errors
-	trace!("Extracting response text");
-	let response_text = match resp.text().await {
-		Ok(text) => {
-			trace!("Successfully extracted response text");
-			debug!("Response size: {} bytes", text.len());
-			text
-		},
-		Err(e) => {
-			error!("Failed to extract text from response: {}", e);
-			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
-				.with_context(|| "Failed to extract text from Anilist API response");
-		},
-	};
+    // Extract the response text and handle any errors
+    trace!("Extracting response text");
+    let response_text = match resp.text().await {
+        Ok(text) => {
+            trace!("Successfully extracted response text");
+            debug!("Response size: {} bytes", text.len());
+            text
+        }
+        Err(e) => {
+            error!("Failed to extract text from response: {}", e);
+            return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+                .with_context(|| "Failed to extract text from Anilist API response");
+        }
+    };
 
-	// Cache the response for future use
-	// This requires a write lock on the cache, which blocks other writers
-	trace!("Acquiring write lock on cache");
-	anilist_cache
-		.write()
-		.await
-		.write(operation.query.clone(), response_text.clone())
-		.await?;
-	trace!("Updated cache with new response");
+    // Cache the response for future use
+    // This requires a write lock on the cache, which blocks other writers
+    trace!("Acquiring write lock on cache");
+    anilist_cache
+        .write()
+        .await
+        .write(operation.query.clone(), response_text.clone())
+        .await?;
+    trace!("Updated cache with new response");
 
-	// Deserialize the response to the requested type
-	debug!("Deserializing GraphQL response");
-	get_type(response_text).with_context(|| {
-		format!(
-			"Failed to deserialize GraphQL response for query: {}",
-			operation.query
-		)
-	})
+    // Deserialize the response to the requested type
+    debug!("Deserializing GraphQL response");
+    get_type(response_text).with_context(|| {
+        format!(
+            "Failed to deserialize GraphQL response for query: {}",
+            operation.query
+        )
+    })
 }
 
 /// Deserializes a JSON string into a GraphQL response of the specified type.
@@ -265,44 +265,44 @@ async fn do_request<
 /// or doesn't match the expected structure, a deserialization error is returned.
 ///
 fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlResponse<U>> {
-	trace!("Deserializing JSON response to GraphQL type");
-	debug!("Target type: {}", std::any::type_name::<U>());
+    trace!("Deserializing JSON response to GraphQL type");
+    debug!("Target type: {}", std::any::type_name::<U>());
 
-	let data = match serde_json::from_str::<GraphQlResponse<U>>(&value) {
-		Ok(parsed) => {
-			trace!("Successfully deserialized GraphQL response");
+    let data = match serde_json::from_str::<GraphQlResponse<U>>(&value) {
+        Ok(parsed) => {
+            trace!("Successfully deserialized GraphQL response");
 
-			// Check for GraphQL-level errors in the response
-			// A GraphQL response can contain errors even with a successful HTTP status code
-			// These errors need to be logged and handled appropriately
-			if let Some(errors) = &parsed.errors {
-				if !errors.is_empty() {
-					warn!("GraphQL response contains {} errors", errors.len());
-					for (i, error) in errors.iter().enumerate() {
-						warn!("GraphQL error #{}: {}", i + 1, error.message);
+            // Check for GraphQL-level errors in the response
+            // A GraphQL response can contain errors even with a successful HTTP status code
+            // These errors need to be logged and handled appropriately
+            if let Some(errors) = &parsed.errors {
+                if !errors.is_empty() {
+                    warn!("GraphQL response contains {} errors", errors.len());
+                    for (i, error) in errors.iter().enumerate() {
+                        warn!("GraphQL error #{}: {}", i + 1, error.message);
 
-						// Log additional error details if available
-						if let Some(locations) = &error.locations {
-							debug!("Error locations: {:?}", locations);
-						}
-						if let Some(path) = &error.path {
-							debug!("Error path: {:?}", path);
-						}
-					}
-				}
-			}
+                        // Log additional error details if available
+                        if let Some(locations) = &error.locations {
+                            debug!("Error locations: {:?}", locations);
+                        }
+                        if let Some(path) = &error.path {
+                            debug!("Error path: {:?}", path);
+                        }
+                    }
+                }
+            }
 
-			parsed
-		},
-		Err(e) => {
-			// JSON parsing failed - this could be due to invalid JSON or
-			// a mismatch between the JSON structure and the expected type
-			error!("Failed to deserialize GraphQL response: {}", e);
-			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
-				.with_context(|| "Failed to parse JSON response from GraphQL");
-		},
-	};
+            parsed
+        }
+        Err(e) => {
+            // JSON parsing failed - this could be due to invalid JSON or
+            // a mismatch between the JSON structure and the expected type
+            error!("Failed to deserialize GraphQL response: {}", e);
+            return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
+                .with_context(|| "Failed to parse JSON response from GraphQL");
+        }
+    };
 
-	debug!("GraphQL deserialization completed successfully");
-	Ok(data)
+    debug!("GraphQL deserialization completed successfully");
+    Ok(data)
 }

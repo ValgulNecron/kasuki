@@ -86,14 +86,14 @@ use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
-	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
+    get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::impl_command;
 use crate::structure::message::ai::translation::load_localization_translation;
-use anyhow::{Result, anyhow};
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
-use reqwest::{Url, multipart};
-use serde_json::{Value, json};
+use anyhow::{anyhow, Result};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::{multipart, Url};
+use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -118,10 +118,10 @@ use uuid::Uuid;
 ///
 #[derive(Clone)]
 pub struct TranslationCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 
-	pub command_name: String,
+    pub command_name: String,
 }
 
 impl_command!(
@@ -340,44 +340,44 @@ impl_command!(
 /// - The API response is parsed to extract the translated text from the JSON structure, specifically under `choices[0]["message"]["content"]`.
 /// - Any escaped newlines in the response are replaced with actual line breaks for better readability.
 pub async fn translation(
-	lang: String, text: String, api_key: String, api_url: String, model: String,
-	http_client: Arc<reqwest::Client>,
+    lang: String, text: String, api_key: String, api_url: String, model: String,
+    http_client: Arc<reqwest::Client>,
 ) -> Result<String> {
-	let prompt_gpt = format!("
+    let prompt_gpt = format!("
             i will give you a text and a ISO-639-1 code and you will translate it in the corresponding language
             iso code: {}
             text:
             {}
             ", lang, text);
 
-	let client = http_client.clone();
+    let client = http_client.clone();
 
-	let mut headers = HeaderMap::new();
+    let mut headers = HeaderMap::new();
 
-	headers.insert(
-		AUTHORIZATION,
-		HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
-	);
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap(),
+    );
 
-	headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-	let data = json!({
+    let data = json!({
 		 "model": model,
 		 "messages": [{"role": "system", "content": "You are a expert in translating and only do that."},{"role": "user", "content": prompt_gpt}]
 	});
 
-	let res: Value = client
-		.post(api_url)
-		.headers(headers)
-		.json(&data)
-		.send()
-		.await?
-		.json()
-		.await?;
+    let res: Value = client
+        .post(api_url)
+        .headers(headers)
+        .json(&data)
+        .send()
+        .await?
+        .json()
+        .await?;
 
-	let content = res["choices"][0]["message"]["content"].to_string();
+    let content = res["choices"][0]["message"]["content"].to_string();
 
-	let no_quote = content.replace('"', "");
+    let no_quote = content.replace('"', "");
 
-	Ok(no_quote.replace("\\n", " \n "))
+    Ok(no_quote.replace("\\n", " \n "))
 }

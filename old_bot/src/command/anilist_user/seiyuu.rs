@@ -17,7 +17,7 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
 use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
 use crate::structure::run::anilist::seiyuu_id::{
-	Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
+    Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
 use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
 use cynic::{GraphQlResponse, QueryBuilder};
@@ -29,8 +29,8 @@ use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct SeiyuuCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -264,7 +264,7 @@ impl_command!(
 /// ```
 
 fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>> {
-	character.nodes.unwrap()
+    character.nodes.unwrap()
 }
 
 /// Retrieves the URL of the large staff image.
@@ -287,5 +287,5 @@ fn get_characters_image(character: CharacterConnection) -> Vec<Option<Character>
 /// ```
 
 fn get_staff_image(staff: StaffImage) -> String {
-	staff.large.unwrap()
+    staff.large.unwrap()
 }

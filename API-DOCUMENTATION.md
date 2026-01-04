@@ -2,13 +2,15 @@
 
 ## Overview
 
-This API provides access to various data points from the Kasuki bot database. Authentication is required for all endpoints except the health check.
+This API provides access to various data points from the Kasuki bot database. Authentication is required for all
+endpoints except the health check.
 
 ## Authentication
 
 Authentication is performed using an API key that must be included in the `X-API-Key` header of all requests.
 
 Example:
+
 ```
 X-API-Key: your_secure_api_key_here
 ```
@@ -34,10 +36,12 @@ GET /anime/songs?limit=20&offset=0
 Returns a list of anime songs from the database.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum number of results to return (default: 20)
 - `offset` (optional): Number of results to skip (default: 0)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -67,6 +71,7 @@ GET /stats/random
 Returns the current random stats containing the last page numbers for anime and manga.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -87,6 +92,7 @@ GET /commands/usage
 Returns the usage count for each command, aggregated across all users.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -114,6 +120,7 @@ GET /commands/list
 Returns a list of all commands available in the bot.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -136,6 +143,7 @@ GET /stats/ping
 Returns the latest ping information for each shard.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -165,6 +173,7 @@ GET /stats/users
 Returns the total number of users in the database.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -184,6 +193,7 @@ GET /stats/guilds
 Returns the total number of guilds (servers) in the database.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -207,6 +217,7 @@ If an error occurs, the API will return an appropriate HTTP status code along wi
 ```
 
 Common error codes:
+
 - `401 Unauthorized`: Invalid or missing API key
 - `404 Not Found`: Resource not found
 - `500 Internal Server Error`: Server-side error
@@ -222,7 +233,8 @@ port = 8080
 api_key = "your_secure_api_key_here"
 ```
 
-Make sure to use a strong API key in production environments. The API will only be available if `enabled` is set to `true`.
+Make sure to use a strong API key in production environments. The API will only be available if `enabled` is set to
+`true`.
 
 ## Usage Examples
 

@@ -4,15 +4,15 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::user::get_user;
 use crate::impl_command;
-use crate::structure::message::vn::user::UserLocalised;
 use crate::structure::message::vn::user::load_localization_user;
+use crate::structure::message::vn::user::UserLocalised;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 #[derive(Clone)]
 pub struct VnUserCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

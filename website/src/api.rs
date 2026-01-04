@@ -1,10 +1,11 @@
+use crate::app::{Guild, User};
+use crate::config::Config;
 use leptos::logging::log;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use serde::{Deserialize, Serialize};
-use crate::config::Config;
-use crate::app::{User, Guild}; // Import User and Guild from app.rs
+// Import User and Guild from app.rs
 
 // This struct will represent the expected response from our backend API
 // This should match the UserDataResponse in bot/src/api/server.rs

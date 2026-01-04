@@ -99,7 +99,7 @@ use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
 use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
 use std::collections::HashMap;
@@ -134,8 +134,8 @@ use tokio::sync::RwLock;
 /// ```
 #[derive(Clone)]
 pub struct SteamGameInfoCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -372,26 +372,26 @@ impl_command!(
 /// }
 /// ```
 async fn get_steam_game(
-	apps: Arc<RwLock<HashMap<String, u128>>>, command_interaction: CommandInteraction,
-	db_connection: Arc<DatabaseConnection>,
+    apps: Arc<RwLock<HashMap<String, u128>>>, command_interaction: CommandInteraction,
+    db_connection: Arc<DatabaseConnection>,
 ) -> Result<SteamGameWrapper> {
-	let guild_id = command_interaction
-		.guild_id
-		.unwrap_or(GuildId::from(0))
-		.to_string();
+    let guild_id = command_interaction
+        .guild_id
+        .unwrap_or(GuildId::from(0))
+        .to_string();
 
-	let map = get_option_map_string_subcommand(&command_interaction);
+    let map = get_option_map_string_subcommand(&command_interaction);
 
-	let value = map
-		.get(&String::from("game_name"))
-		.ok_or(anyhow!("No option for game_name"))?;
+    let value = map
+        .get(&String::from("game_name"))
+        .ok_or(anyhow!("No option for game_name"))?;
 
-	let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
-		SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_connection)
-			.await?
-	} else {
-		SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, db_connection).await?
-	};
+    let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
+        SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_connection)
+            .await?
+    } else {
+        SteamGameWrapper::new_steam_game_by_search(value, guild_id, apps, db_connection).await?
+    };
 
-	Ok(data)
+    Ok(data)
 }

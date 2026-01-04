@@ -21,10 +21,10 @@ use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
 use crate::structure::run::anilist::character;
 use crate::structure::run::anilist::character::{
-	Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
-	CharacterQuerrySearchVariables,
+    Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
+    CharacterQuerrySearchVariables,
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -32,8 +32,8 @@ use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct CharacterCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -139,30 +139,30 @@ impl_command!(
 /// Make sure the AniList API integration and cache handling is properly configured for this function to work as expected.
 /// The `Cache` and `GraphQlResponse` types should be pre-defined and available in your crate or the imported modules.
 pub async fn get_character_by_id(
-	value: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
+    value: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<Character> {
-	let var = CharacterQuerryIdVariables { id: Some(value) };
+    let var = CharacterQuerryIdVariables { id: Some(value) };
 
-	let operation = CharacterQuerryId::build(var);
+    let operation = CharacterQuerryId::build(var);
 
-	let data: GraphQlResponse<CharacterQuerryId> =
-		make_request_anilist(operation, false, anilist_cache)
-			.await
-			.context(format!(
-				"Failed to make AniList API request for character with ID {}",
-				value
-			))?;
+    let data: GraphQlResponse<CharacterQuerryId> =
+        make_request_anilist(operation, false, anilist_cache)
+            .await
+            .context(format!(
+                "Failed to make AniList API request for character with ID {}",
+                value
+            ))?;
 
-	match data.data {
-		Some(data) => match data.character {
-			Some(media) => Ok(media),
-			None => Err(anyhow!("No character found with ID {}", value)
-				.context("The character ID may not exist or may have been removed from AniList")),
-		},
-		None => Err(anyhow!(
+    match data.data {
+        Some(data) => match data.character {
+            Some(media) => Ok(media),
+            None => Err(anyhow!("No character found with ID {}", value)
+                .context("The character ID may not exist or may have been removed from AniList")),
+        },
+        None => Err(anyhow!(
 			"No data returned from AniList API for character with ID {}",
 			value
 		)
-		.context("This could indicate an issue with the AniList API or the request format")),
-	}
+            .context("This could indicate an issue with the AniList API or the request format")),
+    }
 }

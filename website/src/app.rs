@@ -1,23 +1,28 @@
-use leptos::prelude::*;
-use crate::components::header::Header;
-use crate::components::footer::Footer;
-use crate::components::hero::Hero;
-use crate::components::features::Features;
 use crate::components::commands::Commands;
+use crate::components::features::Features;
+use crate::components::footer::Footer;
+use crate::components::header::Header;
+use crate::components::hero::Hero;
+use crate::components::privacy::Privacy;
+use crate::components::profile::Profile;
 use crate::components::screenshots::Screenshots;
 use crate::components::setup::Setup;
-use crate::components::privacy::Privacy;
 use crate::components::terms::Terms;
-use crate::components::profile::Profile;
+use leptos::logging::log;
 use leptos::prelude::document;
 use leptos::prelude::Effect;
-use leptos::logging::log; // Corrected import
+use leptos::prelude::*;
+// Corrected import
 use wasm_bindgen::JsCast;
-use web_sys::{HashChangeEvent, window}; // Added window and Storage
+use web_sys::{window, HashChangeEvent};
+use crate::api::fetch_user_data;
+// Added window and Storage
 use url::Url;
-use crate::api::fetch_user_data; // Import the new API function
-use wasm_bindgen_futures::spawn_local; // Corrected import
-use serde::{Serialize, Deserialize}; // Added
+// Import the new API function
+use wasm_bindgen_futures::spawn_local;
+// Corrected import
+use serde::{Deserialize, Serialize};
+// Added
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Page {
@@ -68,7 +73,7 @@ pub fn App() -> impl IntoView {
                     Ok((user_data, guilds)) => {
                         log!("Fetched user data: {:?}", user_data);
                         set_user_session_data_clone.set(Some(UserSessionData { user: user_data, guilds }));
-                    },
+                    }
                     Err(e) => {
                         log!("Failed to fetch user data with JWT: {:?}", e);
                         set_user_session_data_clone.set(None); // Clear user on error
@@ -84,7 +89,7 @@ pub fn App() -> impl IntoView {
                         Ok((user_data, guilds)) => {
                             log!("Fetched user data from stored JWT: {:?}", user_data);
                             set_user_session_data_clone.set(Some(UserSessionData { user: user_data, guilds }));
-                        },
+                        }
                         Err(e) => {
                             log!("Failed to fetch user data with stored JWT: {:?}", e);
                             set_user_session_data_clone.set(None); // Clear user on error
@@ -102,7 +107,7 @@ pub fn App() -> impl IntoView {
     Effect::new(move |_| {
         let full_hash = window().expect("window to be available").location().hash().unwrap_or_default();
         let (page, jwt_from_url) = parse_hash_and_params(&full_hash);
-        
+
         set_current_page.set(page);
         handle_jwt_and_user_state(jwt_from_url);
 
@@ -110,11 +115,11 @@ pub fn App() -> impl IntoView {
         let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |_event: HashChangeEvent| {
             let full_hash = window().expect("window to be available").location().hash().unwrap_or_default();
             let (page, jwt_from_url) = parse_hash_and_params(&full_hash);
-            
+
             set_current_page.set(page);
             handle_jwt_and_user_state(jwt_from_url);
         }) as Box<dyn FnMut(_)>);
-        
+
         let _ = window().expect("window to be available").add_event_listener_with_callback("hashchange", closure.as_ref().unchecked_ref());
         closure.forget();
     });

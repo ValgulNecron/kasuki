@@ -5,42 +5,42 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "server_user_relation")]
 pub struct Model {
-	#[sea_orm(primary_key, auto_increment = false)]
-	pub user_id: String,
-	#[sea_orm(primary_key, auto_increment = false)]
-	pub guild_id: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub user_id: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub guild_id: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-	#[sea_orm(
-		belongs_to = "super::command_list::Entity",
-		from = "(Column::GuildId, Column::GuildId, Column::GuildId, Column::GuildId)",
-		to = "(super::command_list::Column::CommandName,  super::command_list::Column::CommandName)",
-		on_update = "Cascade",
-		on_delete = "Cascade"
-	)]
-	CommandList,
-	#[sea_orm(
-		belongs_to = "super::user_data::Entity",
-		from = "Column::UserId",
-		to = "super::user_data::Column::UserId",
-		on_update = "Cascade",
-		on_delete = "Cascade"
-	)]
-	UserData,
+    #[sea_orm(
+        belongs_to = "super::command_list::Entity",
+        from = "(Column::GuildId, Column::GuildId, Column::GuildId, Column::GuildId)",
+        to = "(super::command_list::Column::CommandName,  super::command_list::Column::CommandName)",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    CommandList,
+    #[sea_orm(
+        belongs_to = "super::user_data::Entity",
+        from = "Column::UserId",
+        to = "super::user_data::Column::UserId",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    UserData,
 }
 
 impl Related<super::command_list::Entity> for Entity {
-	fn to() -> RelationDef {
-		Relation::CommandList.def()
-	}
+    fn to() -> RelationDef {
+        Relation::CommandList.def()
+    }
 }
 
 impl Related<super::user_data::Entity> for Entity {
-	fn to() -> RelationDef {
-		Relation::UserData.def()
-	}
+    fn to() -> RelationDef {
+        Relation::UserData.def()
+    }
 }
 
 impl ActiveModelBehavior for ActiveModel {}

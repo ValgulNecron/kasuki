@@ -11,8 +11,8 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct BannerCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -62,18 +62,18 @@ impl_command!(
 );
 
 pub async fn no_banner(
-	command_interaction: &CommandInteraction, username: &str,
-	db_connection: Arc<DatabaseConnection>,
+    command_interaction: &CommandInteraction, username: &str,
+    db_connection: Arc<DatabaseConnection>,
 ) -> Result<Vec<EmbedContent>> {
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
 
-	let banner_localised = load_localization_banner(guild_id, db_connection).await?;
+    let banner_localised = load_localization_banner(guild_id, db_connection).await?;
 
-	let embed_content = EmbedContent::new(banner_localised.no_banner_title)
-		.description(banner_localised.no_banner.replace("$user$", username));
+    let embed_content = EmbedContent::new(banner_localised.no_banner_title)
+        .description(banner_localised.no_banner.replace("$user$", username));
 
-	Ok(vec![embed_content])
+    Ok(vec![embed_content])
 }

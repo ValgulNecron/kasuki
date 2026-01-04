@@ -625,7 +625,7 @@ async fn get_webhook(
 	let mut webhook = ctx.http.get_webhook_from_url(webhook_url.as_str()).await?;
 
 	let attachment = CreateAttachment::bytes(decoded_bytes, "avatar");
-	let attachment = attachment.encode().await?;
+	let attachment = attachment.encode("image/png").await?;
 	let edit_webhook = EditWebhook::new().name(anime_name).avatar(attachment);
 
 	webhook.edit(&ctx.http, edit_webhook).await?;

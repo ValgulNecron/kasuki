@@ -20,13 +20,13 @@ use tracing::{info, trace, warn};
 /// - If it matches, logs the `session_id` and the `event` at the `trace` level.
 #[hook]
 pub async fn raw_event(_client: LavalinkClient, session_id: String, event: &serde_json::Value) {
-	if event["op"].as_str() == Some("event") || event["op"].as_str() == Some("playerUpdate") {
-		trace!(
+    if event["op"].as_str() == Some("event") || event["op"].as_str() == Some("playerUpdate") {
+        trace!(
 			"Lavalink raw event received for session {}: {:?}",
 			session_id,
 			event
 		);
-	}
+    }
 }
 
 /// Hook that handles the `Ready` event for a Lavalink client.
@@ -46,16 +46,16 @@ pub async fn raw_event(_client: LavalinkClient, session_id: String, event: &serd
 /// - If `delete_all_player_contexts` fails, a `warn` log is issued.
 #[hook]
 pub async fn ready_event(client: LavalinkClient, session_id: String, event: &events::Ready) {
-	info!(
+    info!(
 		"Lavalink client is ready for session {}: {:?}",
 		session_id, event
 	);
-	if let Err(e) = client.delete_all_player_contexts().await {
-		warn!(
+    if let Err(e) = client.delete_all_player_contexts().await {
+        warn!(
 			"Failed to delete all player contexts for session {}: {}",
 			session_id, e
 		);
-	}
+    }
 }
 
 /// Handles the `TrackStart` event from Lavalink.
@@ -87,48 +87,48 @@ pub async fn ready_event(client: LavalinkClient, session_id: String, event: &eve
 ///   represents the Discord user ID of the person who requested the track.
 #[hook]
 pub async fn track_start(client: LavalinkClient, _session_id: String, event: &events::TrackStart) {
-	let track = &event.track;
-	info!("Track started: {:?} for guild {:?}", track, event.guild_id);
+    let track = &event.track;
+    info!("Track started: {:?} for guild {:?}", track, event.guild_id);
 
-	let player_context = match client.get_player_context(event.guild_id) {
-		Some(context) => context,
-		None => {
-			warn!("Could not get player context for guild {:?}", event.guild_id);
-			return;
-		},
-	};
+    let player_context = match client.get_player_context(event.guild_id) {
+        Some(context) => context,
+        None => {
+            warn!("Could not get player context for guild {:?}", event.guild_id);
+            return;
+        }
+    };
 
-	let data = match player_context.data::<(ChannelId, std::sync::Arc<Http>)>() {
-		Ok(data) => data,
-		Err(e) => {
-			warn!(
+    let data = match player_context.data::<(ChannelId, std::sync::Arc<Http>)>() {
+        Ok(data) => data,
+        Err(e) => {
+            warn!(
 				"Could not get player context data for guild {:?}: {}",
 				event.guild_id, e
 			);
-			return;
-		},
-	};
-	let (..) = (&data.0, &data.1);
+            return;
+        }
+    };
+    let (..) = (&data.0, &data.1);
 
-	let _ = {
-		let track = &event.track;
-		let requester_id = track
-			.user_data
-			.clone()
-			.and_then(|ud| ud["requester_id"].as_str().map(String::from))
-			.unwrap_or_else(|| "N/A".to_string());
+    let _ = {
+        let track = &event.track;
+        let requester_id = track
+            .user_data
+            .clone()
+            .and_then(|ud| ud["requester_id"].as_str().map(String::from))
+            .unwrap_or_else(|| "N/A".to_string());
 
-		if let Some(uri) = &track.info.uri {
-			format!(
-				"Now playing: [{} - {}](<{}>) | Requested by <@!{}>",
-				track.info.author, track.info.title, uri, requester_id
-			)
-		} else {
-			format!(
-				"Now playing: {} - {} | Requested by <@!{}>",
-				track.info.author, track.info.title, requester_id
-			)
-		}
-	};
+        if let Some(uri) = &track.info.uri {
+            format!(
+                "Now playing: [{} - {}](<{}>) | Requested by <@!{}>",
+                track.info.author, track.info.title, uri, requester_id
+            )
+        } else {
+            format!(
+                "Now playing: {} - {} | Requested by <@!{}>",
+                track.info.author, track.info.title, requester_id
+            )
+        }
+    };
 }
 

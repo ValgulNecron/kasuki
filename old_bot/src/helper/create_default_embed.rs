@@ -12,9 +12,9 @@ use serenity::all::{Colour, CreateEmbed, Timestamp};
 /// A new CreateEmbed instance with timestamp and color set.
 ///
 pub fn get_default_embed<'a>(
-	option: Option<Colour>, user_colour: &Option<Colour>,
+    option: Option<Colour>, user_colour: &Option<Colour>,
 ) -> CreateEmbed<'a> {
-	let color = option.unwrap_or(user_colour.unwrap_or(COLOR));
+    let color = option.unwrap_or(user_colour.unwrap_or(COLOR));
 
-	CreateEmbed::new().timestamp(Timestamp::now()).color(color)
+    CreateEmbed::new().timestamp(Timestamp::now()).color(color)
 }

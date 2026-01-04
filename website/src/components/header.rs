@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-use crate::app::{UserSessionData};
+use crate::app::UserSessionData;
 use crate::config::Config;
+use leptos::prelude::*;
 
 #[component]
 pub fn Header(

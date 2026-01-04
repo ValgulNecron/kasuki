@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::builder::{
-	CreateComponent, CreateContainer, CreateSection, CreateSectionAccessory,
+	CreateComponent, CreateContainer, CreateContainerComponent, CreateSection, CreateSectionAccessory,
 	CreateSectionComponent, CreateSeparator, CreateTextDisplay, CreateThumbnail,
 	CreateUnfurledMediaItem,
 };
@@ -312,18 +312,21 @@ impl_command!(
 				user2.avatar.unwrap().large.unwrap(),
 			))),
 		);
-		let common = CreateComponent::TextDisplay(CreateTextDisplay::new(common_text));
+		let common = CreateContainerComponent::TextDisplay(CreateTextDisplay::new(common_text));
 
-		let u1 = CreateComponent::Section(CreateSection::new(section_u1.0, section_u1.1));
-		let u2 = CreateComponent::Section(CreateSection::new(section_u2.0, section_u2.1));
+		let u1 = CreateContainerComponent::Section(CreateSection::new(section_u1.0, section_u1.1));
+		let u2 = CreateContainerComponent::Section(CreateSection::new(section_u2.0, section_u2.1));
 
-		let create_components = CreateComponent::Container(CreateContainer::new(vec![
+		let data = vec![
 			common,
-			CreateComponent::Separator(CreateSeparator::new(true)),
+			CreateContainerComponent::Separator(CreateSeparator::new(true)),
 			u1,
-			CreateComponent::Separator(CreateSeparator::new(true)),
+			CreateContainerComponent::Separator(CreateSeparator::new(true)),
 			u2,
-		]));
+		];
+
+
+		let create_components = CreateComponent::Container(CreateContainer::new(data));
 
 		let embed_contents =
 			EmbedsContents::new(CommandType::First, vec![]).action_row(V2(ComponentVersion2 {

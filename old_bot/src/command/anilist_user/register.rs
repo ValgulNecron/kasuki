@@ -28,12 +28,12 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::impl_command;
 use crate::structure::message::anilist_user::register::load_localization_register;
-use crate::structure::run::anilist::user::{User, get_color, get_user_url};
+use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 
 #[derive(Clone)]
 pub struct RegisterCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

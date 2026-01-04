@@ -1,7 +1,7 @@
 //! This module defines the `GenerateImagePfPCommand` structure and related functionality
 //! for handling a command interaction that generates server profile picture images.
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command::{Command, CommandRun};
@@ -11,8 +11,8 @@ use crate::database::server_image::Column;
 use crate::event_handler::BotData;
 use crate::impl_command;
 use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
-use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::engine::Engine as _;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
@@ -36,8 +36,8 @@ use uuid::Uuid;
 /// functionality using the data available in these fields.
 #[derive(Clone)]
 pub struct GenerateImagePfPCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -105,47 +105,47 @@ impl_command!(
 /// }
 /// ```
 pub async fn get_content<'a>(
-	_ctx: SerenityContext, command_interaction: CommandInteraction, image_type: &str,
-	db_connection: Arc<DatabaseConnection>,
+    _ctx: SerenityContext, command_interaction: CommandInteraction, image_type: &str,
+    db_connection: Arc<DatabaseConnection>,
 ) -> Result<EmbedsContents<'a>> {
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+    // Retrieve the guild ID from the command interaction
+    let guild_id = match command_interaction.guild_id {
+        Some(id) => id.to_string(),
+        None => String::from("0"),
+    };
 
-	// Load the localized text for the server's profile picture image
-	let pfp_server_image_localised_text =
-		load_localization_pfp_server_image(guild_id.clone(), db_connection.clone()).await?;
+    // Load the localized text for the server's profile picture image
+    let pfp_server_image_localised_text =
+        load_localization_pfp_server_image(guild_id.clone(), db_connection.clone()).await?;
 
-	let image = ServerImage::find()
-		.filter(Column::ServerId.eq(guild_id.clone()))
-		.filter(Column::ImageType.eq(image_type.to_string()))
-		.one(&*db_connection)
-		.await?
-		.ok_or(anyhow!(format!(
+    let image = ServerImage::find()
+        .filter(Column::ServerId.eq(guild_id.clone()))
+        .filter(Column::ImageType.eq(image_type.to_string()))
+        .one(&*db_connection)
+        .await?
+        .ok_or(anyhow!(format!(
 			"Server image with type {} not found",
 			image_type
 		)))?
-		.image;
+        .image;
 
-	// Decode the image from base64
-	let input = image.trim_start_matches("data:image/png;base64,");
+    // Decode the image from base64
+    let input = image.trim_start_matches("data:image/png;base64,");
 
-	let image_data: Vec<u8> = BASE64.decode(input)?;
+    let image_data: Vec<u8> = BASE64.decode(input)?;
 
-	drop(image);
+    drop(image);
 
-	// Generate a unique filename for the image
-	let uuid = Uuid::new_v4();
+    // Generate a unique filename for the image
+    let uuid = Uuid::new_v4();
 
-	let image_path = format!("{}.png", uuid);
+    let image_path = format!("{}.png", uuid);
 
-	let embed_content = EmbedContent::new(pfp_server_image_localised_text.title)
-		.images_url(format!("attachment://{}", image_path.clone()));
-	let file = CommandFiles::new(image_path, image_data);
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-	embed_contents.add_files(vec![file]);
+    let embed_content = EmbedContent::new(pfp_server_image_localised_text.title)
+        .images_url(format!("attachment://{}", image_path.clone()));
+    let file = CommandFiles::new(image_path, image_data);
+    let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+    embed_contents.add_files(vec![file]);
 
-	Ok(embed_contents)
+    Ok(embed_contents)
 }

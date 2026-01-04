@@ -5,28 +5,28 @@ use std::sync::Arc;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 
 pub struct LevelsStatsLocalised {
-	pub title: String,
-	pub vocal_title: String,
-	pub vocal: String,
-	pub vocal_len: String,
-	pub message_title: String,
-	pub message: String,
-	pub xp_title: String,
-	pub xp_message: String,
-	pub xp_vocal: String,
-	pub xp_vocal_len: String,
-	pub xp_total: String,
-	pub level_progress_title: String,
-	pub level_progress: String,
+    pub title: String,
+    pub vocal_title: String,
+    pub vocal: String,
+    pub vocal_len: String,
+    pub message_title: String,
+    pub message: String,
+    pub xp_title: String,
+    pub xp_message: String,
+    pub xp_vocal: String,
+    pub xp_vocal_len: String,
+    pub xp_total: String,
+    pub level_progress_title: String,
+    pub level_progress: String,
 }
 
 use anyhow::Result;
 use sea_orm::DatabaseConnection;
 
 pub async fn load_localization_levels_stats(
-	guild_id: String, db_connection: Arc<DatabaseConnection>,
+    guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> Result<LevelsStatsLocalised> {
-	let path = "json/message/levels/stats.json";
+    let path = "json/message/levels/stats.json";
 
-	load_localization(guild_id, path, db_connection).await
+    load_localization(guild_id, path, db_connection).await
 }

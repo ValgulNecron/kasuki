@@ -1,6 +1,5 @@
-
-use leptos::*;
 use leptos::prelude::ElementChild;
+use leptos::*;
 #[component]
 pub fn Footer() -> impl IntoView {
     view! {

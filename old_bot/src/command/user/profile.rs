@@ -6,7 +6,7 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::user::profile::{ProfileLocalised, load_localization_profile};
+use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 
 /// `ProfileCommand` represents a structure that handles the context and interaction
@@ -39,8 +39,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User
 /// ```
 #[derive(Clone)]
 pub struct ProfileCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -202,41 +202,41 @@ impl_command!(
 ///   - Whether the user is a bot or part of a system (`bot()`/`system()` methods).
 ///   - Optional public flags (`public_flags`) with an `iter_names()` method.
 fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
-	let mut fields = vec![
-		(
-			profile_localised.id.clone(),
-			user.id.clone().to_string(),
-			true,
-		),
-		(
-			profile_localised.creation_date.clone(),
-			format!("<t:{}>", user.id.created_at().timestamp()),
-			true,
-		),
-		(profile_localised.bot.clone(), user.bot().to_string(), true),
-		(
-			profile_localised.system.clone(),
-			user.system().to_string(),
-			true,
-		),
-	];
+    let mut fields = vec![
+        (
+            profile_localised.id.clone(),
+            user.id.clone().to_string(),
+            true,
+        ),
+        (
+            profile_localised.creation_date.clone(),
+            format!("<t:{}>", user.id.created_at().timestamp()),
+            true,
+        ),
+        (profile_localised.bot.clone(), user.bot().to_string(), true),
+        (
+            profile_localised.system.clone(),
+            user.system().to_string(),
+            true,
+        ),
+    ];
 
-	if let Some(public_flag) = user.public_flags {
-		let mut user_flags = Vec::new();
+    if let Some(public_flag) = user.public_flags {
+        let mut user_flags = Vec::new();
 
-		// If there are, iterate over the flags and add them to a vector
-		for (flag, _) in public_flag.iter_names() {
-			user_flags.push(flag)
-		}
+        // If there are, iterate over the flags and add them to a vector
+        for (flag, _) in public_flag.iter_names() {
+            user_flags.push(flag)
+        }
 
-		if !user_flags.is_empty() {
-			fields.push((
-				profile_localised.public_flag.clone(),
-				user_flags.join(" / "),
-				false,
-			));
-		}
-	}
+        if !user_flags.is_empty() {
+            fields.push((
+                profile_localised.public_flag.clone(),
+                user_flags.join(" / "),
+                false,
+            ));
+        }
+    }
 
-	fields
+    fields
 }

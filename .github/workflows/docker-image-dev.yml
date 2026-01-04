@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo sysctl -w vm.max_map_count=262144
           sudo sysctl -w fs.file-max=262144
-          
+
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:

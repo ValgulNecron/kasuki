@@ -1,16 +1,16 @@
+use crate::config::Config;
 use axum::{
+    extract::State,
     http::{Request, StatusCode},
+    middleware::Next,
     response::{IntoResponse, Response},
     Json,
-    middleware::Next,
-    extract::State,
 };
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::Serialize;
-use crate::config::Config;
 use std::sync::Arc;
 use tracing::warn;
-use base64::{engine::general_purpose::STANDARD, Engine as _};
 
 pub use crate::api::oauth::Claims;
 

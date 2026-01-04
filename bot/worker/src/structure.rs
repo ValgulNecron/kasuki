@@ -1,9 +1,9 @@
+use sea_orm::DatabaseConnection;
+use serenity::all::ShardManager;
+use shared::cache::CacheInterface;
+use shared::config::Config;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use sea_orm::DatabaseConnection;
-use serenity::all::{ShardManager};
-use shared::config::Config;
-use shared::cache::CacheInterface;
 
 pub struct BotData {
     pub config: Arc<Config>,

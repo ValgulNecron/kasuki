@@ -7,17 +7,17 @@ use std::sync::Arc;
 use tracing::info;
 
 pub async fn start_api_server(config: Arc<Config>) {
-	if !config.api.enabled {
-		info!("API server is disabled in configuration");
-		return;
-	}
+    if !config.api.enabled {
+        info!("API server is disabled in configuration");
+        return;
+    }
 
-	info!(
+    info!(
 		"Starting API server on port {}",
 		config.api.port
 	);
 
-	if let Err(e) = server::run_server(config).await {
-		tracing::error!("API server error: {}", e);
-	}
+    if let Err(e) = server::run_server(config).await {
+        tracing::error!("API server error: {}", e);
+    }
 }

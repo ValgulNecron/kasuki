@@ -8,7 +8,7 @@ use crate::structure::message::minigame::fish_inventory::load_localization_fish_
 use anyhow::{Context as AnyhowContext, Result};
 use sea_orm::ExprTrait;
 use sea_orm::{
-	ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
+    ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
 };
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use std::collections::HashMap;
@@ -16,8 +16,8 @@ use tracing::debug;
 
 #[derive(Clone)]
 pub struct FishInventoryCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -207,55 +207,55 @@ impl_command!(
 
 /// Get a user's fish inventory with item details
 async fn get_user_fish_inventory(
-	db: &DatabaseConnection, user_id: String, server_id: String,
+    db: &DatabaseConnection, user_id: String, server_id: String,
 ) -> Result<Vec<(UserInventoryModel, ItemModel)>> {
-	debug!(
+    debug!(
 		"Getting fish inventory for user_id={}, server_id={}",
 		user_id, server_id
 	);
 
-	// Query the user's inventory with a join to the item table
-	let inventory_items = UserInventory::find()
-		.filter(
-			crate::database::user_inventory::Column::UserId
-				.eq(user_id.clone())
-				.and(crate::database::user_inventory::Column::ServerId.eq(server_id.clone())),
-		)
-		.join(
-			JoinType::InnerJoin,
-			crate::database::user_inventory::Relation::Item.def(),
-		)
-		.all(db)
-		.await
-		.context("Failed to get user inventory from database")?;
+    // Query the user's inventory with a join to the item table
+    let inventory_items = UserInventory::find()
+        .filter(
+            crate::database::user_inventory::Column::UserId
+                .eq(user_id.clone())
+                .and(crate::database::user_inventory::Column::ServerId.eq(server_id.clone())),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::database::user_inventory::Relation::Item.def(),
+        )
+        .all(db)
+        .await
+        .context("Failed to get user inventory from database")?;
 
-	debug!("Found {} inventory items", inventory_items.len());
+    debug!("Found {} inventory items", inventory_items.len());
 
-	// Get the item details for each inventory item and filter for fish-related items
-	let mut result = Vec::new();
+    // Get the item details for each inventory item and filter for fish-related items
+    let mut result = Vec::new();
 
-	for inventory_item in inventory_items {
-		let item = Item::find_by_id(inventory_item.item_id.clone())
-			.one(db)
-			.await
-			.context(format!(
-				"Failed to get item details for item_id={}",
-				inventory_item.item_id
-			))?;
+    for inventory_item in inventory_items {
+        let item = Item::find_by_id(inventory_item.item_id.clone())
+            .one(db)
+            .await
+            .context(format!(
+                "Failed to get item details for item_id={}",
+                inventory_item.item_id
+            ))?;
 
-		if let Some(item) = item {
-			// Include all fish-related items
-			// This includes items with type "fish" and any other fish types
-			// We'll consider an item to be fish-related if:
-			// 1. It has type "fish" OR
-			// 2. It has size and rarity attributes (which are typical for fish)
-			if item.r#type == "fish" || (inventory_item.size > 0 && inventory_item.rarity > 0) {
-				result.push((inventory_item, item));
-			}
-		}
-	}
+        if let Some(item) = item {
+            // Include all fish-related items
+            // This includes items with type "fish" and any other fish types
+            // We'll consider an item to be fish-related if:
+            // 1. It has type "fish" OR
+            // 2. It has size and rarity attributes (which are typical for fish)
+            if item.r#type == "fish" || (inventory_item.size > 0 && inventory_item.rarity > 0) {
+                result.push((inventory_item, item));
+            }
+        }
+    }
 
-	debug!("Found {} fish items", result.len());
+    debug!("Found {} fish items", result.len());
 
-	Ok(result)
+    Ok(result)
 }

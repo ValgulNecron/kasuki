@@ -26,7 +26,7 @@ regex = "1.11.3"
 reqwest = { version = "0.12.28", features = ["json", "multipart", "blocking"] }
 serde = "1.0.228"
 serde_json = "1.0.145"
-serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
+serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "full", "voice", "cache", "http", "unstable"] }
 rand = "0.9.2"
 chrono = "0.4.42"
 uuid = { version = "1.19.0", features = ["v4"] }
@@ -50,7 +50,7 @@ songbird = { git = "https://github.com/serenity-rs/songbird.git", branch = "sere
 sea-orm = { version = "2.0.0-rc.9", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls"] }
 serde_urlencoded = "0.7.1"
 catbox = "0.8.2"
-tempfile = "3.23.0"
+tempfile = "3.24.0"
 anyhow = "1.0.100"
 small-fixed-array = "0.4.10"
 lavalink-rs = { git = "https://gitlab.com/vicky5124/lavalink-rs/", branch = "main", features = ["serenity"] }
@@ -60,16 +60,12 @@ bytes = "1.11.0"
 rust-fuzzy-search = "0.1.1"
 governor = "0.10.4"
 axum = { version = "0.8.8", features = ["macros"] }
-tower-http = { version = "0.6.2", features = ["cors"] }
-jsonwebtoken = "8.2.0"
+tower-http = { version = "0.6.8", features = ["cors"] }
+jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
 shared = { path = "shared" }
 
 [patch.crates-io]
-serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2" }
-
-[patch."https://github.com/serenity-rs/serenity"]
-serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2" }
-
+serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next" }
 
 [profile.dev]
 debug = 2

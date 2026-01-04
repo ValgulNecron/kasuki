@@ -9,8 +9,8 @@ use tracing::{debug, info, trace};
 
 #[derive(Clone)]
 pub struct VnStatsCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(

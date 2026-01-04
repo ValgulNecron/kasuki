@@ -16,8 +16,8 @@ use serenity::all::{CommandInteraction, Context as SerenityContext, User};
 /// # Fields
 #[derive(Clone)]
 pub struct AvatarCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -92,47 +92,47 @@ impl_command!(
 /// - If no such user exists, it defaults to returning the user who invoked the command.
 /// - Finally, the resolved user's full information is
 pub async fn get_user_command_user(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction,
+    ctx: &SerenityContext, command_interaction: &CommandInteraction,
 ) -> User {
-	let users = &command_interaction.data.resolved.users;
+    let users = &command_interaction.data.resolved.users;
 
-	let mut user: Option<User> = None;
+    let mut user: Option<User> = None;
 
-	let command_user = command_interaction.user.clone();
+    let command_user = command_interaction.user.clone();
 
-	for user_inner in users {
-		// If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
-		if user_inner.id.get() != command_interaction.user.id.get() {
-			user = Some(user_inner.clone());
+    for user_inner in users {
+        // If the user_id is not the same as the id of the user who invoked the command, assign the user to u and break the loop
+        if user_inner.id.get() != command_interaction.user.id.get() {
+            user = Some(user_inner.clone());
 
-			break;
-		}
-	}
+            break;
+        }
+    }
 
-	let user = user.unwrap_or(command_user);
+    let user = user.unwrap_or(command_user);
 
-	user.id.to_user(&ctx.http).await.unwrap_or(user)
+    user.id.to_user(&ctx.http).await.unwrap_or(user)
 }
 
 /// Asynchronously retrieves a `User` object based on the provided `CommandInteraction`.
 ///
 /// This function extracts the user information from a subcommand option or
 pub async fn get_user_command(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction,
+    ctx: &SerenityContext, command_interaction: &CommandInteraction,
 ) -> Result<User> {
-	let user = get_option_map_user_subcommand(command_interaction);
+    let user = get_option_map_user_subcommand(command_interaction);
 
-	let user = user.get(&String::from("username"));
+    let user = user.get(&String::from("username"));
 
-	let user = match user {
-		Some(user) => user.to_user(&ctx.http).await?,
-		None => command_interaction
-			.user
-			.id
-			.to_user(&ctx.http)
-			.await?
-			.clone(),
-	};
+    let user = match user {
+        Some(user) => user.to_user(&ctx.http).await?,
+        None => command_interaction
+            .user
+            .id
+            .to_user(&ctx.http)
+            .await?
+            .clone(),
+    };
 
-	Ok(user)
+    Ok(user)
 }

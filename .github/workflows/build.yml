@@ -39,7 +39,7 @@ jobs:
       - name: build wasm
         run: trunk build --release
         working-directory: ./website
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

@@ -15,7 +15,6 @@ use std::time::Duration;
 use tokio::sync::{broadcast, RwLock};
 use tracing::{error, info, warn};
 
-mod api;
 pub mod autocomplete;
 mod command;
 mod components;
@@ -165,8 +164,8 @@ async fn main() {
 	info!("Creating Discord client");
 	let mut client = Client::builder(discord_token, gateway_intent)
 		.data(bot_data.clone())
-		.voice_manager::<songbird::Songbird>(Arc::clone(&manager))
-		.event_handler(Handler)
+		.voice_manager(manager)
+		.event_handler(Arc::new(Handler))
 		.await
 		.unwrap_or_else(|e| {
 			error!("Error while creating Discord client: {}", e);
@@ -194,11 +193,6 @@ async fn main() {
 		drop(client);
 	});
 
-	// Start API server if enabled
-	let api_config = config.clone();
-	tokio::spawn(async move {
-		api::start_api_server(Arc::new(api_config)).await;
-	});
 	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");

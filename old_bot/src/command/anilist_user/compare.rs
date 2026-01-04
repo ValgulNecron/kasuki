@@ -27,8 +27,8 @@ use crate::structure::run::anilist::user::{
 
 #[derive(Clone)]
 pub struct CompareCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+    pub ctx: SerenityContext,
+    pub command_interaction: CommandInteraction,
 }
 
 impl_command!(
@@ -382,47 +382,47 @@ impl_command!(
 /// - The function panics if any of the anime or manga statistics (`tags` or `genres`) are `None`.
 /// - Ensure that `.unwrap()` usage handles non-empty values or refactor to handle errors gracefully.
 fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
-	// Initialize the affinity
-	let mut affinity: f64;
+    // Initialize the affinity
+    let mut affinity: f64;
 
-	let anime = s1.anime.clone().unwrap();
+    let anime = s1.anime.clone().unwrap();
 
-	let anime2 = s2.anime.clone().unwrap();
+    let anime2 = s2.anime.clone().unwrap();
 
-	// Calculate the Jaccard index of the tags of the anime watched by the users
-	affinity = jaccard_index(
-		&tag_string(&anime.tags.clone().unwrap()),
-		&tag_string(&anime2.tags.clone().unwrap()),
-	);
+    // Calculate the Jaccard index of the tags of the anime watched by the users
+    affinity = jaccard_index(
+        &tag_string(&anime.tags.clone().unwrap()),
+        &tag_string(&anime2.tags.clone().unwrap()),
+    );
 
-	// Add the Jaccard index of the genres of the anime watched by the users to the affinity
-	affinity += jaccard_index(
-		&genre_string(&anime.genres.clone().unwrap()),
-		&genre_string(&anime2.genres.clone().unwrap()),
-	);
+    // Add the Jaccard index of the genres of the anime watched by the users to the affinity
+    affinity += jaccard_index(
+        &genre_string(&anime.genres.clone().unwrap()),
+        &genre_string(&anime2.genres.clone().unwrap()),
+    );
 
-	let manga = s1.manga.clone().unwrap();
+    let manga = s1.manga.clone().unwrap();
 
-	let manga2 = s2.manga.clone().unwrap();
+    let manga2 = s2.manga.clone().unwrap();
 
-	let mut affinity2 = jaccard_index(
-		&tag_string(&manga.tags.clone().unwrap()),
-		&tag_string(&manga2.tags.clone().unwrap()),
-	);
+    let mut affinity2 = jaccard_index(
+        &tag_string(&manga.tags.clone().unwrap()),
+        &tag_string(&manga2.tags.clone().unwrap()),
+    );
 
-	affinity2 += jaccard_index(
-		&genre_string(&manga.genres.clone().unwrap()),
-		&genre_string(&manga2.genres.clone().unwrap()),
-	);
+    affinity2 += jaccard_index(
+        &genre_string(&manga.genres.clone().unwrap()),
+        &genre_string(&manga2.genres.clone().unwrap()),
+    );
 
-	// Calculate the affinity between the anime watched by the users
-	let mut affinity3 = other_affinity_anime(anime, anime2);
+    // Calculate the affinity between the anime watched by the users
+    let mut affinity3 = other_affinity_anime(anime, anime2);
 
-	// Add the affinity between the manga read by the users to the affinity
-	affinity3 += other_affinity_manga(manga, manga2);
+    // Add the affinity between the manga read by the users to the affinity
+    affinity3 += other_affinity_manga(manga, manga2);
 
-	// Return the total affinity divided by 2 and multiplied by 100
-	((affinity / 2.0) + (affinity2 / 2.0) + affinity3) * 100.0
+    // Return the total affinity divided by 2 and multiplied by 100
+    ((affinity / 2.0) + (affinity2 / 2.0) + affinity3) * 100.0
 }
 
 /// Calculates the affinity between two users' anime-watching statistics
@@ -465,63 +465,63 @@ fn get_affinity(s1: UserStatisticTypes, s2: UserStatisticTypes) -> f64 {
 /// - The affinity score is a fraction, where higher similarity in status counts and
 ///   statistics results in a higher score.
 fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
-	// Retrieve the number of anime in each status category for both anime
-	let (current, planning, completed, dropped, paused, repeating) =
-		get_number_by_status(anime.statuses.unwrap());
+    // Retrieve the number of anime in each status category for both anime
+    let (current, planning, completed, dropped, paused, repeating) =
+        get_number_by_status(anime.statuses.unwrap());
 
-	let (current0, planning0, completed0, dropped0, paused0, repeating0) =
-		get_number_by_status(anime0.statuses.unwrap());
+    let (current0, planning0, completed0, dropped0, paused0, repeating0) =
+        get_number_by_status(anime0.statuses.unwrap());
 
-	// Initialize the affinity to 0
-	let mut affinity = 0.0;
+    // Initialize the affinity to 0
+    let mut affinity = 0.0;
 
-	// Increase the affinity by 1 for each matching status category
-	if current == current0 {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 for each matching status category
+    if current == current0 {
+        affinity += 1f64
+    }
 
-	if planning == planning0 {
-		affinity += 1f64
-	}
+    if planning == planning0 {
+        affinity += 1f64
+    }
 
-	if completed == completed0 {
-		affinity += 1f64
-	}
+    if completed == completed0 {
+        affinity += 1f64
+    }
 
-	if dropped == dropped0 {
-		affinity += 1f64
-	}
+    if dropped == dropped0 {
+        affinity += 1f64
+    }
 
-	if paused == paused0 {
-		affinity += 1f64
-	}
+    if paused == paused0 {
+        affinity += 1f64
+    }
 
-	if repeating == repeating0 {
-		affinity += 1f64
-	}
+    if repeating == repeating0 {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the count of the anime is the same
-	if anime.count == anime0.count {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the count of the anime is the same
+    if anime.count == anime0.count {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the minutes watched is the same
-	if anime.minutes_watched == anime0.minutes_watched {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the minutes watched is the same
+    if anime.minutes_watched == anime0.minutes_watched {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the standard deviation of the scores is the same
-	if anime.standard_deviation == anime0.standard_deviation {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the standard deviation of the scores is the same
+    if anime.standard_deviation == anime0.standard_deviation {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the mean score is the same
-	if anime.mean_score == anime0.mean_score {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the mean score is the same
+    if anime.mean_score == anime0.mean_score {
+        affinity += 1f64
+    }
 
-	// Return the total affinity divided by 20
-	affinity / 20.0
+    // Return the total affinity divided by 20
+    affinity / 20.0
 }
 
 /// Calculates the affinity score between two sets of user manga statistics.
@@ -568,63 +568,63 @@ fn other_affinity_anime(anime: UserStatistics, anime0: UserStatistics) -> f64 {
 ///   `chapters_read`, `standard_deviation`, and `mean_score`.
 /// - To broaden the affinity metric, weights or additional factors can be introduced.
 fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 {
-	// Retrieve the number of manga in each status category for both manga
-	let (current, planning, completed, dropped, paused, repeating) =
-		get_number_by_status(manga.statuses.unwrap());
+    // Retrieve the number of manga in each status category for both manga
+    let (current, planning, completed, dropped, paused, repeating) =
+        get_number_by_status(manga.statuses.unwrap());
 
-	let (current0, planning0, completed0, dropped0, paused0, repeating0) =
-		get_number_by_status(manga0.statuses.unwrap());
+    let (current0, planning0, completed0, dropped0, paused0, repeating0) =
+        get_number_by_status(manga0.statuses.unwrap());
 
-	// Initialize the affinity to 0
-	let mut affinity = 0.0;
+    // Initialize the affinity to 0
+    let mut affinity = 0.0;
 
-	// Increase the affinity by 1 for each matching status category
-	if current == current0 {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 for each matching status category
+    if current == current0 {
+        affinity += 1f64
+    }
 
-	if planning == planning0 {
-		affinity += 1f64
-	}
+    if planning == planning0 {
+        affinity += 1f64
+    }
 
-	if completed == completed0 {
-		affinity += 1f64
-	}
+    if completed == completed0 {
+        affinity += 1f64
+    }
 
-	if dropped == dropped0 {
-		affinity += 1f64
-	}
+    if dropped == dropped0 {
+        affinity += 1f64
+    }
 
-	if paused == paused0 {
-		affinity += 1f64
-	}
+    if paused == paused0 {
+        affinity += 1f64
+    }
 
-	if repeating == repeating0 {
-		affinity += 1f64
-	}
+    if repeating == repeating0 {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the count of the manga is the same
-	if manga.count == manga0.count {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the count of the manga is the same
+    if manga.count == manga0.count {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the number of chapters read is the same
-	if manga.chapters_read == manga0.chapters_read {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the number of chapters read is the same
+    if manga.chapters_read == manga0.chapters_read {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the standard deviation of the scores is the same
-	if manga.standard_deviation == manga0.standard_deviation {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the standard deviation of the scores is the same
+    if manga.standard_deviation == manga0.standard_deviation {
+        affinity += 1f64
+    }
 
-	// Increase the affinity by 1 if the mean score is the same
-	if manga.mean_score == manga0.mean_score {
-		affinity += 1f64
-	}
+    // Increase the affinity by 1 if the mean score is the same
+    if manga.mean_score == manga0.mean_score {
+        affinity += 1f64
+    }
 
-	// Return the total affinity divided by 20
-	affinity / 20.0
+    // Return the total affinity divided by 20
+    affinity / 20.0
 }
 
 /// Computes the Jaccard Index, which measures the similarity between two sets of strings.
@@ -662,15 +662,15 @@ fn other_affinity_manga(manga: UserStatistics2, manga0: UserStatistics2) -> f64 
 ///
 /// - Duplicates in the input arrays do not affect the result, as the comparison operates on sets.
 fn jaccard_index(a: &[String], b: &[String]) -> f64 {
-	let set_a: HashSet<_> = a.iter().collect();
+    let set_a: HashSet<_> = a.iter().collect();
 
-	let set_b: HashSet<_> = b.iter().collect();
+    let set_b: HashSet<_> = b.iter().collect();
 
-	let intersection = set_a.intersection(&set_b).count();
+    let intersection = set_a.intersection(&set_b).count();
 
-	let union = set_a.union(&set_b).count();
+    let union = set_a.union(&set_b).count();
 
-	intersection as f64 / union as f64
+    intersection as f64 / union as f64
 }
 
 /// Generates a tuple containing the count of users associated with various statuses from a vector of `UserStatusStatistic` options.
@@ -709,35 +709,35 @@ fn jaccard_index(a: &[String], b: &[String]) -> f64 {
 /// assert_eq!(result, (10, 5, 15, 0, 0, 0)); // "DROPPED", "PAUSED", and "REPEATING" statuses default to 0
 /// ```
 fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, i32, i32, i32) {
-	let mut current = 0;
+    let mut current = 0;
 
-	let mut planning = 0;
+    let mut planning = 0;
 
-	let mut completed = 0;
+    let mut completed = 0;
 
-	let mut dropped = 0;
+    let mut dropped = 0;
 
-	let mut paused = 0;
+    let mut paused = 0;
 
-	let mut repeating = 0;
+    let mut repeating = 0;
 
-	for statuses in s {
-		let statuses = statuses.unwrap();
+    for statuses in s {
+        let statuses = statuses.unwrap();
 
-		let status = statuses.status.unwrap();
+        let status = statuses.status.unwrap();
 
-		match status.to_string().as_str() {
-			"CURRENT" => current = statuses.count,
-			"PLANNING" => planning = statuses.count,
-			"COMPLETED" => completed = statuses.count,
-			"DROPPED" => dropped = statuses.count,
-			"PAUSED" => paused = statuses.count,
-			"REPEATING" => repeating = statuses.count,
-			_ => {},
-		}
-	}
+        match status.to_string().as_str() {
+            "CURRENT" => current = statuses.count,
+            "PLANNING" => planning = statuses.count,
+            "COMPLETED" => completed = statuses.count,
+            "DROPPED" => dropped = statuses.count,
+            "PAUSED" => paused = statuses.count,
+            "REPEATING" => repeating = statuses.count,
+            _ => {}
+        }
+    }
 
-	(current, planning, completed, dropped, paused, repeating)
+    (current, planning, completed, dropped, paused, repeating)
 }
 
 /// Converts a slice of `Option<UserTagStatistic>` into a `Vec<String>`
@@ -780,13 +780,13 @@ fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, 
 /// assert_eq!(result, vec!["tag1".to_string(), "tag2".to_string()]);
 /// ```
 fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
-	vec.iter()
-		.map(|tag| {
-			let tag = tag.clone().unwrap();
+    vec.iter()
+        .map(|tag| {
+            let tag = tag.clone().unwrap();
 
-			tag.tag.unwrap().name.clone()
-		})
-		.collect()
+            tag.tag.unwrap().name.clone()
+        })
+        .collect()
 }
 
 /// Converts a slice of `Option<UserGenreStatistic>` into a `Vec<String>` containing the unwrapped genre strings.
@@ -826,13 +826,13 @@ fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
 /// assert_eq!(genres, vec!["Rock".to_string(), "Jazz".to_string(), "Pop".to_string()]);
 /// ```
 fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
-	vec.iter()
-		.map(|genre| {
-			let genre = genre.clone().unwrap();
+    vec.iter()
+        .map(|genre| {
+            let genre = genre.clone().unwrap();
 
-			genre.genre.unwrap().clone()
-		})
-		.collect()
+            genre.genre.unwrap().clone()
+        })
+        .collect()
 }
 
 /// Retrieves the name of the tag from a slice of optional `UserTagStatistic` values.
@@ -864,11 +864,11 @@ fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 /// assert_eq!(get_tag(&empty_tags), "".to_string());
 /// ```
 fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
-	if tags.len() > 1 {
-		tags[0].clone().unwrap().tag.unwrap().name.clone()
-	} else {
-		String::new()
-	}
+    if tags.len() > 1 {
+        tags[0].clone().unwrap().tag.unwrap().name.clone()
+    } else {
+        String::new()
+    }
 }
 
 /// Retrieves the genre from a list of optional user genre statistics.
@@ -918,11 +918,11 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 /// }
 /// ```
 fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
-	if genres.len() > 1 {
-		genres[0].clone().unwrap().genre.clone().unwrap_or_default()
-	} else {
-		String::new()
-	}
+    if genres.len() > 1 {
+        genres[0].clone().unwrap().genre.clone().unwrap_or_default()
+    } else {
+        String::new()
+    }
 }
 
 /// Compares two strings for differences and generates a message based on the comparison.
@@ -972,23 +972,23 @@ fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 /// println!("{}", result); // Output: "Alice and Bob have the same string: 'hello'"
 /// ```
 fn diff(
-	a1: &str, a2: &str, diff_text: &str, same: &str, username: &str, username2: &str,
+    a1: &str, a2: &str, diff_text: &str, same: &str, username: &str, username2: &str,
 ) -> String {
-	let diff = a1 != a2;
+    let diff = a1 != a2;
 
-	let info = if diff {
-		diff_text
-			.replace("$1$", username)
-			.replace("$2$", username2)
-			.replace("$1a$", a1)
-			.replace("$2a$", a2)
-	} else {
-		same.replace("$1$", username)
-			.replace("$2$", username2)
-			.replace("$1a$", a1)
-	};
+    let info = if diff {
+        diff_text
+            .replace("$1$", username)
+            .replace("$2$", username2)
+            .replace("$1a$", a1)
+            .replace("$2a$", a2)
+    } else {
+        same.replace("$1$", username)
+            .replace("$2$", username2)
+            .replace("$1a$", a1)
+    };
 
-	trace!(info);
+    trace!(info);
 
-	info
+    info
 }
