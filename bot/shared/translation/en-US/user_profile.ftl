@@ -1,0 +1,9 @@
+user_profile-bot = Is a bot
+user_profile-creation_date = Account Creation Date
+user_profile-id = User ID
+user_profile-joined_date = Joined Date
+user_profile-nitro = Nitro Type
+user_profile-premium = Premium
+user_profile-public_flag = Public Flag
+user_profile-system = Is system
+user_profile-title = Here's the profile of { $user }

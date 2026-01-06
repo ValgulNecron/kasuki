@@ -1,0 +1,3 @@
+anilist_server_list_register_user-next = 次のページ
+anilist_server_list_register_user-previous = 前のページ
+anilist_server_list_register_user-title = 登録ユーザーのリスト

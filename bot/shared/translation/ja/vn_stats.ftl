@@ -1,0 +1,9 @@
+vn_stats-api = API
+vn_stats-chars = キャラクター
+vn_stats-producer = プロデューサー
+vn_stats-release = リリース
+vn_stats-staff = スタッフ
+vn_stats-tags = タグ
+vn_stats-title = ここにapiの統計があります
+vn_stats-traits = 特性
+vn_stats-vns = ビジュアルノベル

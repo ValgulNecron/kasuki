@@ -1,0 +1,12 @@
+vn_character-age = Âge
+vn_character-birthday = Anniversaire
+vn_character-blood_type = Groupe sanguin
+vn_character-bust = Poitrine
+vn_character-cup = Bonnet
+vn_character-height = Taille
+vn_character-hip = Hanches
+vn_character-sex = Sexe
+vn_character-traits = Traits
+vn_character-vns = Visual Novels
+vn_character-waist = Taille
+vn_character-weight = Poids

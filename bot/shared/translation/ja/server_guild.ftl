@@ -1,0 +1,13 @@
+server_guild-channels = チャンネル
+server_guild-creation_date = 作成日
+server_guild-guild_id = ギルドID
+server_guild-guild_name = ギルド名
+server_guild-lang = ギルドの言語
+server_guild-member = メンバー
+server_guild-nsfw = NSFWレベル
+server_guild-online = オンライン
+server_guild-owner = オーナー
+server_guild-premium = ブーストレベル
+server_guild-roles = 役割
+server_guild-sub = ギルドブースト
+server_guild-verification_level = 認証レベル

@@ -1,0 +1,13 @@
+anilist_user_media-chapter = Chapitres:
+anilist_user_media-characters = Personnages:
+anilist_user_media-duration = Durée:
+anilist_user_media-end_date = Date de fin:
+anilist_user_media-fav = Favoris:
+anilist_user_media-format = Format:
+anilist_user_media-genre = Genre
+anilist_user_media-minutes = minutes
+anilist_user_media-song = musique
+anilist_user_media-source = Source:
+anilist_user_media-staffs = Staff avec le rôle:
+anilist_user_media-start_date = Date de début:
+anilist_user_media-tag = Tag

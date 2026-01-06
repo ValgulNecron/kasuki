@@ -1,0 +1,16 @@
+game_steam_game_info-coming_soon = 近日公開
+game_steam_game_info-field1 = 価格
+game_steam_game_info-field2 = リリース日
+game_steam_game_info-field3 = 開発者
+game_steam_game_info-field4 = パブリッシャー
+game_steam_game_info-field5 = カテゴリ
+game_steam_game_info-field6 = アプリタイプ
+game_steam_game_info-field7 = 言語
+game_steam_game_info-field8 = レビュー
+game_steam_game_info-free = 無料
+game_steam_game_info-linux = Linux
+game_steam_game_info-mac = Mac
+game_steam_game_info-required_age = 必要年齢
+game_steam_game_info-tba = TBA
+game_steam_game_info-website = ウェブサイト
+game_steam_game_info-win = Windows
