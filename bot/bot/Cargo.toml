@@ -43,6 +43,10 @@ dashmap.workspace = true
 bytes.workspace = true
 rust-fuzzy-search.workspace = true
 governor.workspace = true
+fluent-templates.workspace = true
+unic-langid.workspace = true
+fluent-syntax.workspace = true
+walkdir.workspace = true
 
 [build-dependencies]
 cynic-codegen = "3.12.0"

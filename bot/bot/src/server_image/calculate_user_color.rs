@@ -40,8 +40,8 @@ pub fn change_to_x128_url(url: String) -> String {
 		.replace("?size=128", "?size=128")
 		.replace("?size=64", "?size=128");
 
-	if !url.ends_with("?size=128") {
-		url = format!("{}?size=128", url)
+	if !url.ends_with("?size=128&quality=lossless") {
+		url = format!("{}?size=128&quality=lossless", url)
 	}
 
 	url = format!("{}&quality=lossless", url);

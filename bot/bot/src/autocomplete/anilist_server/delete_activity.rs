@@ -1,6 +1,5 @@
 use crate::constant::{AUTOCOMPLETE_COUNT_LIMIT, DEFAULT_STRING};
 use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_autocomplete_subcommand_group;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
@@ -11,7 +10,6 @@ use serenity::all::{
 };
 use shared::database::activity_data::Column;
 use shared::database::prelude::ActivityData;
-use tracing::error;
 
 pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
@@ -26,18 +24,11 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 		None => String::from("0"),
 	};
 
-	let connection = match sea_orm::Database::connect(get_url(bot_data.config.db.clone())).await {
-		Ok(conn) => conn,
-		Err(e) => {
-			error!(?e);
-
-			return;
-		},
-	};
+	let connection = bot_data.db_connection.clone();
 
 	let activities = match ActivityData::find()
 		.filter(Column::ServerId.eq(&guild_id))
-		.all(&connection)
+		.all(&*connection)
 		.await
 	{
 		Ok(data) => data,
@@ -48,31 +39,40 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 		},
 	};
 
-	let activity: Vec<String> = activities
-		.clone()
-		.into_iter()
-		.map(|activity| format!("{}${}", activity.name, activity.anime_id))
-		.collect();
-
-	let activity_refs: Vec<&str> = activity.iter().map(String::as_str).collect();
-
-	// Use rust-fuzzy-search to find the top 5 matches
-	let matches = rust_fuzzy_search::fuzzy_search_best_n(
-		activity_search,
-		&activity_refs,
-		AUTOCOMPLETE_COUNT_LIMIT as usize,
-	);
-
 	let mut choices = Vec::new();
 
-	for (activity, _) in matches {
-		let parts: Vec<&str> = activity.split('$').collect();
+	if activity_search.is_empty() {
+		for activity in activities.iter().take(AUTOCOMPLETE_COUNT_LIMIT as usize) {
+			choices.push(AutocompleteChoice::new(
+				activity.name.clone(),
+				activity.anime_id.to_string(),
+			));
+		}
+	} else {
+		let activity: Vec<String> = activities
+			.clone()
+			.into_iter()
+			.map(|activity| format!("{}${}", activity.name, activity.anime_id))
+			.collect();
 
-		let id = parts[1].to_string();
+		let activity_refs: Vec<&str> = activity.iter().map(String::as_str).collect();
 
-		let name = parts[0].to_string();
+		// Use rust-fuzzy-search to find the top 5 matches
+		let matches = rust_fuzzy_search::fuzzy_search_best_n(
+			activity_search,
+			&activity_refs,
+			AUTOCOMPLETE_COUNT_LIMIT as usize,
+		);
 
-		choices.push(AutocompleteChoice::new(name, id))
+		for (activity, _) in matches {
+			let parts: Vec<&str> = activity.split('$').collect();
+
+			let id = parts[1].to_string();
+
+			let name = parts[0].to_string();
+
+			choices.push(AutocompleteChoice::new(name, id))
+		}
 	}
 
 	let data = CreateAutocompleteResponse::new().set_choices(choices);

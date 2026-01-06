@@ -1,3 +1,4 @@
+
 [package]
 name = "shared"
 version.workspace = true
@@ -15,9 +16,11 @@ reqwest.workspace = true
 tracing.workspace = true
 tokio.workspace = true
 chrono.workspace = true
+fluent-templates.workspace = true
+unic-langid.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
 
 [build-dependencies]
-cynic-codegen = "3.12.0"
+cynic-codegen.workspace = true

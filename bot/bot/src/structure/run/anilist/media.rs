@@ -440,7 +440,7 @@ pub async fn media_content<'a>(
 	let genres = data.genres.clone().unwrap_or_default();
 
 	// take the first 5 non-optional genres
-	let genres = genres
+	let _genres = genres
 		.into_iter()
 		.flatten()
 		.take(5)

@@ -4,11 +4,11 @@ use crate::constant::{APP_VERSION, LIBRARY};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::impl_command;
-use crate::structure::message::bot::info::load_localization_info;
 use anyhow::anyhow;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::UserColor;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use tracing::{debug, info};
 
 #[derive(Clone)]
@@ -41,10 +41,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized information strings
-		debug!("Loading info localization for guild: {}", guild_id);
-		let info_localised = load_localization_info(guild_id, db_connection).await?;
-		debug!("Info localization loaded successfully");
+		// Get the language identifier for the guild
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Retrieve various details about the bot and the server
 		debug!("Retrieving bot and server details");
@@ -110,27 +108,66 @@ impl_command!(
 		debug!("Library: {}", lib);
 
 		debug!("Creating embed content");
-		let title = info_localised.title.clone();
-		let embed_content = EmbedContent::new(info_localised.title)
-			.description(info_localised.desc)
+		let title = USABLE_LOCALES.lookup(&lang_id, "bot_info-title");
+		let embed_content = EmbedContent::new(title.clone())
+			.description(USABLE_LOCALES.lookup(&lang_id, "bot_info-desc"))
 			.thumbnail(avatar)
 			.fields(vec![
-				(info_localised.bot_name, bot_name, true),
-				(info_localised.bot_id, bot_id, true),
-				(info_localised.version, String::from(APP_VERSION), true),
-				(info_localised.shard_count, shard_count.to_string(), true),
-				(info_localised.shard, shard, true),
-				(info_localised.user_count, user_count.to_string(), true),
-				(info_localised.server_count, guild_count.to_string(), true),
-				(info_localised.creation_date, creation_date, true),
-				(info_localised.library, lib, true),
 				(
-					info_localised.app_installation_count,
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-bot_name"),
+					bot_name,
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-bot_id"),
+					bot_id,
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-version"),
+					String::from(APP_VERSION),
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-shard_count"),
+					shard_count.to_string(),
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-shard"),
+					shard,
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-user_count"),
+					user_count.to_string(),
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-server_count"),
+					guild_count.to_string(),
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-creation_date"),
+					creation_date,
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-library"),
+					lib,
+					true,
+				),
+				(
+					USABLE_LOCALES.lookup(&lang_id, "bot_info-app_installation_count"),
 					app_installation_count.to_string(),
 					true,
 				),
 			])
-			.footer(CreateFooter::new(info_localised.footer));
+			.footer(CreateFooter::new(USABLE_LOCALES.lookup(
+				&lang_id,
+				"bot_info-footer",
+			)));
 		debug!("Embed content created with title: {}", title);
 
 		debug!("Creating final embed contents with buttons");

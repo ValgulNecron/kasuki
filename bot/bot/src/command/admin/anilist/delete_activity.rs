@@ -8,13 +8,17 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::impl_command;
-use crate::structure::message::admin::anilist::delete_activity::load_localization_delete_activity;
 use anyhow::{anyhow, Result};
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::config::DbConfig;
 use shared::database::prelude::ActivityData;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// A struct representing the command to delete an activity in a Discord bot.
 ///
@@ -65,8 +69,7 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let delete_activity_localised_text =
-			load_localization_delete_activity(guild_id.clone(), db_connection);
+		let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
 		let media = get_minimal_anime_media(anime.to_string(), anilist_cache);
 
 		self_.defer().await?;
@@ -83,14 +86,22 @@ impl_command!(
 
 		let url = format!("https://anilist.co/anime/{}", anime_id);
 
-		let delete_activity_localised_text = delete_activity_localised_text.await?;
-		let embed_content = EmbedContent::new(delete_activity_localised_text.success)
-			.description(
-				delete_activity_localised_text
-					.success_desc
-					.replace("$anime$", anime_name.as_str()),
-			)
-			.url(url);
+		let mut args = HashMap::new();
+		args.insert(
+			Cow::Borrowed("anime"),
+			FluentValue::from(anime_name.as_str()),
+		);
+
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
+			&lang_id,
+			"admin_anilist_delete_activity-success",
+		))
+		.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"admin_anilist_delete_activity-success_desc",
+			&args,
+		))
+		.url(url);
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

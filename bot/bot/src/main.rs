@@ -73,7 +73,7 @@ async fn main() {
 	}
 	info!("Database initialized successfully");
 
-	let cache_config = config.cache.clone();
+	let _cache_config = config.cache.clone();
 	info!("Initializing caches");
 	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));
 	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));

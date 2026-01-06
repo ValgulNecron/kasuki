@@ -1,3 +1,4 @@
+
 //! The `ModuleCommand` struct represents a command to manage module activations in a Discord bot.
 //! It contains context and interaction details necessary for processing the command.
 use crate::command::command::Command;
@@ -7,14 +8,15 @@ use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use crate::impl_command;
-use crate::structure::message::admin::server::module::load_localization_module_activation;
 use anyhow::anyhow;
+use fluent_templates::Loader;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::module_activation;
 use shared::database::module_activation::Model;
 use shared::database::prelude::ModuleActivation;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use tracing::debug;
 
 /// A structure representing a command executed within a module,
@@ -62,8 +64,7 @@ impl_command!(
 			.get(&String::from("state"))
 			.ok_or(anyhow!("No option for state"))?;
 
-		let module_localised =
-			load_localization_module_activation(guild_id.clone(), db_connection.clone());
+		let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
 
 		match ModuleActivation::find()
 			.filter(module_activation::Column::GuildId.eq(guild_id.clone()))
@@ -122,14 +123,13 @@ impl_command!(
 			},
 		}
 
-		let module_localised = module_localised.await?;
 		let desc = if state {
-			&module_localised.on
+			USABLE_LOCALES.lookup(&lang_id, "admin_server_module-on")
 		} else {
-			&module_localised.off
+			USABLE_LOCALES.lookup(&lang_id, "admin_server_module-off")
 		};
 
-		let embed_content = EmbedContent::new(module.clone()).description(desc.clone());
+		let embed_content = EmbedContent::new(module.clone()).description(desc);
 
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 

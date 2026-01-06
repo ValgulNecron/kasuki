@@ -15,7 +15,7 @@ use tracing::{debug, error, info, trace, warn};
 use crate::event_handler::BotData;
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::{Context as AnyhowContext, Result};
-use shared::config::{ImageConfig, TaskIntervalConfig};
+use shared::config::TaskIntervalConfig;
 use shared::database::ping_history::ActiveModel;
 use shared::database::prelude::PingHistory;
 
@@ -184,7 +184,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	);
 	sleep(Duration::from_secs(task_intervals.before_server_image)).await;
 
-	let image_config = bot_data.config.image.clone();
+	let _image_config = bot_data.config.image.clone();
 
 	// Launch server image management thread
 	debug!(

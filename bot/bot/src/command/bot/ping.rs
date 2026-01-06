@@ -2,9 +2,12 @@ use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::bot::ping::load_localization_ping;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::{debug, error, info, trace, warn};
 
 #[derive(Clone)]
@@ -37,15 +40,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized ping strings
-		debug!("Loading ping localization for guild: {}", guild_id);
-		let ping_localised = load_localization_ping(guild_id, db_connection)
-			.await
-			.map_err(|e| {
-				error!("Failed to load ping localization: {}", e);
-				e
-			})?;
-		debug!("Ping localization loaded successfully");
+		// Get the language identifier for the guild
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		debug!("Retrieving shard manager from bot data");
 		let guard = ctx.data::<BotData>().shard_manager.clone();
@@ -103,17 +99,18 @@ impl_command!(
 		};
 
 		debug!("Creating embed content with ping information");
-		let description = ping_localised
-			.desc
-			.replace("$shard$", shard_id.to_string().as_str())
-			.replace("$latency$", latency.as_str())
-			.replace("$status$", &stage);
+		let mut args = HashMap::new();
+		args.insert(Cow::Borrowed("shard"), FluentValue::from(shard_id.to_string()));
+		args.insert(Cow::Borrowed("latency"), FluentValue::from(latency));
+		args.insert(Cow::Borrowed("status"), FluentValue::from(stage));
+
+		let title = USABLE_LOCALES.lookup(&lang_id, "bot_ping-title");
+		let description = USABLE_LOCALES.lookup_with_args(&lang_id, "bot_ping-desc", &args);
 
 		trace!("Formatted ping description: {}", description);
 
-		let embed_content =
-			EmbedContent::new(ping_localised.title.clone()).description(description);
-		debug!("Embed content created with title: {}", ping_localised.title);
+		let embed_content = EmbedContent::new(title.clone()).description(description);
+		debug!("Embed content created with title: {}", title);
 
 		debug!("Creating final embed contents with CommandType::First");
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);

@@ -84,7 +84,6 @@ use crate::helper::get_option::subcommand_group::get_option_map_string_subcomman
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::impl_command;
-use crate::structure::message::admin::anilist::add_activity::load_localization_add_activity;
 use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
 	MinimalAnimeSearchVariables,
@@ -95,6 +94,8 @@ use base64::Engine as _;
 use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
 use reqwest::get;
@@ -111,6 +112,9 @@ use shared::cache::CacheInterface;
 use shared::database::activity_data;
 use shared::database::activity_data::Column;
 use shared::database::prelude::ActivityData;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tokio::sync::RwLock;
 use tracing::trace;
 
@@ -166,8 +170,7 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let add_activity_localised =
-			load_localization_add_activity(guild_id.clone(), db_connection.clone());
+		let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
 
 		self_.defer().await?;
 
@@ -180,15 +183,23 @@ impl_command!(
 			.ok_or(anyhow!("No title for the media".to_string()))?;
 		let anime_name = get_name(title);
 
+		let mut args = HashMap::new();
+		args.insert(
+			Cow::Borrowed("anime"),
+			FluentValue::from(anime_name.as_str()),
+		);
+
 		if exist {
-			let add_activity_localised = add_activity_localised.await?;
-			let embed_content = EmbedContent::new(add_activity_localised.fail.clone())
-				.description(
-					add_activity_localised
-						.fail_desc
-						.replace("$anime$", anime_name.as_str()),
-				)
-				.url(url);
+			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
+				&lang_id,
+				"admin_anilist_add_activity-fail",
+			))
+			.description(USABLE_LOCALES.lookup_with_args(
+				&lang_id,
+				"admin_anilist_add_activity-fail_desc",
+				&args,
+			))
+			.url(url);
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -253,15 +264,16 @@ impl_command!(
 		.exec(&*connection)
 		.await?;
 
-		let add_activity_localised = add_activity_localised.await?;
-
-		let embed_content = EmbedContent::new(add_activity_localised.success.clone())
-			.description(
-				add_activity_localised
-					.success_desc
-					.replace("$anime$", anime_name.as_str()),
-			)
-			.url(url);
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
+			&lang_id,
+			"admin_anilist_add_activity-success",
+		))
+		.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"admin_anilist_add_activity-success_desc",
+			&args,
+		))
+		.url(url);
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

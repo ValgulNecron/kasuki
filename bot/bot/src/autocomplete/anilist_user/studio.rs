@@ -11,7 +11,7 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::{debug, error, trace};
+use tracing::trace;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
