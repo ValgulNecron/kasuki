@@ -13,15 +13,16 @@ use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discor
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
-use crate::structure::message::anilist_user::staff::load_localization_staff;
 use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
 };
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
+use fluent_templates::Loader;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
@@ -91,28 +92,53 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let staff_localised = load_localization_staff(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		let mut fields = vec![
-			(staff_localised.media, media, true),
-			(staff_localised.occupation, job, true),
-			(staff_localised.gender, gender, true),
-			(staff_localised.lang, lang, true),
+			(
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-media"),
+				media,
+				true,
+			),
+			(
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-occupation"),
+				job,
+				true,
+			),
+			(
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-gender"),
+				gender,
+				true,
+			),
+			(
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-lang"),
+				lang,
+				true,
+			),
 		];
 
 		if let Some(home_town) = staff.home_town {
-			fields.push((staff_localised.hometown, home_town, true))
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-hometown"),
+				home_town,
+				true,
+			))
 		}
 
 		if !va.is_empty() {
-			fields.push((staff_localised.va, va, true))
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-va"),
+				va,
+				true,
+			))
 		}
 
 		let age = staff.age;
 
 		if age.is_some() {
 			fields.push((
-				staff_localised.age,
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-age"),
 				age.unwrap_or_default().to_string(),
 				true,
 			))
@@ -122,14 +148,22 @@ impl_command!(
 		if staff.date_of_birth.is_some() {
 			let date_of_birth = get_date(staff.date_of_birth.clone());
 			if date_of_birth != String::new() {
-				fields.push((staff_localised.date_of_birth, date_of_birth, true));
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_birth"),
+					date_of_birth,
+					true,
+				));
 			}
 		}
 
 		if staff.date_of_death.is_some() {
 			let date_of_death = get_date(staff.date_of_death.clone());
 			if date_of_death != String::new() {
-				fields.push((staff_localised.date_of_death, date_of_death, true));
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_death"),
+					date_of_death,
+					true,
+				));
 			}
 		}
 

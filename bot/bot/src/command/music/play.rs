@@ -19,11 +19,14 @@ use crate::command::music::join::join;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
-use crate::structure::message::music::play::load_localization_play;
 use anyhow::{anyhow, Context};
+use fluent_templates::fluent_bundle::FluentValue;
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::trace;
 
 /// Represents a command to play music or audio within a Discord bot using the `serenity` framework.
@@ -58,7 +61,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let play_localised = load_localization_play(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let lava_client = bot_data.lavalink.read().await.clone();
 		let (_, mut embed_content) = join(ctx, bot_data, command_interaction).await?;
@@ -85,7 +88,7 @@ impl_command!(
 		else {
 			embed_content.embed_contents[0] = embed_content.embed_contents[0]
 				.clone()
-				.description(play_localised.error_no_voice);
+				.description(USABLE_LOCALES.lookup(&lang_id, "music_play-error_no_voice"));
 			return Ok(embed_content);
 		};
 
@@ -126,31 +129,24 @@ impl_command!(
 		};
 
 		if let Some(info) = playlist_info {
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(info.name.clone()));
+
 			embed_content.embed_contents[0] = embed_content.embed_contents[0]
 				.clone()
-				.description(play_localised.added_playlist.replace("{0}", &info.name));
+				.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_play-added_playlist", &args));
 		} else {
 			let track = &tracks[0].track;
 
-			if let Some(uri) = &track.info.uri {
-				embed_content.embed_contents[0] =
-					embed_content.embed_contents[0].clone().description(
-						play_localised
-							.added_to_queue
-							.replace("{0}", &track.info.author)
-							.replace("{1}", &track.info.title)
-							.replace("{2}", uri),
-					);
-			} else {
-				embed_content.embed_contents[0] =
-					embed_content.embed_contents[0].clone().description(
-						play_localised
-							.added_to_queue
-							.replace("{0}", &track.info.author)
-							.replace("{1}", &track.info.title)
-							.replace("{2}", ""),
-					);
-			}
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(track.info.author.clone()));
+			args.insert(Cow::Borrowed("var1"), FluentValue::from(track.info.title.clone()));
+			args.insert(Cow::Borrowed("var2"), FluentValue::from(track.info.uri.clone().unwrap_or_default()));
+
+			embed_content.embed_contents[0] =
+				embed_content.embed_contents[0].clone().description(
+					USABLE_LOCALES.lookup_with_args(&lang_id, "music_play-added_to_queue", &args),
+				);
 
 			return Ok(embed_content);
 		}

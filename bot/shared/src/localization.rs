@@ -1,19 +1,43 @@
 use crate::helper::get_guild_lang::get_guild_language;
 use crate::helper::read_file::read_file_as_string;
 use anyhow::{Context, Result};
-use fluent_templates::static_loader;
+use fluent_templates::ArcLoader;
 pub use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use std::collections::HashMap;
 use std::str::FromStr;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 pub use unic_langid::LanguageIdentifier;
 
-static_loader! {
-    pub static USABLE_LOCALES = {
-        locales: "./translation",
-        fallback_language: "en-US",
-    };
+static LOCALES_INNER: OnceLock<ArcLoader> = OnceLock::new();
+
+pub struct UsableLocales;
+
+impl std::ops::Deref for UsableLocales {
+	type Target = ArcLoader;
+
+	fn deref(&self) -> &Self::Target {
+		LOCALES_INNER
+			.get()
+			.expect("Locales not initialized. Call shared::localization::load_locales() first.")
+	}
+}
+
+pub static USABLE_LOCALES: UsableLocales = UsableLocales;
+
+pub fn load_locales() -> Result<()> {
+	if LOCALES_INNER.get().is_some() {
+		return Ok(());
+	}
+
+	let loader = ArcLoader::builder("translation", "en-US".parse()?)
+		.build()
+		.map_err(|e| anyhow::anyhow!(e.to_string()))
+		.context("Failed to load locales")?;
+
+	let _ = LOCALES_INNER.set(loader);
+
+	Ok(())
 }
 
 pub async fn get_language_identifier(

@@ -6,9 +6,9 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::leave::load_localization_leave;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
 /// A struct representing a command used to handle a "leave" interaction in a Discord bot.
 ///
@@ -63,7 +63,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let leave_localised = load_localization_leave(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let manager = bot_data.manager.clone();
 		let lava_client = bot_data.lavalink.clone();
@@ -84,7 +84,7 @@ impl_command!(
 		}
 
 		let embed_content =
-			EmbedContent::new(leave_localised.title).description(leave_localised.success);
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_leave-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_leave-success"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

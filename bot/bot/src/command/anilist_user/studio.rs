@@ -87,13 +87,17 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
-use crate::structure::message::anilist_user::studio::load_localization_studio;
 use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct StudioCommand {
@@ -150,8 +154,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized studio strings
-		let studio_localised = load_localization_studio(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Initialize a string to store the content of the response
 		let mut content = String::new();
@@ -182,19 +186,20 @@ impl_command!(
 			content.push('\n')
 		}
 
-		// Construct the description for the response
-		let desc = studio_localised
-			.desc
-			.replace("$id$", studio.id.to_string().as_str())
-			.replace(
-				"$fav$",
-				studio.favourites.unwrap_or_default().to_string().as_str(),
-			)
-			.replace(
-				"$animation$",
-				studio.is_animation_studio.to_string().as_str(),
-			)
-			.replace("$list$", content.as_str());
+		// Construct the description for the response using Fluent
+		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+		args.insert(Cow::Borrowed("id"), FluentValue::from(studio.id.to_string()));
+		args.insert(
+			Cow::Borrowed("fav"),
+			FluentValue::from(studio.favourites.unwrap_or_default().to_string()),
+		);
+		args.insert(
+			Cow::Borrowed("animation"),
+			FluentValue::from(studio.is_animation_studio.to_string()),
+		);
+		args.insert(Cow::Borrowed("list"), FluentValue::from(content.as_str()));
+
+		let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_studio-desc", &args);
 
 		// Retrieve the name of the studio
 		let name = studio.name;

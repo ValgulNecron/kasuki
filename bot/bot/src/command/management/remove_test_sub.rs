@@ -9,13 +9,16 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use crate::impl_command;
-use crate::structure::message::management::remove_test_sub::load_localization_remove_test_sub;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::error;
 
 /// The `RemoveTestSubCommand` struct defines a structure for a specific subcommand
@@ -64,11 +67,8 @@ impl_command!(
 			.await?;
 		let db_connection = bot_data.db_connection.clone();
 
-		let localization = load_localization_remove_test_sub(
-			command_interaction.guild_id.unwrap().to_string(),
-			db_connection,
-		)
-		.await?;
+		let guild_id = command_interaction.guild_id.unwrap().to_string();
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// defer the response
 		let builder_message = Defer(CreateInteractionResponseMessage::new());
@@ -83,8 +83,12 @@ impl_command!(
 			}
 		}
 
-		let embed_content = EmbedContent::new(String::new())
-			.description(localization.success.replace("{user}", &user.to_string()));
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
+
+		let success_msg = USABLE_LOCALES.lookup_with_args(&lang_id, "management_remove_test_sub-success", &args);
+
+		let embed_content = EmbedContent::new(String::new()).description(success_msg);
 
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 

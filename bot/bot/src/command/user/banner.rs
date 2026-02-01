@@ -3,11 +3,11 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::user::banner::load_localization_banner;
-use anyhow::Result;
-use sea_orm::DatabaseConnection;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use std::sync::Arc;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct BannerCommand {
@@ -33,11 +33,18 @@ impl_command!(
 
 		let db_connection = bot_data.db_connection.clone();
 
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+
+		let lang_id = get_language_identifier(guild_id, db_connection.clone()).await;
+
 		let banner = match user.banner_url() {
 			Some(url) => url,
 			None => {
 				let embed_content =
-					no_banner(command_interaction, &user.name, db_connection).await?;
+					no_banner(&user.name, &lang_id);
 				let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
 				return Ok(embed_contents);
 			},
@@ -45,14 +52,10 @@ impl_command!(
 
 		let username = user.name.as_str();
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
 
-		let banner_localised = load_localization_banner(guild_id, db_connection).await?;
-
-		let embed_content = EmbedContent::new(banner_localised.title.replace("$user$", username))
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_banner-title", &args))
 			.images_url(banner);
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
@@ -61,19 +64,14 @@ impl_command!(
 	}
 );
 
-pub async fn no_banner(
-	command_interaction: &CommandInteraction, username: &str,
-	db_connection: Arc<DatabaseConnection>,
-) -> Result<Vec<EmbedContent>> {
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
+pub fn no_banner(
+	username: &str, lang_id: &unic_langid::LanguageIdentifier,
+) -> Vec<EmbedContent> {
+	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+	args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
 
-	let banner_localised = load_localization_banner(guild_id, db_connection).await?;
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(lang_id, "user_banner-no_banner_title"))
+		.description(USABLE_LOCALES.lookup_with_args(lang_id, "user_banner-no_banner", &args));
 
-	let embed_content = EmbedContent::new(banner_localised.no_banner_title)
-		.description(banner_localised.no_banner.replace("$user$", username));
-
-	Ok(vec![embed_content])
+	vec![embed_content]
 }

@@ -151,13 +151,14 @@ pub fn App() -> impl IntoView {
 
     view! {
         <div id="app">
+            <a href="#main-content" class="skip-link">"Skip to main content"</a>
             <Header
                 user_session_data=user_session_data
                 set_user_session_data=set_user_session_data
             />
             {move || match current_page.get() {
                 Page::Home => view! {
-                    <main>
+                    <main id="main-content" role="main">
                         <Hero />
                         <Features />
                         <Commands />
@@ -165,15 +166,20 @@ pub fn App() -> impl IntoView {
                         <Setup />
                     </main>
                 }.into_any(),
-                Page::Privacy => view! { <Privacy /> }.into_any(),
-                Page::Terms => view! { <Terms /> }.into_any(),
+                Page::Privacy => view! { <main id="main-content" role="main"><Privacy /></main> }.into_any(),
+                Page::Terms => view! { <main id="main-content" role="main"><Terms /></main> }.into_any(),
                 Page::Profile => {
-                    view! { <Profile user_session_data=user_session_data /> }.into_any()
+                    view! { <main id="main-content" role="main"><Profile user_session_data=user_session_data /></main> }.into_any()
                 },
             }}
             <Footer />
-            <button class="theme-toggle" on:click=move |_| set_is_dark.update(|val| *val = !*val)>
-                <i class={move || if is_dark.get() { "fas fa-sun" } else { "fas fa-moon" }}></i>
+            <button 
+                class="theme-toggle" 
+                on:click=move |_| set_is_dark.update(|val| *val = !*val)
+                aria-label={move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }}
+                title={move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }}
+            >
+                <i class={move || if is_dark.get() { "fas fa-sun" } else { "fas fa-moon" }} aria-hidden="true"></i>
             </button>
         </div>
     }

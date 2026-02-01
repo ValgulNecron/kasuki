@@ -1,10 +1,11 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
-use crate::structure::message::anilist_user::character::load_localization_character;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use std::sync::Arc;
 use tracing::log::trace;
 
@@ -87,7 +88,7 @@ pub async fn character_content<'a>(
 
 	trace!("{:#?}", guild_id);
 
-	let character_localised = load_localization_character(guild_id, db_connection).await?;
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 	let date_of_birth_data = character.date_of_birth.clone();
 
@@ -125,7 +126,7 @@ pub async fn character_content<'a>(
 		}
 
 		fields.push((
-			character_localised.date_of_birth,
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-date_of_birth"),
 			date_of_birth_string,
 			true,
 		));
@@ -134,25 +135,41 @@ pub async fn character_content<'a>(
 	let gender = character.gender.clone();
 
 	if let Some(gender) = gender {
-		fields.push((character_localised.gender, gender, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-gender"),
+			gender,
+			true,
+		));
 	}
 
 	let age = character.age.clone();
 
 	if let Some(age) = age {
-		fields.push((character_localised.age, age, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-age"),
+			age,
+			true,
+		));
 	}
 
 	let favourites = character.favourites;
 
 	if let Some(favourites) = favourites {
-		fields.push((character_localised.fav, favourites.to_string(), true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-fav"),
+			favourites.to_string(),
+			true,
+		));
 	}
 
 	let blood_type = character.blood_type.clone();
 
 	if let Some(blood_type) = blood_type {
-		fields.push((character_localised.blood_type, blood_type, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-blood_type"),
+			blood_type,
+			true,
+		));
 	}
 
 	let mut desc = character.description.unwrap_or_default();

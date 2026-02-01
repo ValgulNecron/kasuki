@@ -19,12 +19,17 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use std::sync::Arc;
 use tracing::trace;
+use unic_langid::LanguageIdentifier;
 
 /// The `QuestionCommand` struct represents a command in the context of a bot using the Serenity framework.
 /// It encapsulates the context, interaction details, and the command name specifically related to a user-issued command.
@@ -54,6 +59,19 @@ impl_command!(
 		let bot_data = ctx.data::<BotData>().clone();
 		let config = bot_data.config.clone();
 
+		let guild_id = match command_interaction.guild_id {
+			Some(id) => id.to_string(),
+			None => String::from("0"),
+		};
+		let lang = get_guild_language(guild_id, bot_data.db_connection.clone()).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+
 		if self_
 			.check_hourly_limit(
 				self_.command_name.clone(),
@@ -62,9 +80,8 @@ impl_command!(
 			)
 			.await?
 		{
-			return Err(anyhow!(
-				"You have reached your hourly limit. Please try again later.",
-			));
+			let error_msg = USABLE_LOCALES.lookup(&lang_id, "ai_question-hourly_limit");
+			return Err(anyhow!(error_msg));
 		}
 
 		let map = get_option_map_string_subcommand(command_interaction);

@@ -11,15 +11,19 @@ use crate::helper::get_option::subcommand::{
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::impl_command;
-use crate::structure::message::ai::image::load_localization_image;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use image::EncodableLayout;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::config::Config;
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use tracing::{error, trace};
+use unic_langid::LanguageIdentifier;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -54,13 +58,7 @@ impl_command!(
 
 		let n = *map.get(&String::from("n")).unwrap_or(&1);
 		let data = get_value(command_interaction, n, &config);
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
 
-		let image_localised = load_localization_image(guild_id.clone(), db_connection);
 		self_.defer().await?;
 
 		let uuid_name = Uuid::new_v4();
@@ -107,8 +105,17 @@ impl_command!(
 		)
 		.await?;
 
-		let image_localised = image_localised.await?;
-		let embed_content = EmbedContent::new(image_localised.title).description(String::new());
+		let lang = get_guild_language(guild_id.clone(), bot_data.db_connection.clone()).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "ai_image-title");
+
+		let embed_content = EmbedContent::new(title).description(String::new());
 
 		let mut embed_contents = vec![];
 		let mut command_files = vec![];

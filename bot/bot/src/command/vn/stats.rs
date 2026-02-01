@@ -3,8 +3,8 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::vndbapi::stats::get_stats;
 use crate::impl_command;
-use crate::structure::message::vn::stats::load_localization_stats;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use tracing::{debug, info, trace};
 
 #[derive(Clone)]
@@ -43,36 +43,37 @@ impl_command!(
 		debug!("VNDB stats retrieved successfully");
 
 		debug!("Loading localization for guild: {}", guild_id);
-		let stats_localised = load_localization_stats(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 		debug!("Localization loaded successfully");
 
 		debug!("Creating fields for embed");
 		let fields = vec![
-			(stats_localised.chars.clone(), stats.chars.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_stats-chars"), stats.chars.to_string(), true),
 			(
-				stats_localised.producer.clone(),
+				USABLE_LOCALES.lookup(&lang_id, "vn_stats-producer"),
 				stats.producers.to_string(),
 				true,
 			),
 			(
-				stats_localised.release.clone(),
+				USABLE_LOCALES.lookup(&lang_id, "vn_stats-release"),
 				stats.releases.to_string(),
 				true,
 			),
-			(stats_localised.staff.clone(), stats.staff.to_string(), true),
-			(stats_localised.tags.clone(), stats.tags.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_stats-staff"), stats.staff.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_stats-tags"), stats.tags.to_string(), true),
 			(
-				stats_localised.traits.clone(),
+				USABLE_LOCALES.lookup(&lang_id, "vn_stats-traits"),
 				stats.traits.to_string(),
 				true,
 			),
-			(stats_localised.vns.clone(), stats.vn.to_string(), true),
-			(stats_localised.api.clone(), String::from("VNDB API"), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_stats-vns"), stats.vn.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_stats-api"), String::from("VNDB API"), true),
 		];
 		trace!("Created {} fields for embed", fields.len());
 
-		debug!("Creating embed content with title: {}", stats_localised.title);
-		let embed_content = EmbedContent::new(stats_localised.title).fields(fields);
+		let title = USABLE_LOCALES.lookup(&lang_id, "vn_stats-title");
+		debug!("Creating embed content with title: {}", title);
+		let embed_content = EmbedContent::new(title).fields(fields);
 
 		debug!("Creating final embed contents with CommandType::Followup");
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

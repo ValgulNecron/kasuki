@@ -97,11 +97,11 @@ use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
-use crate::structure::message::game::steam_game_info::load_localization_steam_game_info;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -159,8 +159,7 @@ impl_command!(
 			.to_string();
 		let db_connection = bot_data.db_connection.clone();
 
-		let steam_game_info_localised =
-			load_localization_steam_game_info(guild_id.clone(), db_connection).await?;
+		let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
 
 		let game = data.data;
 
@@ -169,8 +168,8 @@ impl_command!(
 		// Determine the price field based on whether the game is free or not
 		let field1 = if game.is_free.unwrap() {
 			(
-				steam_game_info_localised.field1,
-				steam_game_info_localised.free,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-free"),
 				true,
 			)
 		} else {
@@ -183,14 +182,14 @@ impl_command!(
 					);
 
 					(
-						steam_game_info_localised.field1,
+						USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
 						convert_steam_to_discord_flavored_markdown(price),
 						true,
 					)
 				},
 				None => (
-					steam_game_info_localised.field1,
-					steam_game_info_localised.tba,
+					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
+					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-tba"),
 					true,
 				),
 			}
@@ -209,7 +208,7 @@ impl_command!(
 
 		if let Some(website) = game.website {
 			fields.push((
-				steam_game_info_localised.website,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-website"),
 				convert_steam_to_discord_flavored_markdown(website),
 				true,
 			));
@@ -217,7 +216,7 @@ impl_command!(
 
 		if let Some(required_age) = game.required_age {
 			fields.push((
-				steam_game_info_localised.required_age,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-required_age"),
 				required_age.to_string(),
 				true,
 			));
@@ -227,19 +226,19 @@ impl_command!(
 		let field2 = if game.release_date.clone().unwrap().coming_soon {
 			match game.release_date.unwrap().date {
 				Some(date) => (
-					steam_game_info_localised.field2,
+					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
 					convert_steam_to_discord_flavored_markdown(date),
 					true,
 				),
 				None => (
-					steam_game_info_localised.field2,
-					steam_game_info_localised.coming_soon,
+					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
+					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-coming_soon"),
 					true,
 				),
 			}
 		} else {
 			(
-				steam_game_info_localised.field2,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
 				convert_steam_to_discord_flavored_markdown(
 					game.release_date.unwrap().date.unwrap(),
 				),
@@ -252,7 +251,7 @@ impl_command!(
 		// Add the developers field if it exists
 		if let Some(dev) = game.developers {
 			fields.push((
-				steam_game_info_localised.field3,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field3"),
 				convert_steam_to_discord_flavored_markdown(dev.join(", ")),
 				true,
 			))
@@ -261,7 +260,7 @@ impl_command!(
 		// Add the publishers field if it exists
 		if let Some(publishers) = game.publishers {
 			fields.push((
-				steam_game_info_localised.field4,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field4"),
 				convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
 				true,
 			))
@@ -270,7 +269,7 @@ impl_command!(
 		// Add the app type field if it exists
 		if let Some(app_type) = game.app_type {
 			fields.push((
-				steam_game_info_localised.field5,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field5"),
 				convert_steam_to_discord_flavored_markdown(app_type),
 				true,
 			))
@@ -279,7 +278,7 @@ impl_command!(
 		// Add the supported languages field if it exists
 		if let Some(game_lang) = game.supported_languages {
 			fields.push((
-				steam_game_info_localised.field6,
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field6"),
 				convert_steam_to_discord_flavored_markdown(game_lang),
 				true,
 			))
@@ -291,11 +290,11 @@ impl_command!(
 
 		let linux = platforms.linux.unwrap_or(false);
 
-		fields.push((steam_game_info_localised.win, win.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-win"), win.to_string(), true));
 
-		fields.push((steam_game_info_localised.mac, mac.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-mac"), mac.to_string(), true));
 
-		fields.push((steam_game_info_localised.linux, linux.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-linux"), linux.to_string(), true));
 
 		// Add the categories field if it exists
 		if let Some(categories) = game.categories {
@@ -307,7 +306,7 @@ impl_command!(
 			let joined_descriptions =
 				convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
 
-			fields.push((steam_game_info_localised.field7, joined_descriptions, false))
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field7"), joined_descriptions, false))
 		}
 
 		let embed_content = EmbedContent::new(game.name.unwrap())

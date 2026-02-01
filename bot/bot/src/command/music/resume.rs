@@ -82,9 +82,9 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::resume::load_localization_resume;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
 ///
 /// The `ResumeCommand` struct is responsible for handling the "resume" command functionality
@@ -134,7 +134,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let resume_localised = load_localization_resume(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -148,8 +148,8 @@ impl_command!(
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let embed_content = EmbedContent::new(resume_localised.title)
-				.description(resume_localised.error_no_voice);
+			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
+				.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -159,7 +159,7 @@ impl_command!(
 		player.set_pause(false).await?;
 
 		let embed_content =
-			EmbedContent::new(resume_localised.title).description(resume_localised.success);
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_resume-success"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

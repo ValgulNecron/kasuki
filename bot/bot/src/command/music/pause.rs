@@ -9,9 +9,9 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::pause::load_localization_pause;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
 /// `PauseCommand` is a structure that encapsulates data required to handle a "pause" command interaction
 /// in a Discord bot using the Serenity library.
@@ -44,7 +44,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let pause_localised = load_localization_pause(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -59,8 +59,8 @@ impl_command!(
 		let Some(player) =
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
-			let embed_content = EmbedContent::new(pause_localised.title)
-				.description(pause_localised.error_no_voice);
+			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_pause-title"))
+				.description(USABLE_LOCALES.lookup(&lang_id, "music_pause-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 			return Ok(embed_contents);
@@ -68,7 +68,7 @@ impl_command!(
 		player.set_pause(true).await?;
 
 		let embed_content =
-			EmbedContent::new(pause_localised.title).description(pause_localised.success);
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_pause-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_pause-success"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 		Ok(embed_contents)

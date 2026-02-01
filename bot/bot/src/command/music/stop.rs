@@ -42,9 +42,12 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::stop::load_localization_stop;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// A struct representing the `StopCommand`, which is used to handle the stop command
 /// functionality in a bot using the Serenity library.
@@ -85,7 +88,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let stop_localised = load_localization_stop(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -101,22 +104,24 @@ impl_command!(
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content =
-				EmbedContent::new(stop_localised.title).description(stop_localised.error_no_voice);
+				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_stop-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 			return Ok(embed_contents);
 		};
-		let mut embed_content = EmbedContent::new(stop_localised.title);
+		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title"));
 
 		let now_playing = player.get_player().await?.track;
 
 		if let Some(np) = now_playing {
 			player.stop_now().await?;
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
 			embed_content =
-				embed_content.description(stop_localised.success.replace("{0}", &np.info.title));
+				embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_stop-success", &args));
 		} else {
-			embed_content = embed_content.description(stop_localised.nothing_to_stop);
+			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-nothing_to_stop"));
 		}
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

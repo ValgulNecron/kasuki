@@ -4,9 +4,9 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::game::get_vn;
 use crate::impl_command;
-use crate::structure::message::vn::game::load_localization_game;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use tracing::trace;
 
 #[derive(Clone)]
@@ -39,7 +39,7 @@ impl_command!(
 			.cloned()
 			.unwrap_or(String::new());
 
-		let game_localised = load_localization_game(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		let vn = get_vn(game.clone(), vndb_cache).await?;
 
@@ -48,7 +48,7 @@ impl_command!(
 		let mut fields = vec![];
 
 		if let Some(released) = vn.released {
-			fields.push((game_localised.released.clone(), released, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-released"), released, true));
 		}
 
 		let platforms = vn
@@ -60,11 +60,11 @@ impl_command!(
 			.join(", ");
 
 		if !platforms.is_empty() {
-			fields.push((game_localised.platforms.clone(), platforms, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-platforms"), platforms, true));
 		}
 
 		if let Some(playtime) = vn.length_minutes {
-			fields.push((game_localised.playtime.clone(), playtime.to_string(), true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-playtime"), playtime.to_string(), true));
 		}
 
 		let tags = vn
@@ -76,7 +76,7 @@ impl_command!(
 			.join(", ");
 
 		if !tags.is_empty() {
-			fields.push((game_localised.tags.clone(), tags, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-tags"), tags, true));
 		}
 
 		let developers = vn
@@ -88,7 +88,7 @@ impl_command!(
 			.join(", ");
 
 		if !developers.is_empty() {
-			fields.push((game_localised.developers.clone(), developers, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-developers"), developers, true));
 		}
 
 		let staff = vn
@@ -100,7 +100,7 @@ impl_command!(
 			.join(", ");
 
 		if !staff.is_empty() {
-			fields.push((game_localised.staff.clone(), staff, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-staff"), staff, true));
 		}
 
 		let characters = vn
@@ -112,7 +112,7 @@ impl_command!(
 			.join(", ");
 
 		if !characters.is_empty() {
-			fields.push((game_localised.characters.clone(), characters, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-characters"), characters, true));
 		}
 		let vn_desc = vn.description.clone().unwrap_or_default();
 

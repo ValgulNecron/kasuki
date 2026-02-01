@@ -3,6 +3,7 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
 use anyhow::{Context as AnyhowContext, Result};
+use fluent_templates::fluent_bundle::FluentValue;
 use sea_orm::ExprTrait;
 use sea_orm::{
 	ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
@@ -10,6 +11,8 @@ use sea_orm::{
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::{Entity as UserInventory, Model as UserInventoryModel};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::debug;
 
@@ -32,12 +35,16 @@ impl_command!(
 
 		// Get the user's inventory
 		let db_connection = bot_data.db_connection.clone();
+
+		// Load localization data
+		let lang_id = get_language_identifier(server_id.clone(), db_connection.clone()).await;
+
 		let inventory_items = get_user_inventory(&db_connection, user_id.clone(), server_id.clone()).await?;
 
 		if inventory_items.is_empty() {
 			// Create an embed message for empty inventory
-			let embed_content = EmbedContent::new("Your Inventory".to_string())
-				.description("Your inventory is empty. Try using the `/minigame fishing` command to catch some fish!".to_string());
+			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-title"))
+				.description(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-empty"));
 
 			let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 			return Ok(embeds_contents);
@@ -54,7 +61,7 @@ impl_command!(
 		}
 
 		// Create an embed message for the inventory
-		let mut embed_content = EmbedContent::new("Your Inventory".to_string());
+		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-title"));
 
 		// Add fish section if the user has fish
 		if let Some(fish_items) = items_by_type.get("fish") {
@@ -71,21 +78,22 @@ impl_command!(
 			// Create a summary of fish
 			let mut fish_summary = String::new();
 
-			for (fish_name, fish_list) in fish_by_name {
+			for (fish_name, fish_list) in &fish_by_name {
 				let count = fish_list.len();
 				let total_value = fish_list.iter().map(|(_, item)| item.price).sum::<i32>();
 
-				fish_summary.push_str(&format!(
-					"**{}** x{} (Total Value: {} coins)\n",
-					fish_name,
-					count,
-					total_value
-				));
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("fish_name"), FluentValue::from(fish_name.clone()));
+				args.insert(Cow::Borrowed("count"), FluentValue::from(count.to_string()));
+				args.insert(Cow::Borrowed("total_value"), FluentValue::from(total_value.to_string()));
+
+				fish_summary.push_str(&USABLE_LOCALES.lookup_with_args(&lang_id, "minigame_inventory-fish_format", &args));
+				fish_summary.push('\n');
 			}
 
 			// Add fish summary to the embed
 			embed_content = embed_content.fields(vec![
-				("Fish".to_string(), fish_summary, false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-fish"), fish_summary, false),
 			]);
 
 			// Add fish details section
@@ -109,39 +117,40 @@ impl_command!(
 
 				// Get rarity text
 				let rarity_text = match inventory_item.rarity {
-					1 => "Common",
-					2 => "Uncommon",
-					3 => "Rare",
-					4 => "Epic",
-					5 => "Legendary",
-					_ => "Unknown",
+					1 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-common"),
+					2 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-uncommon"),
+					3 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-rare"),
+					4 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-epic"),
+					5 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-legendary"),
+					_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown"),
 				};
 
 				// Get size description
 				let size_description = match inventory_item.size {
-					1..=20 => "tiny",
-					21..=40 => "small",
-					41..=60 => "average",
-					61..=80 => "large",
-					81..=95 => "huge",
-					96..=100 => "massive",
-					_ => "unknown",
+					1..=20 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-tiny"),
+					21..=40 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-small"),
+					41..=60 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-average"),
+					61..=80 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-large"),
+					81..=95 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-huge"),
+					96..=100 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-massive"),
+					_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown_size"),
 				};
 
-				fish_details.push_str(&format!(
-					"**{}. {}** - {} ({} cm), {} rarity, {}% XP boost\n",
-					fish_count,
-					item.name,
-					size_description,
-					inventory_item.size,
-					rarity_text,
-					(inventory_item.item_xp_boost * 100.0) as i32
-				));
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("count"), FluentValue::from(fish_count.to_string()));
+				args.insert(Cow::Borrowed("item_name"), FluentValue::from(item.name.clone()));
+				args.insert(Cow::Borrowed("size_description"), FluentValue::from(size_description));
+				args.insert(Cow::Borrowed("size"), FluentValue::from(inventory_item.size.to_string()));
+				args.insert(Cow::Borrowed("rarity_text"), FluentValue::from(rarity_text));
+				args.insert(Cow::Borrowed("xp_boost"), FluentValue::from(((inventory_item.item_xp_boost * 100.0) as i32).to_string()));
+
+				fish_details.push_str(&USABLE_LOCALES.lookup_with_args(&lang_id, "minigame_inventory-best_fish_format", &args));
+				fish_details.push('\n');
 			}
 
 			// Add fish details to the embed
 			embed_content = embed_content.fields(vec![
-				("Your Best Fish".to_string(), fish_details, false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-best_fish"), fish_details, false),
 			]);
 
 			// Add a complete numbered list of all fish
@@ -155,55 +164,56 @@ impl_command!(
 			for (inventory_item, item) in &all_fish {
 				// Get rarity text
 				let rarity_text = match inventory_item.rarity {
-					1 => "Common",
-					2 => "Uncommon",
-					3 => "Rare",
-					4 => "Epic",
-					5 => "Legendary",
-					_ => "Unknown",
+					1 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-common"),
+					2 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-uncommon"),
+					3 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-rare"),
+					4 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-epic"),
+					5 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-legendary"),
+					_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown"),
 				};
 
 				// Get size description
 				let size_description = match inventory_item.size {
-					1..=20 => "tiny",
-					21..=40 => "small",
-					41..=60 => "average",
-					61..=80 => "large",
-					81..=95 => "huge",
-					96..=100 => "massive",
-					_ => "unknown",
+					1..=20 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-tiny"),
+					21..=40 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-small"),
+					41..=60 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-average"),
+					61..=80 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-large"),
+					81..=95 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-huge"),
+					96..=100 => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-massive"),
+					_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown_size"),
 				};
 
-				all_fish_list.push_str(&format!(
-					"**{}. {}** - {} ({} cm), {} rarity, Value: {} coins\n",
-					fish_number,
-					item.name,
-					size_description,
-					inventory_item.size,
-					rarity_text,
-					item.price
-				));
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("fish_number"), FluentValue::from(fish_number.to_string()));
+				args.insert(Cow::Borrowed("item_name"), FluentValue::from(item.name.clone()));
+				args.insert(Cow::Borrowed("size_description"), FluentValue::from(size_description));
+				args.insert(Cow::Borrowed("size"), FluentValue::from(inventory_item.size.to_string()));
+				args.insert(Cow::Borrowed("rarity_text"), FluentValue::from(rarity_text));
+				args.insert(Cow::Borrowed("price"), FluentValue::from(item.price.to_string()));
+
+				all_fish_list.push_str(&USABLE_LOCALES.lookup_with_args(&lang_id, "minigame_inventory-all_fish_format", &args));
+				all_fish_list.push('\n');
 
 				fish_number += 1;
 			}
 
 			// Add the complete fish list to the embed
 			embed_content = embed_content.fields(vec![
-				("All Fish (Numbered)".to_string(), all_fish_list, false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-all_fish"), all_fish_list, false),
 			]);
 
 			// Add total count and value
 			let total_fish_count = fish_items.len();
 			let total_fish_value = fish_items.iter().map(|(_, item)| item.price).sum::<i32>();
 
+			let mut summary_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			summary_args.insert(Cow::Borrowed("total_fish_count"), FluentValue::from(total_fish_count.to_string()));
+			summary_args.insert(Cow::Borrowed("total_fish_value"), FluentValue::from(total_fish_value.to_string()));
+
 			embed_content = embed_content.fields(vec![
 				(
-					"Summary".to_string(),
-					format!(
-						"Total Fish: {}\nTotal Value: {} coins",
-						total_fish_count,
-						total_fish_value
-					),
+					USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-summary"),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "minigame_inventory-summary_format", &summary_args),
 					false
 				),
 			]);

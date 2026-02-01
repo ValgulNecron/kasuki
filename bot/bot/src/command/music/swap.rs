@@ -77,9 +77,12 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::impl_command;
-use crate::structure::message::music::swap::load_localization_swap;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// Represents a command structure used to handle a "swap" operation within a Discord bot.
 ///
@@ -121,7 +124,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let swap_localised = load_localization_swap(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -137,7 +140,7 @@ impl_command!(
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content =
-				EmbedContent::new(swap_localised.title).description(swap_localised.error_no_voice);
+				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_swap-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -156,19 +159,19 @@ impl_command!(
 			.cloned()
 			.unwrap_or_default() as usize;
 
-		let mut embed_content = EmbedContent::new(swap_localised.title);
+		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_swap-title"));
 
 		let queue = player.get_queue();
 		let queue_len = queue.get_count().await?;
 
 		if index1 > queue_len || index2 > queue_len {
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(queue_len.to_string()));
 			embed_content = embed_content.description(
-				swap_localised
-					.error_max_index
-					.replace("{0}", &queue_len.to_string()),
+				USABLE_LOCALES.lookup_with_args(&lang_id, "music_swap-error_max_index", &args),
 			);
 		} else if index1 == index2 {
-			embed_content = embed_content.description(swap_localised.error_same_index);
+			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_same_index"));
 		} else {
 			let track1 = queue.get_track(index1 - 1).await?.unwrap();
 			let track2 = queue.get_track(index1 - 2).await?.unwrap();
@@ -176,7 +179,7 @@ impl_command!(
 			queue.swap(index1 - 1, track2)?;
 			queue.swap(index2 - 1, track1)?;
 
-			embed_content = embed_content.description(swap_localised.success);
+			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-success"));
 		}
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

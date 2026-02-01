@@ -89,13 +89,17 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
 use crate::impl_command;
-use crate::structure::message::ai::translation::load_localization_translation;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{multipart, Url};
 use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use std::sync::Arc;
+use unic_langid::LanguageIdentifier;
 use uuid::Uuid;
 
 ///
@@ -281,10 +285,18 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let translation_localised = load_localization_translation(guild_id, db_connection).await?;
+		let lang = get_guild_language(guild_id.clone(), db_connection.clone()).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "ai_translation-title");
 
 		let embed_content =
-			EmbedContent::new(translation_localised.title).description(text.to_string());
+			EmbedContent::new(title).description(text.to_string());
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

@@ -39,14 +39,18 @@ use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::anyhow;
+use fluent_templates::Loader;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::activity_data::Column;
 use shared::database::prelude::ActivityData;
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
+use unic_langid::LanguageIdentifier;
 
 #[derive(Clone)]
 pub struct ListAllActivity {
@@ -79,11 +83,18 @@ impl_command!(
 		let join_activity = activity.join("\n");
 		let db_connection = bot_data.db_connection.clone();
 
-		let list_activity_localised_text =
-			load_localization_list_activity(guild_id.to_string(), db_connection).await?;
+		let lang = get_guild_language(guild_id.to_string(), db_connection).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-title");
 
 		let embed_content =
-			EmbedContent::new(list_activity_localised_text.title).description(join_activity);
+			EmbedContent::new(title).description(join_activity);
 		let action_row;
 		if len > ACTIVITY_LIST_LIMIT as usize {
 			action_row = None

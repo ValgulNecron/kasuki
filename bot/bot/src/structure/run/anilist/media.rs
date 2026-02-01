@@ -1,12 +1,13 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::UNKNOWN;
 use crate::event_handler::BotData;
-use crate::structure::message::anilist_user::media::load_localization_media;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use sea_orm::{entity::*, query::*, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::anime_song::Column::AnilistId;
 use shared::database::prelude::AnimeSong;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -61,6 +62,10 @@ pub struct Media {
 	pub duration: Option<i32>,
 	pub staff: Option<StaffConnection>,
 	pub start_date: Option<FuzzyDate>,
+	pub end_date: Option<FuzzyDate>,
+	pub chapters: Option<i32>,
+	pub characters: Option<CharacterConnection>,
+	pub tags: Option<Vec<Option<MediaTag>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -133,6 +138,12 @@ pub struct Character {
 pub struct CharacterName {
 	pub user_preferred: Option<String>,
 	pub full: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct MediaTag {
+	pub name: String,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
@@ -388,6 +399,45 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 	staff_text
 }
 
+fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
+	let mut characters_text = String::new();
+
+	let mut i = 0;
+
+	for c in characters.into_iter() {
+		if i > 4 {
+			break;
+		}
+
+		let c = match c {
+			Some(c) => c,
+			None => continue,
+		};
+
+		let node = match c.node.clone() {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let name = match node.name {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let full = name.full;
+
+		let user_pref = name.user_preferred;
+
+		let char_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
+
+		characters_text.push_str(format!("{}\n", char_name.as_str()).as_str());
+
+		i += 1;
+	}
+
+	characters_text
+}
+
 pub async fn media_content<'a>(
 	_ctx: SerenityContext, command_interaction: CommandInteraction, data: Media,
 	db_connection: Arc<DatabaseConnection>, bot_data: Arc<BotData>,
@@ -429,37 +479,94 @@ pub async fn media_content<'a>(
 		}
 	}
 
-	let media_localised = load_localization_media(guild_id, db_connection).await?;
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 	let mut fields = Vec::new();
 
 	if !song_list.is_empty() {
-		fields.push((media_localised.song, song_list, false));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-song"),
+			song_list,
+			false,
+		));
 	}
 
 	let genres = data.genres.clone().unwrap_or_default();
 
 	// take the first 5 non-optional genres
-	let _genres = genres
+	let genres = genres
 		.into_iter()
 		.flatten()
 		.take(5)
 		.collect::<Vec<String>>();
 
+	if !genres.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-genre"),
+			genres.join(","),
+			false
+			))
+	}
+
 	if let Some(staff) = data.staff.clone() {
 		if let Some(edges) = staff.edges {
 			let staffs = get_staff(edges);
 
-			fields.push((media_localised.staffs, staffs, false));
+			if !staffs.is_empty() {
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-staffs"),
+					staffs,
+					false,
+				));
+			}
 		}
 	}
 
+	if let Some(characters) = data.characters.clone() {
+		if let Some(edges) = characters.edges {
+			let chars = get_characters(edges);
+
+			if !chars.is_empty() {
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-characters"),
+					chars,
+					false,
+				));
+			}
+		}
+	}
+
+	let tags = data.tags.clone().unwrap_or_default();
+
+	let tags: Vec<String> = tags
+		.into_iter()
+		.flatten()
+		.take(5)
+		.map(|t| t.name)
+		.collect();
+
+	if !tags.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-tag"),
+			tags.join(", "),
+			false,
+		));
+	}
+
 	if let Some(format) = data.format {
-		fields.push((media_localised.format, format.to_string(), true))
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-format"),
+			format.to_string(),
+			true,
+		))
 	}
 
 	if let Some(source) = data.source {
-		fields.push((media_localised.source, source.to_string(), true))
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-source"),
+			source.to_string(),
+			true,
+		))
 	}
 
 	if let Some(start_date) = data.start_date.clone() {
@@ -477,22 +584,65 @@ pub async fn media_content<'a>(
 			start_date_str.push_str(year.to_string().as_str());
 		}
 
-		fields.push((media_localised.start_date, start_date_str, true));
+		if !start_date_str.is_empty() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-start_date"),
+				start_date_str,
+				true,
+			));
+		}
+	}
+
+	if let Some(end_date) = data.end_date.clone() {
+		let mut end_date_str = String::new();
+
+		if let Some(day) = end_date.day {
+			end_date_str.push_str(format!("{}/", day).as_str());
+		}
+
+		if let Some(month) = end_date.month {
+			end_date_str.push_str(format!("{}/", month).as_str());
+		}
+
+		if let Some(year) = end_date.year {
+			end_date_str.push_str(year.to_string().as_str());
+		}
+
+		if !end_date_str.is_empty() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-end_date"),
+				end_date_str,
+				true,
+			));
+		}
 	}
 
 	if let Some(favourites) = data.favourites {
-		fields.push((media_localised.fav, favourites.to_string(), true))
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-fav"),
+			favourites.to_string(),
+			true,
+		))
 	}
 
-	match data.duration {
-		Some(duration) => {
-			fields.push((
-				media_localised.duration,
-				format!("{} {}", duration, media_localised.minutes),
-				true,
-			));
-		},
-		None => {},
+	if let Some(duration) = data.duration {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-duration"),
+			format!(
+				"{} {}",
+				duration,
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-minutes")
+			),
+			true,
+		));
+	}
+
+	if let Some(chapters) = data.chapters {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-chapter"),
+			chapters.to_string(),
+			true,
+		));
 	}
 
 	let title = match data.title.clone() {

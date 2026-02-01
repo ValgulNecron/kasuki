@@ -2,14 +2,17 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::minigame::fishing::load_localization_fishing;
 use anyhow::{Context as AnyhowContext, Result};
+use fluent_templates::fluent_bundle::FluentValue;
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::{debug, info};
 
 #[derive(Clone)]
@@ -33,10 +36,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load localization data
-		let localization = load_localization_fishing(
-			server_id.clone(),
-			db_connection.clone()
-		).await?;
+		let lang_id = get_language_identifier(server_id.clone(), db_connection.clone()).await;
 
 		let fish_items = get_fish_items(&db_connection).await?;
 
@@ -66,38 +66,40 @@ impl_command!(
 
 		// Create a message to display the caught fish
 		let rarity_text = match fish_rarity {
-			1 => localization.common.as_str(),
-			2 => localization.uncommon.as_str(),
-			3 => localization.rare.as_str(),
-			4 => localization.epic.as_str(),
-			5 => localization.legendary.as_str(),
-			_ => localization.unknown.as_str(),
+			1 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-common"),
+			2 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-uncommon"),
+			3 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-rare"),
+			4 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-epic"),
+			5 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-legendary"),
+			_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-unknown"),
 		};
 
 		let size_description = match fish_size {
-			1..=20 => localization.tiny.as_str(),
-			21..=40 => localization.small.as_str(),
-			41..=60 => localization.average.as_str(),
-			61..=80 => localization.large.as_str(),
-			81..=95 => localization.huge.as_str(),
-			96..=100 => localization.massive.as_str(),
-			_ => localization.unknown_size.as_str(),
+			1..=20 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-tiny"),
+			21..=40 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-small"),
+			41..=60 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-average"),
+			61..=80 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-large"),
+			81..=95 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-huge"),
+			96..=100 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-massive"),
+			_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-unknown_size"),
 		};
 
 		// Format the fish details using the localized format string
-		let fish_details = localization.fish_details_format
-			.replace("$fish_name$", &caught_fish.name)
-			.replace("$size_description$", size_description)
-			.replace("$size$", &fish_size.to_string())
-			.replace("$rarity$", rarity_text)
-			.replace("$xp_boost$", &((caught_fish.base_xp_boost * 100.0) as i32).to_string())
-			.replace("$price$", &caught_fish.price.to_string());
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("fish_name"), FluentValue::from(caught_fish.name.clone()));
+		args.insert(Cow::Borrowed("size_description"), FluentValue::from(size_description));
+		args.insert(Cow::Borrowed("size"), FluentValue::from(fish_size.to_string()));
+		args.insert(Cow::Borrowed("rarity"), FluentValue::from(rarity_text));
+		args.insert(Cow::Borrowed("xp_boost"), FluentValue::from(((caught_fish.base_xp_boost * 100.0) as i32).to_string()));
+		args.insert(Cow::Borrowed("price"), FluentValue::from(caught_fish.price.to_string()));
 
-		let embed_content = EmbedContent::new(localization.title.clone())
+		let fish_details = USABLE_LOCALES.lookup_with_args(&lang_id, "minigame_fishing-fish_details_format", &args);
+
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-title"))
 			.fields(vec![
-				(localization.caught_fish.clone(), String::new(), false),
-				(localization.fish_details.clone(), fish_details, false),
-				(localization.description_field.clone(), caught_fish.description.clone(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-caught_fish"), String::new(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-fish_details"), fish_details, false),
+				(USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-description_field"), caught_fish.description.clone(), false),
 			]);
 
 		let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

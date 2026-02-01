@@ -68,9 +68,12 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use crate::impl_command;
-use crate::structure::message::music::seek::load_localization_seek;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::time::Duration;
 
 /// The `SeekCommand` struct represents a command used to handle seeking functionality
@@ -113,7 +116,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let seek_localised = load_localization_seek(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -129,7 +132,7 @@ impl_command!(
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content =
-				EmbedContent::new(seek_localised.title).description(seek_localised.error_no_voice);
+				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_seek-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_seek-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -142,14 +145,16 @@ impl_command!(
 
 		let now_playing = player.get_player().await?.track;
 
-		let mut embed_content = EmbedContent::new(seek_localised.title);
+		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_seek-title"));
 
 		if let Some(_) = now_playing {
 			player.set_position(Duration::from_secs(time)).await?;
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(time.to_string()));
 			embed_content =
-				embed_content.description(seek_localised.success.replace("{0}", &time.to_string()));
+				embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_seek-success", &args));
 		} else {
-			embed_content = embed_content.description(seek_localised.nothing_playing);
+			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-nothing_playing"));
 		}
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

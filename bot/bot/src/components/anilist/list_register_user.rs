@@ -1,13 +1,17 @@
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
+use unic_langid::LanguageIdentifier;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
-use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 
 pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, user_id: &str,
@@ -23,7 +27,16 @@ pub async fn update(
 	let db_connection = bot_data.db_connection.clone();
 
 	// Load the localized user list
-	let list_user_localised = load_localization_list_user(guild_id, db_connection).await?;
+	let lang = get_guild_language(guild_id.clone(), db_connection).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let previous = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-previous");
+	let next = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-next");
 
 	// Retrieve the guild ID from the component interaction
 	let guild_id = component_interaction
@@ -61,14 +74,14 @@ pub async fn update(
 	if user_id != "0" {
 		response = response.button(
 			CreateButton::new(format!("user_{}_{}", user_id, prev_id))
-				.label(&list_user_localised.previous),
+				.label(&previous),
 		);
 	}
 
 	if len > MEMBER_LIST_LIMIT as usize {
 		response = response.button(
 			CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id))
-				.label(list_user_localised.next),
+				.label(next),
 		)
 	}
 

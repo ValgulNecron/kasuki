@@ -61,6 +61,13 @@ async fn main() {
 	};
 	info!("Log retention days: {}", max_log_retention_days);
 
+	info!("Loading locales");
+	if let Err(e) = shared::localization::load_locales() {
+		error!("Failed to load locales: {}", e);
+		process::exit(8);
+	}
+	info!("Locales loaded successfully");
+
 	let discord_token = config.bot.discord_token.clone();
 	info!("Bot token length: {}", discord_token.len());
 

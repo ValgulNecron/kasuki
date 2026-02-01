@@ -4,9 +4,9 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::producer::get_producer;
 use crate::impl_command;
-use crate::structure::message::vn::producer::load_localization_producer;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use tracing::trace;
 
 #[derive(Clone)]
@@ -39,7 +39,7 @@ impl_command!(
 			.cloned()
 			.unwrap_or(String::new());
 
-		let producer_localised = load_localization_producer(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		let producer = get_producer(producer.clone(), vndb_cache.clone()).await?;
 
@@ -48,7 +48,7 @@ impl_command!(
 		let mut fields = vec![];
 
 		if let Some(lang) = producer.lang {
-			fields.push((producer_localised.lang.clone(), lang, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_producer-lang"), lang, true));
 		}
 
 		if let Some(aliases) = producer.aliases {
@@ -58,12 +58,12 @@ impl_command!(
 				.collect::<Vec<String>>()
 				.join(", ");
 
-			fields.push((producer_localised.aliases.clone(), aliases, true));
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_producer-aliases"), aliases, true));
 		}
 
 		if let Some(results_type) = producer.results_type {
 			fields.push((
-				producer_localised.prod_type.clone(),
+				USABLE_LOCALES.lookup(&lang_id, "vn_producer-prod_type"),
 				results_type.to_string(),
 				true,
 			));

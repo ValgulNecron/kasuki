@@ -51,11 +51,15 @@ use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, Emb
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
-use crate::structure::message::anime::random_image::load_localization_random_image;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use image::EncodableLayout;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use tracing::{debug, error, info};
+use unic_langid::LanguageIdentifier;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -102,22 +106,24 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		debug!("Loading random image localization for guild: {}", guild_id);
-		let random_image_localised =
-			load_localization_random_image(guild_id, db_connection)
-			.await
-			.map_err(|e| {
-				error!("Failed to load random image localization: {}", e);
-				e
-			})?;
-		debug!("Random image localization loaded successfully");
+		debug!("Loading localization for guild: {}", guild_id);
+		let lang = get_guild_language(guild_id.clone(), db_connection).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "anime_random_image-title");
+		debug!("Localization loaded successfully");
 
 		debug!("Deferring command response");
 		let _ = self_.defer().await;
 		debug!("Command response deferred successfully");
 
 		debug!("Fetching random image content for type: {}", image_type);
-		random_image_content(image_type, random_image_localised.title, "sfw").await
+		random_image_content(image_type, title, "sfw").await
 	}
 );
 

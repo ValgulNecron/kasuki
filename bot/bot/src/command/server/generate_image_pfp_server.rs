@@ -8,7 +8,6 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::server::generate_image_pfp_server::load_localization_pfp_server_image;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
 use sea_orm::EntityTrait;
@@ -17,6 +16,7 @@ use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::ServerImage;
 use shared::database::server_image::Column;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use uuid::Uuid;
 
 /// The `GenerateImagePfPCommand` struct is used to encapsulate the necessary data
@@ -115,8 +115,7 @@ pub async fn get_content<'a>(
 	};
 
 	// Load the localized text for the server's profile picture image
-	let pfp_server_image_localised_text =
-		load_localization_pfp_server_image(guild_id.clone(), db_connection.clone()).await?;
+	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
 
 	let image = ServerImage::find()
 		.filter(Column::ServerId.eq(guild_id.clone()))
@@ -141,7 +140,7 @@ pub async fn get_content<'a>(
 
 	let image_path = format!("{}.png", uuid);
 
-	let embed_content = EmbedContent::new(pfp_server_image_localised_text.title)
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "server_generate_image_pfp_server-title"))
 		.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
 	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

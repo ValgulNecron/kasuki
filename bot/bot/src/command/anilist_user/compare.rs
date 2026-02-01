@@ -1,14 +1,17 @@
 //! Represents a command to compare two AniList user profiles based on their anime and manga statistics.
 
 use std::borrow::Cow;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::builder::{
-	CreateComponent, CreateContainer, CreateContainerComponent, CreateSection, CreateSectionAccessory,
-	CreateSectionComponent, CreateSeparator, CreateTextDisplay, CreateThumbnail,
-	CreateUnfurledMediaItem,
+	CreateComponent, CreateContainer, CreateContainerComponent, CreateSection,
+	CreateSectionAccessory, CreateSectionComponent, CreateSeparator, CreateTextDisplay,
+	CreateThumbnail, CreateUnfurledMediaItem,
 };
+use shared::localization::{get_language_identifier, LanguageIdentifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tracing::trace;
 
@@ -19,7 +22,6 @@ use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsConten
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::impl_command;
-use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
 	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
 	UserStatusStatistic, UserTagStatistic,
@@ -65,8 +67,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized comparison strings
-		let compare_localised = load_localization_compare(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Clone the user data
 		let username = user.name.clone();
@@ -83,14 +85,19 @@ impl_command!(
 		let mut common_text = String::new();
 
 		// Add the affinity to the description string
-		common_text.push_str(
-			compare_localised
-				.affinity
-				.replace("$1$", username.as_str())
-				.replace("$2$", username2.as_str())
-				.replace("$3$", affinity.to_string().as_str())
-				.as_str(),
-		);
+		{
+			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+			args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
+			args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+			args.insert(
+				Cow::Borrowed("var3"),
+				FluentValue::from(affinity.to_string()),
+			);
+			common_text.push_str(
+				&USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_compare-affinity", &args),
+			);
+			common_text.push('\n');
+		}
 
 		let statistics = user.statistics.unwrap();
 
@@ -110,52 +117,76 @@ impl_command!(
 
 		// Compare the count of anime watched by the two users and add the result to the description string
 		match count.cmp(&count2) {
-			std::cmp::Ordering::Greater => u1_text.push_str(
-				compare_localised
-					.more_anime
-					.replace("$greater$", username.as_str())
-					.replace("$lesser$", username2.as_str())
-					.as_str(),
-			),
-			std::cmp::Ordering::Less => u2_text.push_str(
-				compare_localised
-					.more_anime
-					.replace("$greater$", username2.as_str())
-					.replace("$lesser$", username.as_str())
-					.as_str(),
-			),
-			std::cmp::Ordering::Equal => common_text.push_str(
-				compare_localised
-					.same_anime
-					.replace("$2$", username2.as_str())
-					.replace("$1$", username.as_str())
-					.as_str(),
-			),
+			std::cmp::Ordering::Greater => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username2.as_str()));
+				u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_anime",
+					&args,
+				));
+				u1_text.push('\n');
+			},
+			std::cmp::Ordering::Less => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username2.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username.as_str()));
+				u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_anime",
+					&args,
+				));
+				u2_text.push('\n');
+			},
+			std::cmp::Ordering::Equal => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+				common_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-same_anime",
+					&args,
+				));
+				common_text.push('\n');
+			},
 		}
 
 		// Compare the minutes watched by the two users and add the result to the description string
 		match minutes_watched.cmp(&minutes_watched2) {
-			std::cmp::Ordering::Greater => u1_text.push_str(
-				compare_localised
-					.more_watch_time
-					.replace("$greater$", username.as_str())
-					.replace("$lesser$", username2.as_str())
-					.as_str(),
-			),
-			std::cmp::Ordering::Less => u2_text.push_str(
-				compare_localised
-					.more_watch_time
-					.replace("$greater$", username2.as_str())
-					.replace("$lesser$", username.as_str())
-					.as_str(),
-			),
-			std::cmp::Ordering::Equal => common_text.push_str(
-				compare_localised
-					.same_watch_time
-					.replace("$2$", username2.as_str())
-					.replace("$1$", username.as_str())
-					.as_str(),
-			),
+			std::cmp::Ordering::Greater => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username2.as_str()));
+				u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_watch_time",
+					&args,
+				));
+				u1_text.push('\n');
+			},
+			std::cmp::Ordering::Less => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username2.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username.as_str()));
+				u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_watch_time",
+					&args,
+				));
+				u2_text.push('\n');
+			},
+			std::cmp::Ordering::Equal => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+				common_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-same_watch_time",
+					&args,
+				));
+				common_text.push('\n');
+			},
 		}
 
 		// Get the tags of the anime watched by the two users and add the comparison to the description string
@@ -164,16 +195,17 @@ impl_command!(
 		let tag2 = get_tag(&anime2.tags.unwrap());
 
 		common_text.push_str(
-			diff(
+			&diff(
 				&tag,
 				&tag2,
-				&compare_localised.tag_anime,
-				&compare_localised.same_tag_anime,
+				"anilist_user_compare-tag_anime",
+				"anilist_user_compare-same_tag_anime",
 				&username,
 				&username2,
-			)
-			.as_str(),
+				&lang_id,
+			),
 		);
+		common_text.push('\n');
 
 		// Get the genres of the anime watched by the two users and add the comparison to the description string
 		let genre = get_genre(&anime.genres.unwrap());
@@ -181,16 +213,17 @@ impl_command!(
 		let genre2 = get_genre(&anime2.genres.unwrap());
 
 		common_text.push_str(
-			diff(
+			&diff(
 				&genre,
 				&genre2,
-				&compare_localised.genre_anime,
-				&compare_localised.same_genre_anime,
+				"anilist_user_compare-genre_anime",
+				"anilist_user_compare-same_genre_anime",
 				&username,
 				&username2,
-			)
-			.as_str(),
+				&lang_id,
+			),
 		);
+		common_text.push('\n');
 
 		let manga = statistics.manga.unwrap();
 
@@ -207,62 +240,74 @@ impl_command!(
 		// Compare the count of manga read by the two users and add the result to the description string
 		match count.cmp(&count2) {
 			std::cmp::Ordering::Greater => {
-				u1_text.push_str(
-					compare_localised
-						.more_manga
-						.replace("$greater$", username.as_str())
-						.replace("$lesser$", username2.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username2.as_str()));
+				u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_manga",
+					&args,
+				));
+				u1_text.push('\n');
 			},
 			std::cmp::Ordering::Less => {
-				u2_text.push_str(
-					compare_localised
-						.more_manga
-						.replace("$greater$", username2.as_str())
-						.replace("$lesser$", username.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username2.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username.as_str()));
+				u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_manga",
+					&args,
+				));
+				u2_text.push('\n');
 			},
 			std::cmp::Ordering::Equal => {
-				common_text.push_str(
-					compare_localised
-						.same_manga
-						.replace("$2$", username2.as_str())
-						.replace("$1$", username.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+				common_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-same_manga",
+					&args,
+				));
+				common_text.push('\n');
 			},
 		}
 
 		// Compare the chapters read by the two users and add the result to the description string
 		match chapters_read.cmp(&chapters_read2) {
 			std::cmp::Ordering::Greater => {
-				u1_text.push_str(
-					compare_localised
-						.more_manga_chapter
-						.replace("$greater$", username.as_str())
-						.replace("$lesser$", username2.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username2.as_str()));
+				u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_manga_chapter",
+					&args,
+				));
+				u1_text.push('\n');
 			},
 			std::cmp::Ordering::Less => {
-				u2_text.push_str(
-					compare_localised
-						.more_manga_chapter
-						.replace("$greater$", username2.as_str())
-						.replace("$lesser$", username.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("greater"), FluentValue::from(username2.as_str()));
+				args.insert(Cow::Borrowed("lesser"), FluentValue::from(username.as_str()));
+				u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-more_manga_chapter",
+					&args,
+				));
+				u2_text.push('\n');
 			},
 			std::cmp::Ordering::Equal => {
-				common_text.push_str(
-					compare_localised
-						.same_manga_chapter
-						.replace("$2$", username2.as_str())
-						.replace("$1$", username.as_str())
-						.as_str(),
-				);
+				let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+				args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
+				args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+				common_text.push_str(&USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"anilist_user_compare-same_manga_chapter",
+					&args,
+				));
+				common_text.push('\n');
 			},
 		}
 
@@ -272,16 +317,17 @@ impl_command!(
 		let tag2 = get_tag(&manga2.tags.unwrap());
 
 		common_text.push_str(
-			diff(
+			&diff(
 				&tag,
 				&tag2,
-				&compare_localised.tag_manga,
-				&compare_localised.same_genre_manga,
+				"anilist_user_compare-tag_manga",
+				"anilist_user_compare-same_tag_manga",
 				&username,
 				&username2,
-			)
-			.as_str(),
+				&lang_id,
+			),
 		);
+		common_text.push('\n');
 
 		// Get the genres of the manga read by the two users and add the comparison to the description string
 		let genre = get_genre(&manga.genres.unwrap());
@@ -289,16 +335,17 @@ impl_command!(
 		let genre2 = get_genre(&manga2.genres.unwrap());
 
 		common_text.push_str(
-			diff(
+			&diff(
 				&genre,
 				&genre2,
-				&compare_localised.genre_manga,
-				&compare_localised.same_genre_manga,
+				"anilist_user_compare-genre_manga",
+				"anilist_user_compare-same_genre_manga",
 				&username,
 				&username2,
-			)
-			.as_str(),
+				&lang_id,
+			),
 		);
+		common_text.push('\n');
 
 		let section_u1 = (
 			vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(u1_text))],
@@ -933,62 +980,30 @@ fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 /// # Parameters
 /// - `a1`: A reference to the first string to compare.
 /// - `a2`: A reference to the second string to compare.
-/// - `diff_text`: The template message to display if the strings are different.
-///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`, `$2a$` for the value of `a2`) to be replaced.
-/// - `same`: The template message to display if the strings are the same.
-///   Contains placeholders (`$1$` for `username`, `$2$` for `username2`, `$1a$` for the value of `a1`) to be replaced.
+/// - `diff_key`: The Fluent key to use if the strings are different.
+/// - `same_key`: The Fluent key to use if the strings are the same.
 /// - `username`: The name of the first user tied to `a1`.
 /// - `username2`: The name of the second user tied to `a2`.
+/// - `lang_id`: The language identifier for localization.
 ///
 /// # Returns
 /// A `String` containing the formatted message based on whether the strings were identical or different.
-///
-/// If `a1` and `a2` differ, the `diff_text` template is used, and placeholders are replaced appropriately.  
-/// If `a1` and `a2` are identical, the `same` template is used, and placeholders are replaced appropriately.
-///
-/// # Side Effects
-/// The function logs the resulting message (after placeholder replacement) using the `trace!` macro.
-///
-/// # Example
-/// ```
-/// let a1 = "hello";
-/// let a2 = "world";
-/// let diff_text = "$1$ and $2$ have different strings: '$1a$' != '$2a$'";
-/// let same = "$1$ and $2$ have the same string: '$1a$'";
-/// let username = "Alice";
-/// let username2 = "Bob";
-///
-/// let result = diff(a1, a2, diff_text, same, username, username2);
-/// println!("{}", result); // Output: "Alice and Bob have different strings: 'hello' != 'world'"
-/// ```
-///
-/// If `a1` and `a2` were the same:
-/// ```
-/// let a1 = "hello";
-/// let a2 = "hello";
-/// let diff_text = "$1$ and $2$ have different strings: '$1a$' != '$2a$'";
-/// let same = "$1$ and $2$ have the same string: '$1a$'";
-/// let username = "Alice";
-/// let username2 = "Bob";
-///
-/// let result = diff(a1, a2, diff_text, same, username, username2);
-/// println!("{}", result); // Output: "Alice and Bob have the same string: 'hello'"
-/// ```
 fn diff(
-	a1: &str, a2: &str, diff_text: &str, same: &str, username: &str, username2: &str,
+	a1: &str, a2: &str, diff_key: &str, same_key: &str, username: &str, username2: &str,
+	lang_id: &LanguageIdentifier,
 ) -> String {
-	let diff = a1 != a2;
+	let is_diff = a1 != a2;
 
-	let info = if diff {
-		diff_text
-			.replace("$1$", username)
-			.replace("$2$", username2)
-			.replace("$1a$", a1)
-			.replace("$2a$", a2)
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(Cow::Borrowed("var1"), FluentValue::from(username));
+	args.insert(Cow::Borrowed("var2"), FluentValue::from(username2));
+	args.insert(Cow::Borrowed("var1a"), FluentValue::from(a1));
+	args.insert(Cow::Borrowed("var2a"), FluentValue::from(a2));
+
+	let info = if is_diff {
+		USABLE_LOCALES.lookup_with_args(lang_id, diff_key, &args)
 	} else {
-		same.replace("$1$", username)
-			.replace("$2$", username2)
-			.replace("$1a$", a1)
+		USABLE_LOCALES.lookup_with_args(lang_id, same_key, &args)
 	};
 
 	trace!(info);

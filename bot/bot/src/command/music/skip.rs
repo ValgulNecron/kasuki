@@ -44,9 +44,12 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::skip::load_localization_skip;
 use anyhow::anyhow;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// Struct representing the "Skip" command within a Discord bot.
 ///
@@ -96,7 +99,7 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized strings
-		let skip_localised = load_localization_skip(guild_id_str, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		let command_interaction = self_.get_command_interaction();
 
@@ -112,22 +115,24 @@ impl_command!(
 			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		else {
 			let embed_content =
-				EmbedContent::new(skip_localised.title).description(skip_localised.error_no_voice);
+				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
 
 			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 			return Ok(embed_contents);
 		};
-		let mut embed_content = EmbedContent::new(skip_localised.title);
+		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title"));
 
 		let now_playing = player.get_player().await?.track;
 
 		if let Some(np) = now_playing {
 			player.skip()?;
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
 			embed_content =
-				embed_content.description(skip_localised.success.replace("{0}", &np.info.title));
+				embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_skip-success", &args));
 		} else {
-			embed_content = embed_content.description(skip_localised.nothing_to_skip);
+			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
 		}
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

@@ -9,12 +9,15 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::music::join::load_localization_join;
 use anyhow::{anyhow, Result};
+use fluent_templates::fluent_bundle::FluentValue;
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;
 use serenity::prelude::Mentionable;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 /// The `JoinCommand` struct represents a command to make a bot join a specific context or perform an action upon invocation.
@@ -118,7 +121,7 @@ pub async fn join<'a>(
 	let db_connection = bot_data.db_connection.clone();
 
 	// Load the localized strings
-	let join_localised = load_localization_join(guild_id_str, db_connection).await?;
+	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 	let lava_client = bot_data.lavalink.read().await.clone();
 	match lava_client {
@@ -152,8 +155,8 @@ pub async fn join<'a>(
 		match user_channel_id {
 			Some(channel) => channel,
 			None => {
-				let embed_content = EmbedContent::new(join_localised.title)
-					.description(join_localised.error_no_voice);
+				let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"))
+					.description(USABLE_LOCALES.lookup(&lang_id, "music_join-error_no_voice"));
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 				return Ok((false, embed_contents));
@@ -162,7 +165,7 @@ pub async fn join<'a>(
 	};
 
 	// Create the embed content outside the non-Send guild reference scope
-	let mut embed_content = EmbedContent::new(join_localised.title);
+	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"));
 
 	if lava_client
 		.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
@@ -184,10 +187,11 @@ pub async fn join<'a>(
 					)
 					.await?;
 
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("var0"), FluentValue::from(connect_to.mention().to_string()));
+
 				embed_content = embed_content.description(
-					join_localised
-						.success
-						.replace("{0}", &connect_to.mention().to_string()),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "music_join-success", &args),
 				);
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
@@ -195,10 +199,11 @@ pub async fn join<'a>(
 				(true, embed_contents)
 			},
 			Err(why) => {
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("var0"), FluentValue::from(why.to_string()));
+
 				embed_content = embed_content.description(
-					join_localised
-						.error_joining
-						.replace("{0}", &why.to_string()),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "music_join-error_joining", &args),
 				);
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);

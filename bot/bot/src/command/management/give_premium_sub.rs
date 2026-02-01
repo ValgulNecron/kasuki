@@ -81,9 +81,12 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use crate::impl_command;
-use crate::structure::message::management::give_premium_sub::load_localization_give_premium_sub;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// A struct representing the `GivePremiumSubCommand`.
 ///
@@ -144,18 +147,16 @@ impl_command!(
 			.await?;
 		let db_connection = bot_data.db_connection.clone();
 
-		let localization = load_localization_give_premium_sub(
-			command_interaction.guild_id.unwrap().to_string(),
-			db_connection,
-		)
-		.await?;
+		let guild_id = command_interaction.guild_id.unwrap().to_string();
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		let embed_content = EmbedContent::new(String::default()).description(
-			localization
-				.success
-				.replace("{user}", &user.to_string())
-				.replace("{subscription}", &subscription),
-		);
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
+		args.insert(Cow::Borrowed("subscription"), FluentValue::from(subscription.clone()));
+
+		let success_msg = USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);
+
+		let embed_content = EmbedContent::new(String::default()).description(success_msg);
 
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 

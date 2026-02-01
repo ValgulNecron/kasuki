@@ -15,15 +15,16 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::impl_command;
-use crate::structure::message::anilist_user::seiyuu::load_localization_seiyuu;
 use crate::structure::run::anilist::seiyuu_id::{
 	Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
 use crate::structure::run::anilist::seiyuu_search::{SeiyuuSearch, SeiyuuSearchVariables};
 use cynic::{GraphQlResponse, QueryBuilder};
+use fluent_templates::Loader;
 use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 
@@ -103,7 +104,7 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let seiyuu_localised = load_localization_seiyuu(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		self_.defer().await?;
 
@@ -217,7 +218,7 @@ impl_command!(
 		let image_url = format!("attachment://{}", image_path.clone());
 		let image = CommandFiles::new(image_path.clone(), bytes);
 
-		let embed_content = EmbedContent::new(seiyuu_localised.title).images_url(image_url);
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "anilist_user_seiyuu-title")).images_url(image_url);
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
 			.add_files(vec![image])

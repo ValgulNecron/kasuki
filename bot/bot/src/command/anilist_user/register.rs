@@ -14,10 +14,15 @@
 //! This struct implements the `Command` trait, defining the behavior and response of the "register" command.
 use anyhow::anyhow;
 
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::{Command, CommandRun};
@@ -25,7 +30,6 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::impl_command;
-use crate::structure::message::anilist_user::register::load_localization_register;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::{ActiveModel, Column};
@@ -64,8 +68,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized register strings
-		let register_localised = load_localization_register(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Retrieve the user's Discord ID and username
 		let user_id = &command_interaction.user.id.to_string();
@@ -85,12 +89,16 @@ impl_command!(
 		.exec(&*connection)
 		.await?;
 
-		// Construct the description for the embed
-		let desc = register_localised
-			.desc
-			.replace("$user$", username.as_str())
-			.replace("$id$", user_id)
-			.replace("$anilist$", user_data.name.clone().as_str());
+		// Construct the description for the embed using Fluent
+		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(username.as_str()));
+		args.insert(Cow::Borrowed("id"), FluentValue::from(user_id.as_str()));
+		args.insert(
+			Cow::Borrowed("anilist"),
+			FluentValue::from(user_data.name.clone()),
+		);
+
+		let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_register-desc", &args);
 
 		let embed_content = EmbedContent::new(user_data.clone().name)
 			.description(desc)

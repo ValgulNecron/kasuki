@@ -1,6 +1,6 @@
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use crate::structure::message::anilist_server::list_all_activity::load_localization_list_activity;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, CreateEmbed,
@@ -8,8 +8,12 @@ use serenity::all::{
 };
 use shared::database::activity_data::{Column, Model};
 use shared::database::prelude::ActivityData;
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use std::sync::Arc;
 use tracing::trace;
+use unic_langid::LanguageIdentifier;
 
 pub async fn update(
 	ctx: &SerenityContext, component_interaction: &ComponentInteraction, page_number: &str,
@@ -20,8 +24,17 @@ pub async fn update(
 		None => String::from("0"),
 	};
 
-	let list_activity_localised_text =
-		load_localization_list_activity(guild_id, db_connection.clone()).await?;
+	let lang = get_guild_language(guild_id, db_connection.clone()).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-title");
+	let previous = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-previous");
+	let next = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-next");
 
 	let guild_id = component_interaction
 		.guild_id
@@ -49,7 +62,7 @@ pub async fn update(
 	let builder_message = CreateEmbed::new()
 		.timestamp(Timestamp::now())
 		.color(COLOR)
-		.title(list_activity_localised_text.title)
+		.title(title)
 		.description(join_activity);
 
 	let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
@@ -57,7 +70,7 @@ pub async fn update(
 	if page_number != "0" {
 		message_rep = message_rep.button(
 			CreateButton::new(format!("next_activity_{}", previous_page))
-				.label(&list_activity_localised_text.previous),
+				.label(&previous),
 		);
 	}
 
@@ -70,7 +83,7 @@ pub async fn update(
 	{
 		message_rep = message_rep.button(
 			CreateButton::new(format!("next_activity_{}", next_page))
-				.label(&list_activity_localised_text.next),
+				.label(&next),
 		)
 	}
 

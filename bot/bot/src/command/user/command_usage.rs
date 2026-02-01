@@ -22,8 +22,11 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::user::command_usage::load_localization_command_usage;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// A struct representing a command usage event within a Discord application.
 ///
@@ -81,19 +84,20 @@ impl_command!(
 			.map(|id| id.to_string())
 			.unwrap_or("0".to_string());
 
-		let localized_command_usage =
-			load_localization_command_usage(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		let mut embed_contents = vec![];
 
+		let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		title_args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
 		let embed_content =
-			EmbedContent::new(localized_command_usage.title.replace("$user$", &username));
+			EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-title", &title_args));
 
 		if usage.is_empty() {
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
 			let inner_embed = embed_content.description(
-				localized_command_usage
-					.no_usage
-					.replace("$user$", &username),
+				USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-no_usage", &args),
 			);
 			embed_contents.push(inner_embed);
 		} else {
@@ -102,12 +106,11 @@ impl_command!(
 			let mut inner_embed = embed_content.clone();
 
 			for (command, usage_count) in &usage {
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
+				args.insert(Cow::Borrowed("usage"), FluentValue::from(usage_count.to_string()));
 				description.push_str(
-					localized_command_usage
-						.command_usage
-						.replace("$command$", command)
-						.replace("$usage$", &usage_count.to_string())
-						.as_str(),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args).as_str(),
 				);
 
 				description.push('\n');

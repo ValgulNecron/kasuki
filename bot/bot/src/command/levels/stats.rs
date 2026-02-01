@@ -4,8 +4,8 @@ use crate::constant::COLOR;
 use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
 use crate::impl_command;
-use crate::structure::message::levels::stats::load_localization_levels_stats;
 use anyhow::{anyhow, Result};
+use fluent_templates::fluent_bundle::FluentValue;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, Condition};
@@ -13,6 +13,9 @@ use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
 use serenity::model::Colour;
 use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
 use shared::database::{message, vocal};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -113,97 +116,109 @@ impl_command!(
 		debug!("Progress bar created with filename: {}, percent: {}", progress_file.filename, percent);
 
 		debug!("Loading localization for levels stats");
-		let localization = load_localization_levels_stats(
+		let lang_id = get_language_identifier(
 			command_interaction.guild_id.unwrap().to_string(),
 			db_connection,
-		)
-		.await?;
+		).await;
 		debug!("Localization loaded successfully");
 
-		// Format numbers with commas for better readability
-		debug!("Formatting display values");
-		let formatted_message_count = format!("{}", total_message);
-		let formatted_session_count = format!("{}", total_vocal);
-
-		// Format XP values
-		let formatted_xp_message = format!("{}", xp_message);
-		let formatted_xp_vocal = format!("{}", xp_vocal);
-		let formatted_xp_vocal_len = format!("{}", xp_vocal_len);
-		let formatted_xp_total = format!("{}", xp);
-
-		// Format level progression values
-		let formatted_current_xp = format!("{}", xp_progress);
-		let formatted_next_level_xp = format!("{}", xp_needed);
 		let next_level = level + 1;
 		debug!("Current level: {}, Next level: {}", level, next_level);
 
+		// Build arguments for level progress
+		let mut level_progress_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		level_progress_args.insert(Cow::Borrowed("current_level"), FluentValue::from(level));
+		level_progress_args.insert(Cow::Borrowed("next_level"), FluentValue::from(next_level));
+		level_progress_args.insert(Cow::Borrowed("current_xp"), FluentValue::from(xp_progress.to_string()));
+		level_progress_args.insert(Cow::Borrowed("next_level_xp"), FluentValue::from(xp_needed.to_string()));
+
+		// Build arguments for vocal
+		let mut vocal_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		vocal_args.insert(Cow::Borrowed("session"), FluentValue::from(total_vocal.to_string()));
+
+		// Build arguments for vocal_len
+		let mut vocal_len_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		vocal_len_args.insert(Cow::Borrowed("hours"), FluentValue::from(hours.to_string()));
+		vocal_len_args.insert(Cow::Borrowed("minutes"), FluentValue::from(minutes.to_string()));
+		vocal_len_args.insert(Cow::Borrowed("seconds"), FluentValue::from(seconds.to_string()));
+
+		// Build arguments for message
+		let mut message_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		message_args.insert(Cow::Borrowed("message"), FluentValue::from(total_message.to_string()));
+
+		// Build arguments for XP values
+		let mut xp_message_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		xp_message_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp_message.to_string()));
+
+		let mut xp_vocal_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		xp_vocal_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp_vocal.to_string()));
+
+		let mut xp_vocal_len_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		xp_vocal_len_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp_vocal_len.to_string()));
+
+		let mut xp_total_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		xp_total_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp.to_string()));
+
 		// Create embed with title and fields
 		debug!("Creating embed content with fields");
-		let embed_content = EmbedContent::new(localization.title.clone())
+		let title = USABLE_LOCALES.lookup(&lang_id, "levels_stats-title");
+		let embed_content = EmbedContent::new(title.clone())
 			.images_url(progress_filename)
 			.fields(vec![
 				// Level Information
 				(format!("Level {}", level), String::new(), false),
 
 				// Level Progression Section
-				(localization.level_progress_title.clone(), String::new(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "levels_stats-level_progress_title"), String::new(), false),
 				(
-					localization.level_progress
-						.replace("{current_level}", &level.to_string())
-						.replace("{next_level}", &next_level.to_string())
-						.replace("{current_xp}", &formatted_current_xp)
-						.replace("{next_level_xp}", &formatted_next_level_xp)
-						.replace("{percent}", &percent.to_string()),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-level_progress", &level_progress_args),
 					String::new(),
 					false
 				),
 
 				// Voice Activity Section
-				(localization.vocal_title.clone(), String::new(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "levels_stats-vocal_title"), String::new(), false),
 				(
-					localization.vocal.replace("{session}", &formatted_session_count),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-vocal", &vocal_args),
 					String::new(),
 					true
 				),
 				(
-					localization.vocal_len
-						.replace("{hours}", &hours.to_string())
-						.replace("{minutes}", &minutes.to_string())
-						.replace("{seconds}", &seconds.to_string()),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-vocal_len", &vocal_len_args),
 					String::new(),
 					true
 				),
 				// Message Activity Section
-				(localization.message_title.clone(), String::new(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "levels_stats-message_title"), String::new(), false),
 				(
-					localization.message.replace("{message}", &formatted_message_count),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-message", &message_args),
 					String::new(),
 					true
 				),
 				// XP Breakdown Section
-				(localization.xp_title.clone(), String::new(), false),
+				(USABLE_LOCALES.lookup(&lang_id, "levels_stats-xp_title"), String::new(), false),
 				(
-					localization.xp_message.replace("{xp}", &formatted_xp_message),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-xp_message", &xp_message_args),
 					String::new(),
 					true
 				),
 				(
-					localization.xp_vocal.replace("{xp}", &formatted_xp_vocal),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-xp_vocal", &xp_vocal_args),
 					String::new(),
 					true
 				),
 				(
-					localization.xp_vocal_len.replace("{xp}", &formatted_xp_vocal_len),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-xp_vocal_len", &xp_vocal_len_args),
 					String::new(),
 					true
 				),
 				(
-					localization.xp_total.replace("{xp}", &formatted_xp_total),
+					USABLE_LOCALES.lookup_with_args(&lang_id, "levels_stats-xp_total", &xp_total_args),
 					String::new(),
 					false
 				)
 			]);
-		debug!("Embed content created with title: {}", localization.title);
+		debug!("Embed content created with title: {}", title);
 
 		debug!("Creating final embed contents with CommandType::Followup");
 		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

@@ -87,9 +87,13 @@ use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::impl_command;
-use crate::structure::message::anime_nsfw::random_image_nsfw::load_localization_random_image_nsfw;
+use fluent_templates::Loader;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use tracing::{debug, error, info};
+use unic_langid::LanguageIdentifier;
 
 #[derive(Clone)]
 pub struct AnimeRandomNsfwImageCommand {
@@ -136,15 +140,17 @@ impl_command!(
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized random NSFW image strings
-		debug!("Loading random NSFW image localization for guild: {}", guild_id);
-		let random_image_nsfw_localised =
-			load_localization_random_image_nsfw(guild_id, db_connection)
-			.await
-			.map_err(|e| {
-				error!("Failed to load random NSFW image localization: {}", e);
-				e
-			})?;
-		debug!("Random NSFW image localization loaded successfully");
+		debug!("Loading localization for guild: {}", guild_id);
+		let lang = get_guild_language(guild_id.clone(), db_connection).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "anime_nsfw_random_image_nsfw-title");
+		debug!("Localization loaded successfully");
 
 		// Create a deferred response to the command interaction
 		debug!("Deferring command response");
@@ -153,6 +159,6 @@ impl_command!(
 
 		// Send the random NSFW image as a response to the command interaction
 		debug!("Fetching random NSFW image content for type: {}", image_type);
-		random_image_content(image_type, random_image_nsfw_localised.title, "nsfw").await
+		random_image_content(image_type, title, "nsfw").await
 	}
 );

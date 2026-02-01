@@ -7,9 +7,12 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use crate::impl_command;
-use crate::structure::message::user::avatar::load_localization_avatar;
 use anyhow::Result;
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext, User};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 /// A structure representing a command to fetch or handle avatar-related operations within a Discord bot.
 ///
@@ -42,7 +45,7 @@ impl_command!(
 			.unwrap_or_default();
 		let avatar_url = user.face();
 		let username = user.name;
-		let avatar_localised = load_localization_avatar(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 		let server_avatar = match command_interaction.guild_id {
 			Some(guild_id) => {
 				let member = guild_id
@@ -57,14 +60,16 @@ impl_command!(
 			None => None,
 		};
 
-		let title = avatar_localised.title.replace("$user$", username.as_str());
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+		let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-title", &args);
 		let content1 = EmbedContent::new(title).images_url(avatar_url);
 
 		let content2: Option<EmbedContent> = match server_avatar {
 			Some(server_avatar) => {
-				let title = avatar_localised
-					.server_title
-					.replace("$user$", username.as_str());
+				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+				args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+				let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
 				let content2 = EmbedContent::new(title).images_url(server_avatar);
 
 				Some(content2)

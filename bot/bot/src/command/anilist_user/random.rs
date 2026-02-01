@@ -51,10 +51,15 @@
 use crate::constant::RANDOM_STATS_PATH;
 use anyhow::Context;
 use cynic::{GraphQlResponse, QueryBuilder};
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use rand::{rng, Rng};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use shared::random_stats_json::RandomStat;
 use small_fixed_array::FixedString;
+use std::borrow::Cow;
+use std::collections::HashMap;
 use tracing::trace;
 
 use crate::command::command::{Command, CommandRun};
@@ -65,7 +70,6 @@ use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::impl_command;
-use crate::structure::message::anilist_user::random::load_localization_random;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
@@ -125,8 +129,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized random strings
-		let random_localised = load_localization_random(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Retrieve the type of media (anime or manga) from the command interaction
 		let map = get_option_map_string(command_interaction);
@@ -230,12 +234,17 @@ impl_command!(
 
 		let title = format!("{}/{}", user_pref, rj);
 
-		let full_desc = random_localised
-			.desc
-			.replace("$format$", format.to_string().as_str())
-			.replace("$tags$", tags.as_str())
-			.replace("$genres$", genres.as_str())
-			.replace("$desc$", desc.as_str());
+		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+		args.insert(
+			Cow::Borrowed("format"),
+			FluentValue::from(format.to_string()),
+		);
+		args.insert(Cow::Borrowed("tags"), FluentValue::from(tags.as_str()));
+		args.insert(Cow::Borrowed("genres"), FluentValue::from(genres.as_str()));
+		args.insert(Cow::Borrowed("desc"), FluentValue::from(desc.as_str()));
+
+		let full_desc =
+			USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_random-desc", &args);
 
 		let embed_content = EmbedContent::new(title).description(full_desc).url(url);
 

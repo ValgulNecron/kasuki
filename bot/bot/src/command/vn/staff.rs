@@ -4,9 +4,9 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::staff::get_staff;
 use crate::impl_command;
-use crate::structure::message::vn::staff::load_localization_staff;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
 #[derive(Clone)]
 pub struct VnStaffCommand {
@@ -35,17 +35,17 @@ impl_command!(
 			.unwrap_or(String::new());
 		let db_connection = bot_data.db_connection.clone();
 
-		let staff_localised = load_localization_staff(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		let staff = get_staff(staff.clone(), vndb_cache.clone()).await?;
 
 		let staff = staff.results[0].clone();
 
 		let fields = vec![
-			(staff_localised.lang.clone(), staff.lang, true),
-			(staff_localised.aid.clone(), staff.aid.to_string(), true),
-			(staff_localised.gender.clone(), staff.gender.clone().unwrap_or(String::new()), true),
-			(staff_localised.main.clone(), staff.ismain.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_staff-lang"), staff.lang, true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_staff-aid"), staff.aid.to_string(), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_staff-gender"), staff.gender.clone().unwrap_or(String::new()), true),
+			(USABLE_LOCALES.lookup(&lang_id, "vn_staff-main"), staff.ismain.to_string(), true),
 		];
 		let staff_desc = staff.description.clone();
 

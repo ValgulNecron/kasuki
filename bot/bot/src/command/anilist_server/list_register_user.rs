@@ -6,8 +6,8 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::anilist_server::list_register_user::load_localization_list_user;
 use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
 use futures::pin_mut;
 use futures::StreamExt;
 use sea_orm::EntityTrait;
@@ -16,8 +16,12 @@ use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext, PartialGuild, User, UserId};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::Column;
+use shared::helper::get_guild_lang::get_guild_language;
+use shared::localization::USABLE_LOCALES;
+use std::str::FromStr;
 use std::sync::Arc;
 use tracing::trace;
+use unic_langid::LanguageIdentifier;
 
 #[derive(Clone)]
 pub struct ListRegisterUser {
@@ -42,13 +46,21 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		let list_user_localised =
-			load_localization_list_user(guild_id.to_string(), db_connection).await?;
+		let lang = get_guild_language(guild_id.to_string(), db_connection).await;
+		let lang_code = match lang.as_str() {
+			"jp" => "ja",
+			"en" => "en-US",
+			other => other,
+		};
+		let lang_id = LanguageIdentifier::from_str(lang_code)
+			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+		let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-title");
+
 		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
 		let (desc, len, _last_id): (String, usize, Option<UserId>) =
 			get_the_list(guild, &ctx, None, connection).await?;
-		let embed_content = EmbedContent::new(list_user_localised.title).description(desc);
+		let embed_content = EmbedContent::new(title).description(desc);
 
 		let action_row;
 		if len >= MEMBER_LIST_LIMIT as usize {

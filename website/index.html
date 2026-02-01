@@ -2,15 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <title>kasuki</title>
-    <link data-trunk href="/public/style.css" rel="css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, anime notifications, and more. Get instant anime and manga information right in your server!"/>
+    <meta name="theme-color" content="#ff6b9d"/>
+    <meta name="robots" content="index, follow"/>
+    
+    <title>Kasuki - Discord Bot for Anime & Manga Lovers</title>
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Kasuki - Discord Bot for Anime & Manga"/>
+    <meta property="og:description" content="A powerful Discord bot with AniList integration, AI features, anime notifications, and more."/>
+    <meta property="og:image" content="/public/assets/icon.webp"/>
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Kasuki - Discord Bot for Anime & Manga"/>
+    <meta name="twitter:description" content="A powerful Discord bot with AniList integration, AI features, anime notifications, and more."/>
+    
     <!-- Favicon -->
-    <link href="/public/assets/icon.png" rel="icon" type="image/png">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="/public/assets/icon.png" rel="icon" type="image/png"/>
+    <link rel="apple-touch-icon" href="/public/assets/icon.png"/>
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdn.discordapp.com" crossorigin/>
+    <link rel="dns-prefetch" href="https://cdn.discordapp.com"/>
+
+    <!-- Preload critical CSS and icons -->
+    <link rel="preload" href="/public/style.css" as="style"/>
+    <link rel="preload" href="/public/icons.css" as="style"/>
+
+    <!-- Custom icon subset (replaces Font Awesome - 98% smaller) -->
+    <link rel="stylesheet" href="/public/icons.css"/>
+
+    <!-- Critical CSS inlined for faster FCP/LCP -->
+    <style>
+        :root{--primary:#c93d73;--primary-dark:#a82d5e;--secondary:#6a4299;--light:#ffebf3;--dark:#1a1428;--text:#1a1a2e;--text-light:#555566;--background:#fcf8ff;--card-bg:#fff;--border-radius:12px;--shadow:0 4px 20px rgba(255,107,157,.1)}
+        [data-theme=dark]{--primary:#ff7eb3;--primary-dark:#ff6b9d;--secondary:#a88de0;--light:#2a2a45;--dark:#0d0d18;--text:#f5f5f5;--text-light:#c5c5c5;--background:#1a1a2e;--card-bg:#212134;--shadow:0 4px 20px rgba(143,104,201,.2)}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+        body{background-color:var(--background);color:var(--text);line-height:1.6}
+        .container{width:90%;max-width:1200px;margin:0 auto;padding:0 1rem}
+        header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:1rem 0;position:fixed;width:100%;top:0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+        .navbar{display:flex;justify-content:space-between;align-items:center}
+        .logo{display:flex;align-items:center;gap:.8rem;text-decoration:none;color:#fff}
+        .logo img{width:40px;height:40px;border-radius:50%}
+        .logo h1{font-size:1.8rem;font-weight:700}
+        .nav-links{display:flex;list-style:none;gap:2rem;align-items:center}
+        .nav-links a{color:#fff;text-decoration:none;font-weight:500;transition:opacity .3s}
+        .add-btn{background-color:#fff;color:var(--primary);padding:.5rem 1.5rem;border-radius:50px;font-weight:600;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:.5rem}
+        .menu-toggle{display:none;flex-direction:column;cursor:pointer;background:0 0;border:none}
+        .menu-toggle span{width:25px;height:3px;background-color:#fff;margin:2px 0;border-radius:3px}
+        .skip-link{position:absolute;top:-40px;left:0;background:var(--primary);color:#fff;padding:8px 16px;z-index:10000;text-decoration:none;font-weight:600}
+        .skip-link:focus{top:0}
+        @media(max-width:900px){.nav-links{position:fixed;top:0;right:-100%;flex-direction:column;background-color:var(--primary);width:70%;height:100vh;padding:80px 40px 40px;transition:right .5s ease-in-out}.nav-links.active{right:0}.menu-toggle{display:flex;z-index:1001}}
+    </style>
+
+    <!-- CSS (non-blocking) -->
+    <link rel="preload" href="/public/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+    <noscript><link data-trunk href="/public/style.css" rel="css"/></noscript>
+    <link data-trunk href="/public/style.css" rel="css"/>
     <link data-trunk href="public" rel="copy-dir"/>
     <link data-trunk data-wasm-opt="z" rel="rust"/>
-
 </head>
-<body></body>
+<body>
+    <!-- Static hero skeleton for faster LCP - hidden once WASM loads -->
+    <div id="hero-skeleton" style="min-height:100vh;background:linear-gradient(135deg,#1a1625 0%,#2a2438 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+        <div style="max-width:800px;">
+            <h1 style="font-size:clamp(2rem,5vw,3.5rem);color:#fff;margin-bottom:1rem;">Enhance Your Discord Server with Anime & Manga</h1>
+            <p style="font-size:1.25rem;color:#b8b5c4;margin-bottom:2rem;">Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, anime notifications, and more.</p>
+            <a href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot" style="display:inline-block;padding:1rem 2rem;background:#ff6b9d;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Add to Discord</a>
+        </div>
+    </div>
+    <script>window.addEventListener('TrunkApplicationStarted',function(){document.getElementById('hero-skeleton').remove();});</script>
+
+    <!-- Fallback content for SEO and accessibility when JS is disabled -->
+    <noscript>
+        <div style="padding: 20px; text-align: center; background: #ff6b9d; color: white;">
+            <h1>Kasuki Discord Bot</h1>
+            <p>Please enable JavaScript to use this website. Kasuki is a powerful Discord bot for anime and manga lovers.</p>
+            <a href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot" style="color: white;">Add Kasuki to Discord</a>
+        </div>
+    </noscript>
+</body>
 </html>

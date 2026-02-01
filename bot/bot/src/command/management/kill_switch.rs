@@ -64,7 +64,6 @@ use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
 use crate::impl_command;
-use crate::structure::message::management::kill_switch::load_localization_kill_switch;
 use anyhow::anyhow;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
@@ -73,6 +72,7 @@ use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::kill_switch::{ActiveModel, Column};
 use shared::database::prelude::KillSwitch;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 
 /// A struct representing a kill switch command to be executed within the context of a Discord bot.
@@ -129,8 +129,7 @@ impl_command!(
 			.ok_or(anyhow!("No option for name"))?;
 		let db_connection = bot_data.db_connection.clone();
 
-		let module_localised =
-			load_localization_kill_switch(guild_id.clone(), db_connection).await?;
+		let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
 
 		let map = get_option_map_boolean(command_interaction);
 
@@ -164,9 +163,9 @@ impl_command!(
 		active_model.update(&connection).await?;
 
 		let desc = if state {
-			module_localised.on
+			USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-on")
 		} else {
-			module_localised.off
+			USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-off")
 		};
 
 		let embed_content = EmbedContent::new(module.clone()).description(desc);

@@ -2,16 +2,20 @@
 //! progress based on anime and manga statistics. Additionally, this module
 //! supports fetching user data from AniList and database, processing and
 //! preparing data for the embed visualization.
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::message::anilist_user::level::load_localization_level;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
 use crate::{get_url, impl_command};
 use anyhow::anyhow;
@@ -68,8 +72,8 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized level strings
-		let level_localised = load_localization_level(guild_id, db_connection).await?;
+		// Get the language identifier for localization
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 		// Clone the manga and anime statistics
 		let statistics = user.statistics.clone().unwrap();
@@ -119,21 +123,38 @@ impl_command!(
 			// Using 1.0 as a threshold assuming xp_for_next_level won't be fractional in practice.
 			// This effectively means MAX_XP if next_xp is calculated to be 0 or less,
 			// which would happen if current XP is already at or beyond the max level XP.
-			level_localised.max.clone()
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_level-max")
 		} else {
 			next_xp.to_string()
 		};
 
+		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+		args.insert(
+			Cow::Borrowed("username"),
+			FluentValue::from(username.as_str()),
+		);
+		args.insert(
+			Cow::Borrowed("level"),
+			FluentValue::from(level.to_string()),
+		);
+		args.insert(
+			Cow::Borrowed("xp"),
+			FluentValue::from(format!("{:.2}", xp)),
+		);
+		args.insert(
+			Cow::Borrowed("actual"),
+			FluentValue::from(format!("{:.2}", actual)),
+		);
+		args.insert(
+			Cow::Borrowed("next"),
+			FluentValue::from(next_level_display),
+		);
+
+		let description =
+			USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
+
 		let mut embed_content = EmbedContent::new(user.clone().name)
-			.description(
-				level_localised
-					.desc
-					.replace("$username$", username.as_str())
-					.replace("$level$", level.to_string().as_str())
-					.replace("$xp$", format!("{:.2}", xp).as_str())
-					.replace("$actual$", format!("{:.2}", actual).as_str())
-					.replace("$next$", next_level_display.as_str()),
-			)
+			.description(description)
 			.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
 			.url(get_user_url(&user.id))
 			.colour(get_color(user.clone()));

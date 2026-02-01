@@ -3,8 +3,8 @@ use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::bot::credit::load_localization_credit;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use tracing::{debug, info};
 
 #[derive(Clone)]
@@ -37,23 +37,15 @@ impl_command!(
 		};
 		let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized credit strings
-		debug!("Loading credit localization for guild: {}", guild_id);
-		let credit_localised = load_localization_credit(guild_id, db_connection).await?;
-		debug!("Credit localization loaded successfully");
-
-		// Construct a description by concatenating the descriptions of all credits
-		debug!("Constructing credit description");
-		let mut desc: String = "".to_string();
-
-		for x in credit_localised.credits {
-			desc += x.desc.as_str();
-			debug!("Added credit description to the combined text");
-		}
+		// Get the language identifier for the guild
+		debug!("Loading localization for guild: {}", guild_id);
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
+		debug!("Localization loaded successfully");
 
 		debug!("Creating embed content");
-		let title = credit_localised.title.clone();
-		let embed_content = EmbedContent::new(credit_localised.title).description(desc);
+		let title = USABLE_LOCALES.lookup(&lang_id, "bot_credit-title");
+		let desc = USABLE_LOCALES.lookup(&lang_id, "bot_credit-desc");
+		let embed_content = EmbedContent::new(title.clone()).description(desc);
 		debug!("Embed content created with title: {}", title);
 
 		debug!("Creating final embed contents with CommandType::First");

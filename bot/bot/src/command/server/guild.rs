@@ -85,9 +85,9 @@ use crate::command::command::{Command, CommandRun};
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::server::guild::load_localization_guild;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::nonmax::NonMaxU64;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
 /// A structure representing a command within a guild context on Discord.
 ///
@@ -119,14 +119,14 @@ impl_command!(
 		let command_interaction = self_.get_command_interaction();
 
 		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id {
+		let guild_id_str = match command_interaction.guild_id {
 			Some(id) => id.to_string(),
 			None => String::from("0"),
 		};
 		let db_connection = bot_data.db_connection.clone();
 
 		// Load the localized guild information
-		let guild_localised = load_localization_guild(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
 		// Retrieve the guild ID from the command interaction or return an error if it does not exist
 		let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
@@ -180,44 +180,44 @@ impl_command!(
 		let mut fields: Vec<(String, String, bool)> = Vec::new();
 
 		// Add the fields to the vector
-		fields.push((guild_localised.guild_id, guild_id.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_id"), guild_id.to_string(), true));
 
-		fields.push((guild_localised.guild_name, guild_name.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_name"), guild_name.to_string(), true));
 
 		fields.push((
-			guild_localised.member,
+			USABLE_LOCALES.lookup(&lang_id, "server_guild-member"),
 			format!("{}/{}", actual_member, max_member),
 			true,
 		));
 
 		fields.push((
-			guild_localised.online,
+			USABLE_LOCALES.lookup(&lang_id, "server_guild-online"),
 			format!("{}/{}", online_member, max_online),
 			true,
 		));
 
-		fields.push((guild_localised.creation_date, creation_date, true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-creation_date"), creation_date, true));
 
-		fields.push((guild_localised.lang, guild_lang.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-lang"), guild_lang.to_string(), true));
 
 		fields.push((
-			guild_localised.premium,
+			USABLE_LOCALES.lookup(&lang_id, "server_guild-premium"),
 			format!("{:?}", guild_premium),
 			true,
 		));
 
-		fields.push((guild_localised.sub, guild_sub.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-sub"), guild_sub.to_string(), true));
 
-		fields.push((guild_localised.nsfw, format!("{:?}", guild_nsfw), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-nsfw"), format!("{:?}", guild_nsfw), true));
 
-		fields.push((guild_localised.owner, owner.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-owner"), owner.to_string(), true));
 
-		fields.push((guild_localised.roles, roles.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-roles"), roles.to_string(), true));
 
-		fields.push((guild_localised.channels, channels.to_string(), true));
+		fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-channels"), channels.to_string(), true));
 
 		fields.push((
-			guild_localised.verification_level,
+			USABLE_LOCALES.lookup(&lang_id, "server_guild-verification_level"),
 			format!("{:?}", verification_level),
 			true,
 		));

@@ -6,8 +6,12 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use crate::impl_command;
-use crate::structure::message::user::profile::{load_localization_profile, ProfileLocalised};
+use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
+use unic_langid::LanguageIdentifier;
 
 /// `ProfileCommand` represents a structure that handles the context and interaction
 /// details required for processing a profile-related command in a Discord bot.
@@ -65,9 +69,9 @@ impl_command!(
 			.unwrap_or("0".to_string());
 		let db_connection = bot_data.db_connection.clone();
 
-		let profile_localised = load_localization_profile(guild_id, db_connection).await?;
+		let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		let mut fields = get_fields(&profile_localised, user.clone());
+		let mut fields = get_fields(&lang_id, user.clone());
 
 		let avatar_url = user.face();
 
@@ -81,7 +85,7 @@ impl_command!(
 		if let Some(member) = member {
 			if let Some(joined_at) = member.joined_at {
 				fields.push((
-					profile_localised.joined_date,
+					USABLE_LOCALES.lookup(&lang_id, "user_profile-joined_date"),
 					format!("<t:{}>", joined_at.timestamp()),
 					true,
 				));
@@ -133,13 +137,14 @@ impl_command!(
 					)
 				});
 
-				fields.push((profile_localised.premium, string.collect::<String>(), true));
+				fields.push((USABLE_LOCALES.lookup(&lang_id, "user_profile-premium"), string.collect::<String>(), true));
 			}
 		}
+
+		let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		title_args.insert(Cow::Borrowed("user"), FluentValue::from(user.name.to_string()));
 		let embed_content = EmbedContent::new(
-			profile_localised
-				.title
-				.replace("$user$", user.name.as_str()),
+			USABLE_LOCALES.lookup_with_args(&lang_id, "user_profile-title", &title_args),
 		)
 		.thumbnail(avatar_url)
 		.fields(fields)
@@ -155,14 +160,13 @@ impl_command!(
 ///
 /// # Parameters
 ///
-/// - `profile_localised`: A reference to a [`ProfileLocalised`] structure that provides localized
-///   field names or keys (e.g., for ID, creation date, bot status, etc.).
+/// - `lang_id`: A reference to the language identifier for localization.
 /// - `user`: A [`User`] object containing user-specific information to populate the fields.
 ///
 /// # Returns
 ///
 /// Returns a `Vec` of tuples `(String, String, bool)`, where each tuple represents:
-/// - The field name (localized, as in `profile_localised`),
+/// - The field name (localized),
 /// - The field value (derived from the `user` object),
 /// - A boolean indicating whether the field is inline (`true`) or not (`false`).
 ///
@@ -174,48 +178,21 @@ impl_command!(
 ///
 /// Additionally, if the user has public flags (accessible via `user.public_flags`):
 /// - The flags are retrieved, formatted, and added as a new field.
-///
-/// # Example Output
-///
-/// An example of a single field in the vector:
-///
-/// ```text
-/// (
-///   "ID".to_string(),                     // Localized field name
-///   "123456789".to_string(),              // User ID as string
-///   true,                                 // Inline status
-/// )
-/// ```
-///
-/// # Notes
-///
-/// - The `user.public_flags` field is optional. If it exists, the user's flags
-///   are iterated, converted to strings, and joined with " / " separators.
-/// - Any added flag field will have `false` for the inline status.
-///
-/// # Dependencies
-///
-/// This function requires:
-/// - A `ProfileLocalised` implementation to provide localized field names.
-/// - The `User` structure, which should include:
-///   - User ID (`id`), and a method `created_at()` to get a creation timestamp.
-///   - Whether the user is a bot or part of a system (`bot()`/`system()` methods).
-///   - Optional public flags (`public_flags`) with an `iter_names()` method.
-fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, String, bool)> {
+fn get_fields(lang_id: &LanguageIdentifier, user: User) -> Vec<(String, String, bool)> {
 	let mut fields = vec![
 		(
-			profile_localised.id.clone(),
+			USABLE_LOCALES.lookup(lang_id, "user_profile-id"),
 			user.id.clone().to_string(),
 			true,
 		),
 		(
-			profile_localised.creation_date.clone(),
+			USABLE_LOCALES.lookup(lang_id, "user_profile-creation_date"),
 			format!("<t:{}>", user.id.created_at().timestamp()),
 			true,
 		),
-		(profile_localised.bot.clone(), user.bot().to_string(), true),
+		(USABLE_LOCALES.lookup(lang_id, "user_profile-bot"), user.bot().to_string(), true),
 		(
-			profile_localised.system.clone(),
+			USABLE_LOCALES.lookup(lang_id, "user_profile-system"),
 			user.system().to_string(),
 			true,
 		),
@@ -231,7 +208,7 @@ fn get_fields(profile_localised: &ProfileLocalised, user: User) -> Vec<(String, 
 
 		if !user_flags.is_empty() {
 			fields.push((
-				profile_localised.public_flag.clone(),
+				USABLE_LOCALES.lookup(lang_id, "user_profile-public_flag"),
 				user_flags.join(" / "),
 				false,
 			));

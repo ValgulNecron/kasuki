@@ -1,10 +1,14 @@
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
-use crate::structure::message::anilist_user::user::{load_localization_user, UserLocalised};
 use anyhow::{anyhow, Result};
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
 use serenity::model::Colour;
+use shared::localization::{get_language_identifier, LanguageIdentifier, USABLE_LOCALES};
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -188,7 +192,7 @@ pub async fn user_content<'a>(
 		None => String::from("0"),
 	};
 
-	let user_localised = load_localization_user(guild_id, db_connection).await?;
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 	let mut field = Vec::new();
 
@@ -203,13 +207,13 @@ pub async fn user_content<'a>(
 
 	if let Some(m) = &manga {
 		if m.count > 0 {
-			field.push(get_manga_field(user.id, user_localised.clone(), m.clone()))
+			field.push(get_manga_field(user.id, &lang_id, m.clone()))
 		}
 	}
 
 	if let Some(a) = &anime {
 		if a.count > 0 {
-			field.push(get_anime_field(user.id, user_localised.clone(), a.clone()))
+			field.push(get_anime_field(user.id, &lang_id, a.clone()))
 		}
 	}
 
@@ -247,47 +251,70 @@ fn get_user_anime_url(user_id: i32) -> String {
 }
 
 fn get_manga_field(
-	user_id: i32, localised: UserLocalised, manga: UserStatistics2,
+	user_id: i32, lang_id: &LanguageIdentifier, manga: UserStatistics2,
 ) -> (String, String, bool) {
 	(
 		String::new(),
-		get_manga_desc(manga, localised, user_id),
+		get_manga_desc(manga, lang_id, user_id),
 		false,
 	)
 }
 
 fn get_anime_field(
-	user_id: i32, localised: UserLocalised, anime: UserStatistics,
+	user_id: i32, lang_id: &LanguageIdentifier, anime: UserStatistics,
 ) -> (String, String, bool) {
 	(
 		String::new(),
-		get_anime_desc(anime, localised, user_id),
+		get_anime_desc(anime, lang_id, user_id),
 		false,
 	)
 }
 
-fn get_manga_desc(manga: UserStatistics2, localised: UserLocalised, user_id: i32) -> String {
-	localised
-		.manga
-		.replace("$url$", get_user_manga_url(user_id).as_str())
-		.replace("$count$", manga.count.to_string().as_str())
-		.replace(
-			"$complete$",
-			get_completed(manga.statuses.unwrap().clone())
-				.to_string()
-				.as_str(),
-		)
-		.replace("$chap$", manga.chapters_read.to_string().as_str())
-		.replace("$score$", manga.mean_score.to_string().as_str())
-		.replace("$sd$", manga.standard_deviation.to_string().as_str())
-		.replace(
-			"$tag_list$",
-			get_tag_list(manga.tags.clone().unwrap()).as_str(),
-		)
-		.replace(
-			"$genre_list$",
-			get_genre_list(manga.genres.clone().unwrap()).as_str(),
-		)
+fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id: i32) -> String {
+	let mut desc = String::new();
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("url"),
+		FluentValue::from(get_user_manga_url(user_id)),
+	);
+	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-manga-title", &args).as_str());
+	desc = desc.replace("\u{2069}", "");
+	desc = desc.replace("\u{2068}", "");
+	desc.push_str("\n");
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("count"),
+		FluentValue::from(manga.count.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("complete"),
+		FluentValue::from(get_completed(manga.statuses.unwrap().clone()).to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("chap"),
+		FluentValue::from(manga.chapters_read.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("score"),
+		FluentValue::from(manga.mean_score.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("sd"),
+		FluentValue::from(manga.standard_deviation.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("tag_list"),
+		FluentValue::from(get_tag_list(manga.tags.clone().unwrap())),
+	);
+	args.insert(
+		Cow::Borrowed("genre_list"),
+		FluentValue::from(get_genre_list(manga.genres.clone().unwrap())),
+	);
+
+
+	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-manga", &args).as_str());
+	desc
 }
 
 fn get_tag_list(vec: Vec<Option<UserTagStatistic>>) -> String {
@@ -328,34 +355,53 @@ pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
 	anime_completed
 }
 
-fn get_anime_desc(anime: UserStatistics, localised: UserLocalised, user_id: i32) -> String {
-	localised
-		.anime
-		.replace("$url$", get_user_anime_url(user_id).as_str())
-		.replace("$count$", anime.count.to_string().as_str())
-		.replace(
-			"$complete$",
-			get_completed(anime.statuses.clone().unwrap())
-				.to_string()
-				.as_str(),
-		)
-		.replace(
-			"$duration$",
-			get_anime_time_watch(anime.minutes_watched, localised.clone()).as_str(),
-		)
-		.replace("$score$", anime.mean_score.to_string().as_str())
-		.replace("$sd$", anime.standard_deviation.to_string().as_str())
-		.replace(
-			"$tag_list$",
-			get_tag_list(anime.tags.clone().unwrap()).as_str(),
-		)
-		.replace(
-			"$genre_list$",
-			get_genre_list(anime.genres.clone().unwrap()).as_str(),
-		)
+fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: i32) -> String {
+	let mut desc = String::new();
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("url"),
+		FluentValue::from(get_user_anime_url(user_id)),
+	);
+
+	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-anime-title", &args).as_str());
+	desc = desc.replace("\u{2069}", "");
+	desc = desc.replace("\u{2068}", "");
+	desc.push_str("\n");
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("count"),
+		FluentValue::from(anime.count.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("complete"),
+		FluentValue::from(get_completed(anime.statuses.clone().unwrap()).to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("duration"),
+		FluentValue::from(get_anime_time_watch(anime.minutes_watched, lang_id)),
+	);
+	args.insert(
+		Cow::Borrowed("score"),
+		FluentValue::from(anime.mean_score.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("sd"),
+		FluentValue::from(anime.standard_deviation.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("tag_list"),
+		FluentValue::from(get_tag_list(anime.tags.clone().unwrap())),
+	);
+	args.insert(
+		Cow::Borrowed("genre_list"),
+		FluentValue::from(get_genre_list(anime.genres.clone().unwrap())),
+	);
+	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-anime", &args).as_str());
+	desc
 }
 
-fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
+fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 	let mut min = i;
 
 	let mut hour = 0;
@@ -384,34 +430,40 @@ fn get_anime_time_watch(i: i32, localised1: UserLocalised) -> String {
 
 	let mut tw = String::new();
 
-	let weeks = match week {
-		1 => format!("{} {}", localised1.week, week),
-		_ => format!("{} {}", localised1.weeks, week),
-	};
+	if week >= 1 {
+		let week_label = match week {
+			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-week"),
+			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-weeks"),
+		};
+		tw.push_str(&format!("{}{}", week_label, week));
+	}
 
-	tw.push_str(weeks.as_str());
+	if days >= 1
+	{
+		let day_label = match days {
+			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-day"),
+			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-days"),
+		};
+		tw.push_str(&format!("{}{}", day_label, days));
+	}
 
-	let days = match days {
-		1 => format!("{} {}", localised1.day, days),
-		_ => format!("{} {}", localised1.days, days),
-	};
+	if hour >= 1
+	{
+		let hour_label = match hour {
+			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-hour"),
+			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-hours"),
+		};
+		tw.push_str(&format!("{}{}", hour_label, hour));
+	}
 
-	tw.push_str(days.as_str());
-
-	let hours = match hour {
-		1 => format!("{} {}", localised1.hour, hour),
-		_ => format!("{} {}", localised1.hours, hour),
-	};
-
-	tw.push_str(hours.as_str());
-
-	let mins = match min {
-		1 => format!("{} {}", localised1.minute, min),
-		_ => format!("{} {}", localised1.minutes, min),
-	};
-
-	tw.push_str(mins.as_str());
-
+	if min >= 1
+	{
+		let min_label = match min {
+			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-minute"),
+			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-minutes"),
+		};
+		tw.push_str(&format!("{}{}", min_label, min));
+	}
 	tw
 }
 
