@@ -1,0 +1,2 @@
+admin_server_new_member_setting-description = 設定が正常に更新されました。
+admin_server_new_member_setting-title = 新規メンバー設定

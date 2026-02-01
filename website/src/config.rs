@@ -7,7 +7,7 @@ impl Config {
     pub fn api_url() -> &'static str {
         env!("KASUKI_API_URL")
     }
-    
+
     /// Get the OAuth login URL
     pub fn oauth_login_url() -> String {
         format!("{}/api/oauth/login", Self::api_url())

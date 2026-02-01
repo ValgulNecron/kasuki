@@ -1,0 +1,30 @@
+{
+  "name": "ping",
+  "desc": "Get the ping of the bot (and the shard id).",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 0,
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "ping",
+      "desc": "Get the ping of the bot (and the shard id)."
+    },
+    {
+      "code": "fr",
+      "name": "ping",
+      "desc": "Obtenez le ping du bot (et l'id du shard)."
+    },
+    {
+      "code": "de",
+      "name": "ping",
+      "desc": "Holen Sie sich den Ping des Bots (und die Shard-ID)."
+    },
+    {
+      "code": "ja",
+      "name": "ping",
+      "desc": "ボットのピング（およびシャードID）を取得します。"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+[package]
+name = "bot"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+serenity.workspace = true
+shared.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rand.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+image.workspace = true
+base64.workspace = true
+once_cell.workspace = true
+tracing-subscriber.workspace = true
+serde_with.workspace = true
+palette.workspace = true
+tracing-appender.workspace = true
+rayon.workspace = true
+markdown_converter.workspace = true
+futures.workspace = true
+rapidfuzz.workspace = true
+cynic.workspace = true
+moka.workspace = true
+toml.workspace = true
+num-bigint.workspace = true
+songbird.workspace = true
+sea-orm.workspace = true
+serde_urlencoded.workspace = true
+catbox.workspace = true
+tempfile.workspace = true
+small-fixed-array.workspace = true
+lavalink-rs.workspace = true
+async-trait.workspace = true
+dashmap.workspace = true
+bytes.workspace = true
+rust-fuzzy-search.workspace = true
+governor.workspace = true
+fluent-templates.workspace = true
+unic-langid.workspace = true
+fluent-syntax.workspace = true
+walkdir.workspace = true
+
+[build-dependencies]
+cynic-codegen = "3.12.0"
+
+[[bin]]
+name = "kasuki"
+path = "src/main.rs"

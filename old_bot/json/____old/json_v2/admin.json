@@ -1,0 +1,97 @@
+{
+  "name": "admin",
+  "desc": "General bot configuration configuration for admin only.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "default_permissions": [
+    {
+      "permission": "Administrator"
+    }
+  ],
+  "arg_num": 2,
+  "args": [
+    {
+      "name": "lang",
+      "desc": "Change the language of the bot's response.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "admin/lang.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "fr",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "de",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        },
+        {
+          "code": "ja",
+          "name": "lang",
+          "desc": "The language you want to set the response to."
+        }
+      ]
+    },
+    {
+      "name": "module",
+      "desc": "Turn on or off a module.",
+      "command_type": "SubCommand",
+      "required": true,
+      "autocomplete": false,
+      "file": "admin/module.json",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "module",
+          "desc": "Turn on or off a module."
+        },
+        {
+          "code": "fr",
+          "name": "module",
+          "desc": "Activer ou désactiver un module."
+        },
+        {
+          "code": "de",
+          "name": "modul",
+          "desc": "Ein Modul ein- oder ausschalten."
+        },
+        {
+          "code": "ja",
+          "name": "モジュール",
+          "desc": "モジュールをオンまたはオフにします。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "admin",
+      "desc": "General bot configuration configuration for admin only."
+    },
+    {
+      "code": "fr",
+      "name": "admin",
+      "desc": "Configuration générale du bot pour les administrateurs uniquement."
+    },
+    {
+      "code": "de",
+      "name": "admin",
+      "desc": "Allgemeine Bot-Konfiguration nur für Admins."
+    },
+    {
+      "code": "ja",
+      "name": "admin",
+      "desc": "管理者専用の一般的なボット構成設定。"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "anilist_user",
+  "desc": "Info of an anilist user.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the anilist user you want to check.",
+      "required": false,
+      "autocomplete": true,
+      "arg_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "username",
+          "desc": "Username of the anilist user you want to check."
+        },
+        {
+          "code": "fr",
+          "name": "nom_d_utilisateur",
+          "desc": "Nom d'utilisateur du utilisateur d'Anilist que vous souhaitez vérifier."
+        },
+        {
+          "code": "de",
+          "name": "benutzername",
+          "desc": "Benutzername des Anilist-Benutzers, den Sie prüfen möchten."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザーネーム",
+          "desc": "チェックしたいアニリストユーザーのユーザーネーム。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "anilist_user",
+      "desc": "Info of an anilist user."
+    },
+    {
+      "code": "fr",
+      "name": "utilisateur_anilist",
+      "desc": "Informations sur un utilisateur d'Anilist."
+    },
+    {
+      "code": "de",
+      "name": "anilist_user",
+      "desc": "Informationen zu einem Anilist-Benutzer."
+    },
+    {
+      "code": "ja",
+      "name": "anilist_user",
+      "desc": "アニリストユーザーの情報。"
+    }
+  ]
+}

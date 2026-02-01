@@ -35,7 +35,7 @@
 
 - Music module: (Will do it with file upload to a channel)
     - [ ] Play music from file upload.
-    - [ ] Create control channel 
+    - [ ] Create control channel
 
 - General module:
     - [ ] Better langage json loading.

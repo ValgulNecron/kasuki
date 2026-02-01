@@ -1,6 +1,6 @@
-use leptos::*;
+use crate::app::UserSessionData;
 use leptos::prelude::*;
-use crate::app::{UserSessionData};
+use leptos::*;
 
 #[component]
 pub fn Profile(

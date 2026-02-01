@@ -286,6 +286,69 @@
                       "name": "フランス語"
                     }
                   ]
+                },
+                {
+                  "option_choice": "es-ES",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Spanish"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Espagnol"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Spanisch"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "スペイン語"
+                    }
+                  ]
+                },
+                {
+                  "option_choice": "zh-CN",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Chinese (Simplified)"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Chinois (Simplifié)"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Chinesisch (Vereinfacht)"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "中国語 (簡体字)"
+                    }
+                  ]
+                },
+                {
+                  "option_choice": "ru",
+                  "option_choice_localised": [
+                    {
+                      "code": "en-US",
+                      "name": "Russian"
+                    },
+                    {
+                      "code": "fr",
+                      "name": "Russe"
+                    },
+                    {
+                      "code": "de",
+                      "name": "Russisch"
+                    },
+                    {
+                      "code": "ja",
+                      "name": "ロシア語"
+                    }
+                  ]
                 }
               ],
               "localised_args": [

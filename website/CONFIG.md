@@ -2,7 +2,8 @@
 
 ## Environment Variables
 
-The website uses compile-time environment variables for configuration. Create a `.env` file in this directory to configure the application.
+The website uses compile-time environment variables for configuration. Create a `.env` file in this directory to
+configure the application.
 
 ### Setup
 
@@ -15,7 +16,7 @@ The website uses compile-time environment variables for configuration. Create a 
    ```
    KASUKI_API_URL=http://localhost:8080
    ```
-   
+
    **Important:** Make sure there are no extra spaces and the line is not commented out (no `#` at the start).
 
 3. **Clean and rebuild** the application:
@@ -31,8 +32,8 @@ The website uses compile-time environment variables for configuration. Create a 
 ### Configuration Options
 
 - `KASUKI_API_URL`: The base URL of the Kasuki API server (required)
-  - For local development: `http://localhost:8080`
-  - For production: `https://your-domain.com`
+    - For local development: `http://localhost:8080`
+    - For production: `https://your-domain.com`
 
 ### Troubleshooting
 
@@ -52,10 +53,10 @@ If you change the `.env` file and the changes aren't reflected:
    ```
 
 3. **Verify the .env file format:**
-   - Make sure `KASUKI_API_URL=http://localhost:8080` is not commented out
-   - No spaces around the `=` sign
-   - No quotes around the URL
-   - File encoding should be UTF-8
+    - Make sure `KASUKI_API_URL=http://localhost:8080` is not commented out
+    - No spaces around the `=` sign
+    - No quotes around the URL
+    - File encoding should be UTF-8
 
 4. **Check build output:**
    During `trunk build`, look for these messages:
@@ -94,10 +95,12 @@ To enable Discord OAuth login:
 ## Development
 
 For development with hot reload:
+
 ```bash
 trunk serve
 ```
 
 The website will be available at http://localhost:1420 (configured in `Trunk.toml`).
 
-**Note:** With `trunk serve`, you'll need to rebuild (`Ctrl+C` and `trunk serve` again) if you change the `.env` file, as it's loaded at compile time.
+**Note:** With `trunk serve`, you'll need to rebuild (`Ctrl+C` and `trunk serve` again) if you change the `.env` file,
+as it's loaded at compile time.

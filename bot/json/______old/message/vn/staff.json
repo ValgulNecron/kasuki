@@ -1,0 +1,26 @@
+{
+  "en": {
+    "main": "Main",
+    "aid": "AID",
+    "gender": "Gender",
+    "lang": "Language"
+  },
+  "de": {
+    "main": "Haupt",
+    "aid": "AID",
+    "gender": "Geschlecht",
+    "lang": "Sprache"
+  },
+  "fr": {
+    "main": "Principal",
+    "aid": "AID",
+    "gender": "Sexe",
+    "lang": "Langue"
+  },
+  "ja": {
+    "main": "メイン",
+    "aid": "AID",
+    "gender": "性別",
+    "lang": "言語"
+  }
+}

@@ -1,0 +1,12 @@
+vn_character-age = 年齢
+vn_character-birthday = 誕生日
+vn_character-blood_type = 血液型
+vn_character-bust = バスト
+vn_character-cup = カップ
+vn_character-height = 身長
+vn_character-hip = ヒップ
+vn_character-sex = 性別
+vn_character-traits = 特徴
+vn_character-vns = ビジュアルノベル
+vn_character-waist = ウエスト
+vn_character-weight = 体重

@@ -1,8 +1,7 @@
-
-use leptos::*;
 use leptos::prelude::ClassAttribute;
 use leptos::prelude::ElementChild;
 use leptos::prelude::GlobalAttributes;
+use leptos::*;
 #[component]
 pub fn Setup() -> impl IntoView {
     view! {

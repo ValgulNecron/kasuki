@@ -111,7 +111,7 @@ Check the [todo](TODO.md) file.
 ## Website
 
 for those of you who prefer web dev.\
-you can check ./website and make improvement. 
+you can check ./website and make improvement.
 
 # Credit
 

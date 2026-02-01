@@ -1,0 +1,13 @@
+server_guild-channels = Canaux
+server_guild-creation_date = Date de création
+server_guild-guild_id = Id de la guilde
+server_guild-guild_name = Nom de la guilde
+server_guild-lang = Langue de la guilde
+server_guild-member = Membre
+server_guild-nsfw = Niveau NSFW
+server_guild-online = En ligne
+server_guild-owner = Propriétaire
+server_guild-premium = Niveau de boost
+server_guild-roles = Rôles
+server_guild-sub = Boost de la guilde
+server_guild-verification_level = Niveau de vérification

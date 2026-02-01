@@ -1,23 +1,28 @@
-use leptos::prelude::*;
-use crate::components::header::Header;
-use crate::components::footer::Footer;
-use crate::components::hero::Hero;
-use crate::components::features::Features;
 use crate::components::commands::Commands;
+use crate::components::features::Features;
+use crate::components::footer::Footer;
+use crate::components::header::Header;
+use crate::components::hero::Hero;
+use crate::components::privacy::Privacy;
+use crate::components::profile::Profile;
 use crate::components::screenshots::Screenshots;
 use crate::components::setup::Setup;
-use crate::components::privacy::Privacy;
 use crate::components::terms::Terms;
-use crate::components::profile::Profile;
+use leptos::logging::log;
 use leptos::prelude::document;
 use leptos::prelude::Effect;
-use leptos::logging::log; // Corrected import
+use leptos::prelude::*;
+// Corrected import
 use wasm_bindgen::JsCast;
-use web_sys::{HashChangeEvent, window}; // Added window and Storage
+use web_sys::{window, HashChangeEvent};
+use crate::api::fetch_user_data;
+// Added window and Storage
 use url::Url;
-use crate::api::fetch_user_data; // Import the new API function
-use wasm_bindgen_futures::spawn_local; // Corrected import
-use serde::{Serialize, Deserialize}; // Added
+// Import the new API function
+use wasm_bindgen_futures::spawn_local;
+// Corrected import
+use serde::{Deserialize, Serialize};
+// Added
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Page {
@@ -68,7 +73,7 @@ pub fn App() -> impl IntoView {
                     Ok((user_data, guilds)) => {
                         log!("Fetched user data: {:?}", user_data);
                         set_user_session_data_clone.set(Some(UserSessionData { user: user_data, guilds }));
-                    },
+                    }
                     Err(e) => {
                         log!("Failed to fetch user data with JWT: {:?}", e);
                         set_user_session_data_clone.set(None); // Clear user on error
@@ -84,7 +89,7 @@ pub fn App() -> impl IntoView {
                         Ok((user_data, guilds)) => {
                             log!("Fetched user data from stored JWT: {:?}", user_data);
                             set_user_session_data_clone.set(Some(UserSessionData { user: user_data, guilds }));
-                        },
+                        }
                         Err(e) => {
                             log!("Failed to fetch user data with stored JWT: {:?}", e);
                             set_user_session_data_clone.set(None); // Clear user on error
@@ -102,7 +107,7 @@ pub fn App() -> impl IntoView {
     Effect::new(move |_| {
         let full_hash = window().expect("window to be available").location().hash().unwrap_or_default();
         let (page, jwt_from_url) = parse_hash_and_params(&full_hash);
-        
+
         set_current_page.set(page);
         handle_jwt_and_user_state(jwt_from_url);
 
@@ -110,11 +115,11 @@ pub fn App() -> impl IntoView {
         let closure = wasm_bindgen::closure::Closure::wrap(Box::new(move |_event: HashChangeEvent| {
             let full_hash = window().expect("window to be available").location().hash().unwrap_or_default();
             let (page, jwt_from_url) = parse_hash_and_params(&full_hash);
-            
+
             set_current_page.set(page);
             handle_jwt_and_user_state(jwt_from_url);
         }) as Box<dyn FnMut(_)>);
-        
+
         let _ = window().expect("window to be available").add_event_listener_with_callback("hashchange", closure.as_ref().unchecked_ref());
         closure.forget();
     });
@@ -146,13 +151,14 @@ pub fn App() -> impl IntoView {
 
     view! {
         <div id="app">
+            <a href="#main-content" class="skip-link">"Skip to main content"</a>
             <Header
                 user_session_data=user_session_data
                 set_user_session_data=set_user_session_data
             />
             {move || match current_page.get() {
                 Page::Home => view! {
-                    <main>
+                    <main id="main-content" role="main">
                         <Hero />
                         <Features />
                         <Commands />
@@ -160,15 +166,20 @@ pub fn App() -> impl IntoView {
                         <Setup />
                     </main>
                 }.into_any(),
-                Page::Privacy => view! { <Privacy /> }.into_any(),
-                Page::Terms => view! { <Terms /> }.into_any(),
+                Page::Privacy => view! { <main id="main-content" role="main"><Privacy /></main> }.into_any(),
+                Page::Terms => view! { <main id="main-content" role="main"><Terms /></main> }.into_any(),
                 Page::Profile => {
-                    view! { <Profile user_session_data=user_session_data /> }.into_any()
+                    view! { <main id="main-content" role="main"><Profile user_session_data=user_session_data /></main> }.into_any()
                 },
             }}
             <Footer />
-            <button class="theme-toggle" on:click=move |_| set_is_dark.update(|val| *val = !*val)>
-                <i class={move || if is_dark.get() { "fas fa-sun" } else { "fas fa-moon" }}></i>
+            <button 
+                class="theme-toggle" 
+                on:click=move |_| set_is_dark.update(|val| *val = !*val)
+                aria-label={move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }}
+                title={move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }}
+            >
+                <i class={move || if is_dark.get() { "fas fa-sun" } else { "fas fa-moon" }} aria-hidden="true"></i>
             </button>
         </div>
     }

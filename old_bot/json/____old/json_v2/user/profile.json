@@ -1,0 +1,61 @@
+{
+  "name": "profile",
+  "desc": "Show the profile of a user.",
+  "dm_command": false,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "username",
+      "desc": "Username of the user you want the avatar of.",
+      "required": false,
+      "autocomplete": false,
+      "command_type": "User",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "username",
+          "desc": "Username of the user you want the avatar of."
+        },
+        {
+          "code": "fr",
+          "name": "nom_dutilisateur",
+          "desc": "Nom d'utilisateur de l'utilisateur dont vous voulez l'avatar."
+        },
+        {
+          "code": "de",
+          "name": "benutzername",
+          "desc": "Benutzername des Benutzers, dessen Avatar Sie wollen."
+        },
+        {
+          "code": "ja",
+          "name": "ユーザー名",
+          "desc": "アバターを表示したいユーザーのユーザー名。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "profile",
+      "desc": "Show the profile of a user."
+    },
+    {
+      "code": "fr",
+      "name": "profil",
+      "desc": "Afficher le profil d'un utilisateur."
+    },
+    {
+      "code": "de",
+      "name": "profil",
+      "desc": "Das Profil eines Benutzers anzeigen."
+    },
+    {
+      "code": "ja",
+      "name": "プロフィール",
+      "desc": "ユーザーのプロフィールを表示します。"
+    }
+  ]
+}

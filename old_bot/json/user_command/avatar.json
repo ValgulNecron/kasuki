@@ -1,0 +1,25 @@
+{
+  "name": "avatar",
+  "installation_context": {
+    "guild": true,
+    "user": false
+  },
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "avatar"
+    },
+    {
+      "code": "fr",
+      "name": "avatar"
+    },
+    {
+      "code": "de",
+      "name": "avatar"
+    },
+    {
+      "code": "ja",
+      "name": "アバター"
+    }
+  ]
+}

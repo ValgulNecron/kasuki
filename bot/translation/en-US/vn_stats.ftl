@@ -1,0 +1,9 @@
+vn_stats-api = API
+vn_stats-chars = Characters
+vn_stats-producer = Producer
+vn_stats-release = Release
+vn_stats-staff = Staff
+vn_stats-tags = Tags
+vn_stats-title = Here the stats of the api
+vn_stats-traits = Traits
+vn_stats-vns = Visual Novels

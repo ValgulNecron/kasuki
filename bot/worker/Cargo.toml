@@ -1,0 +1,27 @@
+[package]
+name = "worker"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+shared.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+sea-orm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+governor.workspace = true
+tracing-subscriber.workspace = true
+chrono.workspace = true
+serde_urlencoded.workspace = true
+cynic.workspace = true
+base64.workspace = true
+serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "cache", "http", "full"] }
+image.workspace = true
+palette.workspace = true
+rayon.workspace = true
+uuid.workspace = true
+dashmap.workspace = true

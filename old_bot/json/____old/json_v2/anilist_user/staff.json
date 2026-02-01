@@ -1,0 +1,61 @@
+{
+  "name": "staff",
+  "desc": "Get info of a staff.",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "staff_name",
+      "desc": "Name of the staff you want info about.",
+      "required": true,
+      "autocomplete": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "staff_name",
+          "desc": "Name of the staff you want info about."
+        },
+        {
+          "code": "fr",
+          "name": "nom_du_personnel",
+          "desc": "Nom du personnel dont vous souhaitez obtenir des informations."
+        },
+        {
+          "code": "de",
+          "name": "mitarbeiter_name",
+          "desc": "Name des Personals, über das Sie Informationen erhalten möchten."
+        },
+        {
+          "code": "ja",
+          "name": "スタッフ名",
+          "desc": "情報を取得したいスタッフの名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "staff",
+      "desc": "Get info of a staff."
+    },
+    {
+      "code": "fr",
+      "name": "personnel",
+      "desc": "Obtenir des informations sur un membre du personnel."
+    },
+    {
+      "code": "de",
+      "name": "mitarbeiter",
+      "desc": "Informationen über ein Mitarbeiter erhalten."
+    },
+    {
+      "code": "ja",
+      "name": "スタッフ",
+      "desc": "スタッフの情報を取得します。"
+    }
+  ]
+}

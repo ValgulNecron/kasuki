@@ -1,0 +1,75 @@
+{
+  "name": "random",
+  "desc": "Get a random manga or anime.",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": false,
+  "args": [
+    {
+      "name": "type",
+      "desc": "Type of the media you want manga or anime. manga include ln atm.",
+      "required": true,
+      "autocomplete": false,
+      "arg_type": "String",
+      "choices": [
+        {
+          "option_choice": "anime"
+        },
+        {
+          "option_choice": "manga"
+        }
+      ],
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "type",
+          "desc": "Type of the media you want manga or anime. manga include ln atm."
+        },
+        {
+          "code": "fr",
+          "name": "type",
+          "desc": "Type de média souhaité : manga ou anime. Les mangas incluent les light novels pour le moment."
+        },
+        {
+          "code": "de",
+          "name": "type",
+          "desc": "Art des Mediums, das du möchtest: Manga oder Anime. Mangas schließen derzeit Light Novels ein."
+        },
+        {
+          "code": "ja",
+          "name": "type",
+          "desc": "希望するメディアの種類：マンガまたはアニメ。現在、マンガにはライトノベルが含まれています。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "random",
+      "desc": "Get a random manga or anime."
+    },
+    {
+      "code": "fr",
+      "name": "random",
+      "desc": "Obtenez un manga ou un anime au hasard."
+    },
+    {
+      "code": "de",
+      "name": "random",
+      "desc": "Erhalte einen zufälligen Manga oder Anime."
+    },
+    {
+      "code": "ja",
+      "name": "random",
+      "desc": "ランダムなマンガまたはアニメを取得します。"
+    }
+  ]
+}

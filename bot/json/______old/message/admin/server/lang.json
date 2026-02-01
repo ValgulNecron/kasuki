@@ -1,0 +1,18 @@
+{
+  "en": {
+    "title": "Lang",
+    "desc": "The bot language was set to: $lang$"
+  },
+  "fr": {
+    "title": "Langue",
+    "desc": "La langue du bot a été définie à: $lang$"
+  },
+  "jp": {
+    "title": "言語",
+    "desc": "ボットの言語が設定されました： $lang$"
+  },
+  "de": {
+    "title": "Sprache",
+    "desc": "Die Bot-Sprache wurde auf eingestellt: $lang$"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "seiyuu",
+  "desc": "Get an image of a seiyuu with 4 of their roles.",
+  "dm_command": true,
+  "nsfw": false,
+  "perm": false,
+  "arg_num": 1,
+  "args": [
+    {
+      "name": "seiyuu_name",
+      "desc": "Name of the seiyuu.",
+      "required": true,
+      "autocomplete": true,
+      "command_type": "String",
+      "localised_args": [
+        {
+          "code": "en-US",
+          "name": "seiyuu_name",
+          "desc": "Name of the seiyuu."
+        },
+        {
+          "code": "fr",
+          "name": "seiyuu_name",
+          "desc": "Nom du seiyuu."
+        },
+        {
+          "code": "de",
+          "name": "seiyuu_name",
+          "desc": "Name des Seiyuu."
+        },
+        {
+          "code": "ja",
+          "name": "seiyuu_name",
+          "desc": "声優の名前。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "seiyuu",
+      "desc": "Get an image of a seiyuu with 4 of their roles."
+    },
+    {
+      "code": "fr",
+      "name": "seiyuu",
+      "desc": "Obtenez une image d'un seiyuu avec 4 de ses rôles."
+    },
+    {
+      "code": "de",
+      "name": "seiyuu",
+      "desc": "Erhalte ein Bild eines Seiyuu mit 4 seiner Rollen."
+    },
+    {
+      "code": "ja",
+      "name": "seiyuu",
+      "desc": "4つの役割を持つ声優の画像を取得します。"
+    }
+  ]
+}

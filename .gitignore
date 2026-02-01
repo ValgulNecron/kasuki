@@ -108,6 +108,9 @@ fabric.properties
 
 .idea/rust-project.json
 
+.claude
+CLAUDE.md
+
 logs
 /.idea/.gitignore
 /.idea/codeStyles/codeStyleConfig.xml

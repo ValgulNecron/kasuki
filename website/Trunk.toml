@@ -1,5 +1,7 @@
 [build]
 target = "./index.html"
+# Disable hot-reload script in release builds
+no_autoreload = true
 
 [watch]
 ignore = ["./src-tauri"]

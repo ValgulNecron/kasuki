@@ -1,0 +1,9 @@
+user_profile-bot = ボットです
+user_profile-creation_date = アカウントの作成日
+user_profile-id = ユーザーID
+user_profile-joined_date = 参加日
+user_profile-nitro = Nitroの種類
+user_profile-premium = プレミアム
+user_profile-public_flag = 公開フラグ
+user_profile-system = システムです
+user_profile-title = { $user }のプロフィールです

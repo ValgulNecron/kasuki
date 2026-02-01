@@ -1,0 +1,26 @@
+{
+  "en": {
+    "title": "Seek",
+    "error_no_voice": "Join the bot to a voice channel first.",
+    "success": "Jumped to {0}s",
+    "nothing_playing": "Nothing is playing"
+  },
+  "fr": {
+    "title": "Rechercher",
+    "error_no_voice": "Rejoignez d'abord le bot dans un canal vocal.",
+    "success": "Sauté à {0}s",
+    "nothing_playing": "Rien n'est en cours de lecture"
+  },
+  "jp": {
+    "title": "シーク",
+    "error_no_voice": "まずボットをボイスチャンネルに参加させてください。",
+    "success": "{0}秒にジャンプしました",
+    "nothing_playing": "何も再生されていません"
+  },
+  "de": {
+    "title": "Suchen",
+    "error_no_voice": "Fügen Sie den Bot zuerst einem Sprachkanal hinzu.",
+    "success": "Zu {0}s gesprungen",
+    "nothing_playing": "Es wird nichts abgespielt"
+  }
+}

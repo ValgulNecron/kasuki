@@ -1,0 +1,106 @@
+{
+  "name": "random_hanime",
+  "desc": "Command from the ANIME module",
+  "integration_context": {
+    "bot_dm": true,
+    "guild": true,
+    "private_channel": true
+  },
+  "installation_context": {
+    "guild": true,
+    "user": true
+  },
+  "nsfw": true,
+  "command": [
+    {
+      "name": "random_himage",
+      "desc": "Get a random hanime image.",
+      "args": [
+        {
+          "name": "image_type",
+          "desc": "The type of the random image you want.",
+          "required": true,
+          "autocomplete": false,
+          "arg_type": "String",
+          "choices": [
+            {
+              "option_choice": "waifu"
+            },
+            {
+              "option_choice": "neko"
+            },
+            {
+              "option_choice": "trap"
+            }
+          ],
+          "localised_args": [
+            {
+              "code": "en-US",
+              "name": "image_type",
+              "desc": "The type of the random image you want."
+            },
+            {
+              "code": "fr",
+              "name": "type_image",
+              "desc": "Le type de l'image aléatoire que vous souhaitez."
+            },
+            {
+              "code": "de",
+              "name": "bildtyp",
+              "desc": "Die Art des zufälligen Bildes, das Sie möchten."
+            },
+            {
+              "code": "ja",
+              "name": "imeji_taipu",
+              "desc": "欲しいランダムな 画像の種類。"
+            }
+          ]
+        }
+      ],
+      "localised": [
+        {
+          "code": "en-US",
+          "name": "random_himage",
+          "desc": "Get a random hanime image."
+        },
+        {
+          "code": "fr",
+          "name": "random_himage",
+          "desc": "Obtenez une image aleatoire hanime."
+        },
+        {
+          "code": "de",
+          "name": "random_himage",
+          "desc": "Erhalte eine zufällige hanime-Bild."
+        },
+        {
+          "code": "ja",
+          "name": "random_himage",
+          "desc": "ランダムな hanime 画像を取得します。"
+        }
+      ]
+    }
+  ],
+  "localised": [
+    {
+      "code": "en-US",
+      "name": "random_hanime",
+      "desc": "Command from the ANIME module"
+    },
+    {
+      "code": "fr",
+      "name": "random_hanime",
+      "desc": "Commande du module ANIME"
+    },
+    {
+      "code": "de",
+      "name": "random_hanime",
+      "desc": "Befehl aus dem ANIME-Modul"
+    },
+    {
+      "code": "ja",
+      "name": "random_hanime",
+      "desc": "ANIMEモジュールのコマンド"
+    }
+  ]
+}

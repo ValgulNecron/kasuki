@@ -1,0 +1,18 @@
+{
+  "en": {
+    "success": "Activity deleted Successfully",
+    "success_desc": "The activity was deleted successfully for: $anime$."
+  },
+  "fr": {
+    "success": "Suppression de l'activité réussie",
+    "success_desc": "L'activité a été supprimée avec succès pour : $anime$."
+  },
+  "jp": {
+    "success": "アクティビティが正常に削除されました",
+    "success_desc": "アクティビティが正常に削除されました: $anime$."
+  },
+  "de": {
+    "success": "Aktivität erfolgreich gelöscht",
+    "success_desc": "Die Aktivität wurde erfolgreich gelöscht für: $anime$."
+  }
+}

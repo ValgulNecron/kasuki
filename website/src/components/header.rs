@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-use crate::app::{UserSessionData};
+use crate::app::UserSessionData;
 use crate::config::Config;
+use leptos::prelude::*;
 
 #[component]
 pub fn Header(
@@ -30,7 +30,16 @@ pub fn Header(
             <div class="container">
                 <nav class="navbar">
                     <a href="index.html" class="logo">
-                        <img src="/public/assets/icon.png" alt="Kasuki Logo"/>
+                        <img
+                            src="/public/assets/icon-80.webp"
+                            srcset="/public/assets/icon-80.webp 1x, /public/assets/icon-160.webp 2x"
+                            alt="Kasuki Logo"
+                            width="40"
+                            height="40"
+                            loading="eager"
+                            decoding="async"
+                            fetchpriority="high"
+                        />
                         <h1>"Kasuki"</h1>
                     </a>
                     <ul class="nav-links" class:active=move || menu_open.get()>

@@ -1,0 +1,16 @@
+game_steam_game_info-coming_soon = Bientôt disponible
+game_steam_game_info-field1 = Prix
+game_steam_game_info-field2 = Date de sortie
+game_steam_game_info-field3 = Développeurs
+game_steam_game_info-field4 = Éditeurs
+game_steam_game_info-field5 = Catégories
+game_steam_game_info-field6 = Type d'application
+game_steam_game_info-field7 = Langues
+game_steam_game_info-field8 = Avis
+game_steam_game_info-free = Gratuit
+game_steam_game_info-linux = Linux
+game_steam_game_info-mac = Mac
+game_steam_game_info-required_age = Âge requis
+game_steam_game_info-tba = À annoncer
+game_steam_game_info-website = Site web
+game_steam_game_info-win = Windows
