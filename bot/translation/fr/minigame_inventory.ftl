@@ -1,0 +1,24 @@
+minigame_inventory-title = Votre Inventaire
+minigame_inventory-empty = Votre inventaire est vide. Essayez d'utiliser la commande `/minigame fishing` pour attraper du poisson !
+minigame_inventory-fish = Poissons
+minigame_inventory-fish_format = **{ $fish_name }** x{ $count } (Valeur totale : { $total_value } pièces)
+minigame_inventory-best_fish = Votre Meilleur Poisson
+minigame_inventory-best_fish_format = **{ $count }. { $item_name }** - { $size_description } ({ $size } cm), rareté { $rarity_text }, { $xp_boost }% de bonus d'XP
+minigame_inventory-all_fish = Tous les poissons (Numérotés)
+minigame_inventory-all_fish_format = **{ $fish_number }. { $item_name }** - { $size_description } ({ $size } cm), rareté { $rarity_text }, Valeur : { $price } pièces
+minigame_inventory-summary = Résumé
+minigame_inventory-summary_format = Total de poissons : { $total_fish_count }
+    Valeur totale : { $total_fish_value } pièces
+minigame_inventory-common = Commun
+minigame_inventory-uncommon = Peu commun
+minigame_inventory-rare = Rare
+minigame_inventory-epic = Épique
+minigame_inventory-legendary = Légendaire
+minigame_inventory-unknown = Inconnu
+minigame_inventory-tiny = minuscule
+minigame_inventory-small = petit
+minigame_inventory-average = moyen
+minigame_inventory-large = grand
+minigame_inventory-huge = énorme
+minigame_inventory-massive = massif
+minigame_inventory-unknown_size = inconnu
