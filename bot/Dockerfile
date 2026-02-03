@@ -13,7 +13,7 @@ RUN rustup default nightly && rustup update
 WORKDIR /kasuki
 
 # Copy workspace configuration
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # Copy member Cargo.tomls
 COPY bot/Cargo.toml bot/Cargo.toml

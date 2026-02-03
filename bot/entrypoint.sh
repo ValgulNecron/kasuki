@@ -24,27 +24,14 @@ for arg in "$@"; do
   esac
 done
 
-if [ "$bot" = true ]; then
-  echo "Running migrations..."
-  migration
-fi
-
 if [ "$worker" = true ]; then
   echo "Starting worker..."
-  if [ "$bot" = true ] || [ "$api" = true ]; then
-    worker &
-  else
-    exec worker
-  fi
+  exec worker
 fi
 
 if [ "$api" = true ]; then
   echo "Starting API server..."
-  if [ "$bot" = true ]; then
-    api-server &
-  else
-    exec api-server
-  fi
+  exec api-server
 fi
 
 if [ "$bot" = true ]; then
