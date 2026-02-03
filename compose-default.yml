@@ -38,7 +38,7 @@ services:
     depends_on:
       - db
       - worker
-      - redis
+      - lavalink
     tty: true
     volumes:
       - ./db/:/kasuki/db
@@ -58,8 +58,6 @@ services:
     image: postgres
     restart: always
     hostname: db
-    depends_on:
-      - reverse-proxy
     volumes:
       - ./db/:/var/lib/postgresql/data
     environment:
@@ -96,6 +94,8 @@ services:
     user: "0"
     container_name: lavalink
     restart: always
+    depends_on:
+      - gluetun
     environment:
       # set Java options here
       - _JAVA_OPTIONS=-Xmx6G
