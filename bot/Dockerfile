@@ -40,6 +40,7 @@ RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src
 COPY shared/schemas ./shared/schemas
 COPY shared/src ./shared/src
 COPY shared/build.rs ./shared/build.rs
+COPY translation ./translation
 
 COPY bot/src ./bot/src
 COPY bot/build.rs ./bot/build.rs
@@ -69,6 +70,7 @@ COPY --from=builder /kasuki/target/release/kasuki /usr/local/bin/kasuki
 COPY --from=builder /kasuki/target/release/api-server /usr/local/bin/api-server
 COPY --from=builder /kasuki/target/release/worker /usr/local/bin/worker
 COPY --from=builder /kasuki/target/release/migration /usr/local/bin/migration
+COPY translation ./translation
 
 # Copy data
 #COPY json /kasuki/json
