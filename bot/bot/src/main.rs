@@ -327,7 +327,12 @@ async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
 
 	#[cfg(unix)]
 	{
-		let mut cmd = process::Command::new("migration");
+		let binary_name = if cfg!(debug_assertions) {
+			"./migration"
+		} else {
+			"migration"
+		};
+		let mut cmd = process::Command::new(binary_name);
 
 		let child = cmd.spawn().context("Failed to run Migration")?;
 
