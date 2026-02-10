@@ -140,8 +140,10 @@ pub async fn get_content<'a>(
 
 	let image_path = format!("{}.png", uuid);
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "server_generate_image_pfp_server-title"))
-		.images_url(format!("attachment://{}", image_path.clone()));
+	let embed_content = EmbedContent::new(
+		USABLE_LOCALES.lookup(&lang_id, "server_generate_image_pfp_server-title"),
+	)
+	.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
 	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 	embed_contents.add_files(vec![file]);

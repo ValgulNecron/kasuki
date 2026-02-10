@@ -421,11 +421,6 @@ impl Handler {
 			"New member joined guild"
 		);
 
-		let is_module_on =
-			check_if_module_is_on(guild_id.clone(), "NEW_MEMBER", bot_data.config.db.clone())
-				.await
-				.unwrap_or(false);
-
 		get_specific_user_color(
 			user_blacklist_server_image,
 			member.user.clone(),
@@ -446,21 +441,7 @@ impl Handler {
 			});
 		}
 
-		if is_module_on {
-			server_image_management(&ctx, image_config, bot_data.db_connection.clone()).await;
-		}
-
-		let user = match member.user.id.to_user(&ctx.http).await {
-			Ok(user) => user,
-			Err(e) => {
-				warn!(
-					user_id = %member.user.id,
-					error = %e,
-					"Failed to get user object"
-				);
-				return;
-			},
-		};
+		let user = member.user.clone();
 
 		if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
 			warn!(
@@ -486,17 +467,7 @@ impl Handler {
 		let db_connection = bot_data.db_connection.clone();
 
 		for member in members {
-			let user = match member.user.id.to_user(&ctx.http).await {
-				Ok(user) => user,
-				Err(e) => {
-					warn!(
-						user_id = %member.user.id,
-						error = %e,
-						"Failed to get user object from chunk"
-					);
-					continue;
-				},
-			};
+			let user = member.user.clone();
 
 			if let Err(e) = add_user_data_to_db(user.clone(), db_connection.clone()).await {
 				warn!(
@@ -532,7 +503,7 @@ impl Handler {
 							error = %e,
 							"Failed to insert server-user relation from chunk into database"
 						);
-					}
+					},
 				}
 			}
 		}
@@ -546,27 +517,23 @@ impl Handler {
 		let user_id = new_data.user.id;
 		trace!(user_id = %user_id, "Presence update received");
 
-		let user = match new_data.user.id.to_user(&ctx).await {
-			Ok(user) => user,
-			Err(e) => {
-				warn!(user_id = %user_id, error = %e, "Failed to get user object from presence update");
-				return;
-			},
-		};
+		let user = new_data.user.to_user();
 
-		get_specific_user_color(
-			user_blacklist_server_image,
-			user.clone(),
-			bot_data.config.db.clone(),
-		)
-		.await;
+		if let Some(user) = user {
+			get_specific_user_color(
+				user_blacklist_server_image,
+				user.clone(),
+				bot_data.config.db.clone(),
+			)
+			.await;
 
-		if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
-			warn!(
-				user_id = %user_id,
-				error = ?e,
-				"Failed to insert user data from presence update into database"
-			);
+			if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
+				warn!(
+					user_id = %user_id,
+					error = ?e,
+					"Failed to insert user data from presence update into database"
+				);
+			}
 		}
 	}
 
@@ -860,14 +827,12 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
 		username: Set(user.name.to_string()),
 		added_at: Set(Utc::now().naive_utc()),
 		is_bot: Set(user.bot()),
-		banner: Set(user.banner_url().unwrap_or_default()),
 	};
 	if let Err(e) = UserData::insert(model)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::column(shared::database::user_data::Column::UserId)
 				.update_columns([
 					shared::database::user_data::Column::Username,
-					shared::database::user_data::Column::Banner,
 					shared::database::user_data::Column::IsBot,
 				])
 				.to_owned(),

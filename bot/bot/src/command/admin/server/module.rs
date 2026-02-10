@@ -1,4 +1,3 @@
-
 //! The `ModuleCommand` struct represents a command to manage module activations in a Discord bot.
 //! It contains context and interaction details necessary for processing the command.
 use crate::command::command::Command;

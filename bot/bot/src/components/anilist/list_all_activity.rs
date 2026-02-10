@@ -68,10 +68,8 @@ pub async fn update(
 	let mut message_rep = CreateInteractionResponseMessage::new().embed(builder_message);
 
 	if page_number != "0" {
-		message_rep = message_rep.button(
-			CreateButton::new(format!("next_activity_{}", previous_page))
-				.label(&previous),
-		);
+		message_rep = message_rep
+			.button(CreateButton::new(format!("next_activity_{}", previous_page)).label(&previous));
 	}
 
 	trace!("{:?}", len);
@@ -81,10 +79,8 @@ pub async fn update(
 	if len > ACTIVITY_LIST_LIMIT as usize
 		&& (len > (ACTIVITY_LIST_LIMIT * (actual_page + 1)) as usize)
 	{
-		message_rep = message_rep.button(
-			CreateButton::new(format!("next_activity_{}", next_page))
-				.label(&next),
-		)
+		message_rep = message_rep
+			.button(CreateButton::new(format!("next_activity_{}", next_page)).label(&next))
 	}
 
 	let response = CreateInteractionResponse::UpdateMessage(message_rep);

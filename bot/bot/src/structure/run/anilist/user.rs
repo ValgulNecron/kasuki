@@ -277,7 +277,11 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 		Cow::Borrowed("url"),
 		FluentValue::from(get_user_manga_url(user_id)),
 	);
-	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-manga-title", &args).as_str());
+	desc.push_str(
+		USABLE_LOCALES
+			.lookup_with_args(lang_id, "anilist_user_user-manga-title", &args)
+			.as_str(),
+	);
 	desc = desc.replace("\u{2069}", "");
 	desc = desc.replace("\u{2068}", "");
 	desc.push_str("\n");
@@ -312,8 +316,11 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 		FluentValue::from(get_genre_list(manga.genres.clone().unwrap())),
 	);
 
-
-	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-manga", &args).as_str());
+	desc.push_str(
+		USABLE_LOCALES
+			.lookup_with_args(lang_id, "anilist_user_user-manga", &args)
+			.as_str(),
+	);
 	desc
 }
 
@@ -363,7 +370,11 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 		FluentValue::from(get_user_anime_url(user_id)),
 	);
 
-	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-anime-title", &args).as_str());
+	desc.push_str(
+		USABLE_LOCALES
+			.lookup_with_args(lang_id, "anilist_user_user-anime-title", &args)
+			.as_str(),
+	);
 	desc = desc.replace("\u{2069}", "");
 	desc = desc.replace("\u{2068}", "");
 	desc.push_str("\n");
@@ -397,7 +408,11 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 		Cow::Borrowed("genre_list"),
 		FluentValue::from(get_genre_list(anime.genres.clone().unwrap())),
 	);
-	desc.push_str(USABLE_LOCALES.lookup_with_args(lang_id, "anilist_user_user-anime", &args).as_str());
+	desc.push_str(
+		USABLE_LOCALES
+			.lookup_with_args(lang_id, "anilist_user_user-anime", &args)
+			.as_str(),
+	);
 	desc
 }
 
@@ -438,8 +453,7 @@ fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 		tw.push_str(&format!("{}{}", week_label, week));
 	}
 
-	if days >= 1
-	{
+	if days >= 1 {
 		let day_label = match days {
 			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-day"),
 			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-days"),
@@ -447,8 +461,7 @@ fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 		tw.push_str(&format!("{}{}", day_label, days));
 	}
 
-	if hour >= 1
-	{
+	if hour >= 1 {
 		let hour_label = match hour {
 			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-hour"),
 			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-hours"),
@@ -456,8 +469,7 @@ fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 		tw.push_str(&format!("{}{}", hour_label, hour));
 	}
 
-	if min >= 1
-	{
+	if min >= 1 {
 		let min_label = match min {
 			1 => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-minute"),
 			_ => USABLE_LOCALES.lookup(lang_id, "anilist_user_user-minutes"),

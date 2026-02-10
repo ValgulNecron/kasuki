@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use futures::stream::StreamExt;
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
@@ -8,7 +9,6 @@ use crate::get_url;
 use base64::engine::general_purpose;
 use base64::Engine;
 use futures::stream::FuturesUnordered;
-use futures::StreamExt;
 use image::codecs::png::PngEncoder;
 use image::ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
@@ -276,33 +276,33 @@ pub async fn color_management(
 	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
 	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
 ) {
-	let mut futures = FuturesUnordered::new();
-
-	for guild in guilds {
-		let guild_id = guild.to_string();
-
-		debug!(guild_id);
-
-		let ctx_clone = ctx_clone.clone();
-
-		let guild = *guild;
-
-		let future = get_member(ctx_clone, guild);
-
-		futures.push(future);
-	}
-
 	let mut members = Vec::new();
 
-	while let Some(mut result) = futures.next().await {
-		let guild_id = match result.first() {
-			Some(member) => member.guild_id.to_string(),
-			None => String::from(""),
-		};
+	// Process guilds in chunks of 4
+	for guild_chunk in guilds.chunks(4) {
+		let mut futures = FuturesUnordered::new();
 
-		debug!("{}: {}", guild_id, result.len());
+		for guild in guild_chunk {
+			let guild_id = guild.to_string();
+			debug!(guild_id);
 
-		members.append(&mut result);
+			let ctx_clone = ctx_clone.clone();
+			let guild = *guild;
+			let future = get_member(ctx_clone, guild);
+
+			futures.push(future);
+		}
+
+		while let Some(mut result) = futures.next().await {
+			let guild_id = match result.first() {
+				Some(member) => member.guild_id.to_string(),
+				None => String::from(""),
+			};
+
+			debug!("{}: {}", guild_id, result.len());
+
+			members.append(&mut result);
+		}
 	}
 
 	match calculate_users_color(
@@ -318,8 +318,16 @@ pub async fn color_management(
 }
 
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
-	let mut i = 0;
+	// Try cache first
+	if let Some(guild_cache) = guild.to_guild_cached(&ctx_clone.cache) {
+		debug!("Using cached members for guild {}", guild);
+		let members = guild_cache.members.clone();
+		return members.into_iter().map(|m| m.into()).collect();
+	}
 
+	debug!("Cache miss for guild {}, fetching from API", guild);
+	// Fall back to API pagination if not in cache
+	let mut i = 0;
 	let mut members_temp_out: Vec<Member> = Vec::new();
 
 	while members_temp_out.len() == (1000 * i) {
@@ -335,7 +343,6 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 				Ok(members) => members,
 				Err(e) => {
 					error!("{:?}", e);
-
 					break;
 				},
 			}
@@ -356,14 +363,12 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 				Ok(members) => members,
 				Err(e) => {
 					error!("{:?}", e);
-
 					break;
 				},
 			}
 		};
 
 		i += 1;
-
 		members_temp_out.append(&mut members_temp_in);
 	}
 

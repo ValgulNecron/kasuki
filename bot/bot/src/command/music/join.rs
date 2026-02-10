@@ -155,8 +155,9 @@ pub async fn join<'a>(
 		match user_channel_id {
 			Some(channel) => channel,
 			None => {
-				let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"))
-					.description(USABLE_LOCALES.lookup(&lang_id, "music_join-error_no_voice"));
+				let embed_content =
+					EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"))
+						.description(USABLE_LOCALES.lookup(&lang_id, "music_join-error_no_voice"));
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 				return Ok((false, embed_contents));
@@ -188,11 +189,16 @@ pub async fn join<'a>(
 					.await?;
 
 				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-				args.insert(Cow::Borrowed("var0"), FluentValue::from(connect_to.mention().to_string()));
-
-				embed_content = embed_content.description(
-					USABLE_LOCALES.lookup_with_args(&lang_id, "music_join-success", &args),
+				args.insert(
+					Cow::Borrowed("var0"),
+					FluentValue::from(connect_to.mention().to_string()),
 				);
+
+				embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"music_join-success",
+					&args,
+				));
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -202,9 +208,11 @@ pub async fn join<'a>(
 				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 				args.insert(Cow::Borrowed("var0"), FluentValue::from(why.to_string()));
 
-				embed_content = embed_content.description(
-					USABLE_LOCALES.lookup_with_args(&lang_id, "music_join-error_joining", &args),
-				);
+				embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"music_join-error_joining",
+					&args,
+				));
 				let embed_contents =
 					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

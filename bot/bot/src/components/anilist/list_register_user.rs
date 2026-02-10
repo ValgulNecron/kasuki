@@ -72,17 +72,13 @@ pub async fn update(
 	let mut response = EditMessage::new().embed(embed);
 
 	if user_id != "0" {
-		response = response.button(
-			CreateButton::new(format!("user_{}_{}", user_id, prev_id))
-				.label(&previous),
-		);
+		response = response
+			.button(CreateButton::new(format!("user_{}_{}", user_id, prev_id)).label(&previous));
 	}
 
 	if len > MEMBER_LIST_LIMIT as usize {
-		response = response.button(
-			CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id))
-				.label(next),
-		)
+		response = response
+			.button(CreateButton::new(format!("user_{}_{}", last_id.unwrap(), user_id)).label(next))
 	}
 
 	// Clone the component interaction message

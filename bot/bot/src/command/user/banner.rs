@@ -64,14 +64,16 @@ impl_command!(
 	}
 );
 
-pub fn no_banner(
-	username: &str, lang_id: &unic_langid::LanguageIdentifier,
-) -> Vec<EmbedContent> {
+pub fn no_banner(username: &str, lang_id: &unic_langid::LanguageIdentifier) -> Vec<EmbedContent> {
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+	args.insert(
+		Cow::Borrowed("user"),
+		FluentValue::from(username.to_string()),
+	);
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(lang_id, "user_banner-no_banner_title"))
-		.description(USABLE_LOCALES.lookup_with_args(lang_id, "user_banner-no_banner", &args));
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(lang_id, "user_banner-no_banner_title"))
+			.description(USABLE_LOCALES.lookup_with_args(lang_id, "user_banner-no_banner", &args));
 
 	vec![embed_content]
 }

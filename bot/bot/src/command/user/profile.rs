@@ -190,7 +190,11 @@ fn get_fields(lang_id: &LanguageIdentifier, user: User) -> Vec<(String, String, 
 			format!("<t:{}>", user.id.created_at().timestamp()),
 			true,
 		),
-		(USABLE_LOCALES.lookup(lang_id, "user_profile-bot"), user.bot().to_string(), true),
+		(
+			USABLE_LOCALES.lookup(lang_id, "user_profile-bot"),
+			user.bot().to_string(),
+			true,
+		),
 		(
 			USABLE_LOCALES.lookup(lang_id, "user_profile-system"),
 			user.system().to_string(),

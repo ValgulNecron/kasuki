@@ -10,10 +10,10 @@ use std::sync::Arc;
 pub use unic_langid::LanguageIdentifier;
 
 static_loader! {
-    pub static USABLE_LOCALES = {
-        locales: "../translation",
-        fallback_language: "en-US",
-    };
+	pub static USABLE_LOCALES = {
+		locales: "../translation",
+		fallback_language: "en-US",
+	};
 }
 
 pub fn load_locales() -> Result<()> {
@@ -51,7 +51,6 @@ pub async fn load_localization<'a, T: serde::Deserialize<'a> + Clone>(
 	} else if lang_choice == "ja" {
 		lang_choice = "jp".to_string();
 	}
-	
 
 	Ok(json_data.get(lang_choice.as_str()).cloned().unwrap_or(
 		json_data

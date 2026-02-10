@@ -1,8 +1,5 @@
 attr_fn_like_width = 80
-brace_style = "PreferSameLine"
-condense_wildcard_suffixes = true
 edition = "2021"
-fn_args_layout = "Compressed"
 fn_params_layout = "Compressed"
 hard_tabs = true
 match_block_trailing_comma = true

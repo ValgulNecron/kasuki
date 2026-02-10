@@ -9,7 +9,6 @@ pub struct Model {
 	pub user_id: String,
 	pub username: String,
 	pub is_bot: bool,
-	pub banner: String,
 	pub added_at: DateTime,
 }
 

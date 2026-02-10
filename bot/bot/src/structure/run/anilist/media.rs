@@ -504,8 +504,8 @@ pub async fn media_content<'a>(
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-genre"),
 			genres.join(","),
-			false
-			))
+			false,
+		))
 	}
 
 	if let Some(staff) = data.staff.clone() {
@@ -538,12 +538,7 @@ pub async fn media_content<'a>(
 
 	let tags = data.tags.clone().unwrap_or_default();
 
-	let tags: Vec<String> = tags
-		.into_iter()
-		.flatten()
-		.take(5)
-		.map(|t| t.name)
-		.collect();
+	let tags: Vec<String> = tags.into_iter().flatten().take(5).map(|t| t.name).collect();
 
 	if !tags.is_empty() {
 		fields.push((
