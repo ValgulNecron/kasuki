@@ -40,7 +40,7 @@ pub struct Media {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct MediaCoverImage {
 	pub extra_large: Option<String>,
 }
@@ -74,7 +74,7 @@ pub enum MediaFormat {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum MediaStatus {
 	Finished,
 	Releasing,

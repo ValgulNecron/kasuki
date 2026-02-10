@@ -147,7 +147,7 @@ pub struct MediaTag {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum CharacterRole {
 	Main,
 	Supporting,
@@ -170,7 +170,7 @@ pub enum MediaFormat {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum MediaSeason {
 	Winter,
 	Spring,
@@ -199,7 +199,7 @@ pub enum MediaSource {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum MediaStatus {
 	Finished,
 	Releasing,
@@ -216,7 +216,7 @@ pub enum MediaType {
 }
 
 #[derive(cynic::Scalar, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct CountryCode(pub String);
 
 impl Display for CountryCode {

@@ -65,7 +65,7 @@ pub struct MediaTitle {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum MediaSort {
 	Id,
 	IdDesc,

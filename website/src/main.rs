@@ -1,12 +1,12 @@
 mod app;
 mod config;
 mod api; // Declare the api module
-mod components; // Declare the components module
-use leptos::view;
+mod components; // Explicitly import mount_to_body
+use crate::app::App;
 // Explicitly import view!
 use leptos::mount::mount_to_body;
-// Explicitly import mount_to_body
-use crate::app::App;
+// Declare the components module
+use leptos::view;
 // Explicitly import App
 
 fn main() {

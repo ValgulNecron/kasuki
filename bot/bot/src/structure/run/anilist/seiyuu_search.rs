@@ -29,7 +29,7 @@ pub struct Page {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "SeiyuuSearchVariables")]
-
+#[allow(dead_code)]
 pub struct Staff {
 	pub site_url: Option<String>,
 	pub image: Option<StaffImage>,
@@ -39,7 +39,7 @@ pub struct Staff {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct StaffName {
 	pub user_preferred: Option<String>,
 	pub native: Option<String>,
@@ -59,14 +59,14 @@ pub struct CharacterConnection {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct Character {
 	pub image: Option<CharacterImage>,
 	pub name: Option<CharacterName>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct CharacterName {
 	pub full: Option<String>,
 	pub native: Option<String>,
@@ -80,7 +80,7 @@ pub struct CharacterImage {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum CharacterSort {
 	Id,
 	IdDesc,

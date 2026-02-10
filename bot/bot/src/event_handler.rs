@@ -1,5 +1,5 @@
 use crate::autocomplete::autocomplete_dispatch::autocomplete_dispatching;
-use crate::command::command_dispatch::{check_if_module_is_on, dispatch_command};
+use crate::command::command_dispatch::dispatch_command;
 use crate::command::user_command_dispatch::dispatch_user_command;
 use crate::components::components_dispatch::components_dispatching;
 use crate::error_management::error_dispatch;

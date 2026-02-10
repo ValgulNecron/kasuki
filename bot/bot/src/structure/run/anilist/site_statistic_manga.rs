@@ -3,14 +3,14 @@
 mod schema {}
 
 #[derive(cynic::QueryVariables, Debug)]
-
+#[allow(dead_code)]
 pub struct MangaStatVariables {
 	pub page: Option<i32>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(graphql_type = "Query", variables = "MangaStatVariables")]
-
+#[allow(dead_code)]
 pub struct MangaStat {
 	#[cynic(rename = "SiteStatistics")]
 	pub site_statistics: Option<SiteStatistics>,
@@ -18,21 +18,21 @@ pub struct MangaStat {
 
 #[derive(cynic::QueryFragment, Debug)]
 #[cynic(variables = "MangaStatVariables")]
-
+#[allow(dead_code)]
 pub struct SiteStatistics {
 	#[arguments(page: $ page, perPage: 1)]
 	pub manga: Option<SiteTrendConnection>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-
+#[allow(dead_code)]
 pub struct SiteTrendConnection {
 	pub page_info: Option<PageInfo>,
 	pub nodes: Option<Vec<Option<SiteTrend>>>,
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-
+#[allow(dead_code)]
 pub struct SiteTrend {
 	pub count: i32,
 	pub date: i32,
@@ -40,7 +40,7 @@ pub struct SiteTrend {
 }
 
 #[derive(cynic::QueryFragment, Debug)]
-
+#[allow(dead_code)]
 pub struct PageInfo {
 	pub total: Option<i32>,
 	pub per_page: Option<i32>,

@@ -144,7 +144,7 @@ pub enum MediaListStatus {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-
+#[allow(dead_code)]
 pub enum UserStatisticsSort {
 	Id,
 	IdDesc,

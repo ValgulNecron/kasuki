@@ -13,7 +13,6 @@ use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::module_activation;
-use shared::database::module_activation::Model;
 use shared::database::prelude::ModuleActivation;
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use tracing::debug;
@@ -135,60 +134,3 @@ impl_command!(
 		Ok(embed_contents)
 	}
 );
-
-/// Checks the activation status of a specific module based on the provided `module` name and the associated `row` data.
-///
-/// # Arguments
-///
-/// * `module` - A string slice that specifies the name of the module to be checked. The valid values are:
-///     - "ANILIST"
-///     - "AI"
-///     - "GAME"
-///     - "NEW_MEMBER"
-///     - "ANIME"
-///     - "VN"
-/// * `row` - A `Model` instance containing the activation statuses of various modules as boolean attributes.
-///
-/// # Returns
-///
-/// A boolean indicating the activation status of the specified module:
-///
-/// * `true` - The module is activated.
-/// * `false` - The module is not activated or the `module` name does not match any valid options.
-///
-/// # Example
-///
-/// ```rust
-/// let model = Model {
-///     anilist_module: true,
-///     ai_module: false,
-///     game_module: true,
-///     new_members_module: false,
-///     anime_module: true,
-///     vn_module: false,
-/// };
-///
-/// let is_active = check_activation_status("ANILIST", model).await;
-/// assert_eq!(is_active, true);
-///
-/// let is_ai_active = check_activation_status("AI", model).await;
-/// assert_eq!(is_ai_active, false);
-///
-/// let is_invalid_active = check_activation_status("INVALID_MODULE", model).await;
-/// assert_eq!(is_invalid_active, false);
-/// ```
-///
-/// # Note
-/// This function returns `false` for any module name that does not match the predefined list of modules.
-pub async fn check_activation_status(module: &str, row: Model) -> bool {
-	match module {
-		"ANILIST" => row.anilist_module,
-		"AI" => row.ai_module,
-		"GAME" => row.game_module,
-		"ANIME" => row.anime_module,
-		"VN" => row.vn_module,
-		"LEVEL" => row.level_module,
-		"MINIGAME" => row.mini_game_module,
-		_ => false,
-	}
-}

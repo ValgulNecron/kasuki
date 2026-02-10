@@ -1,3 +1,4 @@
+use crate::api::fetch_user_data;
 use crate::components::commands::Commands;
 use crate::components::features::Features;
 use crate::components::footer::Footer;
@@ -13,15 +14,14 @@ use leptos::prelude::document;
 use leptos::prelude::Effect;
 use leptos::prelude::*;
 // Corrected import
-use wasm_bindgen::JsCast;
-use web_sys::{window, HashChangeEvent};
-use crate::api::fetch_user_data;
+use serde::{Deserialize, Serialize};
 // Added window and Storage
 use url::Url;
+// Corrected import
+use wasm_bindgen::JsCast;
 // Import the new API function
 use wasm_bindgen_futures::spawn_local;
-// Corrected import
-use serde::{Deserialize, Serialize};
+use web_sys::{window, HashChangeEvent};
 // Added
 
 #[derive(Clone, Copy, Debug, PartialEq)]

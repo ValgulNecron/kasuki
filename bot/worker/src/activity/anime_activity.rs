@@ -18,7 +18,6 @@ use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DeleteResult};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
-use serenity::all::ImageData;
 use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
 use serenity::http::Http;
 use serenity::model::webhook::Webhook;

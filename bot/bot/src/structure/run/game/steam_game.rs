@@ -67,7 +67,7 @@ pub struct Category {
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
-
+#[allow(dead_code)]
 pub struct Webm {
 	#[serde(rename = "480°")]
 	pub _480: Option<String>,
@@ -75,7 +75,7 @@ pub struct Webm {
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
-
+#[allow(dead_code)]
 pub struct Mp4 {
 	#[serde(rename = "480°")]
 	pub _480: Option<String>,
@@ -83,7 +83,7 @@ pub struct Mp4 {
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug)]
-
+#[allow(dead_code)]
 pub struct Recommendations {
 	pub total: Option<u32>,
 }

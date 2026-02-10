@@ -4,16 +4,16 @@ use axum::{
     response::{IntoResponse, Redirect},
     Json,
 };
+// Added
+use base64::{engine::general_purpose::STANDARD, Engine as _};
+// Added
+use chrono::{Duration, Utc};
 use dashmap::DashMap;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::sync::LazyLock;
 use tracing::{debug, error, info, trace, warn};
-// Added
-use chrono::{Duration, Utc};
-// Added
-use base64::{engine::general_purpose::STANDARD, Engine as _};
 
 // Global cache for user data, mapping user ID to (UserInfo, Vec<Guild>)
 static USER_CACHE: LazyLock<DashMap<String, (UserInfo, Vec<Guild>)>> = LazyLock::new(DashMap::new);

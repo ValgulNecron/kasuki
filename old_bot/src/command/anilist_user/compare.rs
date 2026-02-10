@@ -5,9 +5,9 @@ use std::collections::HashSet;
 
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::builder::{
-	CreateComponent, CreateContainer, CreateSection, CreateSectionAccessory,
-	CreateSectionComponent, CreateSeparator, CreateTextDisplay, CreateThumbnail,
-	CreateUnfurledMediaItem,
+    CreateComponent, CreateContainer, CreateSection, CreateSectionAccessory,
+    CreateSectionComponent, CreateSeparator, CreateTextDisplay, CreateThumbnail,
+    CreateUnfurledMediaItem,
 };
 use small_fixed_array::FixedString;
 use tracing::trace;
@@ -21,8 +21,8 @@ use crate::helper::get_option::command::get_option_map_string;
 use crate::impl_command;
 use crate::structure::message::anilist_user::compare::load_localization_compare;
 use crate::structure::run::anilist::user::{
-	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
-	UserStatusStatistic, UserTagStatistic,
+    User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
+    UserStatusStatistic, UserTagStatistic,
 };
 
 #[derive(Clone)]

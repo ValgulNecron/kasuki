@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cynic::{GraphQlResponse, QueryBuilder};
-use serde::{Deserialize, Serialize};
 use shared::anilist::make_request::make_request_anilist;
 use shared::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use shared::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};

@@ -15,6 +15,7 @@ use tracing::warn;
 pub use crate::api::oauth::Claims;
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub enum ApiError {
 	Unauthorized,
 	Forbidden,

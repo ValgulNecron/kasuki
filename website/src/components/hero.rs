@@ -1,6 +1,6 @@
+use leptos::prelude::AriaAttributes;
 use leptos::prelude::ClassAttribute;
 use leptos::prelude::ElementChild;
-use leptos::prelude::AriaAttributes;
 use leptos::*;
 #[component]
 pub fn Hero() -> impl IntoView {

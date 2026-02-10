@@ -35,7 +35,7 @@ pub struct Staff {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct StaffName {
 	pub full: Option<String>,
 }
@@ -59,7 +59,7 @@ pub struct Character {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-
+#[allow(dead_code)]
 pub struct CharacterName {
 	pub full: Option<String>,
 }
