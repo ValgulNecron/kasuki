@@ -364,3 +364,13 @@ pkg/
 
 cache.db
 data.db
+!/.claude/
+!/bot/.claude/
+!/.kilocode/
+!/website/lighthouse-improved-report.json
+
+!/website/lighthouse-prod-report.json
+
+!/website/lighthouse-report.json
+
+!/website/lighthouse-report-fixed.json
