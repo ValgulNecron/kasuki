@@ -21,15 +21,16 @@ COPY api-server/Cargo.toml api-server/Cargo.toml
 COPY worker/Cargo.toml worker/Cargo.toml
 COPY Migration/Cargo.toml Migration/Cargo.toml
 COPY shared/Cargo.toml shared/Cargo.toml
+COPY kasuki-macros/Cargo.toml kasuki-macros/Cargo.toml
 
 # Create dummy source files for dependency caching
-RUN mkdir -p bot/src api-server/src worker/src Migration/src shared/src \
+RUN mkdir -p bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src \
     && echo "fn main() {}" > bot/src/main.rs \
     && echo "fn main() {}" > api-server/src/main.rs \
     && echo "fn main() {}" > worker/src/main.rs \
     && echo "fn main() {}" > Migration/src/main.rs \
-    && echo "fn lib() {}" > shared/src/lib.rs
-
+    && echo "fn lib() {}" > shared/src/lib.rs \
+&& echo "fn lib() {}" > kasuki-macros/src/lib.rs
 # Build dependencies
 RUN cargo build --release
 
@@ -50,6 +51,7 @@ COPY api-server/src ./api-server/src
 COPY worker/src ./worker/src
 
 COPY Migration/src ./Migration/src
+COPY kasuki-macros/src ./kasuki-macros/src
 
 # Build everything
 RUN cargo build --release
