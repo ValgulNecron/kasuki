@@ -6,6 +6,7 @@ game_steam_game_info-field4 = Publishers
 game_steam_game_info-field5 = App type
 game_steam_game_info-field6 = Languages
 game_steam_game_info-field7 = Categories
+game_steam_game_info-field8 = Reviews
 game_steam_game_info-free = Free
 game_steam_game_info-linux = Linux
 game_steam_game_info-mac = Mac

@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use futures::stream::StreamExt;
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
@@ -8,7 +7,6 @@ use crate::event_handler::{add_user_data_to_db, BotData};
 use crate::get_url;
 use base64::engine::general_purpose;
 use base64::Engine;
-use futures::stream::FuturesUnordered;
 use image::codecs::png::PngEncoder;
 use image::ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
@@ -276,45 +274,25 @@ pub async fn color_management(
 	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
 	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
 ) {
-	let mut members = Vec::new();
+	// Process guilds one at a time to avoid accumulating all members in memory
+	for guild in guilds {
+		let guild_id = guild.to_string();
+		debug!(guild_id);
 
-	// Process guilds in chunks of 4
-	for guild_chunk in guilds.chunks(4) {
-		let mut futures = FuturesUnordered::new();
+		let members = get_member(ctx_clone.clone(), *guild).await;
+		debug!("{}: {}", guild_id, members.len());
 
-		for guild in guild_chunk {
-			let guild_id = guild.to_string();
-			debug!(guild_id);
-
-			let ctx_clone = ctx_clone.clone();
-			let guild = *guild;
-			let future = get_member(ctx_clone, guild);
-
-			futures.push(future);
-		}
-
-		while let Some(mut result) = futures.next().await {
-			let guild_id = match result.first() {
-				Some(member) => member.guild_id.to_string(),
-				None => String::from(""),
-			};
-
-			debug!("{}: {}", guild_id, result.len());
-
-			members.append(&mut result);
-		}
+		match calculate_users_color(
+			members,
+			user_blacklist_server_image.clone(),
+			bot_data.clone(),
+		)
+		.await
+		{
+			Ok(_) => {},
+			Err(e) => error!(guild_id, "{:?}", e),
+		};
 	}
-
-	match calculate_users_color(
-		members.into_iter().collect(),
-		user_blacklist_server_image,
-		bot_data,
-	)
-	.await
-	{
-		Ok(_) => {},
-		Err(e) => error!("{:?}", e),
-	};
 }
 
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {

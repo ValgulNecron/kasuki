@@ -23,6 +23,8 @@ futures.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+fluent-syntax.workspace = true
+walkdir.workspace = true
 
 [build-dependencies]
 cynic-codegen.workspace = true

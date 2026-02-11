@@ -12,7 +12,6 @@ use palette::{IntoColor, Lab, Srgb};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serenity::all::{Context as SerenityContext, GuildId, Member};
-use tokio::task;
 use tracing::{info, warn};
 use uuid::Uuid;
 
@@ -262,27 +261,16 @@ pub async fn server_image_management(
 	ctx: &SerenityContext, image_config: ImageConfig, connection: Arc<DatabaseConnection>,
 ) {
 	for guild in ctx.cache.guilds() {
-		let ctx_clone = ctx.clone();
-
-		let guild_clone = guild;
-
-		let image_config_a = image_config.clone();
-
-		let connection_a = connection.clone();
-
-		task::spawn(async move {
-			if let Err(e) =
-				generate_local_server_image(&ctx_clone, guild_clone, image_config_a, connection_a)
-					.await
-			{
-				warn!(
-					"Failed to generate local server image for guild {}. {:?}",
-					guild, e
-				);
-			} else {
-				info!("Generated local server image for guild {}", guild);
-			}
-		});
+		if let Err(e) =
+			generate_local_server_image(ctx, guild, image_config.clone(), connection.clone()).await
+		{
+			warn!(
+				"Failed to generate local server image for guild {}. {:?}",
+				guild, e
+			);
+		} else {
+			info!("Generated local server image for guild {}", guild);
+		}
 
 		if let Err(e) =
 			generate_global_server_image(ctx, guild, image_config.clone(), connection.clone()).await
