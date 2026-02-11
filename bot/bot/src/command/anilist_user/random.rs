@@ -53,7 +53,7 @@ use anyhow::Context;
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
-use rand::{rng, Rng};
+use rand::{rng, RngExt};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use shared::random_stats_json::RandomStat;

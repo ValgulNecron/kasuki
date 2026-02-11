@@ -17,6 +17,9 @@ tokio.workspace = true
 chrono.workspace = true
 fluent-templates.workspace = true
 unic-langid.workspace = true
+inventory.workspace = true
+serenity.workspace = true
+futures.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

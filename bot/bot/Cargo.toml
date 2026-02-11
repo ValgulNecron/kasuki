@@ -47,9 +47,11 @@ fluent-templates.workspace = true
 unic-langid.workspace = true
 fluent-syntax.workspace = true
 walkdir.workspace = true
+inventory.workspace = true
+kasuki-macros.workspace = true
 
 [build-dependencies]
-cynic-codegen = "3.12.0"
+cynic-codegen.workspace = true
 
 [[bin]]
 name = "kasuki"

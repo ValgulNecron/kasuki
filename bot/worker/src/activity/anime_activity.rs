@@ -132,7 +132,7 @@ async fn send_specific_activity(
 
 	let filename = format!("{}_{}.png", guild_id, row.anime_id);
 	let attachment = CreateAttachment::bytes(decoded_bytes, filename);
-	let attachment = attachment.encode().await?;
+	let attachment = attachment.encode("image/png").await?;
 
 	let edit_webhook = EditWebhook::new().name(trimmed_name).avatar(attachment);
 

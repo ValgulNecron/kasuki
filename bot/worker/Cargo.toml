@@ -19,9 +19,9 @@ chrono.workspace = true
 serde_urlencoded.workspace = true
 cynic.workspace = true
 base64.workspace = true
-serenity = { git = "https://github.com/jamesbt365/serenity.git", branch = "components-v2", default-features = false, features = ["gateway", "rustls_backend", "model", "utils", "cache", "http", "full"] }
 image.workspace = true
 palette.workspace = true
 rayon.workspace = true
 uuid.workspace = true
 dashmap.workspace = true
+serenity.workspace = true

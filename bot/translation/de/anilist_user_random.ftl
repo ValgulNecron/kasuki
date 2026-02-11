@@ -3,5 +3,5 @@ anilist_user_random-desc =
      Format: { $format } 
      Tags: { $tags }
      Genres: { $genres }
-
+    {""}
      Beschreibung: { $desc }

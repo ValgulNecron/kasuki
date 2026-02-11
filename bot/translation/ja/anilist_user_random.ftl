@@ -3,5 +3,5 @@ anilist_user_random-desc =
      フォーマット: { $format } 
      タグ: { $tags }
      ジャンル: { $genres }
-
+    {""}
      説明: { $desc }
