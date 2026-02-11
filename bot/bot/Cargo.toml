@@ -49,6 +49,7 @@ fluent-syntax.workspace = true
 walkdir.workspace = true
 inventory.workspace = true
 kasuki-macros.workspace = true
+rustls.workspace = true
 
 [build-dependencies]
 cynic-codegen.workspace = true

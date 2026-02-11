@@ -32,6 +32,10 @@ mod structure;
 
 #[tokio::main]
 async fn main() {
+	rustls::crypto::aws_lc_rs::default_provider()
+		.install_default()
+		.expect("Failed to install default CryptoProvider");
+
 	println!("Preparing bot environment please wait...");
 	let config: Config = match Config::new() {
 		Ok(conf) => conf,

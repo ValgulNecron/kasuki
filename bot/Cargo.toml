@@ -73,6 +73,7 @@ syn = { version = "2", features = ["full", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
 kasuki-macros = { path = "kasuki-macros" }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 
 [patch.crates-io]
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next" }
