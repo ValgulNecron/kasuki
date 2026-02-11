@@ -29,27 +29,17 @@ impl MigrationTrait for Migration {
 			.map(|_| ())?;
 
 		manager
-			.create_index(
-				Index::create()
-                    .name("command_usage_pkey") // Name it so we can drop it easily
-                    .table(CommandUsage::Table)
-                    .col(CommandUsage::Command)
-                    .col(CommandUsage::User)
-                    .col(CommandUsage::UseTime)
-                    .primary()
-                    .to_owned(),
+			.get_connection()
+			.execute_unprepared(
+				"ALTER TABLE command_usage ADD PRIMARY KEY (command, \"user\", use_time)",
 			)
 			.await
+			.map(|_| ())
 	}
 
 	async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-		manager
-			.drop_index(
-				Index::drop()
-					.name("command_usage_pkey")
-					.table(CommandUsage::Table)
-					.to_owned(),
-			)
+		let db = manager.get_connection();
+		db.execute_unprepared("ALTER TABLE command_usage DROP CONSTRAINT command_usage_pkey")
 			.await?;
 
 		manager
@@ -61,17 +51,11 @@ impl MigrationTrait for Migration {
 			)
 			.await?;
 
-		manager
-			.create_index(
-				Index::create()
-					.name("command_usage_pkey")
-					.table(CommandUsage::Table)
-					.col(CommandUsage::Command)
-					.col(CommandUsage::User)
-					.primary()
-					.to_owned(),
-			)
-			.await
+		db.execute_unprepared(
+			"ALTER TABLE command_usage ADD PRIMARY KEY (command, \"user\")",
+		)
+		.await
+		.map(|_| ())
 	}
 }
 
