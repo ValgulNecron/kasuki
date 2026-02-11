@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates pkg-config \
-    libopus-dev \
+    protobuf-compiler libopus-dev \
+    cmake clang \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rustup default nightly && rustup update
@@ -29,13 +30,13 @@ RUN mkdir -p bot/src api-server/src worker/src Migration/src shared/src kasuki-m
     && echo "fn main() {}" > api-server/src/main.rs \
     && echo "fn main() {}" > worker/src/main.rs \
     && echo "fn main() {}" > Migration/src/main.rs \
-    && echo "fn lib() {}" > shared/src/lib.rs \
-&& echo "fn lib() {}" > kasuki-macros/src/lib.rs
+    && echo "" > shared/src/lib.rs \
+    && echo "" > kasuki-macros/src/lib.rs
 # Build dependencies
 RUN cargo build --release
 
 # Remove dummy files
-RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src
+RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src
 
 # Copy real source code and assets
 COPY shared/schemas ./shared/schemas
