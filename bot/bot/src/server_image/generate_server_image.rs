@@ -47,7 +47,11 @@ pub async fn generate_local_server_image(
 			)
 		})?;
 
-	let color_vec = create_color_vector_from_tuple(average_colors);
+	let color_vec = tokio::task::spawn_blocking(move || {
+		create_color_vector_from_tuple(average_colors)
+	})
+	.await
+	.context("spawn_blocking panicked")?;
 
 	generate_server_image(
 		ctx,
@@ -69,7 +73,11 @@ pub async fn generate_global_server_image(
 	let bot_data = ctx.data::<BotData>().clone();
 	let user_blacklist = bot_data.user_blacklist.clone();
 	let read_guard = user_blacklist.read().await.clone();
-	let color_vec = create_color_vector_from_user_color(average_colors, read_guard);
+	let color_vec = tokio::task::spawn_blocking(move || {
+		create_color_vector_from_user_color(average_colors, read_guard)
+	})
+	.await
+	.context("spawn_blocking panicked")?;
 
 	generate_server_image(
 		ctx,
@@ -101,81 +109,90 @@ pub async fn generate_server_image(
 
 	let img = get_image_from_url(guild_pfp.clone()).await?;
 
-	// Use small tiles (32x32) instead of full 128x128 to reduce memory.
-	// The final image is resized to ~2458x2458 anyway, so full-res tiles are wasted.
-	let tile_size: u32 = 32;
-	let canvas_dim = 128 * tile_size; // 4096 instead of 16384
+	// Move all CPU-heavy work (color matching, tile resizing, compositing, PNG encoding)
+	// to a blocking thread so we don't starve the tokio runtime and block Discord responses.
+	let (image_data, base64_image) = tokio::task::spawn_blocking(move || {
+		// Use small tiles (32x32) instead of full 128x128 to reduce memory.
+		// The final image is resized to ~2458x2458 anyway, so full-res tiles are wasted.
+		let tile_size: u32 = 32;
+		let canvas_dim = 128 * tile_size; // 4096 instead of 16384
 
-	let mut combined_image = DynamicImage::new_rgba8(canvas_dim, canvas_dim);
+		let mut combined_image = DynamicImage::new_rgba8(canvas_dim, canvas_dim);
 
-	// Build pixel coordinates list
-	let pixels: Vec<(u32, u32)> = (0..img.height())
-		.flat_map(|y| (0..img.width()).map(move |x| (x, y)))
-		.collect();
+		// Build pixel coordinates list
+		let pixels: Vec<(u32, u32)> = (0..img.height())
+			.flat_map(|y| (0..img.width()).map(move |x| (x, y)))
+			.collect();
 
-	// Use rayon to find the closest color index for each pixel in parallel
-	let indices: Vec<(u32, u32, usize)> = pixels
-		.par_iter()
-		.filter_map(|&(x, y)| {
-			let pixel = img.get_pixel(x, y);
+		// Use rayon to find the closest color index for each pixel in parallel
+		let indices: Vec<(u32, u32, usize)> = pixels
+			.par_iter()
+			.filter_map(|&(x, y)| {
+				let pixel = img.get_pixel(x, y);
 
-			let r = pixel[0] as f32 / 255.0;
-			let g = pixel[1] as f32 / 255.0;
-			let b = pixel[2] as f32 / 255.0;
+				let r = pixel[0] as f32 / 255.0;
+				let g = pixel[1] as f32 / 255.0;
+				let b = pixel[2] as f32 / 255.0;
 
-			let rgb_color = Srgb::new(r, g, b);
-			let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
-			let color_target = Color { cielab: lab_color };
+				let rgb_color = Srgb::new(r, g, b);
+				let lab_color: Lab =
+					<palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
+				let color_target = Color { cielab: lab_color };
 
-			find_closest_color_index(&average_colors, &color_target).map(|idx| (x, y, idx))
-		})
-		.collect();
+				find_closest_color_index(&average_colors, &color_target).map(|idx| (x, y, idx))
+			})
+			.collect();
 
-	// Process each pixel sequentially: resize the tile and place it on the canvas
-	for (x, y, idx) in indices {
-		let tile = image::imageops::resize(
-			&average_colors[idx].image,
-			tile_size,
-			tile_size,
-			FilterType::Triangle,
-		);
-		let tile_img = DynamicImage::ImageRgba8(tile);
-		if combined_image
-			.copy_from(&tile_img, x * tile_size, y * tile_size)
-			.is_err()
-		{
-			continue;
+		// Process each pixel sequentially: resize the tile and place it on the canvas
+		for (x, y, idx) in indices {
+			let tile = image::imageops::resize(
+				&average_colors[idx].image,
+				tile_size,
+				tile_size,
+				FilterType::Triangle,
+			);
+			let tile_img = DynamicImage::ImageRgba8(tile);
+			if combined_image
+				.copy_from(&tile_img, x * tile_size, y * tile_size)
+				.is_err()
+			{
+				continue;
+			}
 		}
-	}
 
-	// Drop average_colors before the resize to free memory
-	drop(average_colors);
+		// Drop average_colors before the resize to free memory
+		drop(average_colors);
 
-	let img = image::imageops::resize(
-		&combined_image,
-		(4096.0 * 0.6) as u32,
-		(4096.0 * 0.6) as u32,
-		FilterType::CatmullRom,
-	);
+		let resized = image::imageops::resize(
+			&combined_image,
+			(4096.0 * 0.6) as u32,
+			(4096.0 * 0.6) as u32,
+			FilterType::CatmullRom,
+		);
 
-	// Drop the large canvas now that we have the resized version
-	drop(combined_image);
+		// Drop the large canvas now that we have the resized version
+		drop(combined_image);
 
-	let mut image_data: Vec<u8> = Vec::new();
+		let mut image_data: Vec<u8> = Vec::new();
 
-	PngEncoder::new_with_quality(
-		&mut image_data,
-		CompressionType::Best,
-		png::FilterType::Adaptive,
-	)
-	.write_image(
-		img.as_raw(),
-		img.width(),
-		img.height(),
-		ExtendedColorType::Rgba8,
-	)?;
+		PngEncoder::new_with_quality(
+			&mut image_data,
+			CompressionType::Best,
+			png::FilterType::Adaptive,
+		)
+		.write_image(
+			resized.as_raw(),
+			resized.width(),
+			resized.height(),
+			ExtendedColorType::Rgba8,
+		)?;
 
-	let base64_image = general_purpose::STANDARD.encode(&image_data);
+		let base64_image = general_purpose::STANDARD.encode(&image_data);
+
+		Ok::<_, anyhow::Error>((image_data, base64_image))
+	})
+	.await
+	.context("spawn_blocking panicked")??;
 
 	let image = format!("data:image/png;base64,{}", base64_image);
 
