@@ -136,7 +136,7 @@ pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -
 		let operation = UserQueryId::build(var);
 
 		let data: GraphQlResponse<UserQueryId> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		data.data.unwrap().user.unwrap()
 	} else {
@@ -148,7 +148,7 @@ pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -
 		let operation = UserQuerySearch::build(var);
 
 		let data: GraphQlResponse<UserQuerySearch> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		data.data.unwrap().user.unwrap()
 	};

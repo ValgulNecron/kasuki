@@ -65,7 +65,7 @@ impl_command!(
 			let operation = CharacterQuerrySearch::build(var);
 
 			let data: GraphQlResponse<CharacterQuerrySearch> =
-				make_request_anilist(operation, false, anilist_cache)
+				make_request_anilist(operation, true, anilist_cache)
 					.await
 					.context(format!(
 						"Failed to make AniList API request for character search with query '{}'",
@@ -146,7 +146,7 @@ pub async fn get_character_by_id(
 	let operation = CharacterQuerryId::build(var);
 
 	let data: GraphQlResponse<CharacterQuerryId> =
-		make_request_anilist(operation, false, anilist_cache)
+		make_request_anilist(operation, true, anilist_cache)
 			.await
 			.context(format!(
 				"Failed to make AniList API request for character with ID {}",

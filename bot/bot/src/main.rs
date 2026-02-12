@@ -169,6 +169,7 @@ async fn main() {
 		shutdown_signal: Arc::new(shutdown_tx),
 		vocal_session: Arc::new(Default::default()),
 		user_color_update_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+		server_image_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
 	});
 	info!("Bot data structure initialized successfully");
 

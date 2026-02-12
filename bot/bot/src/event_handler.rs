@@ -28,7 +28,7 @@ use shared::database::prelude::{
 };
 use songbird::Songbird;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, instrument, trace, warn};
@@ -52,6 +52,7 @@ pub struct BotData {
 	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 	pub user_color_update_count: Arc<AtomicUsize>,
+	pub server_image_running: Arc<AtomicBool>,
 }
 use crate::helper::load_items::load_items_from_json;
 use crate::launch_task::thread_management_launcher;
@@ -378,7 +379,13 @@ impl Handler {
 				bot_data.clone(),
 			)
 			.await;
-			server_image_management(&ctx, image_config, db_connection.clone()).await;
+			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
+				let flag = bot_data.server_image_running.clone();
+				server_image_management(&ctx, image_config, db_connection.clone()).await;
+				flag.store(false, Ordering::SeqCst);
+			} else {
+				info!(guild_id = %guild.id, "Server image generation already running, skipping");
+			}
 		} else {
 			info!(guild_id = %guild.id, "Guild already exists, skipping setup");
 		}
@@ -424,7 +431,7 @@ impl Handler {
 		get_specific_user_color(
 			user_blacklist_server_image,
 			member.user.clone(),
-			bot_data.config.db.clone(),
+			bot_data.db_connection.clone(),
 		)
 		.await;
 
@@ -433,12 +440,18 @@ impl Handler {
 			.fetch_add(1, Ordering::SeqCst);
 		if count >= 100 {
 			bot_data.user_color_update_count.store(0, Ordering::SeqCst);
-			let ctx_clone = ctx.clone();
-			let image_config_clone = image_config.clone();
-			let db_clone = bot_data.db_connection.clone();
-			tokio::spawn(async move {
-				server_image_management(&ctx_clone, image_config_clone, db_clone).await;
-			});
+			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
+				let ctx_clone = ctx.clone();
+				let image_config_clone = image_config.clone();
+				let db_clone = bot_data.db_connection.clone();
+				let flag = bot_data.server_image_running.clone();
+				tokio::spawn(async move {
+					server_image_management(&ctx_clone, image_config_clone, db_clone).await;
+					flag.store(false, Ordering::SeqCst);
+				});
+			} else {
+				info!("Server image generation already running, skipping");
+			}
 		}
 
 		let user = member.user.clone();
@@ -513,20 +526,12 @@ impl Handler {
 		&self, ctx: SerenityContext, _old_data: Option<Presence>, new_data: Presence,
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
-		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 		let user_id = new_data.user.id;
 		trace!(user_id = %user_id, "Presence update received");
 
 		let user = new_data.user.to_user();
 
 		if let Some(user) = user {
-			get_specific_user_color(
-				user_blacklist_server_image,
-				user.clone(),
-				bot_data.config.db.clone(),
-			)
-			.await;
-
 			if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
 				warn!(
 					user_id = %user_id,
@@ -574,16 +579,9 @@ impl Handler {
 		}
 
 		for guild in ctx.cache.guilds() {
-			let partial_guild = match guild.to_partial_guild(&ctx.http).await {
-				Ok(guild) => guild,
-				Err(e) => {
-					warn!(guild_id = %guild, error = %e, "Failed to get partial guild");
-					continue;
-				},
-			};
-			ctx.chunk_guild(partial_guild.id, None, true, ChunkGuildFilter::None, None);
+			ctx.chunk_guild(guild, None, true, ChunkGuildFilter::None, None);
 			trace!(
-				guild_id = %partial_guild.id,
+				guild_id = %guild,
 				"Chunking guild"
 			);
 		}
@@ -601,12 +599,16 @@ impl Handler {
 			tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
 			command_registration(&ctx.http, bot_data.config.bot.remove_old_commands).await;
 
-			let ctx_clone = ctx.clone();
-			let image_config_clone = bot_data.config.image.clone();
-			let db_clone = bot_data.db_connection.clone();
-			tokio::spawn(async move {
-				server_image_management(&ctx_clone, image_config_clone, db_clone).await;
-			});
+			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
+				let ctx_clone = ctx.clone();
+				let image_config_clone = bot_data.config.image.clone();
+				let db_clone = bot_data.db_connection.clone();
+				let flag = bot_data.server_image_running.clone();
+				tokio::spawn(async move {
+					server_image_management(&ctx_clone, image_config_clone, db_clone).await;
+					flag.store(false, Ordering::SeqCst);
+				});
+			}
 		}
 
 		let db = bot_data.db_connection.clone();

@@ -532,7 +532,7 @@ async fn update_page(
 
 		trace!("Making Anilist API request for anime statistics");
 		let data: Result<GraphQlResponse<AnimeStat>> =
-			make_request_anilist(operation, false, anilist_cache.clone())
+			make_request_anilist(operation, true, anilist_cache.clone())
 				.await
 				.with_context(|| {
 					format!(
@@ -555,7 +555,7 @@ async fn update_page(
 
 		trace!("Making Anilist API request for manga statistics");
 		let data: Result<GraphQlResponse<AnimeStat>> =
-			make_request_anilist(operation, false, anilist_cache.clone())
+			make_request_anilist(operation, true, anilist_cache.clone())
 				.await
 				.with_context(|| {
 					format!(

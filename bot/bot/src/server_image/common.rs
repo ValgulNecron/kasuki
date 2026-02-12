@@ -107,10 +107,11 @@ pub fn create_color_vector_from_user_color(
 ///
 /// * `Option<ColorWithUrl>` - Returns an optional `ColorWithUrl`. If the closest color is found, it returns `Some(ColorWithUrl)`. If the colors list is empty, it returns `None`.
 
-pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<ColorWithUrl> {
+pub fn find_closest_color_index(colors: &[ColorWithUrl], target: &Color) -> Option<usize> {
 	colors
 		.iter()
-		.min_by(|&a, &b| {
+		.enumerate()
+		.min_by(|(_, a), (_, b)| {
 			let delta_e_a = a.cielab.improved_delta_e(target.cielab);
 
 			let delta_e_b = b.cielab.improved_delta_e(target.cielab);
@@ -119,7 +120,7 @@ pub fn find_closest_color(colors: &[ColorWithUrl], target: &Color) -> Option<Col
 				.partial_cmp(&delta_e_b)
 				.unwrap_or(std::cmp::Ordering::Equal)
 		})
-		.cloned()
+		.map(|(i, _)| i)
 }
 
 /// This function creates a `ColorWithUrl` object from an image and RGB color values.

@@ -65,7 +65,7 @@ impl_command!(
 			let operation = SeiyuuId::build(var);
 
 			let data: GraphQlResponse<SeiyuuId> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			data.data.unwrap().page.unwrap().staff.unwrap()[0]
 				.clone()
@@ -79,7 +79,7 @@ impl_command!(
 			let operation = SeiyuuSearch::build(var);
 
 			let data: GraphQlResponse<SeiyuuSearch> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			let data = match data.data {
 				Some(data) => match data.page {

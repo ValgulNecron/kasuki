@@ -131,7 +131,7 @@ impl_command!(
 			let operation = StudioQuerryId::build(var);
 
 			let data: GraphQlResponse<StudioQuerryId> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			data.data.unwrap().studio.unwrap()
 		} else {
@@ -142,7 +142,7 @@ impl_command!(
 			let operation = StudioQuerrySearch::build(var);
 
 			let data: GraphQlResponse<StudioQuerrySearch> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			data.data.unwrap().studio.unwrap()
 		};

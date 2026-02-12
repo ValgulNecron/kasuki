@@ -172,7 +172,7 @@ impl_command!(
 		let operation = RandomPageMedia::build(var);
 
 		let data: Result<GraphQlResponse<RandomPageMedia>> =
-			make_request_anilist(operation, false, anilist_cache).await;
+			make_request_anilist(operation, true, anilist_cache).await;
 
 		let data = data?;
 

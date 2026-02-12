@@ -54,7 +54,7 @@ impl_command!(
 			let operation = MediaQuerryId::build(var);
 
 			let data: GraphQlResponse<MediaQuerryId> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			data.data.unwrap().media.unwrap()
 		} else {
@@ -67,7 +67,7 @@ impl_command!(
 			let operation = MediaQuerrySearch::build(var);
 
 			let data: GraphQlResponse<MediaQuerrySearch> =
-				make_request_anilist(operation, false, anilist_cache).await?;
+				make_request_anilist(operation, true, anilist_cache).await?;
 
 			data.data.unwrap().media.unwrap()
 		};

@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
@@ -8,17 +8,22 @@ use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace, warn};
 
+/// Shared HTTP client for all AniList requests. Reusing a single client
+/// allows connection pooling and avoids the overhead of creating a new
+/// TLS connection for every request.
+static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
+
 /// Makes a GraphQL request to the Anilist API, with optional caching.
 ///
 /// This function serves as the main entry point for GraphQL requests to Anilist.
 /// It supports two modes of operation:
 ///
-/// 1. Direct request mode (`always_update = false`): Bypasses the cache check and
-///    directly makes a network request. This is useful when fresh data is required.
-///
-/// 2. Cache-first mode (`always_update = true`): Checks the cache before making a
+/// 1. Cache-first mode (`use_cache = true`): Checks the cache before making a
 ///    network request. If the query exists in cache, returns the cached result.
 ///    Otherwise, makes a network request and updates the cache.
+///
+/// 2. Direct request mode (`use_cache = false`): Bypasses the cache check and
+///    directly makes a network request. This is useful when fresh data is required.
 ///
 /// # Cache Implementation Details
 ///
@@ -38,21 +43,13 @@ pub async fn make_request_anilist<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, use_cache: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Starting GraphQL request to Anilist");
 	debug!("GraphQL query type: {}", std::any::type_name::<T>());
-	debug!("Always update cache: {}", always_update);
+	debug!("Use cache: {}", use_cache);
 
-	// The parameter name is counterintuitive - when always_update is false,
-	// we bypass the cache and always make a network request.
-	// When always_update is true, we check the cache first.
-	if !always_update {
-		info!("Bypassing cache check, making direct GraphQL request");
-		do_request(operation, anilist_cache)
-			.await
-			.with_context(|| "Failed to make direct GraphQL request to Anilist")
-	} else {
+	if use_cache {
 		debug!("Checking cache before making GraphQL request");
 		let return_data: GraphQlResponse<U> = match check_cache(operation, anilist_cache).await {
 			Ok(data) => {
@@ -67,6 +64,11 @@ pub async fn make_request_anilist<
 
 		trace!("GraphQL request completed successfully");
 		Ok(return_data)
+	} else {
+		info!("Bypassing cache check, making direct GraphQL request");
+		do_request(operation, anilist_cache)
+			.await
+			.with_context(|| "Failed to make direct GraphQL request to Anilist")
 	}
 }
 
@@ -175,10 +177,7 @@ async fn do_request<
 	info!("Making GraphQL request to Anilist API");
 	debug!("Query hash: {}...", query_hash);
 
-	// Create a new HTTP client for this request
-	// reqwest clients are relatively cheap to create and can be reused
-	trace!("Creating HTTP client");
-	let client = Client::new();
+	let client = &*HTTP_CLIENT;
 
 	// Prepare the GraphQL request with appropriate headers
 	// Content-Type and Accept headers are required for GraphQL requests

@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
+use std::collections::HashMap;
 use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 
 use crate::event_handler::{add_user_data_to_db, BotData};
-use crate::get_url;
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::codecs::png::PngEncoder;
@@ -19,7 +19,6 @@ use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
-use shared::config::DbConfig;
 use shared::database::prelude::UserColor;
 use shared::database::user_color::{ActiveModel, Column, Model};
 use tokio::sync::RwLock;
@@ -29,22 +28,10 @@ use tracing::{debug, error, trace};
 pub fn change_to_x128_url(url: String) -> String {
 	debug!("Changing URL size to 128x128: {}", url);
 
-	let mut url = url
-		.replace("?size=4096", "?size=128")
-		.replace("?size=2048", "?size=128")
-		.replace("?size=1024", "?size=128")
-		.replace("?size=512", "?size=128")
-		.replace("?size=256", "?size=128")
-		.replace("?size=128", "?size=128")
-		.replace("?size=64", "?size=128");
+	// Strip existing query params and rebuild with desired size
+	let base_url = url.split('?').next().unwrap_or(&url);
 
-	if !url.ends_with("?size=128&quality=lossless") {
-		url = format!("{}?size=128&quality=lossless", url)
-	}
-
-	url = format!("{}&quality=lossless", url);
-
-	url
+	format!("{}?size=128&quality=lossless", base_url)
 }
 
 pub async fn calculate_users_color(
@@ -54,6 +41,13 @@ pub async fn calculate_users_color(
 	let guard = user_blacklist_server_image.read().await;
 
 	let connection = bot_data.db_connection.clone();
+
+	// Batch fetch all existing user colors in one query
+	let all_colors = UserColor::find().all(&*connection).await?;
+	let color_map: HashMap<String, Model> = all_colors
+		.into_iter()
+		.map(|c| (c.user_id.clone(), c))
+		.collect();
 
 	for member in members {
 		trace!("Calculating user color for {}", member.user.id);
@@ -71,19 +65,10 @@ pub async fn calculate_users_color(
 
 		let id = member.user.id.to_string();
 
-		let user_color = UserColor::find()
-			.filter(Column::UserId.eq(id.clone()))
-			.one(&*connection)
-			.await?
-			.unwrap_or(Model {
-				user_id: id.clone(),
-				profile_picture_url: String::from(""),
-				color: String::from(""),
-				images: String::from(""),
-				calculated_at: Default::default(),
-			});
-
-		let pfp_url_old = user_color.profile_picture_url.clone();
+		let pfp_url_old = color_map
+			.get(&id)
+			.map(|c| c.profile_picture_url.clone())
+			.unwrap_or_default();
 
 		if pfp_url != pfp_url_old {
 			let (average_color, image): (String, String) =
@@ -120,59 +105,38 @@ pub async fn calculate_users_color(
 pub async fn return_average_user_color(
 	members: Vec<Member>, connection: Arc<DatabaseConnection>, blacklist: Vec<String>,
 ) -> Result<Vec<(String, String, String)>> {
-	let mut average_colors = Vec::with_capacity(members.len());
 	let members: Vec<Member> = members
 		.into_iter()
 		.filter(|member| !blacklist.contains(&member.user.id.to_string()))
 		.collect();
+
+	// Batch fetch all existing user colors in one query
+	let all_colors = UserColor::find().all(&*connection).await?;
+	let color_map: HashMap<String, Model> = all_colors
+		.into_iter()
+		.map(|c| (c.user_id.clone(), c))
+		.collect();
+
+	let mut average_colors = Vec::with_capacity(members.len());
 
 	for member in members {
 		let pfp_url = change_to_x128_url(member.user.face());
 
 		let id = member.user.id.to_string();
 
-		let user_color = UserColor::find()
-			.filter(Column::UserId.eq(id.clone()))
-			.one(&*connection)
-			.await?;
+		let existing = color_map.get(&id);
 
-		match user_color {
-			Some(user_color) => {
-				let (color, pfp_url_old, image_old) = (
-					user_color.color,
-					user_color.profile_picture_url,
-					user_color.images,
-				);
-
-				if pfp_url != pfp_url_old {
-					let (average_color, image) = calculate_user_color(member.user.clone()).await?;
-
-					average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
-
-					UserColor::insert(ActiveModel {
-						user_id: Set(id.clone()),
-						profile_picture_url: Set(pfp_url.clone()),
-						color: Set(average_color.clone()),
-						images: Set(image.clone()),
-						..Default::default()
-					})
-					.on_conflict(
-						OnConflict::column(Column::UserId)
-							.update_column(Column::Color)
-							.update_column(Column::ProfilePictureUrl)
-							.update_column(Column::Images)
-							.update_column(Column::CalculatedAt)
-							.to_owned(),
-					)
-					.exec(&*connection)
-					.await?;
-
-					continue;
-				}
-
-				average_colors.push((color, pfp_url_old, image_old));
+		match existing {
+			Some(user_color) if pfp_url == user_color.profile_picture_url => {
+				// Profile picture unchanged, use cached color
+				average_colors.push((
+					user_color.color.clone(),
+					user_color.profile_picture_url.clone(),
+					user_color.images.clone(),
+				));
 			},
-			None => {
+			_ => {
+				// No existing record or profile picture changed, recalculate
 				let (average_color, image) = calculate_user_color(member.user.clone()).await?;
 
 				average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
@@ -243,7 +207,7 @@ async fn calculate_user_color(user: User) -> Result<(String, String)> {
 		ExtendedColorType::Rgba8,
 	)?;
 
-	let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+	let base64_image = general_purpose::STANDARD.encode(&image_data);
 
 	let image = format!("data:image/png;base64,{}", base64_image);
 
@@ -354,7 +318,8 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 }
 
 pub async fn get_specific_user_color(
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, db_config: DbConfig,
+	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User,
+	connection: Arc<DatabaseConnection>,
 ) {
 	if user_blacklist_server_image
 		.read()
@@ -373,22 +338,23 @@ pub async fn get_specific_user_color(
 
 	let id = user.id.to_string();
 
-	let connection = sea_orm::Database::connect(get_url(db_config.clone()))
-		.await
-		.unwrap();
-
-	let user_color = UserColor::find()
+	let user_color = match UserColor::find()
 		.filter(Column::UserId.eq(id.clone()))
-		.one(&connection)
+		.one(&*connection)
 		.await
-		.unwrap_or(None)
-		.unwrap_or(Model {
+	{
+		Ok(color) => color.unwrap_or(Model {
 			user_id: id.clone(),
 			profile_picture_url: String::from(""),
 			color: String::from(""),
 			images: String::from(""),
 			calculated_at: Default::default(),
-		});
+		}),
+		Err(e) => {
+			error!("Failed to query user color for {}: {:?}", id, e);
+			return;
+		},
+	};
 
 	let pfp_url_old = user_color.profile_picture_url.clone();
 
@@ -396,10 +362,15 @@ pub async fn get_specific_user_color(
 		return;
 	}
 
-	let (average_color, image): (String, String) =
-		calculate_user_color(user.clone()).await.unwrap();
+	let (average_color, image): (String, String) = match calculate_user_color(user.clone()).await {
+		Ok(result) => result,
+		Err(e) => {
+			error!("Failed to calculate user color for {}: {:?}", id, e);
+			return;
+		},
+	};
 
-	UserColor::insert(ActiveModel {
+	if let Err(e) = UserColor::insert(ActiveModel {
 		user_id: Set(id.clone()),
 		profile_picture_url: Set(pfp_url.clone()),
 		color: Set(average_color.clone()),
@@ -413,7 +384,9 @@ pub async fn get_specific_user_color(
 			.update_column(Column::Images)
 			.to_owned(),
 	)
-	.exec(&connection)
+	.exec(&*connection)
 	.await
-	.unwrap();
+	{
+		error!("Failed to insert user color for {}: {:?}", id, e);
+	}
 }

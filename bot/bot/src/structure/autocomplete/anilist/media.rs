@@ -83,7 +83,7 @@ pub async fn send_auto_complete(
 	let operation = MediaAutocomplete::build(media);
 
 	let data: GraphQlResponse<MediaAutocomplete> =
-		match make_request_anilist(operation, false, anilist_cache).await {
+		match make_request_anilist(operation, true, anilist_cache).await {
 			Ok(data) => data,
 			Err(e) => {
 				tracing::error!(?e);

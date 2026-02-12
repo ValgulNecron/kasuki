@@ -374,3 +374,4 @@ data.db
 !/website/lighthouse-report.json
 
 !/website/lighthouse-report-fixed.json
+!/config2.toml

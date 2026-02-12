@@ -1,5 +1,4 @@
-use std::sync::{Arc, RwLock};
-use std::thread;
+use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose;
@@ -9,21 +8,21 @@ use image::codecs::png::{CompressionType, PngEncoder};
 use image::imageops::FilterType;
 use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
 use palette::{IntoColor, Lab, Srgb};
+use rayon::prelude::*;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serenity::all::{Context as SerenityContext, GuildId, Member};
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use crate::constant::THREAD_POOL_SIZE;
 use crate::event_handler::BotData;
 use crate::helper::image_saver::general_image_saver::image_saver;
 use crate::server_image::calculate_user_color::{
 	change_to_x128_url, get_image_from_url, get_member, return_average_user_color,
 };
 use crate::server_image::common::{
-	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color, Color,
-	ColorWithUrl,
+	create_color_vector_from_tuple, create_color_vector_from_user_color, find_closest_color_index,
+	Color, ColorWithUrl,
 };
 use shared::config::ImageConfig;
 use shared::database::prelude::{ServerImage, UserColor};
@@ -48,7 +47,7 @@ pub async fn generate_local_server_image(
 			)
 		})?;
 
-	let color_vec = create_color_vector_from_tuple(average_colors.clone());
+	let color_vec = create_color_vector_from_tuple(average_colors);
 
 	generate_server_image(
 		ctx,
@@ -70,7 +69,7 @@ pub async fn generate_global_server_image(
 	let bot_data = ctx.data::<BotData>().clone();
 	let user_blacklist = bot_data.user_blacklist.clone();
 	let read_guard = user_blacklist.read().await.clone();
-	let color_vec = create_color_vector_from_user_color(average_colors.clone(), read_guard);
+	let color_vec = create_color_vector_from_user_color(average_colors, read_guard);
 
 	generate_server_image(
 		ctx,
@@ -102,93 +101,65 @@ pub async fn generate_server_image(
 
 	let img = get_image_from_url(guild_pfp.clone()).await?;
 
-	let dim = 128 * 128;
+	// Use small tiles (32x32) instead of full 128x128 to reduce memory.
+	// The final image is resized to ~2458x2458 anyway, so full-res tiles are wasted.
+	let tile_size: u32 = 32;
+	let canvas_dim = 128 * tile_size; // 4096 instead of 16384
 
-	let mut combined_image = DynamicImage::new_rgba8(dim, dim);
+	let mut combined_image = DynamicImage::new_rgba8(canvas_dim, canvas_dim);
 
-	let vec_image_rw: Arc<RwLock<Vec<(u32, u32, DynamicImage)>>> =
-		Arc::new(RwLock::new(Vec::new()));
+	// Build pixel coordinates list
+	let pixels: Vec<(u32, u32)> = (0..img.height())
+		.flat_map(|y| (0..img.width()).map(move |x| (x, y)))
+		.collect();
 
-	let mut handles = Vec::new();
-
-	for y in 0..img.height() {
-		for x in 0..img.width() {
+	// Use rayon to find the closest color index for each pixel in parallel
+	let indices: Vec<(u32, u32, usize)> = pixels
+		.par_iter()
+		.filter_map(|&(x, y)| {
 			let pixel = img.get_pixel(x, y);
 
-			let color_vec_moved = average_colors.clone();
+			let r = pixel[0] as f32 / 255.0;
+			let g = pixel[1] as f32 / 255.0;
+			let b = pixel[2] as f32 / 255.0;
 
-			let vec_image_clone = Arc::clone(&vec_image_rw);
+			let rgb_color = Srgb::new(r, g, b);
+			let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
+			let color_target = Color { cielab: lab_color };
 
-			let handle = thread::spawn(move || {
-				let r = pixel[0] as f32 / 255.0;
+			find_closest_color_index(&average_colors, &color_target).map(|idx| (x, y, idx))
+		})
+		.collect();
 
-				let g = pixel[1] as f32 / 255.0;
-
-				let b = pixel[2] as f32 / 255.0;
-
-				let rgb_color = Srgb::new(r, g, b);
-
-				let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
-
-				let color_target = Color { cielab: lab_color };
-
-				let closest_color = match find_closest_color(&color_vec_moved, &color_target) {
-					Some(color) => color,
-					None => return,
-				};
-
-				let mut guard = match vec_image_clone.write() {
-					Ok(guard) => guard,
-					Err(_) => return,
-				};
-
-				guard.push((x, y, closest_color.image))
-			});
-
-			handles.push(handle);
-
-			if handles.len() >= THREAD_POOL_SIZE {
-				for handle in handles {
-					match handle.join() {
-						Ok(_) => {},
-						Err(_) => continue,
-					}
-				}
-
-				handles = Vec::new();
-			}
+	// Process each pixel sequentially: resize the tile and place it on the canvas
+	for (x, y, idx) in indices {
+		let tile = image::imageops::resize(
+			&average_colors[idx].image,
+			tile_size,
+			tile_size,
+			FilterType::Triangle,
+		);
+		let tile_img = DynamicImage::ImageRgba8(tile);
+		if combined_image
+			.copy_from(&tile_img, x * tile_size, y * tile_size)
+			.is_err()
+		{
+			continue;
 		}
 	}
 
-	let vec_image = vec_image_rw
-		.read()
-		.map_err(|e| {
-			anyhow!(
-				"Failed to read from RwLock<Vec<(u32, u32, DynamicImage)>>. {:?}",
-				e
-			)
-		})?
-		.clone();
+	// Drop average_colors before the resize to free memory
+	drop(average_colors);
 
-	drop(vec_image_rw);
-
-	let internal_vec = vec_image.clone();
-
-	for (x, y, image) in internal_vec {
-		match combined_image.copy_from(&image, x * 128, y * 128) {
-			Ok(_) => {},
-			Err(_) => continue,
-		}
-	}
-
-	let image = image::imageops::resize(
+	let img = image::imageops::resize(
 		&combined_image,
 		(4096.0 * 0.6) as u32,
 		(4096.0 * 0.6) as u32,
 		FilterType::CatmullRom,
 	);
 
-	let img = image;
+	// Drop the large canvas now that we have the resized version
+	drop(combined_image);
 
 	let mut image_data: Vec<u8> = Vec::new();
 
@@ -204,7 +175,7 @@ pub async fn generate_server_image(
 		ExtendedColorType::Rgba8,
 	)?;
 
-	let base64_image = general_purpose::STANDARD.encode(image_data.clone());
+	let base64_image = general_purpose::STANDARD.encode(&image_data);
 
 	let image = format!("data:image/png;base64,{}", base64_image);
 

@@ -59,7 +59,7 @@ async fn get_choices(
 	let operation = UserAutocomplete::build(var);
 
 	let data: Result<GraphQlResponse<UserAutocomplete>> =
-		make_request_anilist(operation, false, anilist_cache).await;
+		make_request_anilist(operation, true, anilist_cache).await;
 
 	let data = match data {
 		Ok(data) => data,

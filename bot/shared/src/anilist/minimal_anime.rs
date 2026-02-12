@@ -68,7 +68,7 @@ pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>
 	let operation = MinimalAnimeId::build(query);
 
 	let response: GraphQlResponse<MinimalAnimeId> =
-		make_request_anilist(operation, false, cache).await?;
+		make_request_anilist(operation, true, cache).await?;
 
 	let media = response
 		.data
@@ -91,7 +91,7 @@ pub async fn get_minimal_anime_by_search(
 	let operation = MinimalAnimeSearch::build(search_query);
 
 	let response: GraphQlResponse<MinimalAnimeSearch> =
-		make_request_anilist(operation, false, cache).await?;
+		make_request_anilist(operation, true, cache).await?;
 
 	let media = response
 		.data

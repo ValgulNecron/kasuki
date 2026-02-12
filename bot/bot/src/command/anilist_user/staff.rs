@@ -264,7 +264,7 @@ async fn get_staff(
 		let operation = StaffQuerryId::build(var);
 
 		let data: GraphQlResponse<StaffQuerryId> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		data.data.unwrap().staff.unwrap()
 	} else {
@@ -275,7 +275,7 @@ async fn get_staff(
 		let operation = StaffQuerrySearch::build(var);
 
 		let data: GraphQlResponse<StaffQuerrySearch> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		data.data.unwrap().staff.unwrap()
 	};

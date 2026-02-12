@@ -125,7 +125,7 @@ get_contents = |self_: AnimeCommand| async move {
 		let operation = MediaQuerryId::build(var);
 
 		let data: GraphQlResponse<MediaQuerryId> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		match data.data {
 			Some(data) => match data.media {
@@ -144,7 +144,7 @@ get_contents = |self_: AnimeCommand| async move {
 		let operation = MediaQuerrySearch::build(var);
 
 		let data: GraphQlResponse<MediaQuerrySearch> =
-			make_request_anilist(operation, false, anilist_cache).await?;
+			make_request_anilist(operation, true, anilist_cache).await?;
 
 		match data.data {
 			Some(data) => match data.media {
