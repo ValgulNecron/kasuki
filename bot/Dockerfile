@@ -75,7 +75,7 @@ COPY --from=builder /kasuki/target/release/worker /usr/local/bin/worker
 COPY --from=builder /kasuki/target/release/migration /usr/local/bin/migration
 COPY translation ./translation
 
-#COPY json /kasuki/json
+COPY json /kasuki/json
 #COPY server_image /kasuki/server_image
 
 # Entrypoint
