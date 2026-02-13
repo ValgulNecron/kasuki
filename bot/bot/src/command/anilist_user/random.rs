@@ -142,7 +142,7 @@ impl_command!(
 		self_.defer().await?;
 
 		let stats =
-			std::fs::read_to_string(RANDOM_STATS_PATH).context("Failed to read random stats")?;
+			tokio::fs::read_to_string(RANDOM_STATS_PATH).await.context("Failed to read random stats")?;
 		let random_stats: RandomStat =
 			serde_json::from_str(&stats).context("Failed to parse random stats")?;
 

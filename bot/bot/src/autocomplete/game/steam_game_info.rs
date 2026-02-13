@@ -81,16 +81,23 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		return;
 	}
 
-	let result = distance_top_n(
-		game_search.as_str(),
-		candidates,
-		AUTOCOMPLETE_COUNT_LIMIT as usize,
-	);
+	let game_search_owned = game_search.to_string();
+	let owned_candidates: Vec<String> = candidates.into_iter().map(|s| s.to_string()).collect();
+	drop(guard); // Release lock during CPU-heavy fuzzy search
+	let result = tokio::task::spawn_blocking(move || {
+		let refs: Vec<&str> = owned_candidates.iter().map(|s| s.as_str()).collect();
+		distance_top_n(
+			game_search_owned.as_str(),
+			refs,
+			AUTOCOMPLETE_COUNT_LIMIT as usize,
+		)
+	})
+	.await;
 
 	let result = match result {
-		Ok(r) => r,
-		Err(e) => {
-			debug!("Error in fuzzy ranking: {:?}", e);
+		Ok(Ok(r)) => r,
+		other => {
+			debug!("Error in fuzzy ranking: {:?}", other);
 			let data =
 				CreateAutocompleteResponse::new().set_choices(Vec::<AutocompleteChoice>::new());
 			let builder = CreateInteractionResponse::Autocomplete(data);
@@ -101,6 +108,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		},
 	};
 
+	let guard = bot_data.apps.read().await;
 	let mut choices: Vec<AutocompleteChoice> = Vec::with_capacity(result.len());
 
 	// Truncate the name to 100 characters (Discord limit) and map to app id

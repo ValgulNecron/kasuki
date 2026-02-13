@@ -325,21 +325,26 @@ impl_command!(
 /// }
 /// ```
 async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
-	let image = image::load_from_memory_with_format(image_bytes, guess_format(image_bytes)?)?;
+	let image_bytes = image_bytes.clone();
+	tokio::task::spawn_blocking(move || {
+		let image =
+			image::load_from_memory_with_format(&image_bytes, guess_format(&image_bytes)?)?;
 
-	let (width, height) = image.dimensions();
+		let (width, height) = image.dimensions();
 
-	let (crop_x, crop_y, square_size) = calculate_crop_params(width, height);
+		let (crop_x, crop_y, square_size) = calculate_crop_params(width, height);
 
-	let resized_image = image
-		.crop_imm(crop_x, crop_y, square_size, square_size)
-		.resize_exact(128, 128, FilterType::Nearest);
+		let resized_image = image
+			.crop_imm(crop_x, crop_y, square_size, square_size)
+			.resize_exact(128, 128, FilterType::Nearest);
 
-	let mut buffer = Cursor::new(Vec::new());
+		let mut buffer = Cursor::new(Vec::new());
 
-	resized_image.write_to(&mut buffer, ImageFormat::Jpeg)?;
+		resized_image.write_to(&mut buffer, ImageFormat::Jpeg)?;
 
-	Ok(buffer)
+		Ok(buffer)
+	})
+	.await?
 }
 
 /// Calculates the cropping parameters required to extract a square crop

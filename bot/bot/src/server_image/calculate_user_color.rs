@@ -10,8 +10,6 @@ use base64::Engine;
 use image::codecs::png::PngEncoder;
 use image::ImageReader;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder};
-use rayon::iter::ParallelBridge;
-use rayon::iter::ParallelIterator;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -170,49 +168,50 @@ async fn calculate_user_color(user: User) -> Result<(String, String)> {
 
 	let img = get_image_from_url(pfp_url).await?;
 
-	// convert to rgba8 so every image use the same color type.
-	let img = img.to_rgba8();
+	// Move CPU-heavy work (pixel iteration, PNG encoding, base64) to a blocking thread
+	tokio::task::spawn_blocking(move || {
+		// convert to rgba8 so every image use the same color type.
+		let img = img.to_rgba8();
 
-	// Fallback to CPU multithreading with rayon
-	let (r_total, g_total, b_total) = img
-		.enumerate_pixels()
-		.par_bridge()
-		.map(|(_, _, pixel)| (pixel[0] as u32, pixel[1] as u32, pixel[2] as u32))
-		.reduce(
-			|| (0, 0, 0),
-			|(r1, g1, b1), (r2, g2, b2)| (r1 + r2, g1 + g2, b1 + b2),
-		);
+		let (r_total, g_total, b_total) = img
+			.enumerate_pixels()
+			.map(|(_, _, pixel)| (pixel[0] as u32, pixel[1] as u32, pixel[2] as u32))
+			.fold((0u32, 0u32, 0u32), |(r1, g1, b1), (r2, g2, b2)| {
+				(r1 + r2, g1 + g2, b1 + b2)
+			});
 
-	debug!("R: {}, G: {}, B: {}", r_total, g_total, b_total);
+		debug!("R: {}, G: {}, B: {}", r_total, g_total, b_total);
 
-	// Calculate the average color by dividing the sum by the total number of pixels
-	let num_pixels = img.width() * img.height();
+		// Calculate the average color by dividing the sum by the total number of pixels
+		let num_pixels = img.width() * img.height();
 
-	let r_avg = r_total / num_pixels;
+		let r_avg = r_total / num_pixels;
 
-	let g_avg = g_total / num_pixels;
+		let g_avg = g_total / num_pixels;
 
-	let b_avg = b_total / num_pixels;
+		let b_avg = b_total / num_pixels;
 
-	let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
+		let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
 
-	debug!("{}", average_color);
+		debug!("{}", average_color);
 
-	let mut image_data: Vec<u8> = Vec::new();
+		let mut image_data: Vec<u8> = Vec::new();
 
-	PngEncoder::new(&mut image_data).write_image(
-		img.as_raw(),
-		img.width(),
-		img.height(),
-		ExtendedColorType::Rgba8,
-	)?;
+		PngEncoder::new(&mut image_data).write_image(
+			img.as_raw(),
+			img.width(),
+			img.height(),
+			ExtendedColorType::Rgba8,
+		)?;
 
-	let base64_image = general_purpose::STANDARD.encode(&image_data);
+		let base64_image = general_purpose::STANDARD.encode(&image_data);
 
-	let image = format!("data:image/png;base64,{}", base64_image);
+		let image = format!("data:image/png;base64,{}", base64_image);
 
-	// Return the average color
-	Ok((average_color, image))
+		Ok((average_color, image))
+	})
+	.await
+	.context("spawn_blocking panicked")?
 }
 
 pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
@@ -224,14 +223,19 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
 		.await
 		.context(format!("Failed to get image bytes from URL: {}", url))?;
 
-	// Decode the image data
-	let img = ImageReader::new(Cursor::new(resp))
-		.with_guessed_format()
-		.context(format!("Failed to guess image format from URL: {}", url))?
-		.decode()
-		.context(format!("Failed to decode image from URL: {}", url))?;
+	// Decode the image data on a blocking thread
+	let url_clone = url.clone();
+	tokio::task::spawn_blocking(move || {
+		let img = ImageReader::new(Cursor::new(resp))
+			.with_guessed_format()
+			.context(format!("Failed to guess image format from URL: {}", url_clone))?
+			.decode()
+			.context(format!("Failed to decode image from URL: {}", url_clone))?;
 
-	Ok(img)
+		Ok(img)
+	})
+	.await
+	.context(format!("spawn_blocking panicked for URL: {}", url))?
 }
 
 pub async fn color_management(
