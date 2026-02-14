@@ -1,160 +1,140 @@
 //! The `ProfileCommand` struct represents a command for handling and displaying user profile
 //! information in a Discord bot. It contains the Serenity context and the interaction data for
 //! processing and responding to the user command.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use unic_langid::LanguageIdentifier;
 
-/// `ProfileCommand` represents a structure that handles the context and interaction
-/// details required for processing a profile-related command in a Discord bot.
-///
-/// # Fields
-///
-/// * `ctx` - The context of the bot, represented by `SerenityContext`.
-///   This provides access to various utilities and information about the bot's state,
-///   such as shard info, data storage, and HTTP operations.
-///
-/// * `command_interaction` - Contains data related to the specific command interaction
-///   issued by the user. This includes details such as the user who invoked the command,
-///   options provided, and the originating message.
-///
-/// # Usage
-///
-/// This struct is intended to encapsulate the necessary data for handling a profile-related
-/// command in a modular manner, enabling easier management, execution, or processing
-/// of commands associated with user profiles in a Discord bot.
-///
-/// # Example
-///
-/// ```rust
-/// let profile_command = ProfileCommand {
-///     ctx,
-///     command_interaction,
-/// };
-/// // Process the profile-related command using `profile_command`
-/// ```
-#[derive(Clone)]
-pub struct ProfileCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+#[slash_command(
+	name = "profile", desc = "Show the profile of a user.",
+	command_type = SubCommand(parent = "user"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
+)]
+async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
+
+	let user = match command_interaction.data.kind.0 {
+		1 => get_user_command(ctx, command_interaction).await?,
+		2 => get_user_command_user(ctx, command_interaction).await,
+		_ => {
+			return Err(anyhow::anyhow!("Invalid command type"));
+		},
+	};
+
+	let guild_id = command_interaction
+		.guild_id
+		.map(|id| id.to_string())
+		.unwrap_or("0".to_string());
+	let db_connection = bot_data.db_connection.clone();
+
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
+
+	let mut fields = get_fields(&lang_id, user.clone());
+
+	let avatar_url = user.face();
+
+	let member: Option<Member> = {
+		match command_interaction.guild_id {
+			Some(guild_id) => (guild_id.member(&ctx.http, user.id).await).ok(),
+			None => None,
+		}
+	};
+
+	if let Some(member) = member {
+		if let Some(joined_at) = member.joined_at {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "user_profile-joined_date"),
+				format!("<t:{}>", joined_at.timestamp()),
+				true,
+			));
+		}
+	}
+
+	let skus = ctx.http.get_skus().await;
+
+	let user_premium = ctx
+		.http
+		.get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
+		.await;
+
+	if user_premium.is_ok() && skus.is_ok() {
+		let skus = skus?.clone();
+
+		let data = user_premium?;
+
+		if !data.is_empty() {
+			let string = data.iter().map(|e| {
+				let sku_id = e.sku_id;
+
+				let sku = skus.iter().find(|e2| e2.id == sku_id);
+
+				let e_type = e.kind.clone();
+				let type_name = match e_type.0 {
+					8 => String::from("APPLICATION_SUBSCRIPTION"),
+					1 => String::from("purchase"),
+					2 => String::from("premium_subscription"),
+					3 => String::from("developer_gift"),
+					4 => String::from("test_mode_purchase"),
+					5 => String::from("free_purchase"),
+					6 => String::from("user_gift"),
+					7 => String::from("premium_purchase"),
+					_ => String::from("Unknown"),
+				};
+
+				let sku_name = match sku {
+					Some(sku) => sku.name.clone(),
+					None => String::from("Unknown"),
+				};
+
+				format!(
+					"{}: {}/{} \n {}",
+					sku_name,
+					e.starts_at.unwrap_or_default(),
+					e.ends_at.unwrap_or_default(),
+					type_name
+				)
+			});
+
+			fields.push((USABLE_LOCALES.lookup(&lang_id, "user_profile-premium"), string.collect::<String>(), true));
+		}
+	}
+
+	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+	title_args.insert(Cow::Borrowed("user"), FluentValue::from(user.name.to_string()));
+	let embed_content = EmbedContent::new(
+		USABLE_LOCALES.lookup_with_args(&lang_id, "user_profile-title", &title_args),
+	)
+	.thumbnail(avatar_url)
+	.fields(fields)
+	.images_url(user.banner_url().unwrap_or_default());
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
 }
 
-impl_command!(
-	for ProfileCommand,
-	get_contents = |self_: ProfileCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
-
-		let user = match command_interaction.data.kind.0 {
-			1 => get_user_command(ctx, command_interaction).await?,
-			2 => get_user_command_user(ctx, command_interaction).await,
-			_ => {
-				return Err(anyhow::anyhow!("Invalid command type"));
-			},
-		};
-
-		let guild_id = command_interaction
-			.guild_id
-			.map(|id| id.to_string())
-			.unwrap_or("0".to_string());
-		let db_connection = bot_data.db_connection.clone();
-
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
-
-		let mut fields = get_fields(&lang_id, user.clone());
-
-		let avatar_url = user.face();
-
-		let member: Option<Member> = {
-			match command_interaction.guild_id {
-				Some(guild_id) => (guild_id.member(&ctx.http, user.id).await).ok(),
-				None => None,
-			}
-		};
-
-		if let Some(member) = member {
-			if let Some(joined_at) = member.joined_at {
-				fields.push((
-					USABLE_LOCALES.lookup(&lang_id, "user_profile-joined_date"),
-					format!("<t:{}>", joined_at.timestamp()),
-					true,
-				));
-			}
-		}
-
-		let skus = ctx.http.get_skus().await;
-
-		let user_premium = ctx
-			.http
-			.get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
-			.await;
-
-		if user_premium.is_ok() && skus.is_ok() {
-			let skus = skus?.clone();
-
-			let data = user_premium?;
-
-			if !data.is_empty() {
-				let string = data.iter().map(|e| {
-					let sku_id = e.sku_id;
-
-					let sku = skus.iter().find(|e2| e2.id == sku_id);
-
-					let e_type = e.kind.clone();
-					let type_name = match e_type.0 {
-						8 => String::from("APPLICATION_SUBSCRIPTION"),
-						1 => String::from("purchase"),
-						2 => String::from("premium_subscription"),
-						3 => String::from("developer_gift"),
-						4 => String::from("test_mode_purchase"),
-						5 => String::from("free_purchase"),
-						6 => String::from("user_gift"),
-						7 => String::from("premium_purchase"),
-						_ => String::from("Unknown"),
-					};
-
-					let sku_name = match sku {
-						Some(sku) => sku.name.clone(),
-						None => String::from("Unknown"),
-					};
-
-					format!(
-						"{}: {}/{} \n {}",
-						sku_name,
-						e.starts_at.unwrap_or_default(),
-						e.ends_at.unwrap_or_default(),
-						type_name
-					)
-				});
-
-				fields.push((USABLE_LOCALES.lookup(&lang_id, "user_profile-premium"), string.collect::<String>(), true));
-			}
-		}
-
-		let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		title_args.insert(Cow::Borrowed("user"), FluentValue::from(user.name.to_string()));
-		let embed_content = EmbedContent::new(
-			USABLE_LOCALES.lookup_with_args(&lang_id, "user_profile-title", &title_args),
-		)
-		.thumbnail(avatar_url)
-		.fields(fields)
-		.images_url(user.banner_url().unwrap_or_default());
-
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-		Ok(embed_contents)
-	}
-);
+#[slash_command(
+	name = "profile",
+	command_type = User,
+	struct_name = ProfileCommand,
+	install_contexts = [Guild],
+)]
+async fn profile_user_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
+	unreachable!()
+}
 
 /// Generates a vector of fields containing information extracted from a user's profile.
 ///

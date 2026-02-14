@@ -6,13 +6,11 @@
 //! to be formatted into Discord Embed responses.
 use std::sync::Arc;
 
-use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::impl_command;
 use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
@@ -20,171 +18,169 @@ use crate::structure::run::anilist::staff::{
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
-#[derive(Clone)]
-pub struct StaffCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "staff", desc = "Info of a staff.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "staff_name", desc = "Name of the staff you want to check.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
-impl_command!(
-	for StaffCommand,
-	get_contents = |self_: StaffCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-
-		let _config = bot_data.config.clone();
+	let _config = bot_data.config.clone();
 
 	let anilist_cache = bot_data.anilist_cache.clone();
-		let staff = get_staff(&command_interaction, anilist_cache).await?;
+	let staff = get_staff(&command_interaction, anilist_cache).await?;
 
-		let va = staff
-			.characters
-			.unwrap()
-			.nodes
-			.unwrap()
-			.iter()
-			.filter_map(|x| {
-				let x = x.clone().unwrap();
-				let name = x.name.unwrap();
-				let full = name.full.as_deref();
-				let native = name.native.as_deref();
-				get_full_name(full, native)
-			})
-			.take(5)
-			.collect::<Vec<String>>()
-			.join("\n");
+	let va = staff
+		.characters
+		.unwrap()
+		.nodes
+		.unwrap()
+		.iter()
+		.filter_map(|x| {
+			let x = x.clone().unwrap();
+			let name = x.name.unwrap();
+			let full = name.full.as_deref();
+			let native = name.native.as_deref();
+			get_full_name(full, native)
+		})
+		.take(5)
+		.collect::<Vec<String>>()
+		.join("\n");
 
-		let media = staff
-			.staff_media
-			.unwrap()
-			.edges
-			.unwrap()
-			.iter()
-			.filter_map(|x| {
-				let node = x.clone().unwrap().node.unwrap();
-				let title = node.title.unwrap();
-				let romaji = title.romaji.as_deref();
-				let english = title.english.as_deref();
-				get_full_name(romaji, english)
-			})
-			.take(5)
-			.collect::<Vec<String>>()
-			.join("\n");
+	let media = staff
+		.staff_media
+		.unwrap()
+		.edges
+		.unwrap()
+		.iter()
+		.filter_map(|x| {
+			let node = x.clone().unwrap().node.unwrap();
+			let title = node.title.unwrap();
+			let romaji = title.romaji.as_deref();
+			let english = title.english.as_deref();
+			get_full_name(romaji, english)
+		})
+		.take(5)
+		.collect::<Vec<String>>()
+		.join("\n");
 
-		let job = staff.primary_occupations.unwrap()[0]
-			.clone()
-			.unwrap_or_default();
+	let job = staff.primary_occupations.unwrap()[0]
+		.clone()
+		.unwrap_or_default();
 
-		let gender = staff.gender.clone().unwrap_or(String::from("Unknown."));
+	let gender = staff.gender.clone().unwrap_or(String::from("Unknown."));
 
-		let lang = staff.language_v2.unwrap_or_default();
+	let lang = staff.language_v2.unwrap_or_default();
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Get the language identifier for localization
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+	// Get the language identifier for localization
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		let mut fields = vec![
-			(
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-media"),
-				media,
-				true,
-			),
-			(
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-occupation"),
-				job,
-				true,
-			),
-			(
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-gender"),
-				gender,
-				true,
-			),
-			(
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-lang"),
-				lang,
-				true,
-			),
-		];
+	let mut fields = vec![
+		(
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-media"),
+			media,
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-occupation"),
+			job,
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-gender"),
+			gender,
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-lang"),
+			lang,
+			true,
+		),
+	];
 
-		if let Some(home_town) = staff.home_town {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-hometown"),
-				home_town,
-				true,
-			))
-		}
-
-		if !va.is_empty() {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-va"),
-				va,
-				true,
-			))
-		}
-
-		let age = staff.age;
-
-		if age.is_some() {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-age"),
-				age.unwrap_or_default().to_string(),
-				true,
-			))
-		}
-
-		let name = staff.name.unwrap();
-		if staff.date_of_birth.is_some() {
-			let date_of_birth = get_date(staff.date_of_birth.clone());
-			if date_of_birth != String::new() {
-				fields.push((
-					USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_birth"),
-					date_of_birth,
-					true,
-				));
-			}
-		}
-
-		if staff.date_of_death.is_some() {
-			let date_of_death = get_date(staff.date_of_death.clone());
-			if date_of_death != String::new() {
-				fields.push((
-					USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_death"),
-					date_of_death,
-					true,
-				));
-			}
-		}
-
-		let name = name.full.unwrap_or(
-			name.user_preferred
-				.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
-		);
-
-		let embed_content = EmbedContent::new(name)
-			.description(convert_anilist_flavored_to_discord_flavored_markdown(
-				staff.description.unwrap_or_default(),
-			))
-			.thumbnail(staff.image.unwrap().large.unwrap_or_default())
-			.url(staff.site_url.unwrap_or_default())
-			.fields(fields);
-
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
-
-		Ok(embed_contents)
+	if let Some(home_town) = staff.home_town {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-hometown"),
+			home_town,
+			true,
+		))
 	}
-);
+
+	if !va.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-va"),
+			va,
+			true,
+		))
+	}
+
+	let age = staff.age;
+
+	if age.is_some() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-age"),
+			age.unwrap_or_default().to_string(),
+			true,
+		))
+	}
+
+	let name = staff.name.unwrap();
+	if staff.date_of_birth.is_some() {
+		let date_of_birth = get_date(staff.date_of_birth.clone());
+		if date_of_birth != String::new() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_birth"),
+				date_of_birth,
+				true,
+			));
+		}
+	}
+
+	if staff.date_of_death.is_some() {
+		let date_of_death = get_date(staff.date_of_death.clone());
+		if date_of_death != String::new() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_death"),
+				date_of_death,
+				true,
+			));
+		}
+	}
+
+	let name = name.full.unwrap_or(
+		name.user_preferred
+			.unwrap_or(name.native.unwrap_or(String::from("Unknown."))),
+	);
+
+	let embed_content = EmbedContent::new(name)
+		.description(convert_anilist_flavored_to_discord_flavored_markdown(
+			staff.description.unwrap_or_default(),
+		))
+		.thumbnail(staff.image.unwrap().large.unwrap_or_default())
+		.url(staff.site_url.unwrap_or_default())
+		.fields(fields);
+
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
+}
 
 /// Retrieves staff details from the AniList API based on the provided command interaction.
 ///

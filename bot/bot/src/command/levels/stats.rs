@@ -1,9 +1,9 @@
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
 use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use sea_orm::EntityTrait;
@@ -19,15 +19,13 @@ use std::collections::HashMap;
 use tracing::{debug, info};
 use uuid::Uuid;
 
-#[derive(Clone)]
-pub struct LevelsStatsCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for LevelsStatsCommand,
-	get_contents = |self_: LevelsStatsCommand| async move {
+#[slash_command(
+	name = "stats", desc = "Get stats for level.",
+	command_type = SubCommand(parent = "levels"),
+	contexts = [Guild, PrivateChannel],
+	install_contexts = [Guild],
+)]
+async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContents<'_>> {
 		info!("Processing levels stats command");
 		let _ = self_.defer().await;
 		debug!("Command deferred");
@@ -227,8 +225,7 @@ impl_command!(
 
 		info!("Levels stats command processed successfully");
 		Ok(embed_contents)
-	}
-);
+}
 
 fn get_level(xp: i128) -> i32 {
 	match xp {

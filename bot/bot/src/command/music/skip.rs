@@ -40,103 +40,73 @@
 //! When a user sends a `/skip` command:
 //! - If a song is currently playing, the bot skips the track and sends a success message.
 //! - If no song is playing or the Lavalink client is unavailable, the bot sends an error message.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-/// Struct representing the "Skip" command within a Discord bot.
-///
-/// This command is intended to be used to skip the currently playing track
-/// in a music playback session within a Discord voice channel.
-///
-/// # Fields
-///
-/// * `ctx`
-///   - The context of the Serenity framework, providing access to the Discord client,
-///     cache, and HTTP objects.
-///   - Used to interact with Discord's API or retrieve information about the bot's state.
-///
-/// * `command_interaction`
-///   - Represents the interaction event related to the "Skip" command.
-///   - This contains the details of the command invocation, such as which user
-///     issued the command and the specific parameters provided.
-///
-/// # Example Usage
-///
-/// ```rust
-/// let skip_command = SkipCommand {
-///     ctx: serenity_context_instance,
-///     command_interaction: command_interaction_instance,
-/// };
-///
-/// // Use skip_command to process the skip action.
-/// ```
-#[derive(Clone)]
-pub struct SkipCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "skip", desc = "Skip the current song.",
+	command_type = SubCommand(parent = "music"),
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
 
-impl_command!(
-	for SkipCommand,
-	get_contents = |self_: SkipCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id_str = match self_.command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self_.command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Load the localized strings
+	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
-		// Load the localized strings
-		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let command_interaction = self_.get_command_interaction();
 
-		let command_interaction = self_.get_command_interaction();
+	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
-		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-
-		let lava_client = bot_data.lavalink.clone();
-		let lava_client = lava_client.read().await.clone();
-		if lava_client.is_none() {
-			return Err(anyhow::anyhow!("Lavalink is disabled"));
-		}
-		let lava_client = lava_client.unwrap();
-		let Some(player) =
-			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
-		else {
-			let embed_content =
-				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
-
-			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-			return Ok(embed_contents);
-		};
-		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title"));
-
-		let now_playing = player.get_player().await?.track;
-
-		if let Some(np) = now_playing {
-			player.skip()?;
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
-			embed_content =
-				embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_skip-success", &args));
-		} else {
-			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
-		}
+	let lava_client = bot_data.lavalink.clone();
+	let lava_client = lava_client.read().await.clone();
+	if lava_client.is_none() {
+		return Err(anyhow::anyhow!("Lavalink is disabled"));
+	}
+	let lava_client = lava_client.unwrap();
+	let Some(player) =
+		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
+	else {
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
-		Ok(embed_contents)
+		return Ok(embed_contents);
+	};
+	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title"));
+
+	let now_playing = player.get_player().await?.track;
+
+	if let Some(np) = now_playing {
+		player.skip()?;
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
+		embed_content =
+			embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_skip-success", &args));
+	} else {
+		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
 	}
-);
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
+}

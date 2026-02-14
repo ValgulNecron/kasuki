@@ -17,124 +17,95 @@
 //! };
 //! let embed_contents = command_usage.get_contents().await?;
 //! ```
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use crate::event_handler::BotData;
-use crate::impl_command;
+use anyhow::Result;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-/// A struct representing a command usage event within a Discord application.
-///
-/// This struct contains essential context and interaction details related to
-/// a specific command executed within the Discord bot framework, Serenity.
-///
-/// # Fields
-/// - `ctx`: Contains the context of the command. This includes the state of
-///   the bot, such as data, cache, and shard information, which can be used
-///   for further interaction with the Discord API.
-/// - `command_interaction`: Represents the interaction received from Discord
-///   for the specific command. This includes data about the user input,
-///   the invoked command, and any associated options or parameters.
-///
-/// # Usage
-/// This struct is ideal for handling, processing, and responding to command
-/// interactions with sufficient context and command details.
-///
-/// # Example
-/// ```rust
-/// use your_crate::CommandUsageCommand;
-///
-/// let command_usage = CommandUsageCommand {
-///     ctx: some_context,
-///     command_interaction: some_interaction,
-/// };
-///
-/// // Use the fields `ctx` and `command_interaction` to process the command.
-/// ```
-#[derive(Clone)]
-pub struct CommandUsageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "command_usage", desc = "Show the usage of each command for an user.",
+	command_type = SubCommand(parent = "user"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want the usage of.", arg_type = User, required = false, autocomplete = false)],
+)]
+async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let user = get_user_command(&self_.ctx, &self_.command_interaction).await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
 
-impl_command!(
-	for CommandUsageCommand,
-	get_contents = |self_: CommandUsageCommand| async move {
-		self_.defer().await?;
-		let user = get_user_command(&self_.ctx, &self_.command_interaction).await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
+	let user_id = user.id.to_string();
+	let username = user.name.clone();
 
-		let user_id = user.id.to_string();
-		let username = user.name.clone();
+	// Query database for user's command usage
+	let db_connection = bot_data.db_connection.clone();
 
-		// Query database for user's command usage
-		let db_connection = bot_data.db_connection.clone();
+	let usage = get_usage_for_id(&user_id, &db_connection).await?;
 
-		let usage = get_usage_for_id(&user_id, &db_connection).await?;
+	let guild_id = command_interaction
+		.guild_id
+		.map(|id| id.to_string())
+		.unwrap_or("0".to_string());
 
-		let guild_id = command_interaction
-			.guild_id
-			.map(|id| id.to_string())
-			.unwrap_or("0".to_string());
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let mut embed_contents = vec![];
 
-		let mut embed_contents = vec![];
+	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+	title_args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-title", &title_args));
 
-		let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		title_args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-title", &title_args));
+	if usage.is_empty() {
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+		let inner_embed = embed_content.description(
+			USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-no_usage", &args),
+		);
+		embed_contents.push(inner_embed);
+	} else {
+		let mut description = String::new();
 
-		if usage.is_empty() {
+		let mut inner_embed = embed_content.clone();
+
+		for (command, usage_count) in &usage {
 			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-			let inner_embed = embed_content.description(
-				USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-no_usage", &args),
+			args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
+			args.insert(Cow::Borrowed("usage"), FluentValue::from(usage_count.to_string()));
+			description.push_str(
+				USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args).as_str(),
 			);
-			embed_contents.push(inner_embed);
-		} else {
-			let mut description = String::new();
 
-			let mut inner_embed = embed_content.clone();
+			description.push('\n');
 
-			for (command, usage_count) in &usage {
-				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-				args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
-				args.insert(Cow::Borrowed("usage"), FluentValue::from(usage_count.to_string()));
-				description.push_str(
-					USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args).as_str(),
-				);
+			if description.len() > 4096 {
+				let desc = description.clone();
+				embed_contents.push(inner_embed.clone().description(desc));
 
-				description.push('\n');
+				description.clear();
 
-				if description.len() > 4096 {
-					let desc = description.clone();
-					embed_contents.push(inner_embed.clone().description(desc));
-
-					description.clear();
-
-					inner_embed = embed_content.clone();
-				}
-			}
-
-			if !description.is_empty() {
-				embed_contents.push(inner_embed.clone().description(description));
+				inner_embed = embed_content.clone();
 			}
 		}
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents);
-
-		Ok(embed_contents)
+		if !description.is_empty() {
+			embed_contents.push(inner_embed.clone().description(description));
+		}
 	}
-);
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents);
+
+	Ok(embed_contents)
+}
 
 /// Retrieves usage statistics for a specific user ID from the database.
 ///

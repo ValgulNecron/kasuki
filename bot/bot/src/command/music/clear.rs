@@ -59,91 +59,61 @@
 //!
 //! clear_command.get_contents().await;
 //! ```
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::anyhow;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
-/// A structure representing a `ClearCommand` used to handle the `clear` command
-/// in a Discord bot using the Serenity library.
-///
-/// This structure holds the context of the bot and the interaction data associated
-/// with the `clear` command triggered by a user in a Discord server.
-///
-/// # Fields
-///
-/// * `ctx` - The context of the Serenity framework, providing access to bot data such as cache,
-///   HTTP client, and other bot-related functions. This allows the command to interact with
-///   Discord's API and manage server data.
-///
-/// * `command_interaction` - The interaction data associated with the command. This contains information
-///   such as user input, the channel where the command was invoked, and other metadata about the command
-///   interaction.
-///
-/// # Example
-///
-/// ```rust
-/// let clear_command = ClearCommand {
-///     ctx: serenity_ctx,
-///     command_interaction: command_interaction_data,
-/// };
-/// ```
-///
-/// The `ClearCommand` struct is expected to be used to process and execute the logic for clearing messages
-/// or performing other related administrative actions in a Discord server.
-#[derive(Clone)]
-pub struct ClearCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "clear", desc = "Clear the current queue.",
+	command_type = SubCommand(parent = "music"),
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
 
-impl_command!(
-	for ClearCommand,
-	get_contents = |self_: ClearCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
+	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
-		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	// Retrieve the guild ID from the command interaction
+	let guild_id_str = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Load the localized strings
+	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
-		// Load the localized strings
-		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lava_client = bot_data.lavalink.clone();
+	let lava_client = lava_client.read().await.clone();
+	if lava_client.is_none() {
+		return Err(anyhow::anyhow!("Lavalink is disabled"));
+	}
+	let lava_client = lava_client.unwrap();
 
-		let lava_client = bot_data.lavalink.clone();
-		let lava_client = lava_client.read().await.clone();
-		if lava_client.is_none() {
-			return Err(anyhow::anyhow!("Lavalink is disabled"));
-		}
-		let lava_client = lava_client.unwrap();
-
-		let Some(player) =
-			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
-		else {
-			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title"))
-				.description(USABLE_LOCALES.lookup(&lang_id, "music_clear-error_no_voice"));
-
-			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-			return Ok(embed_contents);
-		};
-
-		player.get_queue().clear()?;
-
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_clear-success"));
+	let Some(player) =
+		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
+	else {
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_clear-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-		Ok(embed_contents)
-	}
-);
+
+		return Ok(embed_contents);
+	};
+
+	player.get_queue().clear()?;
+
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_clear-success"));
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	Ok(embed_contents)
+}

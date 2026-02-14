@@ -66,12 +66,9 @@
 //!     },
 //! }
 //! ```
-use crate::command::command::Command;
-use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::impl_command;
 use crate::structure::run::anilist::media;
 use crate::structure::run::anilist::media::{
 	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
@@ -79,18 +76,17 @@ use crate::structure::run::anilist::media::{
 };
 use anyhow::anyhow;
 use cynic::{GraphQlResponse, QueryBuilder};
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
 
-#[derive(Clone)]
-pub struct AnimeCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-for AnimeCommand,
-get_contents = |self_: AnimeCommand| async move {
+#[slash_command(
+	name = "anime", desc = "Info of an anime.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "anime_name", desc = "Name of the anime you want to check.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn anime_command(self_: AnimeCommand) -> Result<EmbedsContents<'_>> {
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();
@@ -161,4 +157,3 @@ get_contents = |self_: AnimeCommand| async move {
 
 	Ok(embed_contents)
 }
-);

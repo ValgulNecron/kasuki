@@ -17,7 +17,7 @@
 //!
 //! Provides a reference to the `SerenityContext` associated with the command.
 //!
-//! **Returns:**  
+//! **Returns:**
 //! A reference to the context for the bot.
 //!
 //! ### `get_command_interaction(&self) -> &CommandInteraction`
@@ -25,7 +25,7 @@
 //! Provides a reference to the `CommandInteraction` instance that represents the
 //! command invoked by the user.
 //!
-//! **Returns:**  
+//! **Returns:**
 //! A reference to the command interaction.
 //!
 //! ### `async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>>`
@@ -42,10 +42,10 @@
 //!    - If successful, an embed with a success message is returned.
 //!    - If an error occurs (e.g., no active voice connection), an error message is returned.
 //!
-//! **Returns:**  
-//! - `Ok(Vec<EmbedContent<'_, '_>>)` on success:  
+//! **Returns:**
+//! - `Ok(Vec<EmbedContent<'_, '_>>)` on success:
 //!   A vector containing embed content to be sent back as a response.
-//! - `Err(anyhow::Error)` on failure:  
+//! - `Err(anyhow::Error)` on failure:
 //!   An error if the Lavalink client is disabled, the bot has no active voice player,
 //!   or if any other issue arises during execution.
 //!
@@ -78,91 +78,61 @@
 //!     }
 //! }
 //! ```
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::anyhow;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 
-///
-/// The `ResumeCommand` struct is responsible for handling the "resume" command functionality
-/// within a Discord bot application powered by the `serenity` library. This struct encapsulates
-/// the context of the bot and the interaction data associated with invoking the command.
-///
-/// # Fields
-///
-/// * `ctx` (`SerenityContext`)  
-///   Represents the context in which the bot operates, provided by the `serenity` library.
-///   This includes data needed to interact with Discord's API and other runtime information.
-///
-/// * `command_interaction` (`CommandInteraction`)  
-///   Encapsulates the interaction data when a user invokes the "resume" command. This includes
-///   metadata about the command, the user who issued it, and additional parameters.
-///
-/// # Example
-///
-/// ```rust
-/// // Assuming you have the relevant context and CommandInteraction ready:
-/// let resume_command = ResumeCommand {
-///     ctx: serenity_context,
-///     command_interaction: command_interaction_data,
-/// };
-///
-/// // Implement and invoke the logic to handle the resume command.
-/// resume_command.execute();
-/// ```
-#[derive(Clone)]
-pub struct ResumeCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "resume", desc = "Resume the current song.",
+	command_type = SubCommand(parent = "music"),
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn resume_command(self_: ResumeCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
 
-impl_command!(
-	for ResumeCommand,
-	get_contents = |self_: ResumeCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id_str = match self_.command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self_.command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Load the localized strings
+	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
-		// Load the localized strings
-		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let command_interaction = self_.get_command_interaction();
 
-		let command_interaction = self_.get_command_interaction();
-
-		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-		let lava_client = bot_data.lavalink.clone();
-		let lava_client = lava_client.read().await.clone();
-		if lava_client.is_none() {
-			return Err(anyhow::anyhow!("Lavalink is disabled"));
-		}
-		let lava_client = lava_client.unwrap();
-		let Some(player) =
-			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
-		else {
-			let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
-				.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-error_no_voice"));
-
-			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-			return Ok(embed_contents);
-		};
-
-		player.set_pause(false).await?;
-
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_resume-success"));
+	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let lava_client = bot_data.lavalink.clone();
+	let lava_client = lava_client.read().await.clone();
+	if lava_client.is_none() {
+		return Err(anyhow::anyhow!("Lavalink is disabled"));
+	}
+	let lava_client = lava_client.unwrap();
+	let Some(player) =
+		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
+	else {
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
-		Ok(embed_contents)
-	}
-);
+		return Ok(embed_contents);
+	};
+
+	player.set_pause(false).await?;
+
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_resume-success"));
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
+}

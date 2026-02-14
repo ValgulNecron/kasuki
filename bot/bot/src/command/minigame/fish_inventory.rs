@@ -1,7 +1,7 @@
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::{Context as AnyhowContext, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use sea_orm::ExprTrait;
@@ -16,15 +16,13 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::debug;
 
-#[derive(Clone)]
-pub struct FishInventoryCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for FishInventoryCommand,
-	get_contents = |self_: FishInventoryCommand| async move {
+#[slash_command(
+	name = "fish_inventory", desc = "Check your fish inventory.",
+	command_type = SubCommand(parent = "minigame"),
+	contexts = [Guild, PrivateChannel],
+	install_contexts = [Guild],
+)]
+async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsContents<'_>> {
 		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -207,8 +205,7 @@ impl_command!(
 		let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embeds_contents)
-	}
-);
+}
 
 /// Get a user's fish inventory with item details
 async fn get_user_fish_inventory(

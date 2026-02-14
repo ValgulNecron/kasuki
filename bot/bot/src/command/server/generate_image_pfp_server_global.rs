@@ -40,40 +40,26 @@
 //! This code is typically used as part of an event handler where the bot processes user
 //! interactions and responds with the appropriate image or embed content. The structure
 //! contributes to handling the `"global"` image generation command.
-use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::EmbedsContents;
+use crate::command::command::CommandRun;
 use crate::command::server::generate_image_pfp_server::get_content;
 use crate::event_handler::BotData;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
-/// A struct representing the `GenerateGlobalImagePfPCommand`, which encapsulates
-/// the context and interaction data necessary to process a "Generate Global Image Profile Picture" command.
-///
-/// # Fields
-///
-/// * `ctx` - The `SerenityContext` which provides access to Discord API functionality,
-///           including data caches and utilities for interacting with the Discord bot.
-/// * `command_interaction` - The `CommandInteraction` object containing information
-///                            about the specific command interaction from the user,
-///                            such as command arguments, user details, and the originating channel.
-#[derive(Clone)]
-pub struct GenerateGlobalImagePfPCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+#[slash_command(
+	name = "guild_image_g", desc = "Generate global profile picture for the guild.",
+	command_type = SubCommand(parent = "server"),
+	contexts = [Guild, PrivateChannel],
+	install_contexts = [Guild],
+)]
+async fn generate_global_image_pfp_command(self_: GenerateGlobalImagePfPCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
+	let db_connection = bot_data.db_connection.clone();
+
+	let embed_contents = get_content(ctx, command_interaction, "global", db_connection).await?;
+
+	Ok(embed_contents)
 }
-
-impl_command!(
-	for GenerateGlobalImagePfPCommand,
-	get_contents = |self_: GenerateGlobalImagePfPCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-		let db_connection = bot_data.db_connection.clone();
-
-		let embed_contents = get_content(ctx, command_interaction, "global", db_connection).await?;
-
-		Ok(embed_contents)
-	}
-);

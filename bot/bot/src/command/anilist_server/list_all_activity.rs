@@ -33,14 +33,14 @@
 //!       Returns:
 //!       - `Result<Vec<EmbedContent<'_, '_>>>`: A vector of `EmbedContent` containing the activity list for display.
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::anyhow;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -52,61 +52,57 @@ use shared::localization::USABLE_LOCALES;
 use std::str::FromStr;
 use unic_langid::LanguageIdentifier;
 
-#[derive(Clone)]
-pub struct ListAllActivity {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "list_activity", desc = "Get the list of registered activity.", command_type = ChatInput,
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn list_all_activity_command(self_: ListAllActivity) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
+	let _config = bot_data.config.clone();
 
-impl_command!(
-	for ListAllActivity,
-	get_contents = |self_: ListAllActivity| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-		let _config = bot_data.config.clone();
+	self_.defer().await?;
 
-		self_.defer().await?;
+	let guild_id = command_interaction
+		.guild_id
+		.ok_or(anyhow!("Could not get the id of the guild"))?;
 
-		let guild_id = command_interaction
-			.guild_id
-			.ok_or(anyhow!("Could not get the id of the guild"))?;
+	let connection = bot_data.db_connection.clone();
+	let list = ActivityData::find()
+		.filter(Column::ServerId.eq(guild_id.to_string()))
+		.all(&*connection)
+		.await?;
+	let len = list.len();
 
-		let connection = bot_data.db_connection.clone();
-		let list = ActivityData::find()
-			.filter(Column::ServerId.eq(guild_id.to_string()))
-			.all(&*connection)
-			.await?;
-		let len = list.len();
+	let activity: Vec<String> = get_formatted_activity_list(list, 0);
+	let join_activity = activity.join("\n");
+	let db_connection = bot_data.db_connection.clone();
 
-		let activity: Vec<String> = get_formatted_activity_list(list, 0);
-		let join_activity = activity.join("\n");
-		let db_connection = bot_data.db_connection.clone();
+	let lang = get_guild_language(guild_id.to_string(), db_connection).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-title");
 
-		let lang = get_guild_language(guild_id.to_string(), db_connection).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-		let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-title");
-
-		let embed_content =
-			EmbedContent::new(title).description(join_activity);
-		let action_row;
-		if len > ACTIVITY_LIST_LIMIT as usize {
-			action_row = None
-		} else {
-			action_row = None
-		}
-
-		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-		if let Some(action_row) = action_row {
-			embed_contents = embed_contents.action_row(action_row);
-		}
-
-		Ok(embed_contents)
+	let embed_content =
+		EmbedContent::new(title).description(join_activity);
+	let action_row;
+	if len > ACTIVITY_LIST_LIMIT as usize {
+		action_row = None
+	} else {
+		action_row = None
 	}
-);
+
+	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	if let Some(action_row) = action_row {
+		embed_contents = embed_contents.action_row(action_row);
+	}
+
+	Ok(embed_contents)
+}

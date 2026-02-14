@@ -4,12 +4,12 @@
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
+use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
@@ -19,41 +19,23 @@ use shared::database::server_image::Column;
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use uuid::Uuid;
 
-/// The `GenerateImagePfPCommand` struct is used to encapsulate the necessary data
-/// required to execute a command that generates a profile picture (PfP).
-///
-/// # Fields
-///
-/// * `ctx` - A `SerenityContext` instance that provides access to the Discord bot's
-///           state and allows interacting with Discord APIs.
-///
-/// * `command_interaction` - A `CommandInteraction` instance that represents the
-///                           interaction triggered by the user, containing information
-///                           such as command arguments and user context.
-///
-/// This struct is typically used in scenarios where a Discord bot listens for a specific
-/// user command to generate an image (e.g., a profile picture) and carries out the requested
-/// functionality using the data available in these fields.
-#[derive(Clone)]
-pub struct GenerateImagePfPCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+#[slash_command(
+	name = "guild_image", desc = "Generate profile picture for the guild.",
+	command_type = SubCommand(parent = "server"),
+	contexts = [Guild, PrivateChannel],
+	install_contexts = [Guild],
+)]
+async fn generate_image_pfp_command(self_: GenerateImagePfPCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
+	let db_connection = bot_data.db_connection.clone();
+
+	let embed_contents = get_content(ctx, command_interaction, "local", db_connection).await?;
+
+	Ok(embed_contents)
 }
-
-impl_command!(
-	for GenerateImagePfPCommand,
-	get_contents = |self_: GenerateImagePfPCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-		let db_connection = bot_data.db_connection.clone();
-
-		let embed_contents = get_content(ctx, command_interaction, "local", db_connection).await?;
-
-		Ok(embed_contents)
-	}
-);
 
 /// Asynchronously retrieves and processes the content for an image embed.
 ///

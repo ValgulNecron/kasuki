@@ -5,8 +5,6 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
-use crate::command::command::Command;
-use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -14,9 +12,10 @@ use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
 	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
-use crate::{get_url, impl_command};
+use crate::get_url;
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
+use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -28,58 +27,55 @@ use small_fixed_array::FixedString;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-#[derive(Clone)]
-pub struct UserCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "anilist_user", desc = "Info of an user on AniList.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want to check.", arg_type = String, required = false, autocomplete = true)],
+)]
+async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
-impl_command!(
-	for UserCommand,
-	get_contents = |self_: UserCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-
-		let config = bot_data.config.clone();
+	let config = bot_data.config.clone();
 
 	let anilist_cache = bot_data.anilist_cache.clone();
 
-		let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&command_interaction);
 
-		let user = map.get(&FixedString::from_str_trunc("username"));
+	let user = map.get(&FixedString::from_str_trunc("username"));
 
-		// If the username is provided, fetch the user's data from AniList and send it as a response
-		if let Some(value) = user {
-			let data: User = get_user(value, anilist_cache.clone()).await?;
-			let db_connection = bot_data.db_connection.clone();
-
-			let embed_content =
-				user::user_content(command_interaction, data, db_connection).await?;
-
-			return Ok(embed_content);
-		}
-
-		let user_id = &command_interaction.user.id.to_string();
-
-		let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
-		let row = RegisteredUser::find()
-			.filter(Column::UserId.eq(user_id))
-			.one(&connection)
-			.await?;
-
-		let user = row.ok_or(anyhow!("No user found"))?;
-
-		// Fetch the user's data from AniList and send it as a response
-		let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+	// If the username is provided, fetch the user's data from AniList and send it as a response
+	if let Some(value) = user {
+		let data: User = get_user(value, anilist_cache.clone()).await?;
 		let db_connection = bot_data.db_connection.clone();
 
-		let embed_content = user::user_content(command_interaction, data, db_connection).await?;
+		let embed_content =
+			user::user_content(command_interaction, data, db_connection).await?;
 
-		Ok(embed_content)
+		return Ok(embed_content);
 	}
-);
+
+	let user_id = &command_interaction.user.id.to_string();
+
+	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
+	let row = RegisteredUser::find()
+		.filter(Column::UserId.eq(user_id))
+		.one(&connection)
+		.await?;
+
+	let user = row.ok_or(anyhow!("No user found"))?;
+
+	// Fetch the user's data from AniList and send it as a response
+	let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
+	let db_connection = bot_data.db_connection.clone();
+
+	let embed_content = user::user_content(command_interaction, data, db_connection).await?;
+
+	Ok(embed_content)
+}
 
 /// Asynchronously retrieves user data from the AniList API based on the provided input value.
 ///

@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use std::sync::Arc;
 
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
@@ -10,10 +10,10 @@ use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
 use crate::helper::image_saver::general_image_saver::image_saver;
-use crate::impl_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use image::EncodableLayout;
+use kasuki_macros::slash_command;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -26,142 +26,143 @@ use tracing::{error, trace};
 use unic_langid::LanguageIdentifier;
 use uuid::Uuid;
 
-#[derive(Clone)]
-pub struct ImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-	pub command_name: String,
-}
-
-impl_command!(
-	for ImageCommand,
-	get_contents = |self_: ImageCommand| async move {
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		if self_
-			.check_hourly_limit(
-				self_.command_name.clone(),
-				&bot_data.clone(),
-				PremiumCommandType::AIImage,
-			)
-			.await?
-		{
-			return Err(anyhow!(
-				"You have reached your hourly limit. Please try again later.",
-			));
-		}
-
-		let command_interaction = self_.get_command_interaction();
-		let config = bot_data.config.clone();
-		let map = get_option_map_integer_subcommand(command_interaction);
-		let client = bot_data.http_client.clone();
-
-		let n = *map.get(&String::from("n")).unwrap_or(&1);
-		let data = get_value(command_interaction, n, &config);
-
-		self_.defer().await?;
-
-		let uuid_name = Uuid::new_v4();
-		let filename = format!("{}.png", uuid_name);
-		let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
-		let token = token.as_str();
-		let url = config
-			.ai
-			.image
-			.ai_image_base_url
-			.clone()
-			.unwrap_or_default();
-
-		let url = if url.ends_with("v1/") {
-			format!("{}images/generations", url)
-		} else if url.ends_with("v1") {
-			format!("{}/images/generations", url)
-		} else {
-			format!("{}/v1/images/generations", url)
-		};
-
-		let mut headers = HeaderMap::new();
-		headers.insert(
-			AUTHORIZATION,
-			HeaderValue::from_str(&format!("Bearer {}", token))?,
-		);
-		headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-
-		let url = url.as_str();
-		let res = client.post(url).headers(headers).json(&data).send().await?;
-		let res = res.json().await?;
-
-		let guild_id = match command_interaction.guild_id {
-			Some(guild_id) => guild_id.to_string(),
-			None => String::from("0"),
-		};
-
-		let bytes = get_image_from_response(
-			res,
-			config.image.save_image.clone(),
-			config.image.save_server.clone(),
-			config.image.token.clone(),
-			guild_id.clone(),
+#[slash_command(
+	name = "image", desc = "Generate an image.",
+	command_type = SubCommand(parent = "ai"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	extra_fields = [command_name: String = full_command_name.to_string()],
+	args = [
+		(name = "description", desc = "Enter a description of the image you want to generate.", arg_type = String, required = true, autocomplete = false),
+		(name = "n", desc = "Number of images to generate.", arg_type = Integer, required = false, autocomplete = false)
+	],
+)]
+async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	if self_
+		.check_hourly_limit(
+			self_.command_name.clone(),
+			&bot_data.clone(),
+			PremiumCommandType::AIImage,
 		)
-		.await?;
+		.await?
+	{
+		return Err(anyhow!(
+			"You have reached your hourly limit. Please try again later.",
+		));
+	}
 
-		let lang = get_guild_language(guild_id.clone(), bot_data.db_connection.clone()).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-		let title = USABLE_LOCALES.lookup(&lang_id, "ai_image-title");
+	let command_interaction = self_.get_command_interaction();
+	let config = bot_data.config.clone();
+	let map = get_option_map_integer_subcommand(command_interaction);
+	let client = bot_data.http_client.clone();
 
-		let embed_content = EmbedContent::new(title).description(String::new());
+	let n = *map.get(&String::from("n")).unwrap_or(&1);
+	let data = get_value(command_interaction, n, &config);
 
-		let mut embed_contents = vec![];
-		let mut command_files = vec![];
+	self_.defer().await?;
 
-		if n == 1 {
-			let attachment = image_with_n_equal_1(bytes.clone()).await;
-			let name = filename;
+	let uuid_name = Uuid::new_v4();
+	let filename = format!("{}.png", uuid_name);
+	let token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+	let token = token.as_str();
+	let url = config
+		.ai
+		.image
+		.ai_image_base_url
+		.clone()
+		.unwrap_or_default();
 
-			command_files.push(CommandFiles::new(name.clone(), attachment));
+	let url = if url.ends_with("v1/") {
+		format!("{}images/generations", url)
+	} else if url.ends_with("v1") {
+		format!("{}/images/generations", url)
+	} else {
+		format!("{}/v1/images/generations", url)
+	};
+
+	let mut headers = HeaderMap::new();
+	headers.insert(
+		AUTHORIZATION,
+		HeaderValue::from_str(&format!("Bearer {}", token))?,
+	);
+	headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
+	let url = url.as_str();
+	let res = client.post(url).headers(headers).json(&data).send().await?;
+	let res = res.json().await?;
+
+	let guild_id = match command_interaction.guild_id {
+		Some(guild_id) => guild_id.to_string(),
+		None => String::from("0"),
+	};
+
+	let bytes = get_image_from_response(
+		res,
+		config.image.save_image.clone(),
+		config.image.save_server.clone(),
+		config.image.token.clone(),
+		guild_id.clone(),
+	)
+	.await?;
+
+	let lang = get_guild_language(guild_id.clone(), bot_data.db_connection.clone()).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "ai_image-title");
+
+	let embed_content = EmbedContent::new(title).description(String::new());
+
+	let mut embed_contents = vec![];
+	let mut command_files = vec![];
+
+	if n == 1 {
+		let attachment = image_with_n_equal_1(bytes.clone()).await;
+		let name = filename;
+
+		command_files.push(CommandFiles::new(name.clone(), attachment));
+		embed_contents.push(
+			embed_content
+				.clone()
+				.images_url(format!("attachment://{}", name.clone())),
+		);
+	} else {
+		let attachements = image_with_n_greater_than_1(filename, bytes).await;
+		for attachement in attachements {
+			let name = attachement.1;
+			let bytes = attachement.0;
+			command_files.push(CommandFiles::new(name.clone(), bytes.clone()));
 			embed_contents.push(
 				embed_content
 					.clone()
 					.images_url(format!("attachment://{}", name.clone())),
 			);
-		} else {
-			let attachements = image_with_n_greater_than_1(filename, bytes).await;
-			for attachement in attachements {
-				let name = attachement.1;
-				let bytes = attachement.0;
-				command_files.push(CommandFiles::new(name.clone(), bytes.clone()));
-				embed_contents.push(
-					embed_content
-						.clone()
-						.images_url(format!("attachment://{}", name.clone())),
-				);
 
-				let image_config = bot_data.config.image.clone();
-				image_saver(
-					guild_id.to_string(),
-					name.to_string(),
-					bytes,
-					image_config.save_server.unwrap_or_default(),
-					image_config.token.unwrap_or_default(),
-					image_config.save_image,
-				)
-				.await?;
-			}
-		};
+			let image_config = bot_data.config.image.clone();
+			image_saver(
+				guild_id.to_string(),
+				name.to_string(),
+				bytes,
+				image_config.save_server.unwrap_or_default(),
+				image_config.token.unwrap_or_default(),
+				image_config.save_image,
+			)
+			.await?;
+		}
+	};
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents)
-			.add_files(command_files)
-			.clone();
+	let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents)
+		.add_files(command_files)
+		.clone();
 
-		Ok(embed_contents)
-	}
-);
+	Ok(embed_contents)
+}
 
 fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Config>) -> Value {
 	let map = get_option_map_string_subcommand(command_interaction);

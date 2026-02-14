@@ -1,15 +1,15 @@
 //! `ListRegisterUser` is a struct that handles the functionality of listing registered users
 //! in a Discord guild. It implements the `Command` trait to define specific behaviors
 //! for interacting with Discord and retrieving necessary data.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use futures::pin_mut;
 use futures::StreamExt;
+use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, DatabaseConnection};
@@ -23,60 +23,56 @@ use std::sync::Arc;
 use tracing::trace;
 use unic_langid::LanguageIdentifier;
 
-#[derive(Clone)]
-pub struct ListRegisterUser {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "list_user", desc = "Get the list of registered user.", command_type = ChatInput,
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
+	let _config = bot_data.config.clone();
+	let connection = bot_data.db_connection.clone();
 
-impl_command!(
-	for ListRegisterUser,
-	get_contents = |self_: ListRegisterUser| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-		let _config = bot_data.config.clone();
-		let connection = bot_data.db_connection.clone();
+	self_.defer().await?;
 
-		self_.defer().await?;
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id,
+		None => return Err(anyhow!("Failed to get the id of the guild")),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id,
-			None => return Err(anyhow!("Failed to get the id of the guild")),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	let lang = get_guild_language(guild_id.to_string(), db_connection).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-title");
 
-		let lang = get_guild_language(guild_id.to_string(), db_connection).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-		let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-title");
+	let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
 
-		let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
+	let (desc, len, _last_id): (String, usize, Option<UserId>) =
+		get_the_list(guild, &ctx, None, connection).await?;
+	let embed_content = EmbedContent::new(title).description(desc);
 
-		let (desc, len, _last_id): (String, usize, Option<UserId>) =
-			get_the_list(guild, &ctx, None, connection).await?;
-		let embed_content = EmbedContent::new(title).description(desc);
-
-		let action_row;
-		if len >= MEMBER_LIST_LIMIT as usize {
-			action_row = None
-		} else {
-			action_row = None
-		}
-
-		let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-		if let Some(action_row) = action_row {
-			embed_contents = embed_contents.action_row(action_row);
-		}
-
-		Ok(embed_contents)
+	let action_row;
+	if len >= MEMBER_LIST_LIMIT as usize {
+		action_row = None
+	} else {
+		action_row = None
 	}
-);
+
+	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	if let Some(action_row) = action_row {
+		embed_contents = embed_contents.action_row(action_row);
+	}
+
+	Ok(embed_contents)
+}
 
 /// The `Data` struct serves as a container for user-related information and associated metadata.
 ///

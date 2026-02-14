@@ -11,15 +11,15 @@
 //! # See Also
 //! - [`Command`](crate::command::command::Command): The trait this struct implements.
 
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::impl_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -31,98 +31,85 @@ use std::sync::Arc;
 use tracing::trace;
 use unic_langid::LanguageIdentifier;
 
-/// The `QuestionCommand` struct represents a command in the context of a bot using the Serenity framework.
-/// It encapsulates the context, interaction details, and the command name specifically related to a user-issued command.
-///
-/// Fields:
-/// - `ctx` (`SerenityContext`): The context in which the command is being executed,
-///   providing access to various utilities and resources necessary for handling the command.
-///
-/// - `command_interaction` (`CommandInteraction`): Represents the interaction object triggered by the user.
-///   This contains data related to the specific interaction, such as options provided by the user
-///   and the channel or guild where the interaction occurred.
-///
-/// - `command_name` (`String`): The name of the command as issued by the user,
-///   allowing the logic to dynamically reference or process specific command implementations.
-#[derive(Clone)]
-pub struct QuestionCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-	pub command_name: String,
-}
+#[slash_command(
+	name = "question", desc = "Ask a question and get the response (this is not a chat it has no context).",
+	command_type = SubCommand(parent = "ai"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	extra_fields = [command_name: String = full_command_name.to_string()],
+	args = [
+		(name = "prompt", desc = "What you want to ask.", arg_type = String, required = true, autocomplete = false)
+	],
+)]
+async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let command_interaction = self_.get_command_interaction();
+	let bot_data = ctx.data::<BotData>().clone();
+	let config = bot_data.config.clone();
 
-impl_command!(
-	for QuestionCommand,
-	get_contents = |self_: QuestionCommand| async move {
-		let ctx = self_.get_ctx();
-		let command_interaction = self_.get_command_interaction();
-		let bot_data = ctx.data::<BotData>().clone();
-		let config = bot_data.config.clone();
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let lang = get_guild_language(guild_id, bot_data.db_connection.clone()).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let lang = get_guild_language(guild_id, bot_data.db_connection.clone()).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-
-		if self_
-			.check_hourly_limit(
-				self_.command_name.clone(),
-				&bot_data,
-				PremiumCommandType::AIQuestion,
-			)
-			.await?
-		{
-			let error_msg = USABLE_LOCALES.lookup(&lang_id, "ai_question-hourly_limit");
-			return Err(anyhow!(error_msg));
-		}
-
-		let map = get_option_map_string_subcommand(command_interaction);
-		let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
-		self_.defer().await?;
-
-		let api_key = config
-			.ai
-			.question
-			.ai_question_token
-			.clone()
-			.unwrap_or_default();
-		let api_base_url = config
-			.ai
-			.question
-			.ai_question_base_url
-			.clone()
-			.unwrap_or_default();
-		let model = config
-			.ai
-			.question
-			.ai_question_model
-			.clone()
-			.unwrap_or_default();
-
-		let text = question(
-			prompt,
-			api_key,
-			api_base_url,
-			model,
-			bot_data.http_client.clone(),
+	if self_
+		.check_hourly_limit(
+			self_.command_name.clone(),
+			&bot_data,
+			PremiumCommandType::AIQuestion,
 		)
-		.await?;
-
-		let embed_content = EmbedContent::new(String::new()).description(text);
-
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-		Ok(embed_contents)
+		.await?
+	{
+		let error_msg = USABLE_LOCALES.lookup(&lang_id, "ai_question-hourly_limit");
+		return Err(anyhow!(error_msg));
 	}
-);
+
+	let map = get_option_map_string_subcommand(command_interaction);
+	let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
+	self_.defer().await?;
+
+	let api_key = config
+		.ai
+		.question
+		.ai_question_token
+		.clone()
+		.unwrap_or_default();
+	let api_base_url = config
+		.ai
+		.question
+		.ai_question_base_url
+		.clone()
+		.unwrap_or_default();
+	let model = config
+		.ai
+		.question
+		.ai_question_model
+		.clone()
+		.unwrap_or_default();
+
+	let text = question(
+		prompt,
+		api_key,
+		api_base_url,
+		model,
+		bot_data.http_client.clone(),
+	)
+	.await?;
+
+	let embed_content = EmbedContent::new(String::new()).description(text);
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
+}
 
 ///
 /// Sends a text prompt to a specified OpenAI language model API and retrieves the model's response.

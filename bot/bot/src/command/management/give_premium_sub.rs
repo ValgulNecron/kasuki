@@ -76,11 +76,10 @@
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
 use anyhow::anyhow;
 
-use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
@@ -88,78 +87,67 @@ use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-/// A struct representing the `GivePremiumSubCommand`.
-///
-/// This struct is used to handle the logic for a command interaction
-/// that grants a premium subscription to a user.
-///
-/// # Fields
-///
-/// * `ctx` - The context instance (`SerenityContext`) of the bot,
-///           which provides access to the Discord API and bot state.
-/// * `command_interaction` - The command interaction instance (`CommandInteraction`)
-///                           that contains the details and data of the command invoked.
-#[derive(Clone)]
-pub struct GivePremiumSubCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "give_premium_sub", desc = "Give a premium subscription to a user.",
+	command_type = GuildChatInput { guild_id = 1117152661620408531 },
+	permissions = [Administrator],
+	args = [
+		(name = "user", desc = "The user to give the subscription to.", arg_type = User, required = true, autocomplete = false),
+		(name = "subscription", desc = "The subscription to give.", arg_type = String, required = true, autocomplete = true)
+	],
+)]
+async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
 
-impl_command!(
-	for GivePremiumSubCommand,
-	get_contents = |self_: GivePremiumSubCommand| async move {
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
+	let map = get_option_map_user(command_interaction);
 
-		let map = get_option_map_user(command_interaction);
+	let user = *map
+		.get(&FixedString::from_str_trunc("user"))
+		.ok_or(anyhow!("No option for user"))?;
 
-		let user = *map
-			.get(&FixedString::from_str_trunc("user"))
-			.ok_or(anyhow!("No option for user"))?;
+	let map = get_option_map_string(command_interaction);
 
-		let map = get_option_map_string(command_interaction);
+	let subscription = map
+		.get(&FixedString::from_str_trunc("subscription"))
+		.ok_or(anyhow!("No option for subscription"))?
+		.clone();
 
-		let subscription = map
-			.get(&FixedString::from_str_trunc("subscription"))
-			.ok_or(anyhow!("No option for subscription"))?
-			.clone();
+	let skus = ctx.http.get_skus().await?;
 
-		let skus = ctx.http.get_skus().await?;
+	let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
 
-		let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
-
-		if !skus_id.contains(&subscription) {
-			Err(anyhow!("Invalid sub id"))?
-		}
-
-		let mut sku_id = Default::default();
-
-		for sku in skus {
-			if sku.id.to_string() == subscription {
-				sku_id = sku.id;
-			}
-		}
-
-		let _ = ctx
-			.http
-			.create_test_entitlement(sku_id, EntitlementOwner::User(user))
-			.await?;
-		let db_connection = bot_data.db_connection.clone();
-
-		let guild_id = command_interaction.guild_id.unwrap().to_string();
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
-
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
-		args.insert(Cow::Borrowed("subscription"), FluentValue::from(subscription.clone()));
-
-		let success_msg = USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);
-
-		let embed_content = EmbedContent::new(String::default()).description(success_msg);
-
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
-
-		Ok(embed_contents)
+	if !skus_id.contains(&subscription) {
+		Err(anyhow!("Invalid sub id"))?
 	}
-);
+
+	let mut sku_id = Default::default();
+
+	for sku in skus {
+		if sku.id.to_string() == subscription {
+			sku_id = sku.id;
+		}
+	}
+
+	let _ = ctx
+		.http
+		.create_test_entitlement(sku_id, EntitlementOwner::User(user))
+		.await?;
+	let db_connection = bot_data.db_connection.clone();
+
+	let guild_id = command_interaction.guild_id.unwrap().to_string();
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
+	args.insert(Cow::Borrowed("subscription"), FluentValue::from(subscription.clone()));
+
+	let success_msg = USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);
+
+	let embed_content = EmbedContent::new(String::default()).description(success_msg);
+
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
+}

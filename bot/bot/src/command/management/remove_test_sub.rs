@@ -4,11 +4,10 @@
 //!
 //! # Fields
 //! - `ctx`
-use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
 use serenity::all::CreateInteractionResponse::Defer;
@@ -21,30 +20,13 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::error;
 
-/// The `RemoveTestSubCommand` struct defines a structure for a specific subcommand
-/// in handling interactions within a Discord bot using the Serenity library.
-///
-/// # Fields
-///
-/// * `ctx` - Represents the context of the bot, provided by the Serenity library.
-///   This context contains information about the bot's state, shard, cache, and other
-///   utilities required to interact with Discord's API.
-///
-/// * `command_interaction` - Represents the interaction data for the specific command
-///   triggered by a user. It provides details such as user input, interaction ID,
-///   and any parameters passed in the command.
-///
-/// This structure can be used for implementing logic specific to handling a "remove test"
-/// subcommand within the bot's interaction system.
-#[derive(Clone)]
-pub struct RemoveTestSubCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for RemoveTestSubCommand,
-	get_contents = |self_: RemoveTestSubCommand| async move {
+#[slash_command(
+	name = "remove_test_sub", desc = "Remove premium subscriptions from a user.",
+	command_type = GuildChatInput { guild_id = 1117152661620408531 },
+	permissions = [Administrator],
+	args = [(name = "user", desc = "The user to remove the subscription from.", arg_type = User, required = true, autocomplete = false)],
+)]
+async fn remove_test_sub_command(self_: RemoveTestSubCommand) -> Result<EmbedsContents<'_>> {
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
 		let command_interaction = self_.get_command_interaction();
@@ -92,6 +74,5 @@ impl_command!(
 
 		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
 
-		Ok(embed_contents)
-	}
-);
+	Ok(embed_contents)
+}

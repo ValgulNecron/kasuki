@@ -1,7 +1,7 @@
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::{Context as AnyhowContext, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use rand::distr::weighted::WeightedIndex;
@@ -15,15 +15,13 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::{debug, info};
 
-#[derive(Clone)]
-pub struct FishingCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for FishingCommand,
-	get_contents = |self_: FishingCommand| async move {
+#[slash_command(
+	name = "fishing", desc = "Go fishing!",
+	command_type = SubCommand(parent = "minigame"),
+	contexts = [Guild, PrivateChannel],
+	install_contexts = [Guild],
+)]
+async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -105,8 +103,7 @@ impl_command!(
 		let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embeds_contents)
-	}
-);
+}
 
 /// Get all fish items from the database
 async fn get_fish_items(db: &DatabaseConnection) -> Result<Vec<ItemModel>> {

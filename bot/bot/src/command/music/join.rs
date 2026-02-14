@@ -5,12 +5,12 @@
 //! # Attributes
 //! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
 //! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;
@@ -20,36 +20,23 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// The `JoinCommand` struct represents a command to make a bot join a specific context or perform an action upon invocation.
-///
-/// This struct encapsulates the required context and interaction details for handling a join command in a Discord bot.
-///
-/// # Fields
-///
-/// * `ctx` - The `SerenityContext` which provides the bot with access to Discord API, cache, and other utilities needed to manage the bot's state and operations.
-/// * `command_interaction` - The `CommandInteraction` object containing details about the join command interaction, such as the user who invoked it and context around the interaction.
-///
-/// This struct is used to handle and process user commands related to joining a specific resource or session in the bot workflow.
-#[derive(Clone)]
-pub struct JoinCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+#[slash_command(
+	name = "join", desc = "Join the voice channel.",
+	command_type = SubCommand(parent = "music"),
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn join_command(self_: JoinCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
+
+	let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
+	let embed = embed_content.clone();
+
+	Ok(embed)
 }
-
-impl_command!(
-	for JoinCommand,
-	get_contents = |self_: JoinCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-
-		let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
-		let embed = embed_content.clone();
-
-		Ok(embed)
-	}
-);
 
 /// Asynchronously handles the bot's joining of a voice channel in response to a command.
 ///

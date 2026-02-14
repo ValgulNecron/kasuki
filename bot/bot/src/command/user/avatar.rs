@@ -2,91 +2,96 @@
 //!
 //! It takes a Serenity context and a command interaction as input and processes
 //! the command to provide appropriate responses based on the user's avatar.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
-use crate::impl_command;
 use anyhow::Result;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, User};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-/// A structure representing a command to fetch or handle avatar-related operations within a Discord bot.
-///
-/// # Fields
-#[derive(Clone)]
-pub struct AvatarCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
+#[slash_command(
+	name = "avatar", desc = "Get the avatar.",
+	command_type = SubCommand(parent = "user"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
+)]
+async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
+	let db_connection = bot_data.db_connection.clone();
+	let user = match command_interaction.data.kind.0 {
+		1 => get_user_command(ctx, command_interaction).await?,
+		2 => get_user_command_user(ctx, command_interaction).await,
+		_ => {
+			return Err(anyhow::anyhow!("Invalid command type"));
+		},
+	};
+
+	let guild_id = command_interaction
+		.guild_id
+		.map(|id| id.to_string())
+		.unwrap_or_default();
+	let avatar_url = user.face();
+	let username = user.name;
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let server_avatar = match command_interaction.guild_id {
+		Some(guild_id) => {
+			let member = guild_id
+				.member(&ctx.http, command_interaction.user.id)
+				.await;
+
+			match member {
+				Ok(member) => member.avatar_url(),
+				Err(_) => None,
+			}
+		},
+		None => None,
+	};
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+	args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+	let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-title", &args);
+	let content1 = EmbedContent::new(title).images_url(avatar_url);
+
+	let content2: Option<EmbedContent> = match server_avatar {
+		Some(server_avatar) => {
+			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+			args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+			let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
+			let content2 = EmbedContent::new(title).images_url(server_avatar);
+
+			Some(content2)
+		},
+		None => None,
+	};
+
+	let mut embed_content: Vec<EmbedContent> = vec![content1];
+	if let Some(content2) = content2 {
+		embed_content.push(content2);
+	}
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
+
+	Ok(embed_contents)
 }
 
-impl_command!(
-	for AvatarCommand,
-	get_contents = |self_: AvatarCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
-		let db_connection = bot_data.db_connection.clone();
-		let user = match command_interaction.data.kind.0 {
-			1 => get_user_command(ctx, command_interaction).await?,
-			2 => get_user_command_user(ctx, command_interaction).await,
-			_ => {
-				return Err(anyhow::anyhow!("Invalid command type"));
-			},
-		};
-
-		let guild_id = command_interaction
-			.guild_id
-			.map(|id| id.to_string())
-			.unwrap_or_default();
-		let avatar_url = user.face();
-		let username = user.name;
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
-		let server_avatar = match command_interaction.guild_id {
-			Some(guild_id) => {
-				let member = guild_id
-					.member(&ctx.http, command_interaction.user.id)
-					.await;
-
-				match member {
-					Ok(member) => member.avatar_url(),
-					Err(_) => None,
-				}
-			},
-			None => None,
-		};
-
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-		let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-title", &args);
-		let content1 = EmbedContent::new(title).images_url(avatar_url);
-
-		let content2: Option<EmbedContent> = match server_avatar {
-			Some(server_avatar) => {
-				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-				args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-				let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
-				let content2 = EmbedContent::new(title).images_url(server_avatar);
-
-				Some(content2)
-			},
-			None => None,
-		};
-
-		let mut embed_content: Vec<EmbedContent> = vec![content1];
-		if let Some(content2) = content2 {
-			embed_content.push(content2);
-		}
-
-		let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
-
-		Ok(embed_contents)
-	}
-);
+#[slash_command(
+	name = "avatar",
+	command_type = User,
+	struct_name = AvatarCommand,
+	install_contexts = [Guild],
+)]
+async fn avatar_user_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
+	unreachable!()
+}
 
 /// Retrieves a `User` object based on the provided [`CommandInteraction`] and [`SerenityContext`].
 ///

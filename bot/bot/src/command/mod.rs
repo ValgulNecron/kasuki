@@ -1,5 +1,7 @@
 pub mod command;
 pub mod guess_kind;
+pub mod parents;
+pub mod registry;
 pub mod user;
 
 pub mod admin;
@@ -13,11 +15,9 @@ pub mod command_dispatch;
 pub mod embed_content;
 pub mod levels;
 pub mod management;
-mod message_command_dispatch;
 pub mod minigame;
 pub mod music;
 pub mod prenium_command;
 pub mod server;
 pub mod steam;
-pub mod user_command_dispatch;
 pub mod vn;

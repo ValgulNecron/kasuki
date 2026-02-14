@@ -38,94 +38,73 @@
 //!
 //!   4. **Stopping Music Playback**:
 //!      Stops the currently playing track (if
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use crate::impl_command;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-/// A struct representing the `StopCommand`, which is used to handle the stop command
-/// functionality in a bot using the Serenity library.
-///
-/// # Fields
-///
-/// * `ctx` - An instance of `SerenityContext` that contains the context of the bot,
-///   including the HTTP client, cache, and framework information.
-///
-/// * `command_interaction` - An instance of `CommandInteraction` that represents the
-///   interaction data for the `stop` command executed by the user.
-///
-/// # Description
-///
-/// This struct is typically used to encapsulate the necessary context and data
-/// required to process a stop command within the bot's command handling system.
-///
-/// The `StopCommand` is designed to house all relevant information needed to properly
-/// identify the execution context of the command and respond accordingly.
-#[derive(Clone)]
-pub struct StopCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "stop", desc = "Stop the current song.",
+	command_type = SubCommand(parent = "music"),
+	contexts = [Guild],
+	install_contexts = [Guild],
+)]
+async fn stop_command(self_: StopCommand) -> Result<EmbedsContents<'_>> {
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
 
-impl_command!(
-	for StopCommand,
-	get_contents = |self_: StopCommand| async move {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id_str = match self_.command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id_str = match self_.command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Load the localized strings
+	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
 
-		// Load the localized strings
-		let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let command_interaction = self_.get_command_interaction();
 
-		let command_interaction = self_.get_command_interaction();
+	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
-		let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-
-		let lava_client = bot_data.lavalink.clone();
-		let lava_client = lava_client.read().await.clone();
-		if lava_client.is_none() {
-			return Err(anyhow::anyhow!("Lavalink is disabled"));
-		}
-		let lava_client = lava_client.unwrap();
-		let Some(player) =
-			lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
-		else {
-			let embed_content =
-				EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_stop-error_no_voice"));
-
-			let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-			return Ok(embed_contents);
-		};
-		let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title"));
-
-		let now_playing = player.get_player().await?.track;
-
-		if let Some(np) = now_playing {
-			player.stop_now().await?;
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
-			embed_content =
-				embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_stop-success", &args));
-		} else {
-			embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-nothing_to_stop"));
-		}
+	let lava_client = bot_data.lavalink.clone();
+	let lava_client = lava_client.read().await.clone();
+	if lava_client.is_none() {
+		return Err(anyhow::anyhow!("Lavalink is disabled"));
+	}
+	let lava_client = lava_client.unwrap();
+	let Some(player) =
+		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
+	else {
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_stop-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
-		Ok(embed_contents)
+		return Ok(embed_contents);
+	};
+	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title"));
+
+	let now_playing = player.get_player().await?.track;
+
+	if let Some(np) = now_playing {
+		player.stop_now().await?;
+		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
+		args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
+		embed_content =
+			embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_stop-success", &args));
+	} else {
+		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-nothing_to_stop"));
 	}
-);
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
+}

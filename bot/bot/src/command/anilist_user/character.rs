@@ -12,12 +12,9 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
-use crate::command::command::Command;
-use crate::command::embed_content::EmbedsContents;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::impl_command;
 use crate::structure::run::anilist::character;
 use crate::structure::run::anilist::character::{
 	Character, CharacterQuerryId, CharacterQuerryIdVariables, CharacterQuerrySearch,
@@ -25,67 +22,65 @@ use crate::structure::run::anilist::character::{
 };
 use anyhow::{anyhow, Context, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
-#[derive(Clone)]
-pub struct CharacterCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for CharacterCommand,
-	get_contents = |self_: CharacterCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
+#[slash_command(
+	name = "character", desc = "Info of a character.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "name", desc = "Name of the character you want to check.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 	let anilist_cache = bot_data.anilist_cache.clone();
 
-		let map = get_option_map_string(&command_interaction);
-		let value = map
-			.get(&FixedString::from_str_trunc("name"))
-			.cloned()
-			.unwrap_or(String::new());
+	let map = get_option_map_string(&command_interaction);
+	let value = map
+		.get(&FixedString::from_str_trunc("name"))
+		.cloned()
+		.unwrap_or(String::new());
 
-		let data: Character = if value.parse::<i32>().is_ok() {
-			let character_id = value
-				.parse::<i32>()
-				.context("Failed to parse character ID as integer")?;
-			get_character_by_id(character_id, anilist_cache)
-				.await
-				.context(format!("Failed to get character with ID {}", character_id))?
-		} else {
-			let var = CharacterQuerrySearchVariables {
-				search: Some(&*value),
-			};
-
-			let operation = CharacterQuerrySearch::build(var);
-
-			let data: GraphQlResponse<CharacterQuerrySearch> =
-				make_request_anilist(operation, true, anilist_cache)
-					.await
-					.context(format!(
-						"Failed to make AniList API request for character search with query '{}'",
-						value
-					))?;
-
-			data.data
-				.context("No data returned from AniList API for character search")?
-				.character
-				.context(format!("No character found with name '{}'", value))?
-		};
-		let db_connection = bot_data.db_connection.clone();
-
-		let embed_contents = character::character_content(command_interaction, data, db_connection)
+	let data: Character = if value.parse::<i32>().is_ok() {
+		let character_id = value
+			.parse::<i32>()
+			.context("Failed to parse character ID as integer")?;
+		get_character_by_id(character_id, anilist_cache)
 			.await
-			.context("Failed to generate character content for embed")?;
+			.context(format!("Failed to get character with ID {}", character_id))?
+	} else {
+		let var = CharacterQuerrySearchVariables {
+			search: Some(&*value),
+		};
 
-		Ok(embed_contents)
-	}
-);
+		let operation = CharacterQuerrySearch::build(var);
+
+		let data: GraphQlResponse<CharacterQuerrySearch> =
+			make_request_anilist(operation, true, anilist_cache)
+				.await
+				.context(format!(
+					"Failed to make AniList API request for character search with query '{}'",
+					value
+				))?;
+
+		data.data
+			.context("No data returned from AniList API for character search")?
+			.character
+			.context(format!("No character found with name '{}'", value))?
+	};
+	let db_connection = bot_data.db_connection.clone();
+
+	let embed_contents = character::character_content(command_interaction, data, db_connection)
+		.await
+		.context("Failed to generate character content for embed")?;
+
+	Ok(embed_contents)
+}
 
 /// Retrieves a specific character from the AniList API based on the provided character ID.
 ///

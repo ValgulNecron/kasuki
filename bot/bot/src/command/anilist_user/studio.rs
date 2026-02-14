@@ -78,7 +78,6 @@
 //!
 //! In this example, the command fetches data for a studio either by ID or search query and formats
 //! it into a detailed response, including media information, localization, and more.
-use crate::command::command::Command;
 use anyhow::anyhow;
 
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
@@ -86,130 +85,127 @@ use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::impl_command;
 use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-#[derive(Clone)]
-pub struct StudioCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "studio", desc = "Info of a studio.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "studio", desc = "Name of the studio you want to check.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
-impl_command!(
-	for StudioCommand,
-	get_contents = |self_: StudioCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
-
-		let _config = bot_data.config.clone();
+	let _config = bot_data.config.clone();
 
 	let anilist_cache = bot_data.anilist_cache.clone();
 
-		let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&command_interaction);
 
-		let value = map
-			.get(&FixedString::from_str_trunc("studio"))
-			.ok_or(anyhow!("No studio specified"))?;
+	let value = map
+		.get(&FixedString::from_str_trunc("studio"))
+		.ok_or(anyhow!("No studio specified"))?;
 
-		// Fetch the studio's data from AniList
-		let studio = if value.parse::<i32>().is_ok() {
-			let id = value.parse::<i32>()?;
+	// Fetch the studio's data from AniList
+	let studio = if value.parse::<i32>().is_ok() {
+		let id = value.parse::<i32>()?;
 
-			let var = StudioQuerryIdVariables { id: Some(id) };
+		let var = StudioQuerryIdVariables { id: Some(id) };
 
-			let operation = StudioQuerryId::build(var);
+		let operation = StudioQuerryId::build(var);
 
-			let data: GraphQlResponse<StudioQuerryId> =
-				make_request_anilist(operation, true, anilist_cache).await?;
+		let data: GraphQlResponse<StudioQuerryId> =
+			make_request_anilist(operation, true, anilist_cache).await?;
 
-			data.data.unwrap().studio.unwrap()
-		} else {
-			let var = StudioQuerrySearchVariables {
-				search: Some(value.as_str()),
-			};
-
-			let operation = StudioQuerrySearch::build(var);
-
-			let data: GraphQlResponse<StudioQuerrySearch> =
-				make_request_anilist(operation, true, anilist_cache).await?;
-
-			data.data.unwrap().studio.unwrap()
+		data.data.unwrap().studio.unwrap()
+	} else {
+		let var = StudioQuerrySearchVariables {
+			search: Some(value.as_str()),
 		};
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+		let operation = StudioQuerrySearch::build(var);
 
-		// Get the language identifier for localization
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+		let data: GraphQlResponse<StudioQuerrySearch> =
+			make_request_anilist(operation, true, anilist_cache).await?;
 
-		// Initialize a string to store the content of the response
-		let mut content = String::new();
+		data.data.unwrap().studio.unwrap()
+	};
 
-		// Iterate over the nodes of the studio's media
-		for m in studio.media.unwrap().nodes.unwrap() {
-			// Clone the title of the media
-			let m = m.unwrap();
+	// Retrieve the guild ID from the command interaction
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-			let title = m.title.unwrap().clone();
+	// Get the language identifier for localization
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-			// Retrieve the romaji and user-preferred titles
-			let rj = title.romaji.unwrap_or_default();
+	// Initialize a string to store the content of the response
+	let mut content = String::new();
 
-			let en = title.user_preferred.unwrap_or_default();
+	// Iterate over the nodes of the studio's media
+	for m in studio.media.unwrap().nodes.unwrap() {
+		// Clone the title of the media
+		let m = m.unwrap();
 
-			// Format the text for the response
-			let text = format!(
-				"[{}/{}]({})",
-				rj,
-				en,
-				m.site_url.unwrap_or(DEFAULT_STRING.clone())
-			);
+		let title = m.title.unwrap().clone();
 
-			// Append the text to the content string
-			content.push_str(text.as_str());
+		// Retrieve the romaji and user-preferred titles
+		let rj = title.romaji.unwrap_or_default();
 
-			content.push('\n')
-		}
+		let en = title.user_preferred.unwrap_or_default();
 
-		// Construct the description for the response using Fluent
-		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-		args.insert(Cow::Borrowed("id"), FluentValue::from(studio.id.to_string()));
-		args.insert(
-			Cow::Borrowed("fav"),
-			FluentValue::from(studio.favourites.unwrap_or_default().to_string()),
+		// Format the text for the response
+		let text = format!(
+			"[{}/{}]({})",
+			rj,
+			en,
+			m.site_url.unwrap_or(DEFAULT_STRING.clone())
 		);
-		args.insert(
-			Cow::Borrowed("animation"),
-			FluentValue::from(studio.is_animation_studio.to_string()),
-		);
-		args.insert(Cow::Borrowed("list"), FluentValue::from(content.as_str()));
 
-		let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_studio-desc", &args);
+		// Append the text to the content string
+		content.push_str(text.as_str());
 
-		// Retrieve the name of the studio
-		let name = studio.name;
-
-		let embed_content = EmbedContent::new(name)
-			.description(desc)
-			.url(studio.site_url.unwrap_or_default());
-
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
-
-		Ok(embed_contents)
+		content.push('\n')
 	}
-);
+
+	// Construct the description for the response using Fluent
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(Cow::Borrowed("id"), FluentValue::from(studio.id.to_string()));
+	args.insert(
+		Cow::Borrowed("fav"),
+		FluentValue::from(studio.favourites.unwrap_or_default().to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("animation"),
+		FluentValue::from(studio.is_animation_studio.to_string()),
+	);
+	args.insert(Cow::Borrowed("list"), FluentValue::from(content.as_str()));
+
+	let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_studio-desc", &args);
+
+	// Retrieve the name of the studio
+	let name = studio.name;
+
+	let embed_content = EmbedContent::new(name)
+		.description(desc)
+		.url(studio.site_url.unwrap_or_default());
+
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
+}

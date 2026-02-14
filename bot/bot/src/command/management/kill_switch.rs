@@ -58,12 +58,11 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
-use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::anyhow;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ColumnTrait;
@@ -75,103 +74,77 @@ use shared::database::prelude::KillSwitch;
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 
-/// A struct representing a kill switch command to be executed within the context of a Discord bot.
-///
-/// The `KillSwitchCommand` encapsulates the necessary data for handling a specific command interaction within
-/// the Discord bot framework, using the Serenity library.
-///
-/// # Fields
-/// * `ctx` - The current [`SerenityContext`] that provides access to the bot's state, data, and event handling.
-/// * `command_interaction` - The [`CommandInteraction`] instance representing the trigger for this command,
-///   containing details such as the command name, user input, and associated metadata.
-///
-/// # Usage
-/// Use this struct to handle and process a kill switch command when interacting with Discord commands.
-///
-/// # Example
-/// ```
-/// let kill_switch_command = KillSwitchCommand {
-///     ctx,
-///     command_interaction,
-/// };
-/// // Process the kill switch logic here
-/// ```
-///
-/// # Dependencies
-/// This struct relies on the `Serenity` library's context and interaction modules.
-///
-/// [`SerenityContext`]: https://docs.rs/serenity/latest/serenity/prelude/type.Context.html
-/// [`CommandInteraction`]: https://docs.rs/serenity/latest/serenity/model/interactions/application_command/struct.CommandInteraction.html
-#[derive(Clone)]
-pub struct KillSwitchCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "kill_switch", desc = "Globally turn on or off a module",
+	command_type = GuildChatInput { guild_id = 1117152661620408531 },
+	permissions = [Administrator],
+	args = [
+		(name = "name", desc = "The module you want to change the state of.", arg_type = String, required = true, autocomplete = false,
+			choices = [(name = "AI"), (name = "ANILIST"), (name = "GAME"), (name = "NEW_MEMBER"), (name = "ANIME"), (name = "VN")]),
+		(name = "state", desc = "The state you want to to.", arg_type = Boolean, required = true, autocomplete = false)
+	],
+)]
+async fn kill_switch_command(self_: KillSwitchCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let command_interaction = self_.get_command_interaction();
+	let bot_data = ctx.data::<BotData>().clone();
 
-impl_command!(
-	for KillSwitchCommand,
-	get_contents = |self_: KillSwitchCommand| async move {
-		let ctx = self_.get_ctx();
-		let command_interaction = self_.get_command_interaction();
-		let bot_data = ctx.data::<BotData>().clone();
+	let config = bot_data.config.clone();
 
-		let config = bot_data.config.clone();
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
+	let map = get_option_map_string(command_interaction);
 
-		let map = get_option_map_string(command_interaction);
+	let module = map
+		.get(&FixedString::from_str_trunc("name"))
+		.ok_or(anyhow!("No option for name"))?;
+	let db_connection = bot_data.db_connection.clone();
 
-		let module = map
-			.get(&FixedString::from_str_trunc("name"))
-			.ok_or(anyhow!("No option for name"))?;
-		let db_connection = bot_data.db_connection.clone();
+	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
 
-		let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
+	let map = get_option_map_boolean(command_interaction);
 
-		let map = get_option_map_boolean(command_interaction);
+	let state = *map
+		.get(&FixedString::from_str_trunc("state"))
+		.ok_or(anyhow!("No option for state"))?;
 
-		let state = *map
-			.get(&FixedString::from_str_trunc("state"))
-			.ok_or(anyhow!("No option for state"))?;
+	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
-		let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+	let mut row = KillSwitch::find()
+		.filter(Column::GuildId.eq("0"))
+		.one(&connection)
+		.await?
+		.ok_or(anyhow!("KillSwitch not found"))?;
 
-		let mut row = KillSwitch::find()
-			.filter(Column::GuildId.eq("0"))
-			.one(&connection)
-			.await?
-			.ok_or(anyhow!("KillSwitch not found"))?;
-
-		match module.as_str() {
-			"ANILIST" => row.anilist_module = state,
-			"AI" => row.ai_module = state,
-			"GAME" => row.game_module = state,
-			"LEVEL" => row.level_module = state,
-			"MINIGAME" => row.mini_game_module = state,
-			"ANIME" => row.anime_module = state,
-			"VN" => row.vn_module = state,
-			_ => {
-				return Err(anyhow!("The module specified does not exist"));
-			},
-		}
-
-		let active_model: ActiveModel = row.into_active_model();
-
-		active_model.update(&connection).await?;
-
-		let desc = if state {
-			USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-on")
-		} else {
-			USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-off")
-		};
-
-		let embed_content = EmbedContent::new(module.clone()).description(desc);
-
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
-
-		Ok(embed_contents)
+	match module.as_str() {
+		"ANILIST" => row.anilist_module = state,
+		"AI" => row.ai_module = state,
+		"GAME" => row.game_module = state,
+		"LEVEL" => row.level_module = state,
+		"MINIGAME" => row.mini_game_module = state,
+		"ANIME" => row.anime_module = state,
+		"VN" => row.vn_module = state,
+		_ => {
+			return Err(anyhow!("The module specified does not exist"));
+		},
 	}
-);
+
+	let active_model: ActiveModel = row.into_active_model();
+
+	active_model.update(&connection).await?;
+
+	let desc = if state {
+		USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-on")
+	} else {
+		USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-off")
+	};
+
+	let embed_content = EmbedContent::new(module.clone()).description(desc);
+
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
+}

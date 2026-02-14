@@ -46,11 +46,11 @@
 //!
 //! # Errors
 //! - Returns an error if the image type is omitted, the API request fails, or the image URL cannot be retrieved.
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use image::EncodableLayout;
@@ -62,15 +62,15 @@ use tracing::{debug, error, info};
 use unic_langid::LanguageIdentifier;
 use uuid::Uuid;
 
-#[derive(Clone)]
-pub struct AnimeRandomImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for AnimeRandomImageCommand,
-	get_contents = |self_: AnimeRandomImageCommand| async move {
+#[slash_command(
+	name = "random_image", desc = "Get a random anime image.",
+	command_type = SubCommand(parent = "random_anime"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "image_type", desc = "Type of the image you want.", arg_type = String, required = true, autocomplete = false,
+		choices = [(name = "waifu"), (name = "neko"), (name = "shinobu"), (name = "megumin"), (name = "bully"), (name = "cuddle"), (name = "cry"), (name = "hug"), (name = "awoo"), (name = "kiss"), (name = "lick"), (name = "pat"), (name = "smug"), (name = "blush"), (name = "smile"), (name = "wave"), (name = "highfive"), (name = "nom"), (name = "bite"), (name = "slap"), (name = "kill"), (name = "kick"), (name = "happy"), (name = "wink"), (name = "dance")])],
+)]
+async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<EmbedsContents<'_>> {
 		info!("Processing random anime image command");
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -124,8 +124,7 @@ impl_command!(
 
 		debug!("Fetching random image content for type: {}", image_type);
 		random_image_content(image_type, title, "sfw").await
-	}
-);
+}
 
 /// Asynchronously fetches and constructs image content for embedding.
 ///

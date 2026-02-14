@@ -82,11 +82,10 @@
 use anyhow::anyhow;
 
 use crate::command::anime::random_image::random_image_content;
-use crate::command::command::{Command, CommandRun};
-use crate::command::embed_content::EmbedsContents;
+use crate::command::command::CommandRun;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use fluent_templates::Loader;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::helper::get_guild_lang::get_guild_language;
@@ -95,15 +94,15 @@ use std::str::FromStr;
 use tracing::{debug, error, info};
 use unic_langid::LanguageIdentifier;
 
-#[derive(Clone)]
-pub struct AnimeRandomNsfwImageCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for AnimeRandomNsfwImageCommand,
-	get_contents = |self_: AnimeRandomNsfwImageCommand| async move {
+#[slash_command(
+	name = "random_himage", desc = "Get a random nsfw anime image.",
+	command_type = SubCommand(parent = "random_hanime"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "image_type", desc = "Type of the image you want.", arg_type = String, required = true, autocomplete = false,
+		choices = [(name = "waifu"), (name = "neko"), (name = "trap")])],
+)]
+async fn anime_random_nsfw_image_command(self_: AnimeRandomNsfwImageCommand) -> Result<EmbedsContents<'_>> {
 		info!("Processing random NSFW anime image command");
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -160,5 +159,4 @@ impl_command!(
 		// Send the random NSFW image as a response to the command interaction
 		debug!("Fetching random NSFW image content for type: {}", image_type);
 		random_image_content(image_type, title, "nsfw").await
-	}
-);
+}

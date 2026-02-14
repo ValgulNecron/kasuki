@@ -12,163 +12,160 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::Command;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
-use crate::{get_url, impl_command};
+use crate::get_url;
 use anyhow::anyhow;
+use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::Column;
 use small_fixed_array::FixedString;
 
-#[derive(Clone)]
-pub struct LevelCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for LevelCommand,
-	get_contents = |self_: LevelCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
+#[slash_command(
+	name = "level", desc = "Get the level of a user.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want the level of.", arg_type = String, required = false, autocomplete = true)],
+)]
+async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
 	let anilist_cache = bot_data.anilist_cache.clone();
-		let config = bot_data.config.clone();
-		let map = get_option_map_string(&command_interaction);
+	let config = bot_data.config.clone();
+	let map = get_option_map_string(&command_interaction);
 
-		let user = map.get(&FixedString::from_str_trunc("username"));
+	let user = map.get(&FixedString::from_str_trunc("username"));
 
-		let data = match user {
-			Some(value) => get_user(value, anilist_cache).await?,
-			None => {
-				let user_id = &command_interaction.user.id.to_string();
+	let data = match user {
+		Some(value) => get_user(value, anilist_cache).await?,
+		None => {
+			let user_id = &command_interaction.user.id.to_string();
 
-				let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
-				let row = RegisteredUser::find()
-					.filter(Column::UserId.eq(user_id))
-					.one(&connection)
-					.await?;
+			let row = RegisteredUser::find()
+				.filter(Column::UserId.eq(user_id))
+				.one(&connection)
+				.await?;
 
-				let user = row.ok_or(anyhow!(
-					"No user specified or linked to this discord account",
-				))?;
+			let user = row.ok_or(anyhow!(
+				"No user specified or linked to this discord account",
+			))?;
 
-				get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
-			},
-		};
+			get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
+		},
+	};
 
-		let user = data;
+	let user = data;
 
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Get the language identifier for localization
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+	// Get the language identifier for localization
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		// Clone the manga and anime statistics
-		let statistics = user.statistics.clone().unwrap();
+	// Clone the manga and anime statistics
+	let statistics = user.statistics.clone().unwrap();
 
-		let manga = statistics.manga.clone();
+	let manga = statistics.manga.clone();
 
-		let anime = statistics.anime.clone();
+	let anime = statistics.anime.clone();
 
-		// Calculate the number of manga and anime completed
-		let manga_completed = if let Some(manga) = manga.clone() {
-			get_completed(manga.statuses.unwrap())
-		} else {
-			0
-		};
+	// Calculate the number of manga and anime completed
+	let manga_completed = if let Some(manga) = manga.clone() {
+		get_completed(manga.statuses.unwrap())
+	} else {
+		0
+	};
 
-		let anime_completed = if let Some(anime) = anime.clone() {
-			get_completed(anime.statuses.unwrap())
-		} else {
-			0
-		};
+	let anime_completed = if let Some(anime) = anime.clone() {
+		get_completed(anime.statuses.unwrap())
+	} else {
+		0
+	};
 
-		// Get the number of chapters read and minutes watched
-		let chap_read = if let Some(manga) = manga.clone() {
-			manga.chapters_read
-		} else {
-			0
-		};
+	// Get the number of chapters read and minutes watched
+	let chap_read = if let Some(manga) = manga.clone() {
+		manga.chapters_read
+	} else {
+		0
+	};
 
-		let tw = if let Some(anime) = anime.clone() {
-			anime.minutes_watched
-		} else {
-			0
-		};
+	let tw = if let Some(anime) = anime.clone() {
+		anime.minutes_watched
+	} else {
+		0
+	};
 
-		// Calculate the experience points
-		let xp = (8.0 * (manga_completed + anime_completed) as f64)
-			+ (2.0 * chap_read as f64)
-			+ (tw as f64 * 0.5);
+	// Calculate the experience points
+	let xp = (8.0 * (manga_completed + anime_completed) as f64)
+		+ (2.0 * chap_read as f64)
+		+ (tw as f64 * 0.5);
 
-		// Get the username
-		let username = user.name.clone();
+	// Get the username
+	let username = user.name.clone();
 
-		// Calculate the level and progress
-		let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
+	// Calculate the level and progress
+	let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
-		let next_level_display = if next_xp <= 1.0 {
-			// Using 1.0 as a threshold assuming xp_for_next_level won't be fractional in practice.
-			// This effectively means MAX_XP if next_xp is calculated to be 0 or less,
-			// which would happen if current XP is already at or beyond the max level XP.
-			USABLE_LOCALES.lookup(&lang_id, "anilist_user_level-max")
-		} else {
-			next_xp.to_string()
-		};
+	let next_level_display = if next_xp <= 1.0 {
+		// Using 1.0 as a threshold assuming xp_for_next_level won't be fractional in practice.
+		// This effectively means MAX_XP if next_xp is calculated to be 0 or less,
+		// which would happen if current XP is already at or beyond the max level XP.
+		USABLE_LOCALES.lookup(&lang_id, "anilist_user_level-max")
+	} else {
+		next_xp.to_string()
+	};
 
-		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("username"),
-			FluentValue::from(username.as_str()),
-		);
-		args.insert(
-			Cow::Borrowed("level"),
-			FluentValue::from(level.to_string()),
-		);
-		args.insert(
-			Cow::Borrowed("xp"),
-			FluentValue::from(format!("{:.2}", xp)),
-		);
-		args.insert(
-			Cow::Borrowed("actual"),
-			FluentValue::from(format!("{:.2}", actual)),
-		);
-		args.insert(
-			Cow::Borrowed("next"),
-			FluentValue::from(next_level_display),
-		);
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("username"),
+		FluentValue::from(username.as_str()),
+	);
+	args.insert(
+		Cow::Borrowed("level"),
+		FluentValue::from(level.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("xp"),
+		FluentValue::from(format!("{:.2}", xp)),
+	);
+	args.insert(
+		Cow::Borrowed("actual"),
+		FluentValue::from(format!("{:.2}", actual)),
+	);
+	args.insert(
+		Cow::Borrowed("next"),
+		FluentValue::from(next_level_display),
+	);
 
-		let description =
-			USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
+	let description =
+		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
 
-		let mut embed_content = EmbedContent::new(user.clone().name)
-			.description(description)
-			.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
-			.url(get_user_url(&user.id))
-			.colour(get_color(user.clone()));
+	let mut embed_content = EmbedContent::new(user.clone().name)
+		.description(description)
+		.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
+		.url(get_user_url(&user.id))
+		.colour(get_color(user.clone()));
 
-		// Add the user's banner image to the embed if it exists
-		if let Some(banner_image) = &user.banner_image {
-			embed_content = embed_content.images_url(banner_image.clone());
-		}
-
-		let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
-
-		Ok(embed_contents)
+	// Add the user's banner image to the embed if it exists
+	if let Some(banner_image) = &user.banner_image {
+		embed_content = embed_content.images_url(banner_image.clone());
 	}
-);
+
+	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+
+	Ok(embed_contents)
+}
 
 /// A constant that represents the maximum possible value for an XP (experience points) system,
 pub const MAX_XP: f64 = f64::MAX;

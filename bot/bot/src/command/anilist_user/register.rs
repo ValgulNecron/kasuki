@@ -16,6 +16,7 @@ use anyhow::anyhow;
 
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -25,89 +26,85 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::impl_command;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::{ActiveModel, Column};
 
-#[derive(Clone)]
-pub struct RegisterCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for RegisterCommand,
-	get_contents = |self_: RegisterCommand| async move {
-		let ctx = self_.get_ctx().clone();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction().clone();
+#[slash_command(
+	name = "register", desc = "Register your username on AniList.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username you want to register.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx().clone();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction().clone();
 
 	let anilist_cache = bot_data.anilist_cache.clone();
-		let connection = bot_data.db_connection.clone();
+	let connection = bot_data.db_connection.clone();
 
-		let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&command_interaction);
 
-		self_.defer().await?;
+	self_.defer().await?;
 
-		let value = map
-			.get(&FixedString::from_str_trunc("username"))
-			.ok_or(anyhow!("No username provided"))?;
+	let value = map
+		.get(&FixedString::from_str_trunc("username"))
+		.ok_or(anyhow!("No username provided"))?;
 
-		// Fetch the user data from AniList
-		let user_data: User = get_user(value, anilist_cache).await?;
+	// Fetch the user data from AniList
+	let user_data: User = get_user(value, anilist_cache).await?;
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Get the language identifier for localization
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+	// Get the language identifier for localization
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		// Retrieve the user's Discord ID and username
-		let user_id = &command_interaction.user.id.to_string();
+	// Retrieve the user's Discord ID and username
+	let user_id = &command_interaction.user.id.to_string();
 
-		let username = &command_interaction.user.name;
+	let username = &command_interaction.user.name;
 
-		RegisteredUser::insert(ActiveModel {
-			user_id: Set(user_id.to_string()),
-			anilist_id: Set(user_data.id),
-			..Default::default()
-		})
-		.on_conflict(
-			sea_orm::sea_query::OnConflict::column(Column::AnilistId)
-				.update_column(Column::AnilistId)
-				.to_owned(),
-		)
-		.exec(&*connection)
-		.await?;
+	RegisteredUser::insert(ActiveModel {
+		user_id: Set(user_id.to_string()),
+		anilist_id: Set(user_data.id),
+		..Default::default()
+	})
+	.on_conflict(
+		sea_orm::sea_query::OnConflict::column(Column::AnilistId)
+			.update_column(Column::AnilistId)
+			.to_owned(),
+	)
+	.exec(&*connection)
+	.await?;
 
-		// Construct the description for the embed using Fluent
-		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-		args.insert(Cow::Borrowed("user"), FluentValue::from(username.as_str()));
-		args.insert(Cow::Borrowed("id"), FluentValue::from(user_id.as_str()));
-		args.insert(
-			Cow::Borrowed("anilist"),
-			FluentValue::from(user_data.name.clone()),
-		);
+	// Construct the description for the embed using Fluent
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(Cow::Borrowed("user"), FluentValue::from(username.as_str()));
+	args.insert(Cow::Borrowed("id"), FluentValue::from(user_id.as_str()));
+	args.insert(
+		Cow::Borrowed("anilist"),
+		FluentValue::from(user_data.name.clone()),
+	);
 
-		let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_register-desc", &args);
+	let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_register-desc", &args);
 
-		let embed_content = EmbedContent::new(user_data.clone().name)
-			.description(desc)
-			.thumbnail(user_data.clone().avatar.unwrap().large.unwrap())
-			.url(get_user_url(&user_data.id))
-			.colour(get_color(user_data.clone()));
+	let embed_content = EmbedContent::new(user_data.clone().name)
+		.description(desc)
+		.thumbnail(user_data.clone().avatar.unwrap().large.unwrap())
+		.url(get_user_url(&user_data.id))
+		.colour(get_color(user_data.clone()));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
-		Ok(embed_contents)
-	}
-);
+	Ok(embed_contents)
+}

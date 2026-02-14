@@ -62,194 +62,159 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::trace;
 
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim;
-use crate::impl_command;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
 use anyhow::{anyhow, Result};
+use kasuki_macros::slash_command;
 
-/// A `RandomCommand` struct that encapsulates the context and interaction details for a command
-/// in a Discord bot using the Serenity library.
-///
-/// This struct is designed to handle a specific command interaction by bundling the necessary
-/// context (`SerenityContext`) and the interaction details (`CommandInteraction`) into a single
-/// entity.
-///
-/// # Fields
-/// - `ctx`: The context of the current Discord bot session and environment. This provides
-///   access to the bot's data, such as cache, HTTP client, and other utilities for responding
-///   to events or commands.
-/// - `command_interaction`: The interaction data for the specific command. This contains
-///   information about the command invocation, including the user's input, options, and other
-///   metadata required to handle and respond to the command.
-///
-/// # Example
-/// ```
-/// use serenity::prelude::*;
-/// use serenity::model::interactions::application_command::CommandInteraction;
-///
-/// struct RandomCommand {
-///     ctx: SerenityContext,
-///     command_interaction: CommandInteraction,
-/// }
-///
-/// // Example usage of RandomCommand
-/// let random_command = RandomCommand {
-///     ctx: some_serenity_context,
-///     command_interaction: some_command_interaction,
-/// };
-///
-/// // Use `random_command` to process the command interaction and respond accordingly.
-/// ```
-#[derive(Clone)]
-pub struct RandomCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
+#[slash_command(
+	name = "random", desc = "Get a random anime or manga.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "type", desc = "Type of the random (anime or manga).", arg_type = String, required = true, autocomplete = false,
+		choices = [(name = "anime"), (name = "manga")])],
+)]
+async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
 
-impl_command!(
-	for RandomCommand,
-	get_contents = |self_: RandomCommand| async move {
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
+	let anilist_cache = bot_data.anilist_cache.clone();
+	let _config = bot_data.config.clone();
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		let anilist_cache = bot_data.anilist_cache.clone();
-		let _config = bot_data.config.clone();
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => id.to_string(),
-			None => String::from("0"),
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Get the language identifier for localization
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
-		// Get the language identifier for localization
-		let lang_id = get_language_identifier(guild_id, db_connection).await;
+	// Retrieve the type of media (anime or manga) from the command interaction
+	let map = get_option_map_string(command_interaction);
 
-		// Retrieve the type of media (anime or manga) from the command interaction
-		let map = get_option_map_string(command_interaction);
+	let random_type = map
+		.get(&FixedString::from_str_trunc("type"))
+		.ok_or(anyhow!("No type specified"))?;
 
-		let random_type = map
-			.get(&FixedString::from_str_trunc("type"))
-			.ok_or(anyhow!("No type specified"))?;
+	self_.defer().await?;
 
-		self_.defer().await?;
+	let stats =
+		tokio::fs::read_to_string(RANDOM_STATS_PATH).await.context("Failed to read random stats")?;
+	let random_stats: RandomStat =
+		serde_json::from_str(&stats).context("Failed to parse random stats")?;
 
-		let stats =
-			tokio::fs::read_to_string(RANDOM_STATS_PATH).await.context("Failed to read random stats")?;
-		let random_stats: RandomStat =
-			serde_json::from_str(&stats).context("Failed to parse random stats")?;
+	let last_page = if random_type.as_str() == "anime" {
+		random_stats.anime_last_page
+	} else if random_type.as_str() == "manga" {
+		random_stats.manga_last_page
+	} else {
+		0
+	};
 
-		let last_page = if random_type.as_str() == "anime" {
-			random_stats.anime_last_page
-		} else if random_type.as_str() == "manga" {
-			random_stats.manga_last_page
-		} else {
-			0
-		};
+	trace!(last_page);
 
-		trace!(last_page);
+	let number = rng().random_range(1..=last_page);
 
-		let number = rng().random_range(1..=last_page);
+	let mut var = RandomPageMediaVariables {
+		media_type: None,
+		page: Some(number),
+	};
 
-		let mut var = RandomPageMediaVariables {
-			media_type: None,
-			page: Some(number),
-		};
-
-		if random_type == "manga" {
-			var.media_type = Some(MediaType::Manga)
-		} else {
-			var.media_type = Some(MediaType::Anime);
-		}
-
-		let operation = RandomPageMedia::build(var);
-
-		let data: Result<GraphQlResponse<RandomPageMedia>> =
-			make_request_anilist(operation, true, anilist_cache).await;
-
-		let data = data?;
-
-		let data = data.data.ok_or(anyhow!("No data found"))?;
-
-		let inside_media = data
-			.page
-			.ok_or(anyhow!("No page found"))?
-			.media
-			.ok_or(anyhow!("No media found"))?
-			.get(0)
-			.cloned()
-			.ok_or(anyhow!("No media found"))?
-			.ok_or(anyhow!("No media found"))?;
-
-		let id = inside_media.id;
-
-		let url = if random_type == "manga" {
-			format!("https://anilist.co/manga/{}", id)
-		} else {
-			format!("https://anilist.co/anime/{}", id)
-		};
-
-		let media = inside_media;
-
-		let format = media.format.ok_or(anyhow!("No format found"))?;
-
-		let genres = media
-			.genres
-			.ok_or(anyhow!("No genres found"))?
-			.into_iter()
-			.map(|genre| genre.unwrap_or_default())
-			.collect::<Vec<String>>()
-			.join("/");
-
-		let tags = media
-			.tags
-			.ok_or(anyhow!("No tags found"))?
-			.into_iter()
-			.map(|tag| tag.unwrap().name.clone())
-			.collect::<Vec<String>>()
-			.join("/");
-
-		let mut desc = media.description.ok_or(anyhow!("No description found"))?;
-
-		desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
-
-		let length_diff = 4096 - desc.len() as i32;
-
-		if length_diff <= 0 {
-			desc = trim(desc.clone(), length_diff);
-		}
-
-		let title = media.title.clone().ok_or(anyhow!("No title found"))?;
-
-		let rj = title.native.unwrap_or_default();
-
-		let user_pref = title.user_preferred.unwrap_or_default();
-
-		let title = format!("{}/{}", user_pref, rj);
-
-		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("format"),
-			FluentValue::from(format.to_string()),
-		);
-		args.insert(Cow::Borrowed("tags"), FluentValue::from(tags.as_str()));
-		args.insert(Cow::Borrowed("genres"), FluentValue::from(genres.as_str()));
-		args.insert(Cow::Borrowed("desc"), FluentValue::from(desc.as_str()));
-
-		let full_desc =
-			USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_random-desc", &args);
-
-		let embed_content = EmbedContent::new(title).description(full_desc).url(url);
-
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
-
-		Ok(embed_contents)
+	if random_type == "manga" {
+		var.media_type = Some(MediaType::Manga)
+	} else {
+		var.media_type = Some(MediaType::Anime);
 	}
-);
+
+	let operation = RandomPageMedia::build(var);
+
+	let data: Result<GraphQlResponse<RandomPageMedia>> =
+		make_request_anilist(operation, true, anilist_cache).await;
+
+	let data = data?;
+
+	let data = data.data.ok_or(anyhow!("No data found"))?;
+
+	let inside_media = data
+		.page
+		.ok_or(anyhow!("No page found"))?
+		.media
+		.ok_or(anyhow!("No media found"))?
+		.get(0)
+		.cloned()
+		.ok_or(anyhow!("No media found"))?
+		.ok_or(anyhow!("No media found"))?;
+
+	let id = inside_media.id;
+
+	let url = if random_type == "manga" {
+		format!("https://anilist.co/manga/{}", id)
+	} else {
+		format!("https://anilist.co/anime/{}", id)
+	};
+
+	let media = inside_media;
+
+	let format = media.format.ok_or(anyhow!("No format found"))?;
+
+	let genres = media
+		.genres
+		.ok_or(anyhow!("No genres found"))?
+		.into_iter()
+		.map(|genre| genre.unwrap_or_default())
+		.collect::<Vec<String>>()
+		.join("/");
+
+	let tags = media
+		.tags
+		.ok_or(anyhow!("No tags found"))?
+		.into_iter()
+		.map(|tag| tag.unwrap().name.clone())
+		.collect::<Vec<String>>()
+		.join("/");
+
+	let mut desc = media.description.ok_or(anyhow!("No description found"))?;
+
+	desc = convert_anilist_flavored_to_discord_flavored_markdown(desc);
+
+	let length_diff = 4096 - desc.len() as i32;
+
+	if length_diff <= 0 {
+		desc = trim(desc.clone(), length_diff);
+	}
+
+	let title = media.title.clone().ok_or(anyhow!("No title found"))?;
+
+	let rj = title.native.unwrap_or_default();
+
+	let user_pref = title.user_preferred.unwrap_or_default();
+
+	let title = format!("{}/{}", user_pref, rj);
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("format"),
+		FluentValue::from(format.to_string()),
+	);
+	args.insert(Cow::Borrowed("tags"), FluentValue::from(tags.as_str()));
+	args.insert(Cow::Borrowed("genres"), FluentValue::from(genres.as_str()));
+	args.insert(Cow::Borrowed("desc"), FluentValue::from(desc.as_str()));
+
+	let full_desc =
+		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_random-desc", &args);
+
+	let embed_content = EmbedContent::new(title).description(full_desc).url(url);
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
+}

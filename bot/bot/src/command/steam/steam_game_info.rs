@@ -91,12 +91,12 @@
 //!     // Process and use the retrieved SteamGameWrapper.
 //! }
 //! ```
-use crate::command::command::{Command, CommandRun};
+use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::impl_command;
+use kasuki_macros::slash_command;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 use anyhow::{anyhow, Result};
 use sea_orm::DatabaseConnection;
@@ -106,41 +106,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-/// A struct representing a command to fetch Steam game information.
-///
-/// This struct encapsulates the necessary context and interaction
-/// metadata required to handle a command that retrieves information
-/// about a Steam game.
-///
-/// # Fields
-///
-/// * `ctx` - The Discord bot's context, represented by `SerenityContext`. This
-///   provides access to information and resources for interacting with the
-///   bot's environment and its events.
-/// * `command_interaction` - The interaction metadata for the specific command
-///   invocation, represented by `CommandInteraction`. This contains details about
-///   the user's input and can be used to respond back to the user.
-///
-/// # Example
-/// ```ignore
-/// use your_crate::SteamGameInfoCommand;
-///
-/// let steam_game_info_command = SteamGameInfoCommand {
-///     ctx: serenity_context_variable,
-///     command_interaction: command_interaction_variable,
-/// };
-///
-/// // Use `steam_game_info_command` to handle the Steam game information request.
-/// ```
-#[derive(Clone)]
-pub struct SteamGameInfoCommand {
-	pub ctx: SerenityContext,
-	pub command_interaction: CommandInteraction,
-}
-
-impl_command!(
-	for SteamGameInfoCommand,
-	get_contents = |self_: SteamGameInfoCommand| async move {
+#[slash_command(
+	name = "game", desc = "Get info of a steam game.",
+	command_type = SubCommand(parent = "steam"),
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "game_name", desc = "Name of the steam game you want info of.", arg_type = String, required = true, autocomplete = true)],
+)]
+async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsContents<'_>> {
 		self_.defer().await?;
 		let ctx = self_.get_ctx();
 		let bot_data = ctx.data::<BotData>().clone();
@@ -323,8 +296,7 @@ impl_command!(
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
 		Ok(embed_contents)
-	}
-);
+}
 
 /// Fetches a Steam game based on user input from a command interaction.
 ///
