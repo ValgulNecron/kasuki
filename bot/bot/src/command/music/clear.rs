@@ -111,8 +111,8 @@ async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
 
 	player.get_queue().clear()?;
 
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_clear-success"));
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_clear-title"))
+		.description(USABLE_LOCALES.lookup(&lang_id, "music_clear-success"));
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 	Ok(embed_contents)

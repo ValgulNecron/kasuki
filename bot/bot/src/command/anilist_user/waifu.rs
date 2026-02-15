@@ -38,7 +38,6 @@ async fn waifu_command(self_: WaifuCommand) -> Result<EmbedsContents<'_>> {
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();
 
-
 	let anilist_cache = bot_data.anilist_cache.clone();
 
 	// Execute the corresponding search function based on the specified type

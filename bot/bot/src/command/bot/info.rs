@@ -70,7 +70,10 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 
 	let server_count = ctx.cache.guild_count();
 	let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
-	debug!("Server count from cache: {}, from API: {}", server_count, app_guild_count);
+	debug!(
+		"Server count from cache: {}, from API: {}",
+		server_count, app_guild_count
+	);
 
 	let guild_count = if server_count > app_guild_count {
 		app_guild_count
@@ -79,8 +82,7 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	};
 	debug!("Final guild count: {}", guild_count);
 
-	let app_installation_count =
-		bot.approximate_user_install_count.unwrap_or_default() as usize;
+	let app_installation_count = bot.approximate_user_install_count.unwrap_or_default() as usize;
 	debug!("App installation count: {}", app_installation_count);
 
 	// Retrieve the bot's avatar
@@ -161,10 +163,9 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 				true,
 			),
 		])
-		.footer(CreateFooter::new(USABLE_LOCALES.lookup(
-			&lang_id,
-			"bot_info-footer",
-		)));
+		.footer(CreateFooter::new(
+			USABLE_LOCALES.lookup(&lang_id, "bot_info-footer"),
+		));
 	debug!("Embed content created with title: {}", title);
 
 	debug!("Creating final embed contents with buttons");

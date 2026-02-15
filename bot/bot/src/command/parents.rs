@@ -1,6 +1,4 @@
-use crate::command::registry::{
-	ContextType, GroupDef, InstallType, ParentCommand, PermissionType,
-};
+use crate::command::registry::{ContextType, GroupDef, InstallType, ParentCommand, PermissionType};
 
 // ─── Subcommand parents (no handler, just grouping metadata) ─────────────────
 
@@ -9,7 +7,11 @@ inventory::submit!(&ParentCommand {
 	desc: "General purpose commands for user.",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -19,7 +21,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Command from the AI module",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -29,7 +35,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Command to get information about the bot.",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -49,7 +59,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Steam command from the GAME module.",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -69,7 +83,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Get info of a VN",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -79,7 +97,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Command from the ANIME module",
 	nsfw: false,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });
@@ -89,7 +111,11 @@ inventory::submit!(&ParentCommand {
 	desc: "Command from the ANIME module",
 	nsfw: true,
 	permissions: &[],
-	contexts: &[ContextType::Guild, ContextType::BotDm, ContextType::PrivateChannel],
+	contexts: &[
+		ContextType::Guild,
+		ContextType::BotDm,
+		ContextType::PrivateChannel
+	],
 	install_contexts: &[InstallType::Guild, InstallType::User],
 	groups: &[],
 });

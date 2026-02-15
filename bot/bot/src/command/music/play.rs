@@ -57,9 +57,9 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	match lava_client {
 		Some(_) => {},
 		None => {
-			return Err(anyhow::anyhow!("Lavalink is disabled")).with_context(
-				|| "Cannot play music because Lavalink service is not configured or unavailable",
-			);
+			return Err(anyhow::anyhow!("Lavalink is disabled")).with_context(|| {
+				"Cannot play music because Lavalink service is not configured or unavailable"
+			});
 		},
 	}
 	let lava_client = lava_client.unwrap();
@@ -67,9 +67,9 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	let guild_id = command_interaction
 		.guild_id
 		.ok_or(anyhow!("no guild id"))
-		.with_context(
-			|| "Command must be used in a server, not in DMs or other non-guild contexts",
-		)?;
+		.with_context(|| {
+			"Command must be used in a server, not in DMs or other non-guild contexts"
+		})?;
 
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
@@ -120,21 +120,39 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 		args.insert(Cow::Borrowed("var0"), FluentValue::from(info.name.clone()));
 
-		embed_content.embed_contents[0] = embed_content.embed_contents[0]
-			.clone()
-			.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_play-added_playlist", &args));
+		embed_content.embed_contents[0] =
+			embed_content.embed_contents[0]
+				.clone()
+				.description(USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"music_play-added_playlist",
+					&args,
+				));
 	} else {
 		let track = &tracks[0].track;
 
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(track.info.author.clone()));
-		args.insert(Cow::Borrowed("var1"), FluentValue::from(track.info.title.clone()));
-		args.insert(Cow::Borrowed("var2"), FluentValue::from(track.info.uri.clone().unwrap_or_default()));
+		args.insert(
+			Cow::Borrowed("var0"),
+			FluentValue::from(track.info.author.clone()),
+		);
+		args.insert(
+			Cow::Borrowed("var1"),
+			FluentValue::from(track.info.title.clone()),
+		);
+		args.insert(
+			Cow::Borrowed("var2"),
+			FluentValue::from(track.info.uri.clone().unwrap_or_default()),
+		);
 
 		embed_content.embed_contents[0] =
-			embed_content.embed_contents[0].clone().description(
-				USABLE_LOCALES.lookup_with_args(&lang_id, "music_play-added_to_queue", &args),
-			);
+			embed_content.embed_contents[0]
+				.clone()
+				.description(USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"music_play-added_to_queue",
+					&args,
+				));
 
 		return Ok(embed_content);
 	}

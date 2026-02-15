@@ -85,8 +85,8 @@ async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -99,11 +99,18 @@ async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
 	if let Some(np) = now_playing {
 		player.skip()?;
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
-		embed_content =
-			embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_skip-success", &args));
+		args.insert(
+			Cow::Borrowed("var0"),
+			FluentValue::from(np.info.title.clone()),
+		);
+		embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"music_skip-success",
+			&args,
+		));
 	} else {
-		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
+		embed_content = embed_content
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
 	}
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

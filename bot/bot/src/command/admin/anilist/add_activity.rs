@@ -82,7 +82,6 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
-use kasuki_macros::slash_command;
 use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
 	MinimalAnimeSearchVariables,
@@ -97,6 +96,7 @@ use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use image::imageops::FilterType;
 use image::{guess_format, GenericImageView, ImageFormat};
+use kasuki_macros::slash_command;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -166,16 +166,14 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 	);
 
 	if exist {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
-			&lang_id,
-			"admin_anilist_add_activity-fail",
-		))
-		.description(USABLE_LOCALES.lookup_with_args(
-			&lang_id,
-			"admin_anilist_add_activity-fail_desc",
-			&args,
-		))
-		.url(url);
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "admin_anilist_add_activity-fail"))
+				.description(USABLE_LOCALES.lookup_with_args(
+					&lang_id,
+					"admin_anilist_add_activity-fail_desc",
+					&args,
+				))
+				.url(url);
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -240,16 +238,14 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 	.exec(&*connection)
 	.await?;
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
-		&lang_id,
-		"admin_anilist_add_activity-success",
-	))
-	.description(USABLE_LOCALES.lookup_with_args(
-		&lang_id,
-		"admin_anilist_add_activity-success_desc",
-		&args,
-	))
-	.url(url);
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "admin_anilist_add_activity-success"))
+			.description(USABLE_LOCALES.lookup_with_args(
+				&lang_id,
+				"admin_anilist_add_activity-success_desc",
+				&args,
+			))
+			.url(url);
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -302,8 +298,7 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 async fn resize_image(image_bytes: &Bytes) -> Result<Cursor<Vec<u8>>> {
 	let image_bytes = image_bytes.clone();
 	tokio::task::spawn_blocking(move || {
-		let image =
-			image::load_from_memory_with_format(&image_bytes, guess_format(&image_bytes)?)?;
+		let image = image::load_from_memory_with_format(&image_bytes, guess_format(&image_bytes)?)?;
 
 		let (width, height) = image.dimensions();
 

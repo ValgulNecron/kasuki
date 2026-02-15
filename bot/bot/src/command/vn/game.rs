@@ -47,7 +47,11 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 	let mut fields = vec![];
 
 	if let Some(released) = vn.released {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-released"), released, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-released"),
+			released,
+			true,
+		));
 	}
 
 	let platforms = vn
@@ -59,11 +63,19 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 		.join(", ");
 
 	if !platforms.is_empty() {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-platforms"), platforms, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-platforms"),
+			platforms,
+			true,
+		));
 	}
 
 	if let Some(playtime) = vn.length_minutes {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-playtime"), playtime.to_string(), true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-playtime"),
+			playtime.to_string(),
+			true,
+		));
 	}
 
 	let tags = vn
@@ -87,7 +99,11 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 		.join(", ");
 
 	if !developers.is_empty() {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-developers"), developers, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-developers"),
+			developers,
+			true,
+		));
 	}
 
 	let staff = vn
@@ -99,7 +115,11 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 		.join(", ");
 
 	if !staff.is_empty() {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-staff"), staff, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-staff"),
+			staff,
+			true,
+		));
 	}
 
 	let characters = vn
@@ -111,7 +131,11 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 		.join(", ");
 
 	if !characters.is_empty() {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_game-characters"), characters, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_game-characters"),
+			characters,
+			true,
+		));
 	}
 	let vn_desc = vn.description.clone().unwrap_or_default();
 

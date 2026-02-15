@@ -278,8 +278,7 @@ async fn translation_command(self_: TranslationCommand) -> Result<EmbedsContents
 		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
 	let title = USABLE_LOCALES.lookup(&lang_id, "ai_translation-title");
 
-	let embed_content =
-		EmbedContent::new(title).description(text.to_string());
+	let embed_content = EmbedContent::new(title).description(text.to_string());
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

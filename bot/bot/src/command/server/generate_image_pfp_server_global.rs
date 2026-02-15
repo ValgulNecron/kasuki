@@ -52,7 +52,9 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 	contexts = [Guild, PrivateChannel],
 	install_contexts = [Guild],
 )]
-async fn generate_global_image_pfp_command(self_: GenerateGlobalImagePfPCommand) -> Result<EmbedsContents<'_>> {
+async fn generate_global_image_pfp_command(
+	self_: GenerateGlobalImagePfPCommand,
+) -> Result<EmbedsContents<'_>> {
 	self_.defer().await?;
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();

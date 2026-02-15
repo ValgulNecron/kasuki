@@ -50,10 +50,10 @@ use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use kasuki_macros::slash_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use image::EncodableLayout;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
@@ -71,59 +71,57 @@ use uuid::Uuid;
 		choices = [(name = "waifu"), (name = "neko"), (name = "shinobu"), (name = "megumin"), (name = "bully"), (name = "cuddle"), (name = "cry"), (name = "hug"), (name = "awoo"), (name = "kiss"), (name = "lick"), (name = "pat"), (name = "smug"), (name = "blush"), (name = "smile"), (name = "wave"), (name = "highfive"), (name = "nom"), (name = "bite"), (name = "slap"), (name = "kill"), (name = "kick"), (name = "happy"), (name = "wink"), (name = "dance")])],
 )]
 async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<EmbedsContents<'_>> {
-		info!("Processing random anime image command");
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
-		let _config = bot_data.config.clone();
+	info!("Processing random anime image command");
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
+	let _config = bot_data.config.clone();
 
-		debug!("Retrieving bot data and configuration");
+	debug!("Retrieving bot data and configuration");
 
-		// Retrieve the type of image to fetch from the command interaction
-		debug!("Extracting image type from command options");
-		let map = get_option_map_string_subcommand(&command_interaction);
+	// Retrieve the type of image to fetch from the command interaction
+	debug!("Extracting image type from command options");
+	let map = get_option_map_string_subcommand(&command_interaction);
 
-		let image_type = map
-			.get(&String::from("image_type"))
-			.ok_or_else(|| {
-				error!("No image type specified in command options");
-				anyhow!("No image type specified")
-			})?;
+	let image_type = map.get(&String::from("image_type")).ok_or_else(|| {
+		error!("No image type specified in command options");
+		anyhow!("No image type specified")
+	})?;
 
-		let image_type = image_type.clone();
-		debug!("Requested image type: {}", image_type);
+	let image_type = image_type.clone();
+	debug!("Requested image type: {}", image_type);
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => {
-				debug!("Command executed in guild: {}", id);
-				id.to_string()
-			},
-			None => {
-				debug!("Command executed in DM");
-				String::from("0")
-			},
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => {
+			debug!("Command executed in guild: {}", id);
+			id.to_string()
+		},
+		None => {
+			debug!("Command executed in DM");
+			String::from("0")
+		},
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		debug!("Loading localization for guild: {}", guild_id);
-		let lang = get_guild_language(guild_id.clone(), db_connection).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-		let title = USABLE_LOCALES.lookup(&lang_id, "anime_random_image-title");
-		debug!("Localization loaded successfully");
+	debug!("Loading localization for guild: {}", guild_id);
+	let lang = get_guild_language(guild_id.clone(), db_connection).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "anime_random_image-title");
+	debug!("Localization loaded successfully");
 
-		debug!("Deferring command response");
-		let _ = self_.defer().await;
-		debug!("Command response deferred successfully");
+	debug!("Deferring command response");
+	let _ = self_.defer().await;
+	debug!("Command response deferred successfully");
 
-		debug!("Fetching random image content for type: {}", image_type);
-		random_image_content(image_type, title, "sfw").await
+	debug!("Fetching random image content for type: {}", image_type);
+	random_image_content(image_type, title, "sfw").await
 }
 
 /// Asynchronously fetches and constructs image content for embedding.

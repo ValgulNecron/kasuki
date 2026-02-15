@@ -14,9 +14,9 @@ use std::collections::HashMap;
 use crate::command::anilist_user::user::get_user;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
+use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
-use crate::get_url;
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
@@ -131,25 +131,15 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		Cow::Borrowed("username"),
 		FluentValue::from(username.as_str()),
 	);
-	args.insert(
-		Cow::Borrowed("level"),
-		FluentValue::from(level.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("xp"),
-		FluentValue::from(format!("{:.2}", xp)),
-	);
+	args.insert(Cow::Borrowed("level"), FluentValue::from(level.to_string()));
+	args.insert(Cow::Borrowed("xp"), FluentValue::from(format!("{:.2}", xp)));
 	args.insert(
 		Cow::Borrowed("actual"),
 		FluentValue::from(format!("{:.2}", actual)),
 	);
-	args.insert(
-		Cow::Borrowed("next"),
-		FluentValue::from(next_level_display),
-	);
+	args.insert(Cow::Borrowed("next"), FluentValue::from(next_level_display));
 
-	let description =
-		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
+	let description = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
 
 	let mut embed_content = EmbedContent::new(user.clone().name)
 		.description(description)

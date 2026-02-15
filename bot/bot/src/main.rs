@@ -91,7 +91,28 @@ async fn main() {
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
-	let connection = match sea_orm::Database::connect(get_url(config.db.clone())).await {
+	let db_url = get_url(config.db.clone());
+	let mut connect_options = sea_orm::ConnectOptions::new(db_url);
+
+	// Configure connection pool settings
+	let max_connections = config.db.max_connections.unwrap_or(100);
+	let min_connections = config.db.min_connections.unwrap_or(5);
+	let connect_timeout = config.db.connect_timeout.unwrap_or(30);
+	let idle_timeout = config.db.idle_timeout.unwrap_or(600);
+
+	connect_options
+		.max_connections(max_connections)
+		.min_connections(min_connections)
+		.connect_timeout(Duration::from_secs(connect_timeout))
+		.idle_timeout(Duration::from_secs(idle_timeout))
+		.sqlx_logging(false); // Reduce log noise from sqlx
+
+	info!(
+		"Database pool config: max={}, min={}, connect_timeout={}s, idle_timeout={}s",
+		max_connections, min_connections, connect_timeout, idle_timeout
+	);
+
+	let connection = match sea_orm::Database::connect(connect_options).await {
 		Ok(connection) => {
 			info!("Successfully connected to database");
 			connection

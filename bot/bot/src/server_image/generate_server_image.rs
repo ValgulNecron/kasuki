@@ -47,11 +47,10 @@ pub async fn generate_local_server_image(
 			)
 		})?;
 
-	let color_vec = tokio::task::spawn_blocking(move || {
-		create_color_vector_from_tuple(average_colors)
-	})
-	.await
-	.context("spawn_blocking panicked")?;
+	let color_vec =
+		tokio::task::spawn_blocking(move || create_color_vector_from_tuple(average_colors))
+			.await
+			.context("spawn_blocking panicked")?;
 
 	generate_server_image(
 		ctx,
@@ -135,8 +134,7 @@ pub async fn generate_server_image(
 				let b = pixel[2] as f32 / 255.0;
 
 				let rgb_color = Srgb::new(r, g, b);
-				let lab_color: Lab =
-					<palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
+				let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
 				let color_target = Color { cielab: lab_color };
 
 				find_closest_color_index(&average_colors, &color_target).map(|idx| (x, y, idx))

@@ -40,6 +40,14 @@ pub struct DbConfig {
 	pub user: Option<String>,
 	pub password: Option<String>,
 	pub database: Option<String>,
+	/// Maximum number of connections in the pool (default: 100)
+	pub max_connections: Option<u32>,
+	/// Minimum number of connections in the pool (default: 5)
+	pub min_connections: Option<u32>,
+	/// Connection timeout in seconds (default: 30)
+	pub connect_timeout: Option<u64>,
+	/// Idle timeout in seconds (default: 600)
+	pub idle_timeout: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]

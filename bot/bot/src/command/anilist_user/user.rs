@@ -6,13 +6,13 @@
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
 use crate::event_handler::BotData;
+use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::{
 	User, UserQueryId, UserQueryIdVariables, UserQuerySearch, UserQuerySearchVariables,
 };
-use crate::get_url;
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use kasuki_macros::slash_command;
@@ -51,8 +51,7 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 		let data: User = get_user(value, anilist_cache.clone()).await?;
 		let db_connection = bot_data.db_connection.clone();
 
-		let embed_content =
-			user::user_content(command_interaction, data, db_connection).await?;
+		let embed_content = user::user_content(command_interaction, data, db_connection).await?;
 
 		return Ok(embed_content);
 	}

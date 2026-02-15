@@ -185,7 +185,10 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 
 	// Construct the description for the response using Fluent
 	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(Cow::Borrowed("id"), FluentValue::from(studio.id.to_string()));
+	args.insert(
+		Cow::Borrowed("id"),
+		FluentValue::from(studio.id.to_string()),
+	);
 	args.insert(
 		Cow::Borrowed("fav"),
 		FluentValue::from(studio.favourites.unwrap_or_default().to_string()),

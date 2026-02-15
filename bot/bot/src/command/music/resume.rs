@@ -119,8 +119,9 @@ async fn resume_command(self_: ResumeCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
-			.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
+				.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -129,8 +130,8 @@ async fn resume_command(self_: ResumeCommand) -> Result<EmbedsContents<'_>> {
 
 	player.set_pause(false).await?;
 
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_resume-success"));
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_resume-title"))
+		.description(USABLE_LOCALES.lookup(&lang_id, "music_resume-success"));
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

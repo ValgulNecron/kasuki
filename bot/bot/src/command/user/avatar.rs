@@ -57,15 +57,22 @@ async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
 	};
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+	args.insert(
+		Cow::Borrowed("user"),
+		FluentValue::from(username.to_string()),
+	);
 	let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-title", &args);
 	let content1 = EmbedContent::new(title).images_url(avatar_url);
 
 	let content2: Option<EmbedContent> = match server_avatar {
 		Some(server_avatar) => {
 			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-			let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
+			args.insert(
+				Cow::Borrowed("user"),
+				FluentValue::from(username.to_string()),
+			);
+			let title =
+				USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
 			let content2 = EmbedContent::new(title).images_url(server_avatar);
 
 			Some(content2)

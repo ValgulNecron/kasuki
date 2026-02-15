@@ -55,8 +55,8 @@ async fn pause_command(self_: PauseCommand) -> Result<EmbedsContents<'_>> {
 	};
 	player.set_pause(true).await?;
 
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_pause-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_pause-success"));
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_pause-title"))
+		.description(USABLE_LOCALES.lookup(&lang_id, "music_pause-success"));
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 	Ok(embed_contents)

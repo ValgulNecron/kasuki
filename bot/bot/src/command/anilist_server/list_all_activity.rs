@@ -90,8 +90,7 @@ async fn list_all_activity_command(self_: ListAllActivity) -> Result<EmbedsConte
 		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
 	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_all_activity-title");
 
-	let embed_content =
-		EmbedContent::new(title).description(join_activity);
+	let embed_content = EmbedContent::new(title).description(join_activity);
 	let action_row;
 	if len > ACTIVITY_LIST_LIMIT as usize {
 		action_row = None

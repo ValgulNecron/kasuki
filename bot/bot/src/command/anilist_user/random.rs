@@ -107,8 +107,9 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 
 	self_.defer().await?;
 
-	let stats =
-		tokio::fs::read_to_string(RANDOM_STATS_PATH).await.context("Failed to read random stats")?;
+	let stats = tokio::fs::read_to_string(RANDOM_STATS_PATH)
+		.await
+		.context("Failed to read random stats")?;
 	let random_stats: RandomStat =
 		serde_json::from_str(&stats).context("Failed to parse random stats")?;
 
@@ -209,8 +210,7 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 	args.insert(Cow::Borrowed("genres"), FluentValue::from(genres.as_str()));
 	args.insert(Cow::Borrowed("desc"), FluentValue::from(desc.as_str()));
 
-	let full_desc =
-		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_random-desc", &args);
+	let full_desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_random-desc", &args);
 
 	let embed_content = EmbedContent::new(title).description(full_desc).url(url);
 

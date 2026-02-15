@@ -7,10 +7,10 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use kasuki_macros::slash_command;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, ModelTrait, QueryFilter};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -67,16 +67,14 @@ async fn delete_activity_command(self_: DeleteActivityCommand) -> Result<EmbedsC
 		FluentValue::from(anime_name.as_str()),
 	);
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(
-		&lang_id,
-		"admin_anilist_delete_activity-success",
-	))
-	.description(USABLE_LOCALES.lookup_with_args(
-		&lang_id,
-		"admin_anilist_delete_activity-success_desc",
-		&args,
-	))
-	.url(url);
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "admin_anilist_delete_activity-success"))
+			.description(USABLE_LOCALES.lookup_with_args(
+				&lang_id,
+				"admin_anilist_delete_activity-success_desc",
+				&args,
+			))
+			.url(url);
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

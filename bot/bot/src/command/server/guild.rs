@@ -163,9 +163,17 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 	let mut fields: Vec<(String, String, bool)> = Vec::new();
 
 	// Add the fields to the vector
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_id"), guild_id.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_id"),
+		guild_id.to_string(),
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_name"), guild_name.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-guild_name"),
+		guild_name.to_string(),
+		true,
+	));
 
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "server_guild-member"),
@@ -179,9 +187,17 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 		true,
 	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-creation_date"), creation_date, true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-creation_date"),
+		creation_date,
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-lang"), guild_lang.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-lang"),
+		guild_lang.to_string(),
+		true,
+	));
 
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "server_guild-premium"),
@@ -189,15 +205,35 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 		true,
 	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-sub"), guild_sub.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-sub"),
+		guild_sub.to_string(),
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-nsfw"), format!("{:?}", guild_nsfw), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-nsfw"),
+		format!("{:?}", guild_nsfw),
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-owner"), owner.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-owner"),
+		owner.to_string(),
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-roles"), roles.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-roles"),
+		roles.to_string(),
+		true,
+	));
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "server_guild-channels"), channels.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "server_guild-channels"),
+		channels.to_string(),
+		true,
+	));
 
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "server_guild-verification_level"),

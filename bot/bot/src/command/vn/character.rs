@@ -1,9 +1,9 @@
-use anyhow::Context;
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::helper::vndbapi::character::get_character;
+use anyhow::Context;
 use kasuki_macros::slash_command;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -82,55 +82,95 @@ async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContent
 	let mut fields = vec![];
 
 	if let Some(blood_type) = character.blood_type {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-blood_type"), blood_type, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-blood_type"),
+			blood_type,
+			true,
+		));
 	}
 
 	if let Some(height) = character.height {
 		let cm = format!("{}cm", height);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-height"), cm, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-height"),
+			cm,
+			true,
+		));
 	}
 
 	if let Some(weight) = character.weight {
 		let weight = format!("{}kg", weight);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-weight"), weight, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-weight"),
+			weight,
+			true,
+		));
 	}
 
 	if let Some(age) = character.age {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-age"), age.to_string(), true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-age"),
+			age.to_string(),
+			true,
+		));
 	}
 
 	if let Some(bust) = character.bust {
 		let bust = format!("{}cm", bust);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-bust"), bust, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-bust"),
+			bust,
+			true,
+		));
 	}
 
 	if let Some(waist) = character.waist {
 		let waist = format!("{}cm", waist);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-waist"), waist, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-waist"),
+			waist,
+			true,
+		));
 	}
 
 	if let Some(hips) = character.hips {
 		let hips = format!("{}cm", hips);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-hip"), hips, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-hip"),
+			hips,
+			true,
+		));
 	}
 
 	if let Some(cup) = character.cup {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-cup"), cup, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-cup"),
+			cup,
+			true,
+		));
 	}
 
 	let sex = format!("{}, ||{}||", character.sex[0], character.sex[1]);
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-sex"), sex, true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "vn_character-sex"),
+		sex,
+		true,
+	));
 
 	if let Some(birthday) = character.birthday {
 		let birthday = format!("{:02}/{:02}", birthday[0], birthday[1]);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-birthday"), birthday, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_character-birthday"),
+			birthday,
+			true,
+		));
 	}
 
 	let vns = character
@@ -141,7 +181,11 @@ async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContent
 		.collect::<Vec<String>>()
 		.join(", ");
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-vns"), vns, true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "vn_character-vns"),
+		vns,
+		true,
+	));
 
 	let traits = character
 		.traits
@@ -151,7 +195,11 @@ async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContent
 		.collect::<Vec<String>>()
 		.join(", ");
 
-	fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_character-traits"), traits, true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "vn_character-traits"),
+		traits,
+		true,
+	));
 	let char_desc = character.description.clone().unwrap_or_default();
 
 	// Extract the sexual content rating from the character image

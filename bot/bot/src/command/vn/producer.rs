@@ -47,7 +47,11 @@ async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<
 	let mut fields = vec![];
 
 	if let Some(lang) = producer.lang {
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_producer-lang"), lang, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_producer-lang"),
+			lang,
+			true,
+		));
 	}
 
 	if let Some(aliases) = producer.aliases {
@@ -57,7 +61,11 @@ async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<
 			.collect::<Vec<String>>()
 			.join(", ");
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "vn_producer-aliases"), aliases, true));
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "vn_producer-aliases"),
+			aliases,
+			true,
+		));
 	}
 
 	if let Some(results_type) = producer.results_type {

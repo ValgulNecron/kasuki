@@ -166,8 +166,7 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
 	let title = USABLE_LOCALES.lookup(&lang_id, "ai_transcript-title");
 
-	let embed_content =
-		EmbedContent::new(title).description(text.to_string());
+	let embed_content = EmbedContent::new(title).description(text.to_string());
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

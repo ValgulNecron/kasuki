@@ -4,8 +4,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use crate::command::registry::{
-	all_parent_commands, all_slash_commands, CommandMeta, DiscordCommandType, GroupDef,
-	init_registries,
+	all_parent_commands, all_slash_commands, init_registries, CommandMeta, DiscordCommandType,
+	GroupDef,
 };
 use fluent_templates::Loader;
 use serenity::all::{
@@ -196,10 +196,7 @@ async fn register_parent_commands(http: &Arc<Http>) {
 		let meta = cmd.meta();
 		match meta.command_type {
 			DiscordCommandType::SubCommand { parent } => {
-				subcommands_by_parent
-					.entry(parent)
-					.or_default()
-					.push(meta);
+				subcommands_by_parent.entry(parent).or_default().push(meta);
 			},
 			DiscordCommandType::SubCommandGroup { parent, group } => {
 				group_commands
@@ -225,8 +222,11 @@ async fn register_parent_commands(http: &Arc<Http>) {
 		command_build = command_build.contexts(contexts);
 
 		// Set install contexts
-		let install_types: Vec<InstallationContext> =
-			parent.install_contexts.iter().map(|c| (*c).into()).collect();
+		let install_types: Vec<InstallationContext> = parent
+			.install_contexts
+			.iter()
+			.map(|c| (*c).into())
+			.collect();
 		command_build = command_build.integration_types(install_types);
 
 		// Set permissions
@@ -234,13 +234,11 @@ async fn register_parent_commands(http: &Arc<Http>) {
 
 		// Set locales from FTL
 		for locale_code in DISCORD_LOCALES {
-			if let Some(name) =
-				lookup_locale(locale_code, &format!("parent-{}-name", parent.name))
+			if let Some(name) = lookup_locale(locale_code, &format!("parent-{}-name", parent.name))
 			{
 				command_build = command_build.name_localized(*locale_code, name);
 			}
-			if let Some(desc) =
-				lookup_locale(locale_code, &format!("parent-{}-desc", parent.name))
+			if let Some(desc) = lookup_locale(locale_code, &format!("parent-{}-desc", parent.name))
 			{
 				command_build = command_build.description_localized(*locale_code, desc);
 			}
@@ -321,10 +319,7 @@ async fn register_message_commands(http: &Arc<Http>) {
 			command_build = apply_permissions(meta.permissions, command_build);
 
 			if let Err(e) = http.create_global_command(&command_build).await {
-				error!(
-					"Failed to create message command '{}': {:?}",
-					meta.name, e
-				);
+				error!("Failed to create message command '{}': {:?}", meta.name, e);
 			}
 		}
 	}
@@ -430,8 +425,7 @@ fn build_subcommand_option<'a>(meta: &'a CommandMeta) -> CreateCommandOption<'a>
 }
 
 fn build_subcommand_group_option<'a>(
-	group_def: &'a GroupDef,
-	group_commands: &'a HashMap<&str, HashMap<&str, Vec<&CommandMeta>>>,
+	group_def: &'a GroupDef, group_commands: &'a HashMap<&str, HashMap<&str, Vec<&CommandMeta>>>,
 	parent_name: &str,
 ) -> CreateCommandOption<'a> {
 	let mut option = CreateCommandOption::new(
@@ -484,11 +478,8 @@ fn build_arg_options<'a>(meta: &'a CommandMeta) -> Vec<CreateCommandOption<'a>> 
 			let choice_prefix = choice_ftl_prefix(meta.name, arg.name, choice.name, meta);
 			let mut choice_locales: HashMap<Cow<'_, str>, Cow<'_, str>> = HashMap::new();
 			for locale_code in DISCORD_LOCALES {
-				if let Some(name) =
-					lookup_locale(locale_code, &format!("{}-name", choice_prefix))
-				{
-					choice_locales
-						.insert(Cow::Owned(locale_code.to_string()), Cow::Owned(name));
+				if let Some(name) = lookup_locale(locale_code, &format!("{}-name", choice_prefix)) {
+					choice_locales.insert(Cow::Owned(locale_code.to_string()), Cow::Owned(name));
 				}
 			}
 			if choice_locales.is_empty() {

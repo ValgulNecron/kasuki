@@ -79,8 +79,8 @@ use anyhow::anyhow;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
-use kasuki_macros::slash_command;
 use fluent_templates::fluent_bundle::FluentValue;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
@@ -141,9 +141,13 @@ async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<Embeds
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
-	args.insert(Cow::Borrowed("subscription"), FluentValue::from(subscription.clone()));
+	args.insert(
+		Cow::Borrowed("subscription"),
+		FluentValue::from(subscription.clone()),
+	);
 
-	let success_msg = USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);
+	let success_msg =
+		USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);
 
 	let embed_content = EmbedContent::new(String::default()).description(success_msg);
 

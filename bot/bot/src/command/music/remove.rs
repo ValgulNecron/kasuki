@@ -44,8 +44,9 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title"))
-			.description(USABLE_LOCALES.lookup(&lang_id, "music_remove-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title"))
+				.description(USABLE_LOCALES.lookup(&lang_id, "music_remove-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -58,8 +59,8 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 
 	player.get_queue().remove(index)?;
 
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_remove-success"));
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title"))
+		.description(USABLE_LOCALES.lookup(&lang_id, "music_remove-success"));
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

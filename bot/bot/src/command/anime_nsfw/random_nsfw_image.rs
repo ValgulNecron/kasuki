@@ -85,8 +85,8 @@ use crate::command::anime::random_image::random_image_content;
 use crate::command::command::CommandRun;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use kasuki_macros::slash_command;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
@@ -102,61 +102,64 @@ use unic_langid::LanguageIdentifier;
 	args = [(name = "image_type", desc = "Type of the image you want.", arg_type = String, required = true, autocomplete = false,
 		choices = [(name = "waifu"), (name = "neko"), (name = "trap")])],
 )]
-async fn anime_random_nsfw_image_command(self_: AnimeRandomNsfwImageCommand) -> Result<EmbedsContents<'_>> {
-		info!("Processing random NSFW anime image command");
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
-		let _config = bot_data.config.clone();
+async fn anime_random_nsfw_image_command(
+	self_: AnimeRandomNsfwImageCommand,
+) -> Result<EmbedsContents<'_>> {
+	info!("Processing random NSFW anime image command");
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let command_interaction = self_.get_command_interaction();
+	let _config = bot_data.config.clone();
 
-		debug!("Retrieving bot data and configuration");
+	debug!("Retrieving bot data and configuration");
 
-		// Retrieve the type of image to fetch from the command interaction
-		debug!("Extracting image type from command options");
-		let map = get_option_map_string_subcommand(&command_interaction);
+	// Retrieve the type of image to fetch from the command interaction
+	debug!("Extracting image type from command options");
+	let map = get_option_map_string_subcommand(&command_interaction);
 
-		let image_type = map
-			.get(&String::from("image_type"))
-			.ok_or_else(|| {
-				error!("No image type specified in command options");
-				anyhow!("No image type specified")
-			})?;
+	let image_type = map.get(&String::from("image_type")).ok_or_else(|| {
+		error!("No image type specified in command options");
+		anyhow!("No image type specified")
+	})?;
 
-		let image_type = image_type.clone();
-		debug!("Requested NSFW image type: {}", image_type);
+	let image_type = image_type.clone();
+	debug!("Requested NSFW image type: {}", image_type);
 
-		// Retrieve the guild ID from the command interaction
-		let guild_id = match command_interaction.guild_id {
-			Some(id) => {
-				debug!("Command executed in guild: {}", id);
-				id.to_string()
-			},
-			None => {
-				debug!("Command executed in DM");
-				String::from("0")
-			},
-		};
-		let db_connection = bot_data.db_connection.clone();
+	// Retrieve the guild ID from the command interaction
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => {
+			debug!("Command executed in guild: {}", id);
+			id.to_string()
+		},
+		None => {
+			debug!("Command executed in DM");
+			String::from("0")
+		},
+	};
+	let db_connection = bot_data.db_connection.clone();
 
-		// Load the localized random NSFW image strings
-		debug!("Loading localization for guild: {}", guild_id);
-		let lang = get_guild_language(guild_id.clone(), db_connection).await;
-		let lang_code = match lang.as_str() {
-			"jp" => "ja",
-			"en" => "en-US",
-			other => other,
-		};
-		let lang_id = LanguageIdentifier::from_str(lang_code)
-			.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
-		let title = USABLE_LOCALES.lookup(&lang_id, "anime_nsfw_random_image_nsfw-title");
-		debug!("Localization loaded successfully");
+	// Load the localized random NSFW image strings
+	debug!("Loading localization for guild: {}", guild_id);
+	let lang = get_guild_language(guild_id.clone(), db_connection).await;
+	let lang_code = match lang.as_str() {
+		"jp" => "ja",
+		"en" => "en-US",
+		other => other,
+	};
+	let lang_id = LanguageIdentifier::from_str(lang_code)
+		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let title = USABLE_LOCALES.lookup(&lang_id, "anime_nsfw_random_image_nsfw-title");
+	debug!("Localization loaded successfully");
 
-		// Create a deferred response to the command interaction
-		debug!("Deferring command response");
-		let _ = self_.defer().await;
-		debug!("Command response deferred successfully");
+	// Create a deferred response to the command interaction
+	debug!("Deferring command response");
+	let _ = self_.defer().await;
+	debug!("Command response deferred successfully");
 
-		// Send the random NSFW image as a response to the command interaction
-		debug!("Fetching random NSFW image content for type: {}", image_type);
-		random_image_content(image_type, title, "nsfw").await
+	// Send the random NSFW image as a response to the command interaction
+	debug!(
+		"Fetching random NSFW image content for type: {}",
+		image_type
+	);
+	random_image_content(image_type, title, "nsfw").await
 }

@@ -147,84 +147,87 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 	}
 
 	// Move all CPU-heavy image work to a blocking thread
-	let (image_path, bytes) = tokio::task::spawn_blocking(move || -> anyhow::Result<(String, Vec<u8>)> {
-		let mut images: Vec<DynamicImage> = Vec::new();
+	let (image_path, bytes) =
+		tokio::task::spawn_blocking(move || -> anyhow::Result<(String, Vec<u8>)> {
+			let mut images: Vec<DynamicImage> = Vec::new();
 
-		for buf in &buffers {
-			images.push(image::load_from_memory(buf)?);
-		}
-
-		let (width, height) = images[0].dimensions();
-
-		let sub_image = images[0].to_owned().crop(0, 0, width, height);
-
-		let aspect_ratio = width as f32 / height as f32;
-
-		let new_height = 1000 * total_per_row;
-
-		let new_width = (new_height as f32 * aspect_ratio) as u32;
-
-		let smaller_height = new_height / total_per_row;
-
-		let smaller_width = new_width / total_per_row;
-
-		let total_width = smaller_width * total_per_row + new_width;
-
-		let mut combined_image = DynamicImage::new_rgba16(total_width, new_height);
-
-		let resized_img =
-			image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
-
-		combined_image.copy_from(&resized_img, 0, 0).unwrap();
-
-		let mut pos_list = Vec::new();
-
-		for x in 0..total_per_row {
-			for y in 0..total_per_row {
-				pos_list.push((new_width + (smaller_width * y), smaller_height * x))
+			for buf in &buffers {
+				images.push(image::load_from_memory(buf)?);
 			}
-		}
 
-		images.remove(0);
+			let (width, height) = images[0].dimensions();
 
-		for (i, img) in images.iter().enumerate() {
-			let (width, height) = img.dimensions();
+			let sub_image = images[0].to_owned().crop(0, 0, width, height);
 
-			let sub_image = img.to_owned().crop(0, 0, width, height);
+			let aspect_ratio = width as f32 / height as f32;
 
-			let resized_img = image::imageops::resize(
-				&sub_image,
-				smaller_width,
-				smaller_height,
-				FilterType::CatmullRom,
-			);
+			let new_height = 1000 * total_per_row;
 
-			let (pos_width, pos_height) = pos_list[i];
+			let new_width = (new_height as f32 * aspect_ratio) as u32;
 
-			combined_image.copy_from(&resized_img, pos_width, pos_height)?;
-		}
+			let smaller_height = new_height / total_per_row;
 
-		let combined_uuid = Uuid::new_v4();
+			let smaller_width = new_width / total_per_row;
 
-		let path = format!("{}.png", combined_uuid);
+			let total_width = smaller_width * total_per_row + new_width;
 
-		let rgba8_image = combined_image.to_rgba8();
+			let mut combined_image = DynamicImage::new_rgba16(total_width, new_height);
 
-		let mut bytes: Vec<u8> = Vec::new();
+			let resized_img =
+				image::imageops::resize(&sub_image, new_width, new_height, FilterType::CatmullRom);
 
-		rgba8_image.write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)?;
+			combined_image.copy_from(&resized_img, 0, 0).unwrap();
 
-		Ok((path, bytes))
-	})
-	.await
-	.map_err(|e| anyhow!("spawn_blocking panicked: {}", e))??;
+			let mut pos_list = Vec::new();
+
+			for x in 0..total_per_row {
+				for y in 0..total_per_row {
+					pos_list.push((new_width + (smaller_width * y), smaller_height * x))
+				}
+			}
+
+			images.remove(0);
+
+			for (i, img) in images.iter().enumerate() {
+				let (width, height) = img.dimensions();
+
+				let sub_image = img.to_owned().crop(0, 0, width, height);
+
+				let resized_img = image::imageops::resize(
+					&sub_image,
+					smaller_width,
+					smaller_height,
+					FilterType::CatmullRom,
+				);
+
+				let (pos_width, pos_height) = pos_list[i];
+
+				combined_image.copy_from(&resized_img, pos_width, pos_height)?;
+			}
+
+			let combined_uuid = Uuid::new_v4();
+
+			let path = format!("{}.png", combined_uuid);
+
+			let rgba8_image = combined_image.to_rgba8();
+
+			let mut bytes: Vec<u8> = Vec::new();
+
+			rgba8_image.write_to(&mut Cursor::new(&mut bytes), ImageFormat::WebP)?;
+
+			Ok((path, bytes))
+		})
+		.await
+		.map_err(|e| anyhow!("spawn_blocking panicked: {}", e))??;
 
 	let image_path = &image_path;
 
 	let image_url = format!("attachment://{}", image_path.clone());
 	let image = CommandFiles::new(image_path.clone(), bytes);
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "anilist_user_seiyuu-title")).images_url(image_url);
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "anilist_user_seiyuu-title"))
+			.images_url(image_url);
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
 		.add_files(vec![image])

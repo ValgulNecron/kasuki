@@ -97,7 +97,10 @@ async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 
 	debug!("Creating embed content with ping information");
 	let mut args = HashMap::new();
-	args.insert(Cow::Borrowed("shard"), FluentValue::from(shard_id.to_string()));
+	args.insert(
+		Cow::Borrowed("shard"),
+		FluentValue::from(shard_id.to_string()),
+	);
 	args.insert(Cow::Borrowed("latency"), FluentValue::from(latency));
 	args.insert(Cow::Borrowed("status"), FluentValue::from(stage));
 

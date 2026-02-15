@@ -111,8 +111,8 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_seek-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_seek-error_no_voice"));
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_seek-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -131,10 +131,14 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 		player.set_position(Duration::from_secs(time)).await?;
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 		args.insert(Cow::Borrowed("var0"), FluentValue::from(time.to_string()));
-		embed_content =
-			embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_seek-success", &args));
+		embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"music_seek-success",
+			&args,
+		));
 	} else {
-		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-nothing_playing"));
+		embed_content = embed_content
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-nothing_playing"));
 	}
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

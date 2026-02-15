@@ -46,7 +46,11 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 
 	debug!("Creating fields for embed");
 	let fields = vec![
-		(USABLE_LOCALES.lookup(&lang_id, "vn_stats-chars"), stats.chars.to_string(), true),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_stats-chars"),
+			stats.chars.to_string(),
+			true,
+		),
 		(
 			USABLE_LOCALES.lookup(&lang_id, "vn_stats-producer"),
 			stats.producers.to_string(),
@@ -57,15 +61,31 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 			stats.releases.to_string(),
 			true,
 		),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_stats-staff"), stats.staff.to_string(), true),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_stats-tags"), stats.tags.to_string(), true),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_stats-staff"),
+			stats.staff.to_string(),
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_stats-tags"),
+			stats.tags.to_string(),
+			true,
+		),
 		(
 			USABLE_LOCALES.lookup(&lang_id, "vn_stats-traits"),
 			stats.traits.to_string(),
 			true,
 		),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_stats-vns"), stats.vn.to_string(), true),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_stats-api"), String::from("VNDB API"), true),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_stats-vns"),
+			stats.vn.to_string(),
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_stats-api"),
+			String::from("VNDB API"),
+			true,
+		),
 	];
 	trace!("Created {} fields for embed", fields.len());
 

@@ -108,15 +108,24 @@ async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
 				)
 			});
 
-			fields.push((USABLE_LOCALES.lookup(&lang_id, "user_profile-premium"), string.collect::<String>(), true));
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "user_profile-premium"),
+				string.collect::<String>(),
+				true,
+			));
 		}
 	}
 
 	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(Cow::Borrowed("user"), FluentValue::from(user.name.to_string()));
-	let embed_content = EmbedContent::new(
-		USABLE_LOCALES.lookup_with_args(&lang_id, "user_profile-title", &title_args),
-	)
+	title_args.insert(
+		Cow::Borrowed("user"),
+		FluentValue::from(user.name.to_string()),
+	);
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(
+		&lang_id,
+		"user_profile-title",
+		&title_args,
+	))
 	.thumbnail(avatar_url)
 	.fields(fields)
 	.images_url(user.banner_url().unwrap_or_default());

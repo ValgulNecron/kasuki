@@ -42,8 +42,7 @@ async fn banner_command(self_: BannerCommand) -> Result<EmbedsContents<'_>> {
 	let banner = match user.banner_url() {
 		Some(url) => url,
 		None => {
-			let embed_content =
-				no_banner(&user.name, &lang_id);
+			let embed_content = no_banner(&user.name, &lang_id);
 			let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
 			return Ok(embed_contents);
 		},
@@ -52,10 +51,14 @@ async fn banner_command(self_: BannerCommand) -> Result<EmbedsContents<'_>> {
 	let username = user.name.as_str();
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
+	args.insert(
+		Cow::Borrowed("user"),
+		FluentValue::from(username.to_string()),
+	);
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_banner-title", &args))
-		.images_url(banner);
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_banner-title", &args))
+			.images_url(banner);
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

@@ -41,10 +41,26 @@ async fn vn_staff_command(self_: VnStaffCommand) -> Result<EmbedsContents<'_>> {
 	let staff = staff.results[0].clone();
 
 	let fields = vec![
-		(USABLE_LOCALES.lookup(&lang_id, "vn_staff-lang"), staff.lang, true),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_staff-aid"), staff.aid.to_string(), true),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_staff-gender"), staff.gender.clone().unwrap_or(String::new()), true),
-		(USABLE_LOCALES.lookup(&lang_id, "vn_staff-main"), staff.ismain.to_string(), true),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_staff-lang"),
+			staff.lang,
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_staff-aid"),
+			staff.aid.to_string(),
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_staff-gender"),
+			staff.gender.clone().unwrap_or(String::new()),
+			true,
+		),
+		(
+			USABLE_LOCALES.lookup(&lang_id, "vn_staff-main"),
+			staff.ismain.to_string(),
+			true,
+		),
 	];
 	let staff_desc = staff.description.clone();
 

@@ -50,8 +50,8 @@ async fn leave_command(self_: LeaveCommand) -> Result<EmbedsContents<'_>> {
 		manager.remove(guild_id).await?;
 	}
 
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_leave-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_leave-success"));
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_leave-title"))
+		.description(USABLE_LOCALES.lookup(&lang_id, "music_leave-success"));
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 

@@ -6,8 +6,8 @@ use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
 use anyhow::anyhow;
-use kasuki_macros::slash_command;
 use fluent_templates::Loader;
+use kasuki_macros::slash_command;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, QueryFilter};
 use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -62,8 +62,11 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 		.await?
 	{
 		None => {
-		debug!("No module activation found for guild {}. Creating new one.", guild_id);
-		let mut models = module_activation::ActiveModel {
+			debug!(
+				"No module activation found for guild {}. Creating new one.",
+				guild_id
+			);
+			let mut models = module_activation::ActiveModel {
 				guild_id: Set(guild_id),
 				ai_module: Set(true),
 				anilist_module: Set(true),
@@ -74,7 +77,7 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 				level_module: Set(false),
 				mini_game_module: Set(true),
 			};
-		match module.as_str() {
+			match module.as_str() {
 				"ANILIST" => models.anilist_module = Set(state),
 				"AI" => models.ai_module = Set(state),
 				"GAME" => models.game_module = Set(state),
@@ -87,13 +90,13 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 				},
 			}
 			ModuleActivation::insert(models)
-			.on_conflict(
-				sea_orm::sea_query::OnConflict::columns([module_activation::Column::GuildId])
-					.do_nothing()
-					.to_owned(),
-			)
-			.exec(&*db_connection.clone())
-			.await?;
+				.on_conflict(
+					sea_orm::sea_query::OnConflict::columns([module_activation::Column::GuildId])
+						.do_nothing()
+						.to_owned(),
+				)
+				.exec(&*db_connection.clone())
+				.await?;
 		},
 		Some(mut row) => {
 			match module.as_str() {

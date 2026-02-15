@@ -9,11 +9,18 @@ use std::sync::OnceLock;
 #[derive(Debug, Clone, Copy)]
 pub enum DiscordCommandType {
 	ChatInput,
-	SubCommand { parent: &'static str },
-	SubCommandGroup { parent: &'static str, group: &'static str },
+	SubCommand {
+		parent: &'static str,
+	},
+	SubCommandGroup {
+		parent: &'static str,
+		group: &'static str,
+	},
 	User,
 	Message,
-	GuildChatInput { guild_id: u64 },
+	GuildChatInput {
+		guild_id: u64,
+	},
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -220,9 +227,7 @@ pub trait SlashCommand: Send + Sync + 'static {
 	fn meta(&self) -> &'static CommandMeta;
 	fn dispatch_key(&self) -> &'static str;
 	fn run<'a>(
-		&'a self,
-		ctx: &'a SerenityContext,
-		interaction: &'a CommandInteraction,
+		&'a self, ctx: &'a SerenityContext, interaction: &'a CommandInteraction,
 		full_command_name: &'a str,
 	) -> Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>>;
 }

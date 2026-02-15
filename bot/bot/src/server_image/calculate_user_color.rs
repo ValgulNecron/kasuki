@@ -19,9 +19,13 @@ use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
 use shared::database::prelude::UserColor;
 use shared::database::user_color::{ActiveModel, Column, Model};
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, Semaphore};
 use tokio::time::sleep;
-use tracing::{debug, error, trace};
+use tracing::{debug, error, info, trace};
+
+/// Maximum number of concurrent database operations for color management.
+/// This prevents overwhelming the database connection pool.
+const MAX_CONCURRENT_DB_OPS: usize = 10;
 
 pub fn change_to_x128_url(url: String) -> String {
 	debug!("Changing URL size to 128x128: {}", url);
@@ -47,6 +51,10 @@ pub async fn calculate_users_color(
 		.map(|c| (c.user_id.clone(), c))
 		.collect();
 
+	// Use a semaphore to limit concurrent database operations
+	let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_DB_OPS));
+	let mut handles = Vec::new();
+
 	for member in members {
 		trace!("Calculating user color for {}", member.user.id);
 
@@ -69,32 +77,62 @@ pub async fn calculate_users_color(
 			.unwrap_or_default();
 
 		if pfp_url != pfp_url_old {
-			let (average_color, image): (String, String) =
-				calculate_user_color(member.user.clone()).await?;
+			let semaphore = semaphore.clone();
+			let connection = connection.clone();
+			let user = member.user.clone();
 
-			add_user_data_to_db(member.user.clone(), connection.clone()).await?;
+			let handle = tokio::spawn(async move {
+				// Acquire semaphore permit to limit concurrency
+				let _permit = semaphore.acquire().await;
 
-			UserColor::insert(ActiveModel {
-				user_id: Set(id.clone()),
-				profile_picture_url: Set(pfp_url.clone()),
-				color: Set(average_color.clone()),
-				images: Set(image.clone()),
-				..Default::default()
-			})
-			.on_conflict(
-				OnConflict::column(Column::UserId)
-					.update_column(Column::Color)
-					.update_column(Column::ProfilePictureUrl)
-					.update_column(Column::Images)
-					.to_owned(),
-			)
-			.exec(&*connection)
-			.await?;
+				let (average_color, image): (String, String) =
+					match calculate_user_color(user.clone()).await {
+						Ok(result) => result,
+						Err(e) => {
+							error!("Failed to calculate color for user {}: {:?}", user.id, e);
+							return;
+						},
+					};
+
+				if let Err(e) = add_user_data_to_db(user.clone(), connection.clone()).await {
+					error!("Failed to add user data for {}: {:?}", user.id, e);
+				}
+
+				if let Err(e) = UserColor::insert(ActiveModel {
+					user_id: Set(id.clone()),
+					profile_picture_url: Set(pfp_url.clone()),
+					color: Set(average_color.clone()),
+					images: Set(image.clone()),
+					..Default::default()
+				})
+				.on_conflict(
+					OnConflict::column(Column::UserId)
+						.update_column(Column::Color)
+						.update_column(Column::ProfilePictureUrl)
+						.update_column(Column::Images)
+						.to_owned(),
+				)
+				.exec(&*connection)
+				.await
+				{
+					error!("Failed to insert user color for {}: {:?}", user.id, e);
+				}
+
+				trace!("Done calculating user color for {}", user.id);
+			});
+
+			handles.push(handle);
+
+			// Add a small delay between spawning tasks to avoid bursts
+			if handles.len() % 50 == 0 {
+				sleep(Duration::from_millis(10)).await;
+			}
 		}
+	}
 
-		trace!("Done calculating user color for {}", member.user.id);
-
-		sleep(Duration::from_nanos(1)).await
+	// Wait for all handles to complete
+	for handle in handles {
+		let _ = handle.await;
 	}
 
 	Ok(())
@@ -228,7 +266,10 @@ pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
 	tokio::task::spawn_blocking(move || {
 		let img = ImageReader::new(Cursor::new(resp))
 			.with_guessed_format()
-			.context(format!("Failed to guess image format from URL: {}", url_clone))?
+			.context(format!(
+				"Failed to guess image format from URL: {}",
+				url_clone
+			))?
 			.decode()
 			.context(format!("Failed to decode image from URL: {}", url_clone))?;
 
@@ -242,8 +283,10 @@ pub async fn color_management(
 	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
 	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
 ) {
+	info!("Starting color management for {} guilds", guilds.len());
+
 	// Process guilds one at a time to avoid accumulating all members in memory
-	for guild in guilds {
+	for (idx, guild) in guilds.iter().enumerate() {
 		let guild_id = guild.to_string();
 		debug!(guild_id);
 
@@ -257,10 +300,20 @@ pub async fn color_management(
 		)
 		.await
 		{
-			Ok(_) => {},
+			Ok(_) => {
+				trace!("Completed color calculation for guild {}", guild_id);
+			},
 			Err(e) => error!(guild_id, "{:?}", e),
 		};
+
+		// Add a small delay between guilds to prevent overwhelming the database
+		// This gives the connection pool time to recover
+		if idx < guilds.len() - 1 {
+			sleep(Duration::from_millis(100)).await;
+		}
 	}
+
+	info!("Completed color management for all guilds");
 }
 
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {

@@ -96,9 +96,9 @@ use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use kasuki_macros::slash_command;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 use anyhow::{anyhow, Result};
+use kasuki_macros::slash_command;
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
@@ -114,188 +114,202 @@ use tokio::sync::RwLock;
 	args = [(name = "game_name", desc = "Name of the steam game you want info of.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsContents<'_>> {
-		self_.defer().await?;
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let db_connection = bot_data.db_connection.clone();
-		let data = get_steam_game(
-			bot_data.apps.clone(),
-			self_.command_interaction.clone(),
-			db_connection,
+	self_.defer().await?;
+	let ctx = self_.get_ctx();
+	let bot_data = ctx.data::<BotData>().clone();
+	let db_connection = bot_data.db_connection.clone();
+	let data = get_steam_game(
+		bot_data.apps.clone(),
+		self_.command_interaction.clone(),
+		db_connection,
+	)
+	.await?;
+	let command_interaction = self_.get_command_interaction();
+
+	let guild_id = command_interaction
+		.guild_id
+		.unwrap_or(GuildId::from(0))
+		.to_string();
+	let db_connection = bot_data.db_connection.clone();
+
+	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
+
+	let game = data.data;
+
+	let mut fields = Vec::new();
+
+	// Determine the price field based on whether the game is free or not
+	let field1 = if game.is_free.unwrap() {
+		(
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-free"),
+			true,
 		)
-		.await?;
-		let command_interaction = self_.get_command_interaction();
+	} else {
+		match game.price_overview {
+			Some(price) => {
+				let price = format!(
+					"{} {}",
+					price.final_formatted.unwrap_or_default(),
+					price.discount_percent.unwrap_or_default()
+				);
 
-		let guild_id = command_interaction
-			.guild_id
-			.unwrap_or(GuildId::from(0))
-			.to_string();
-		let db_connection = bot_data.db_connection.clone();
-
-		let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
-
-		let game = data.data;
-
-		let mut fields = Vec::new();
-
-		// Determine the price field based on whether the game is free or not
-		let field1 = if game.is_free.unwrap() {
-			(
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-free"),
-				true,
-			)
-		} else {
-			match game.price_overview {
-				Some(price) => {
-					let price = format!(
-						"{} {}",
-						price.final_formatted.unwrap_or_default(),
-						price.discount_percent.unwrap_or_default()
-					);
-
-					(
-						USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
-						convert_steam_to_discord_flavored_markdown(price),
-						true,
-					)
-				},
-				None => (
+				(
 					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
-					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-tba"),
+					convert_steam_to_discord_flavored_markdown(price),
 					true,
-				),
-			}
-		};
-
-		fields.push(field1);
-
-		let platforms = match game.platforms {
-			Some(platforms) => platforms,
-			_ => Platforms {
-				windows: None,
-				mac: None,
-				linux: None,
+				)
 			},
-		};
-
-		if let Some(website) = game.website {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-website"),
-				convert_steam_to_discord_flavored_markdown(website),
+			None => (
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-tba"),
 				true,
-			));
+			),
 		}
+	};
 
-		if let Some(required_age) = game.required_age {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-required_age"),
-				required_age.to_string(),
-				true,
-			));
-		}
+	fields.push(field1);
 
-		// Determine the release date field based on whether the game is coming soon or not
-		let field2 = if game.release_date.clone().unwrap().coming_soon {
-			match game.release_date.unwrap().date {
-				Some(date) => (
-					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
-					convert_steam_to_discord_flavored_markdown(date),
-					true,
-				),
-				None => (
-					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
-					USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-coming_soon"),
-					true,
-				),
-			}
-		} else {
-			(
+	let platforms = match game.platforms {
+		Some(platforms) => platforms,
+		_ => Platforms {
+			windows: None,
+			mac: None,
+			linux: None,
+		},
+	};
+
+	if let Some(website) = game.website {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-website"),
+			convert_steam_to_discord_flavored_markdown(website),
+			true,
+		));
+	}
+
+	if let Some(required_age) = game.required_age {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-required_age"),
+			required_age.to_string(),
+			true,
+		));
+	}
+
+	// Determine the release date field based on whether the game is coming soon or not
+	let field2 = if game.release_date.clone().unwrap().coming_soon {
+		match game.release_date.unwrap().date {
+			Some(date) => (
 				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
-				convert_steam_to_discord_flavored_markdown(
-					game.release_date.unwrap().date.unwrap(),
-				),
+				convert_steam_to_discord_flavored_markdown(date),
 				true,
-			)
-		};
-
-		fields.push(field2);
-
-		// Add the developers field if it exists
-		if let Some(dev) = game.developers {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field3"),
-				convert_steam_to_discord_flavored_markdown(dev.join(", ")),
+			),
+			None => (
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
+				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-coming_soon"),
 				true,
-			))
+			),
 		}
+	} else {
+		(
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field2"),
+			convert_steam_to_discord_flavored_markdown(game.release_date.unwrap().date.unwrap()),
+			true,
+		)
+	};
 
-		// Add the publishers field if it exists
-		if let Some(publishers) = game.publishers {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field4"),
-				convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
-				true,
-			))
-		}
+	fields.push(field2);
 
-		// Add the app type field if it exists
-		if let Some(app_type) = game.app_type {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field5"),
-				convert_steam_to_discord_flavored_markdown(app_type),
-				true,
-			))
-		}
+	// Add the developers field if it exists
+	if let Some(dev) = game.developers {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field3"),
+			convert_steam_to_discord_flavored_markdown(dev.join(", ")),
+			true,
+		))
+	}
 
-		// Add the supported languages field if it exists
-		if let Some(game_lang) = game.supported_languages {
-			fields.push((
-				USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field6"),
-				convert_steam_to_discord_flavored_markdown(game_lang),
-				true,
-			))
-		}
+	// Add the publishers field if it exists
+	if let Some(publishers) = game.publishers {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field4"),
+			convert_steam_to_discord_flavored_markdown(publishers.join(", ")),
+			true,
+		))
+	}
 
-		let win = platforms.windows.unwrap_or(false);
+	// Add the app type field if it exists
+	if let Some(app_type) = game.app_type {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field5"),
+			convert_steam_to_discord_flavored_markdown(app_type),
+			true,
+		))
+	}
 
-		let mac = platforms.mac.unwrap_or(false);
+	// Add the supported languages field if it exists
+	if let Some(game_lang) = game.supported_languages {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field6"),
+			convert_steam_to_discord_flavored_markdown(game_lang),
+			true,
+		))
+	}
 
-		let linux = platforms.linux.unwrap_or(false);
+	let win = platforms.windows.unwrap_or(false);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-win"), win.to_string(), true));
+	let mac = platforms.mac.unwrap_or(false);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-mac"), mac.to_string(), true));
+	let linux = platforms.linux.unwrap_or(false);
 
-		fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-linux"), linux.to_string(), true));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-win"),
+		win.to_string(),
+		true,
+	));
 
-		// Add the categories field if it exists
-		if let Some(categories) = game.categories {
-			let descriptions: Vec<String> = categories
-				.into_iter()
-				.filter_map(|category| category.description)
-				.collect();
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-mac"),
+		mac.to_string(),
+		true,
+	));
 
-			let joined_descriptions =
-				convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
+	fields.push((
+		USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-linux"),
+		linux.to_string(),
+		true,
+	));
 
-			fields.push((USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field7"), joined_descriptions, false))
-		}
+	// Add the categories field if it exists
+	if let Some(categories) = game.categories {
+		let descriptions: Vec<String> = categories
+			.into_iter()
+			.filter_map(|category| category.description)
+			.collect();
 
-		let embed_content = EmbedContent::new(game.name.unwrap())
-			.description(convert_steam_to_discord_flavored_markdown(
-				game.short_description.unwrap_or_default(),
-			))
-			.fields(fields)
-			.url(format!(
-				"https://store.steampowered.com/app/{}",
-				game.steam_appid.unwrap()
-			))
-			.images_url(game.header_image.unwrap());
+		let joined_descriptions =
+			convert_steam_to_discord_flavored_markdown(descriptions.join(", "));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field7"),
+			joined_descriptions,
+			false,
+		))
+	}
 
-		Ok(embed_contents)
+	let embed_content = EmbedContent::new(game.name.unwrap())
+		.description(convert_steam_to_discord_flavored_markdown(
+			game.short_description.unwrap_or_default(),
+		))
+		.fields(fields)
+		.url(format!(
+			"https://store.steampowered.com/app/{}",
+			game.steam_appid.unwrap()
+		))
+		.images_url(game.header_image.unwrap());
+
+	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+
+	Ok(embed_contents)
 }
 
 /// Fetches a Steam game based on user input from a command interaction.

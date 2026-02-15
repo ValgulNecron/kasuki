@@ -83,8 +83,8 @@ async fn stop_command(self_: StopCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_stop-error_no_voice"));
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_stop-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -97,11 +97,18 @@ async fn stop_command(self_: StopCommand) -> Result<EmbedsContents<'_>> {
 	if let Some(np) = now_playing {
 		player.stop_now().await?;
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(np.info.title.clone()));
-		embed_content =
-			embed_content.description(USABLE_LOCALES.lookup_with_args(&lang_id, "music_stop-success", &args));
+		args.insert(
+			Cow::Borrowed("var0"),
+			FluentValue::from(np.info.title.clone()),
+		);
+		embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"music_stop-success",
+			&args,
+		));
 	} else {
-		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-nothing_to_stop"));
+		embed_content = embed_content
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_stop-nothing_to_stop"));
 	}
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

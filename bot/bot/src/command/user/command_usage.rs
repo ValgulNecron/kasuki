@@ -61,16 +61,27 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 	let mut embed_contents = vec![];
 
 	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-	let embed_content =
-		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-title", &title_args));
+	title_args.insert(
+		Cow::Borrowed("user"),
+		FluentValue::from(username.to_string()),
+	);
+	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(
+		&lang_id,
+		"user_command_usage-title",
+		&title_args,
+	));
 
 	if usage.is_empty() {
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("user"), FluentValue::from(username.to_string()));
-		let inner_embed = embed_content.description(
-			USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-no_usage", &args),
+		args.insert(
+			Cow::Borrowed("user"),
+			FluentValue::from(username.to_string()),
 		);
+		let inner_embed = embed_content.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"user_command_usage-no_usage",
+			&args,
+		));
 		embed_contents.push(inner_embed);
 	} else {
 		let mut description = String::new();
@@ -80,9 +91,14 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 		for (command, usage_count) in &usage {
 			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 			args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
-			args.insert(Cow::Borrowed("usage"), FluentValue::from(usage_count.to_string()));
+			args.insert(
+				Cow::Borrowed("usage"),
+				FluentValue::from(usage_count.to_string()),
+			);
 			description.push_str(
-				USABLE_LOCALES.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args).as_str(),
+				USABLE_LOCALES
+					.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args)
+					.as_str(),
 			);
 
 			description.push('\n');

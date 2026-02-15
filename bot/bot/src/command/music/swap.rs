@@ -122,8 +122,8 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 	else {
-		let embed_content =
-			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_swap-title")).description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_no_voice"));
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_swap-title"))
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
 
@@ -149,12 +149,18 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 
 	if index1 > queue_len || index2 > queue_len {
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(queue_len.to_string()));
-		embed_content = embed_content.description(
-			USABLE_LOCALES.lookup_with_args(&lang_id, "music_swap-error_max_index", &args),
+		args.insert(
+			Cow::Borrowed("var0"),
+			FluentValue::from(queue_len.to_string()),
 		);
+		embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
+			&lang_id,
+			"music_swap-error_max_index",
+			&args,
+		));
 	} else if index1 == index2 {
-		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_same_index"));
+		embed_content = embed_content
+			.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_same_index"));
 	} else {
 		let track1 = queue.get_track(index1 - 1).await?.unwrap();
 		let track2 = queue.get_track(index1 - 2).await?.unwrap();
@@ -162,7 +168,8 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 		queue.swap(index1 - 1, track2)?;
 		queue.swap(index2 - 1, track1)?;
 
-		embed_content = embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-success"));
+		embed_content =
+			embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-success"));
 	}
 
 	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);

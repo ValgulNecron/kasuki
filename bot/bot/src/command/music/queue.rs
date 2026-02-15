@@ -93,11 +93,23 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 		let time = format!("{:02}:{:02}", time_m, time_s);
 
 		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(track.info.author.clone()));
-		args.insert(Cow::Borrowed("var1"), FluentValue::from(track.info.title.clone()));
-		args.insert(Cow::Borrowed("var2"), FluentValue::from(track.info.uri.clone().unwrap_or_default()));
+		args.insert(
+			Cow::Borrowed("var0"),
+			FluentValue::from(track.info.author.clone()),
+		);
+		args.insert(
+			Cow::Borrowed("var1"),
+			FluentValue::from(track.info.title.clone()),
+		);
+		args.insert(
+			Cow::Borrowed("var2"),
+			FluentValue::from(track.info.uri.clone().unwrap_or_default()),
+		);
 		args.insert(Cow::Borrowed("var3"), FluentValue::from(time));
-		args.insert(Cow::Borrowed("var4"), FluentValue::from(format!("<@!{}>", track.user_data.unwrap()["requester_id"])));
+		args.insert(
+			Cow::Borrowed("var4"),
+			FluentValue::from(format!("<@!{}>", track.user_data.unwrap()["requester_id"])),
+		);
 
 		USABLE_LOCALES.lookup_with_args(&lang_id, "music_queue-now_playing", &args)
 	} else {
