@@ -35,8 +35,11 @@ RUN mkdir -p bot/src api-server/src worker/src Migration/src shared/src kasuki-m
 # Build dependencies
 RUN cargo build --release
 
-# Remove dummy files
-RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src
+# Remove dummy files and kasuki-macros build artifacts to force rebuild
+RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src \
+    && rm -rf target/release/.fingerprint/kasuki-macros-* \
+              target/release/deps/libkasuki_macros-* \
+              target/release/deps/kasuki_macros-*
 
 # Copy real source code and assets
 COPY shared/schemas ./shared/schemas
