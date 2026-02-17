@@ -153,8 +153,6 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 					"music_play-added_to_queue",
 					&args,
 				));
-
-		return Ok(embed_content);
 	}
 
 	let author_id = command_interaction.user.id;
