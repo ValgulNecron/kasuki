@@ -596,7 +596,12 @@ impl Handler {
 		if !*bot_data.already_launched.read().await {
 			*bot_data.already_launched.write().await = true;
 			tokio::spawn(thread_management_launcher(ctx.clone(), bot_data.clone()));
-			command_registration(&ctx.http, bot_data.config.bot.remove_old_commands).await;
+
+			let http = ctx.http.clone();
+			let remove_old = bot_data.config.bot.remove_old_commands;
+			tokio::spawn(async move {
+				command_registration(&http, remove_old).await;
+			});
 
 			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
 				let ctx_clone = ctx.clone();
