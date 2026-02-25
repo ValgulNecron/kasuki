@@ -24,7 +24,7 @@
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
 use crate::command::anilist_user::character::get_character_by_id;
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::structure::run::anilist::character::character_content;
 use kasuki_macros::slash_command;
 
@@ -34,20 +34,16 @@ use kasuki_macros::slash_command;
 	install_contexts = [Guild, User],
 )]
 async fn waifu_command(self_: WaifuCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
 	// Execute the corresponding search function based on the specified type
 	// Fetch the data of the character with ID 156323 from AniList
 	let value = 156323;
-	let db_connection = bot_data.db_connection.clone();
 
 	let data = get_character_by_id(value, anilist_cache).await?;
 
-	let embed_content = character_content(command_interaction, data, db_connection).await?;
+	let embed_content = character_content(cx.command_interaction, data, cx.db).await?;
 
 	Ok(embed_content)
 }

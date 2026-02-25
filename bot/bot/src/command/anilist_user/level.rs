@@ -7,13 +7,13 @@ use fluent_templates::Loader;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
@@ -32,20 +32,17 @@ use small_fixed_array::FixedString;
 	args = [(name = "username", desc = "Username of the user you want the level of.", arg_type = String, required = false, autocomplete = true)],
 )]
 async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let config = bot_data.config.clone();
-	let map = get_option_map_string(&command_interaction);
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
+	let config = cx.bot_data.config.clone();
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let user = map.get(&FixedString::from_str_trunc("username"));
 
 	let data = match user {
 		Some(value) => get_user(value, anilist_cache).await?,
 		None => {
-			let user_id = &command_interaction.user.id.to_string();
+			let user_id = &cx.command_interaction.user.id.to_string();
 
 			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
@@ -64,14 +61,8 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 
 	let user = data;
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Clone the manga and anime statistics
 	let statistics = user.statistics.clone().unwrap();

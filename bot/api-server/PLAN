@@ -1,0 +1,48 @@
+1. In-Memory Cache Has No TTL and No Eviction
+
+ Set a TTL matching the JWT expiry (24 hours) and a maximum capacity.
+
+2. User Data Goes Stale Immediately
+store the Discord access token and refresh token. add a /update endpoint that the website will call when the user access some part of it.
+
+3. .unwrap() on Base64 Decode of JWT Secret
+Return a 500 Internal Server Error instead of panicking. Validate the secret at startup.
+
+4. Discord Access Token and Refresh Token Are Discarded
+Store in a db you can edit the db for this (migration and the shared/src/database).
+
+5. CORS Allows Any Origin
+check for the config if api is set to debug or not and change depending on this. please edit config.toml and the exemple config if it not in debug use a specific wildcard domain example.com mean example.com + *.example.com
+
+6. JWT Passed in URL Hash Fragment
+use a short-lived authorization code that the frontend exchanges for a JWT via a separate POST endpoint (similar to the PKCE flow).
+
+7. No CSRF Protection on OAuth Flow
+Generate a random state value, store it server-side (or in a signed cookie), pass it to Discord, and verify it in the callback.
+
+8. No Rate Limiting
+Add rate limiting middleware (e.g., tower::limit or governor) at minimum on /api/oauth/login and /api/oauth/callback.
+
+9. No Database Integration
+point 4 already add db
+
+10. Only One Protected Endpoint
+add a /update endpoint this will update the cache and return the data. same as /api/user/me
+
+11. reqwest::Client Created Per Request
+Create a single reqwest::Client at startup and share it via Axum state (alongside Arc<Config>).
+
+12. Duplicate Type Definitions
+use #[serde(skip_serializing)] on fields you don't want in the response
+
+13. Error Type Inconsistency
+Adopt a unified error type (e.g., a single AppError enum) that implements IntoResponse and covers all cases. Use thiserror for the error definitions.
+
+14. ApiError Enum Is Dead Code
+remove
+
+15. health_check() Is in oauth.rs
+please move it
+
+16. No Tests
+add unit test

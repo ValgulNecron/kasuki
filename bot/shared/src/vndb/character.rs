@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -68,20 +68,20 @@ pub async fn get_character(
 	let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
 	let json = if start_with_v && is_number {
-		(r#"{
-    		"filters": ["id", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"
-		}"#).to_string()
+		format!(
+			r#"{{"filters": ["id", "=", "{}"], "fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"}}"#,
+			value
+		)
 	} else {
-		(r#"{
-    		"filters": ["search", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"
-		}"#).to_string()
+		format!(
+			r#"{{"filters": ["search", "=", "{}"], "fields": "id,description, name,image.url,image.sexual,image.violence,blood_type,height,weight,bust,waist,hips,cup,age,sex,vns.title,traits.spoiler,traits.name"}}"#,
+			value
+		)
 	};
 
 	let path = "/character".to_string();
 
-	let response = crate::helper::vndbapi::common::do_request_cached_with_json(
+	let response = crate::vndb::common::do_request_cached_with_json(
 		path.clone(),
 		json.to_string(),
 		vndb_cache,

@@ -48,15 +48,14 @@
 //! - `rand`: For generating random page numbers.
 //! - `tracing`: For logging debug and trace information.
 //! - Custom modules for localization, caching, trimming, and AniList Markdown conversion.
-use crate::constant::RANDOM_STATS_PATH;
 use anyhow::Context;
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use rand::{rng, RngExt};
+use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
-use shared::random_stats_json::RandomStat;
+use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -64,7 +63,7 @@ use tracing::trace;
 
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -83,23 +82,14 @@ use kasuki_macros::slash_command;
 		choices = [(name = "anime"), (name = "manga")])],
 )]
 async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let _config = bot_data.config.clone();
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Retrieve the type of media (anime or manga) from the command interaction
-	let map = get_option_map_string(command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let random_type = map
 		.get(&FixedString::from_str_trunc("type"))
@@ -107,16 +97,16 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 
 	self_.defer().await?;
 
-	let stats = tokio::fs::read_to_string(RANDOM_STATS_PATH)
+	let stats = shared::database::random_stats::Entity::find_by_id(1)
+		.one(&*cx.db)
 		.await
-		.context("Failed to read random stats")?;
-	let random_stats: RandomStat =
-		serde_json::from_str(&stats).context("Failed to parse random stats")?;
+		.context("Failed to query random stats from database")?
+		.ok_or(anyhow!("No random stats found in database"))?;
 
 	let last_page = if random_type.as_str() == "anime" {
-		random_stats.anime_last_page
+		stats.last_anime_page
 	} else if random_type.as_str() == "manga" {
-		random_stats.manga_last_page
+		stats.last_manga_page
 	} else {
 		0
 	};

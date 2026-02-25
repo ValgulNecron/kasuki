@@ -71,3 +71,8 @@ activity_check = 1
 random_stats_update = 86400
 anisong_update = 604800
 bot_info_update = 1800
+
+[queue]
+queue_type = "redis"
+host = ""
+port = ""

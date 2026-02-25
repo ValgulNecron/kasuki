@@ -63,8 +63,9 @@ async fn main() -> Result<()> {
 	// Spawn Random Stats Update Task
 	let cache_clone = anilist_cache.clone();
 	let intervals_clone_2 = task_intervals.clone();
+	let db_clone_rs = connection.clone();
 	tokio::spawn(async move {
-		update_random_stats_launcher(cache_clone, intervals_clone_2).await;
+		update_random_stats_launcher(cache_clone, intervals_clone_2, db_clone_rs).await;
 	});
 
 	// Spawn Activity Management Task

@@ -3,17 +3,30 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cynic::{GraphQlResponse, QueryBuilder};
+use sea_orm::{ActiveValue::Set, DatabaseConnection, EntityTrait};
 use shared::anilist::make_request::make_request_anilist;
 use shared::anilist::site_statistic_anime::{AnimeStat, AnimeStatVariables};
 use shared::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
 use shared::cache::CacheInterface;
 use shared::config::TaskIntervalConfig;
-use shared::random_stats_json::RandomStat;
+use shared::database::random_stats;
 use tokio::sync::RwLock;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, info, trace, warn};
 
-const RANDOM_STATS_PATH: &str = "db/random_stats.json";
+struct RandomStat {
+	anime_last_page: i32,
+	manga_last_page: i32,
+}
+
+impl Default for RandomStat {
+	fn default() -> Self {
+		Self {
+			anime_last_page: 1796,
+			manga_last_page: 1796,
+		}
+	}
+}
 
 /// Launches a background task to update the random statistics at regular intervals.
 ///
@@ -21,9 +34,10 @@ const RANDOM_STATS_PATH: &str = "db/random_stats.json";
 ///
 /// * `anilist_cache` - A cache for storing Anilist API responses.
 /// * `task_intervals` - Configuration for task intervals.
-#[tracing::instrument(skip(anilist_cache, task_intervals), level = "info")]
+#[tracing::instrument(skip(anilist_cache, task_intervals, db), level = "info")]
 pub async fn update_random_stats_launcher(
 	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
+	db: Arc<DatabaseConnection>,
 ) {
 	// Log the start of the random stats update task.
 	info!("Launching random stats update background task");
@@ -56,7 +70,7 @@ pub async fn update_random_stats_launcher(
 
 		// Update the random statistics and handle any errors.
 		trace!("Calling update_random_stats function with Anilist cache");
-		match update_random_stats(anilist_cache.clone()).await {
+		match update_random_stats(anilist_cache.clone(), db.clone()).await {
 			Ok(stats) => {
 				info!(
 					"Random stats update cycle #{} completed successfully",
@@ -129,78 +143,34 @@ pub async fn update_random_stats_launcher(
 /// # Returns
 ///
 /// Returns the updated `RandomStat` on success, or an error on failure.
-#[tracing::instrument(skip(anilist_cache), level = "info")]
-pub async fn update_random_stats(anilist_cache: Arc<RwLock<CacheInterface>>) -> Result<RandomStat> {
+#[tracing::instrument(skip(anilist_cache, db), level = "info")]
+async fn update_random_stats(
+	anilist_cache: Arc<RwLock<CacheInterface>>, db: Arc<DatabaseConnection>,
+) -> Result<RandomStat> {
 	trace!("Starting update_random_stats function");
-	debug!(
-		"Attempting to load random stats from file: {}",
-		RANDOM_STATS_PATH
-	);
+	debug!("Loading random stats from database");
 
-	// Try to load random stats from a JSON file.
-	let mut random_stats: RandomStat = match std::fs::read_to_string(RANDOM_STATS_PATH) {
-		Ok(stats) => {
-			trace!(
-				"Successfully read random stats file, content length: {} bytes",
-				stats.len()
-			);
-			debug!("Parsing random stats JSON content");
-
-			match serde_json::from_str::<RandomStat>(&stats) {
-				Ok(parsed_stats) => {
-					debug!(
-						"Successfully parsed random stats: anime_last_page={}, manga_last_page={}",
-						parsed_stats.anime_last_page, parsed_stats.manga_last_page
-					);
-					parsed_stats
-				},
-				Err(e) => {
-					warn!(
-						"Failed to parse random stats JSON from {}: {}",
-						RANDOM_STATS_PATH, e
-					);
-					debug!(
-						"First 100 characters of file content: {}",
-						stats.chars().take(100).collect::<String>()
-					);
-					return Err(anyhow::anyhow!(e).context(format!(
-						"Failed to parse random stats JSON from {}",
-						RANDOM_STATS_PATH
-					)));
-				},
-			}
-		},
-		Err(err) => {
-			// Log that we're using default values and why
-			if err.kind() == std::io::ErrorKind::NotFound {
-				info!(
-					"Random stats file not found ({}), using default values",
-					RANDOM_STATS_PATH
+	// Load random stats from the database (row with id=1).
+	let mut random_stats: RandomStat =
+		match random_stats::Entity::find_by_id(1).one(&*db).await? {
+			Some(model) => {
+				debug!(
+					"Loaded random stats from DB: anime_last_page={}, manga_last_page={}",
+					model.last_anime_page, model.last_manga_page
 				);
-			} else {
-				warn!(
-					"Could not read random stats file ({}), using default values: {}",
-					RANDOM_STATS_PATH, err
-				);
-				debug!("Error kind: {:?}", err.kind());
-			}
-
-			let default_stats = RandomStat::default();
-			debug!(
-				"Using default values: anime_last_page={}, manga_last_page={}",
-				default_stats.anime_last_page, default_stats.manga_last_page
-			);
-			default_stats
-		},
-	};
+				RandomStat {
+					anime_last_page: model.last_anime_page,
+					manga_last_page: model.last_manga_page,
+				}
+			},
+			None => {
+				info!("No random stats row found in database, using default values");
+				RandomStat::default()
+			},
+		};
 
 	// Update the random statistics.
 	debug!("Calling update_random function to fetch latest statistics");
-	trace!(
-		"Current stats before update: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page,
-		random_stats.manga_last_page
-	);
 
 	let start_time = chrono::Utc::now();
 	random_stats = update_random(random_stats, anilist_cache)
@@ -212,47 +182,32 @@ pub async fn update_random_stats(anilist_cache: Arc<RwLock<CacheInterface>>) -> 
 		"update_random completed in {} ms",
 		elapsed.num_milliseconds()
 	);
-	debug!(
-		"Updated stats: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page, random_stats.manga_last_page
-	);
 
-	// Write the updated random statistics to a JSON file.
-	trace!("Serializing random stats to JSON");
-	let random_stats_json = serde_json::to_string(&random_stats)
-		.with_context(|| "Failed to serialize random stats to JSON")?;
-	debug!("Serialized JSON size: {} bytes", random_stats_json.len());
+	// Upsert the updated random statistics into the database.
+	let active_model = random_stats::ActiveModel {
+		id: Set(1),
+		last_anime_page: Set(random_stats.anime_last_page),
+		last_manga_page: Set(random_stats.manga_last_page),
+	};
 
-	trace!("Writing random stats to file: {}", RANDOM_STATS_PATH);
-	if let Some(parent) = std::path::Path::new(RANDOM_STATS_PATH).parent() {
-		std::fs::create_dir_all(parent).context("Failed to create directory for random stats")?;
-	}
-	match std::fs::write(RANDOM_STATS_PATH, &random_stats_json) {
-		Ok(_) => debug!(
-			"Successfully wrote random stats to file: {}",
-			RANDOM_STATS_PATH
-		),
-		Err(e) => {
-			warn!(
-				"Failed to write random stats to file {}: {}",
-				RANDOM_STATS_PATH, e
-			);
-			debug!("Error kind: {:?}", e.kind());
-			return Err(anyhow::anyhow!(e).context(format!(
-				"Failed to write random stats to file {}",
-				RANDOM_STATS_PATH
-			)));
-		},
-	}
+	random_stats::Entity::insert(active_model)
+		.on_conflict(
+			sea_orm::sea_query::OnConflict::column(random_stats::Column::Id)
+				.update_columns([
+					random_stats::Column::LastAnimePage,
+					random_stats::Column::LastMangaPage,
+				])
+				.to_owned(),
+		)
+		.exec(&*db)
+		.await
+		.context("Failed to save random stats to database")?;
 
-	// Log successful update
 	info!(
 		"Successfully updated random stats: anime_last_page={}, manga_last_page={}",
 		random_stats.anime_last_page, random_stats.manga_last_page
 	);
 
-	// Return the updated random statistics.
-	trace!("Exiting update_random_stats function");
 	Ok(random_stats)
 }
 

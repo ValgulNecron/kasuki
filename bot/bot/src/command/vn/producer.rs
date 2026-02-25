@@ -1,12 +1,12 @@
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use crate::helper::vndbapi::producer::get_producer;
+use shared::vndb::producer::get_producer;
 use kasuki_macros::slash_command;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use tracing::trace;
 
 #[slash_command(
@@ -18,18 +18,10 @@ use tracing::trace;
 )]
 async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<'_>> {
 	self_.defer().await?;
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let vndb_cache = bot_data.vndb_cache.clone();
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let vndb_cache = cx.vndb_cache.clone();
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let map = get_option_map_string_subcommand(command_interaction);
+	let map = get_option_map_string_subcommand(&cx.command_interaction);
 
 	trace!("{:?}", map);
 
@@ -38,7 +30,7 @@ async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<
 		.cloned()
 		.unwrap_or(String::new());
 
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let producer = get_producer(producer.clone(), vndb_cache.clone()).await?;
 

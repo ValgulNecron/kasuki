@@ -12,14 +12,14 @@ use serenity::builder::{
 	CreateSectionAccessory, CreateSectionComponent, CreateSeparator, CreateTextDisplay,
 	CreateThumbnail, CreateUnfurledMediaItem,
 };
-use shared::localization::{get_language_identifier, LanguageIdentifier, USABLE_LOCALES};
+use shared::localization::{LanguageIdentifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::embed_content::ComponentVersion::V2;
 use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{
 	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
@@ -36,14 +36,10 @@ use crate::structure::run::anilist::user::{
 	],
 )]
 async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let _config = bot_data.config.clone();
-
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let value = map
 		.get(&FixedString::from_str_trunc("username"))
@@ -60,15 +56,8 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	let user2: User = get_user(&value2, anilist_cache).await?;
 
-	// Get the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Clone the user data
 	let username = user.name.clone();

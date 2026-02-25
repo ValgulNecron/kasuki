@@ -16,12 +16,14 @@ use tokio::sync::{broadcast, RwLock};
 use tracing::{error, info, warn};
 
 pub mod autocomplete;
+pub mod bot_data;
 mod command;
 mod components;
 mod constant;
 mod custom_serenity_impl;
 pub mod error_management;
 mod event_handler;
+mod handlers;
 mod helper;
 pub mod launch_task;
 mod logger;

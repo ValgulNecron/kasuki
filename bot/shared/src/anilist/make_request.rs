@@ -61,8 +61,15 @@ async fn check_cache<
 	trace!("Acquiring read lock on cache");
 	let guard = anilist_cache_clone.read().await;
 
+	// Key must include variables so different queries don't collide in the cache
+	let key = format!(
+		"{}{}",
+		operation.query,
+		serde_json::to_string(&operation.variables).unwrap_or_default()
+	);
+
 	trace!("Looking up query in cache");
-	let cache = guard.read(&operation.query).await?;
+	let cache = guard.read(&key).await?;
 
 	drop(guard);
 	trace!("Released cache read lock");
@@ -133,11 +140,17 @@ async fn do_request<
 		},
 	};
 
+	// Key must include variables so different queries don't collide in the cache
+	let key = format!(
+		"{}{}",
+		operation.query,
+		serde_json::to_string(&operation.variables).unwrap_or_default()
+	);
 	trace!("Acquiring write lock on cache");
 	anilist_cache
 		.write()
 		.await
-		.write(operation.query.clone(), response_text.clone())
+		.write(key, response_text.clone())
 		.await?;
 	trace!("Updated cache with new response");
 

@@ -1,3 +1,4 @@
+use crate::components::handler::ComponentHandler;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
@@ -10,6 +11,8 @@ use shared::database::activity_data::{Column, Model};
 use shared::database::prelude::ActivityData;
 use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
+use std::future::Future;
+use std::pin::Pin;
 use std::str::FromStr;
 use std::sync::Arc;
 use tracing::trace;
@@ -105,3 +108,27 @@ pub fn get_formatted_activity_list(list: Vec<Model>, actual_page: u64) -> Vec<St
 		.take(ACTIVITY_LIST_LIMIT as usize)
 		.collect()
 }
+
+pub struct ListAllActivityHandler;
+
+impl ComponentHandler for ListAllActivityHandler {
+	fn prefix(&self) -> &'static str {
+		"next_activity_"
+	}
+
+	fn handle<'a>(
+		&'a self, ctx: &'a SerenityContext, interaction: &'a ComponentInteraction,
+		db: Arc<DatabaseConnection>,
+	) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {
+		Box::pin(async move {
+			let page_number = interaction
+				.data
+				.custom_id
+				.split_at("next_activity_".len())
+				.1;
+			update(ctx, interaction, page_number, db).await
+		})
+	}
+}
+
+inventory::submit! { &ListAllActivityHandler as &dyn ComponentHandler }

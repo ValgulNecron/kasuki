@@ -11,7 +11,7 @@ use std::io::Cursor;
 
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::seiyuu_id::{
@@ -24,7 +24,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use uuid::Uuid;
 
@@ -35,14 +35,10 @@ use uuid::Uuid;
 	args = [(name = "staff_name", desc = "Name of the seiyuu you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
-	let _config = bot_data.config.clone();
-	let anilist_cache = bot_data.anilist_cache.clone();
-
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let value = map
 		.get(&FixedString::from_str_trunc("staff_name"))
@@ -96,13 +92,7 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 		Staff::from(data)
 	};
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	self_.defer().await?;
 

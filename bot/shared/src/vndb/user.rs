@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use crate::helper::vndbapi::common::do_request_cached;
+use crate::vndb::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 
@@ -18,7 +18,7 @@ pub struct VnUser {
 }
 
 use anyhow::Result;
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 
 pub async fn get_user(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<VnUser> {
 	let response = do_request_cached(path.clone(), vndb_cache).await?;

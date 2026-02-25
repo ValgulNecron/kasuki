@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -89,20 +89,20 @@ pub async fn get_vn(value: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> R
 	let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
 	let json = if start_with_v && is_number {
-		(r#"{
-    		"filters": ["id", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
-		}"#).to_string()
+		format!(
+			r#"{{"filters": ["id", "=", "{}"], "fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"}}"#,
+			value
+		)
 	} else {
-		(r#"{
-    		"filters": ["search", "=",""#.to_owned() + value + r#""],
-    		"fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"
-		}"#).to_string()
+		format!(
+			r#"{{"filters": ["search", "=", "{}"], "fields": "id,title,alttitle,titles.lang,titles.title,titles.latin,titles.official,titles.main, aliases,olang,devstatus,released,languages,platforms,image.url,image.sexual,image.violence,length_minutes,description,average,rating,votecount,tags.rating,tags.spoiler,tags.name,developers.name,staff.name,staff.role,va.character.name"}}"#,
+			value
+		)
 	};
 
 	let path = "/vn".to_string();
 
-	let response = crate::helper::vndbapi::common::do_request_cached_with_json(
+	let response = crate::vndb::common::do_request_cached_with_json(
 		path.clone(),
 		json.to_string(),
 		vndb_cache,

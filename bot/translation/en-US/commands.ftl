@@ -21,7 +21,6 @@ parent-steam-desc = Steam command from the GAME module.
 parent-server-name = server
 parent-server-desc = General purpose commands for server.
 
-parent-vn-name = visual_novel
 parent-vn-desc = Get info of a visual novel
 
 parent-random_anime-name = random_anime
@@ -230,22 +229,16 @@ cmd-profile-name = profile
 cmd-profile-desc = Show the profile of a user.
 
 # vn
-cmd-vn_game-name = game
 cmd-vn_game-desc = Get info of a visual novel.
 
-cmd-vn_character-name = character
 cmd-vn_character-desc = Get info of a VN character.
 
-cmd-vn_staff-name = staff
 cmd-vn_staff-desc = Get info of a VN staff member.
 
-cmd-vn_producer-name = producer
 cmd-vn_producer-desc = Get info of a VN producer.
 
-cmd-vn_user-name = user
 cmd-vn_user-desc = Get info of a VN user.
 
-cmd-vn_stats-name = stats
 cmd-vn_stats-desc = Get VN statistics.
 
 # ─── Arg translations ─────────────────────────────────────────────────────────

@@ -18,10 +18,9 @@ parent-music-desc = Befehl aus dem Musik-Modul
 parent-steam-name = steam
 parent-steam-desc = Steam-Befehl aus dem GAME-Modul.
 
-parent-server-name = Server
+parent-server-name = server
 parent-server-desc = Allgemeine Zweckbefehle für den Server.
 
-parent-vn-name = visueller_roman
 parent-vn-desc = Informationen zu einem visuellen Roman erhalten
 
 parent-random_anime-name = random_anime
@@ -30,7 +29,7 @@ parent-random_anime-desc = Befehl aus dem ANIME-Modul
 parent-random_hanime-name = random_hanime
 parent-random_hanime-desc = Befehl aus dem ANIME-Modul
 
-parent-levels-name = Ebenen
+parent-levels-name = ebenen
 parent-levels-desc = Befehl zum Abrufen der Benutzerebene und der Statistik.
 
 parent-minigame-name = minispiel
@@ -230,22 +229,16 @@ cmd-profile-name = profil
 cmd-profile-desc = Das Profil eines Benutzers anzeigen.
 
 # vn
-cmd-vn_game-name = spiel
 cmd-vn_game-desc = Informationen zu einem visuellen Roman erhalten.
 
-cmd-vn_character-name = charakter
 cmd-vn_character-desc = Informationen zu einem VN-Charakter erhalten.
 
-cmd-vn_staff-name = mitarbeiter
 cmd-vn_staff-desc = Informationen zu einem VN-Mitarbeiter erhalten.
 
-cmd-vn_producer-name = produzent
 cmd-vn_producer-desc = Informationen zu einem VN-Produzenten erhalten.
 
-cmd-vn_user-name = benutzer
 cmd-vn_user-desc = Informationen zu einem VN-Benutzer erhalten.
 
-cmd-vn_stats-name = statistiken
 cmd-vn_stats-desc = VN-Statistiken erhalten.
 
 # ─── Arg translations ─────────────────────────────────────────────────────────
@@ -353,9 +346,9 @@ arg-random_himage-image_type-name = bildtyp
 arg-random_himage-image_type-desc = Art des Bildes, das Sie möchten.
 
 # management/give_premium_sub
-arg-give_premium_sub-user-name = Benutzer
+arg-give_premium_sub-user-name = benutzer
 arg-give_premium_sub-user-desc = Der Benutzer, dem das Abonnement gegeben werden soll.
-arg-give_premium_sub-subscription-name = Abonnement
+arg-give_premium_sub-subscription-name = abonnement
 arg-give_premium_sub-subscription-desc = Das zu vergebende Abonnement.
 
 # management/kill_switch
@@ -365,7 +358,7 @@ arg-kill_switch-state-name = status
 arg-kill_switch-state-desc = Der Zustand den Sie anwenden möchten.
 
 # management/remove_test_sub
-arg-remove_test_sub-user-name = Benutzer
+arg-remove_test_sub-user-name = benutzer
 arg-remove_test_sub-user-desc = Der Benutzer, dem das Abonnement entzogen werden soll.
 
 # music/play

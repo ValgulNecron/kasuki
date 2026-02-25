@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::sync::Arc;
 
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 use tokio::sync::RwLock;
 
 pub async fn do_request_cached(

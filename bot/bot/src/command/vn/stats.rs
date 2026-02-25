@@ -1,10 +1,10 @@
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
-use crate::helper::vndbapi::stats::get_stats;
+use crate::command::context::CommandContext;
+use shared::vndb::stats::get_stats;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use tracing::{debug, info, trace};
 
 #[slash_command(
@@ -18,30 +18,16 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Deferring command response");
 	self_.defer().await?;
 
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let vndb_cache = bot_data.vndb_cache.clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let vndb_cache = cx.vndb_cache.clone();
 	debug!("Retrieved bot data and VNDB cache");
-
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => {
-			debug!("Command executed in guild: {}", id);
-			id.to_string()
-		},
-		None => {
-			debug!("Command executed in DM");
-			String::from("0")
-		},
-	};
-	let db_connection = bot_data.db_connection.clone();
 
 	debug!("Fetching VNDB stats from cache");
 	let stats = get_stats(vndb_cache).await?;
 	debug!("VNDB stats retrieved successfully");
 
-	debug!("Loading localization for guild: {}", guild_id);
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	debug!("Loading localization for guild: {}", cx.guild_id);
+	let lang_id = cx.lang_id().await;
 	debug!("Localization loaded successfully");
 
 	debug!("Creating fields for embed");

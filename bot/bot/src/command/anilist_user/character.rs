@@ -12,7 +12,7 @@
 //! - Fetching content to display as the command result via `get_contents`
 use std::sync::Arc;
 
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::character;
@@ -35,12 +35,10 @@ use tokio::sync::RwLock;
 	args = [(name = "name", desc = "Name of the character you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-	let anilist_cache = bot_data.anilist_cache.clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 	let value = map
 		.get(&FixedString::from_str_trunc("name"))
 		.cloned()
@@ -73,9 +71,7 @@ async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>
 			.character
 			.context(format!("No character found with name '{}'", value))?
 	};
-	let db_connection = bot_data.db_connection.clone();
-
-	let embed_contents = character::character_content(command_interaction, data, db_connection)
+	let embed_contents = character::character_content(cx.command_interaction, data, cx.db)
 		.await
 		.context("Failed to generate character content for embed")?;
 

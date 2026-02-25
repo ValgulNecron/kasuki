@@ -1,7 +1,7 @@
 //! This module defines the `MangaCommand` structure and its implementation for fetching manga
 //! information using the AniList GraphQL API. It forms part of a bot system based on the Serenity library
 //! for managing commands and interactions.
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media;
@@ -21,13 +21,9 @@ use small_fixed_array::FixedString;
 	args = [(name = "manga_name", desc = "Name of the manga you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn manga_command(self_: MangaCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let _config = bot_data.config.clone();
-	let map = get_option_map_string(&command_interaction);
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let value = map
 		.get(&FixedString::from_str_trunc("manga_name"))
@@ -64,10 +60,8 @@ async fn manga_command(self_: MangaCommand) -> Result<EmbedsContents<'_>> {
 
 		data.data.unwrap().media.unwrap()
 	};
-	let db_connection = bot_data.db_connection.clone();
-
 	let embed_content =
-		media::media_content(ctx, command_interaction, data, db_connection, bot_data).await?;
+		media::media_content(cx.ctx, cx.command_interaction, data, cx.db, cx.bot_data).await?;
 
 	Ok(embed_content)
 }

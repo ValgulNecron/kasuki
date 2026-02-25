@@ -21,7 +21,6 @@ parent-steam-desc = GAMEモジュールからのSteamコマンド。
 parent-server-name = サーバー
 parent-server-desc = サーバー用の汎用コマンド。
 
-parent-vn-name = ビジュアルノベル
 parent-vn-desc = ビジュアルノベルの情報を取得する
 
 parent-random_anime-name = random_anime
@@ -128,7 +127,7 @@ cmd-random_image-name = ランダム画像
 cmd-random_image-desc = ランダムなアニメ画像を取得する。
 
 # anime_nsfw
-cmd-random_himage-name = ランダムH画像
+cmd-random_himage-name = ランダムh画像
 cmd-random_himage-desc = ランダムなNSFWアニメ画像を取得する。
 
 # bot
@@ -230,22 +229,16 @@ cmd-profile-name = プロフィール
 cmd-profile-desc = ユーザーのプロフィールを表示します。
 
 # vn
-cmd-vn_game-name = ゲーム
 cmd-vn_game-desc = ビジュアルノベルの情報を取得する。
 
-cmd-vn_character-name = キャラクター
 cmd-vn_character-desc = VNキャラクターの情報を取得する。
 
-cmd-vn_staff-name = スタッフ
 cmd-vn_staff-desc = VNスタッフの情報を取得する。
 
-cmd-vn_producer-name = プロデューサー
 cmd-vn_producer-desc = VNプロデューサーの情報を取得する。
 
-cmd-vn_user-name = ユーザー
 cmd-vn_user-desc = VNユーザーの情報を取得する。
 
-cmd-vn_stats-name = 統計
 cmd-vn_stats-desc = VN統計を取得する。
 
 # ─── Arg translations ─────────────────────────────────────────────────────────

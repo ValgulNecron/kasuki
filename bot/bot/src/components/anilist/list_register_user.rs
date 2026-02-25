@@ -1,14 +1,19 @@
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
+use sea_orm::DatabaseConnection;
 use serenity::all::{
 	ComponentInteraction, Context as SerenityContext, CreateButton, EditMessage, UserId,
 };
 use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
+use std::future::Future;
+use std::pin::Pin;
 use std::str::FromStr;
+use std::sync::Arc;
 use unic_langid::LanguageIdentifier;
 
 use crate::command::anilist_server::list_register_user::get_the_list;
+use crate::components::handler::ComponentHandler;
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
 use crate::helper::create_default_embed::get_default_embed;
@@ -89,3 +94,25 @@ pub async fn update(
 
 	Ok(())
 }
+
+pub struct ListRegisterUserHandler;
+
+impl ComponentHandler for ListRegisterUserHandler {
+	fn prefix(&self) -> &'static str {
+		"user_"
+	}
+
+	fn handle<'a>(
+		&'a self, ctx: &'a SerenityContext, interaction: &'a ComponentInteraction,
+		_db: Arc<DatabaseConnection>,
+	) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>> {
+		Box::pin(async move {
+			let s = interaction.data.custom_id.as_str();
+			let user_id = s.split_at("_".len()).1;
+			let prev_id = user_id.split_at("_".len()).1;
+			update(ctx, interaction, user_id, prev_id).await
+		})
+	}
+}
+
+inventory::submit! { &ListRegisterUserHandler as &dyn ComponentHandler }

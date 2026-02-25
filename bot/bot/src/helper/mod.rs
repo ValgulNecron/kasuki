@@ -8,4 +8,3 @@ pub mod load_items;
 pub mod make_graphql_cached;
 pub mod progress_bar_generator;
 pub mod trimer;
-pub mod vndbapi;

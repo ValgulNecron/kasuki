@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 use tokio::sync::RwLock;
 use tracing::info;
 
@@ -18,26 +18,20 @@ pub async fn get_staff(
 	let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
 	let json = if start_with_v && is_number {
-		(r#"{
-    		"filters": ["id", "=",""#
-			.to_owned()
-			+ value + r#""],
-    		"fields": "id,aid,ismain,name,lang,gender,description"
-		}"#)
-		.to_string()
+		format!(
+			r#"{{"filters": ["id", "=", "{}"], "fields": "id,aid,ismain,name,lang,gender,description"}}"#,
+			value
+		)
 	} else {
-		(r#"{
-    		"filters": ["search", "=",""#
-			.to_owned()
-			+ value + r#""],
-    		"fields": "id,aid,ismain,name,lang,gender,description"
-		}"#)
-		.to_string()
+		format!(
+			r#"{{"filters": ["search", "=", "{}"], "fields": "id,aid,ismain,name,lang,gender,description"}}"#,
+			value
+		)
 	};
 
 	let path = "/staff".to_string();
 
-	let response = crate::helper::vndbapi::common::do_request_cached_with_json(
+	let response = crate::vndb::common::do_request_cached_with_json(
 		path.clone(),
 		json.to_string(),
 		vndb_cache,

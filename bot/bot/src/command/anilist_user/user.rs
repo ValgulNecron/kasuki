@@ -5,7 +5,7 @@
 //! # Fields
 //! - `ctx`: The Serenity context required to interact with the bot.
 //! - `command_interaction`: Details about the command interaction being processed.
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -34,29 +34,24 @@ use tokio::sync::RwLock;
 	args = [(name = "username", desc = "Username of the user you want to check.", arg_type = String, required = false, autocomplete = true)],
 )]
 async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let config = cx.bot_data.config.clone();
+	let anilist_cache = cx.anilist_cache.clone();
 
-	let config = bot_data.config.clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let user = map.get(&FixedString::from_str_trunc("username"));
 
 	// If the username is provided, fetch the user's data from AniList and send it as a response
 	if let Some(value) = user {
 		let data: User = get_user(value, anilist_cache.clone()).await?;
-		let db_connection = bot_data.db_connection.clone();
 
-		let embed_content = user::user_content(command_interaction, data, db_connection).await?;
+		let embed_content = user::user_content(cx.command_interaction, data, cx.db).await?;
 
 		return Ok(embed_content);
 	}
 
-	let user_id = &command_interaction.user.id.to_string();
+	let user_id = &cx.command_interaction.user.id.to_string();
 
 	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
 
@@ -69,9 +64,7 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 
 	// Fetch the user's data from AniList and send it as a response
 	let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
-	let db_connection = bot_data.db_connection.clone();
-
-	let embed_content = user::user_content(command_interaction, data, db_connection).await?;
+	let embed_content = user::user_content(cx.command_interaction, data, cx.db).await?;
 
 	Ok(embed_content)
 }

@@ -20,7 +20,7 @@ use kasuki_macros::slash_command;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 use shared::database::prelude::RegisteredUser;
@@ -41,14 +41,11 @@ use shared::database::registered_user::{ActiveModel, Column};
 	args = [(name = "username", desc = "Username you want to register.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
+	let connection = cx.db.clone();
 
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let connection = bot_data.db_connection.clone();
-
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	self_.defer().await?;
 
@@ -59,20 +56,13 @@ async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> 
 	// Fetch the user data from AniList
 	let user_data: User = get_user(value, anilist_cache).await?;
 
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Retrieve the user's Discord ID and username
-	let user_id = &command_interaction.user.id.to_string();
+	let user_id = &cx.command_interaction.user.id.to_string();
 
-	let username = &command_interaction.user.name;
+	let username = &cx.command_interaction.user.name;
 
 	RegisteredUser::insert(ActiveModel {
 		user_id: Set(user_id.to_string()),

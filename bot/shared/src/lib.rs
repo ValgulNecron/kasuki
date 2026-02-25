@@ -5,4 +5,4 @@ pub mod config;
 pub mod database;
 pub mod helper;
 pub mod localization;
-pub mod random_stats_json;
+pub mod vndb;

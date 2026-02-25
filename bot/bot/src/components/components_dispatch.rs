@@ -4,28 +4,23 @@ use serenity::all::{ComponentInteraction, Context as SerenityContext};
 use std::sync::Arc;
 use tracing::trace;
 
-use crate::components::anilist::{list_all_activity, list_register_user};
+use crate::components::handler::ComponentHandler;
 
 pub async fn components_dispatching(
 	ctx: SerenityContext, component_interaction: ComponentInteraction,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-	match component_interaction.data.custom_id.as_str() {
-		s if s.starts_with("user_") => {
-			let user_id = s.split_at("_".len()).1;
+	let custom_id = component_interaction.data.custom_id.as_str();
 
-			let prev_id = user_id.split_at("_".len()).1;
-
-			list_register_user::update(&ctx, &component_interaction, user_id, prev_id).await?
-		},
-		s if s.starts_with("next_activity_") => {
-			let page_number = s.split_at("next_activity_".len()).1;
-
-			list_all_activity::update(&ctx, &component_interaction, page_number, db_connection)
-				.await?
-		},
-		_ => trace!("does not exist."),
+	for handler in inventory::iter::<&'static dyn ComponentHandler> {
+		if handler.match_prefix() && custom_id.starts_with(handler.prefix()) {
+			handler
+				.handle(&ctx, &component_interaction, db_connection)
+				.await?;
+			return Ok(());
+		}
 	}
 
+	trace!("does not exist.");
 	Ok(())
 }

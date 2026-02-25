@@ -1,4 +1,5 @@
 pub mod command;
+pub mod context;
 pub mod guess_kind;
 pub mod parents;
 pub mod registry;

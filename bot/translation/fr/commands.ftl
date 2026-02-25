@@ -21,7 +21,6 @@ parent-steam-desc = Commande Steam du module GAME.
 parent-server-name = serveur
 parent-server-desc = Commandes à usage général pour le serveur.
 
-parent-vn-name = roman_visuel
 parent-vn-desc = Obtenir des informations sur un roman visuel
 
 parent-random_anime-name = random_anime
@@ -230,22 +229,16 @@ cmd-profile-name = profil
 cmd-profile-desc = Afficher le profil d'un utilisateur.
 
 # vn
-cmd-vn_game-name = jeu
 cmd-vn_game-desc = Obtenir des informations sur un roman visuel.
 
-cmd-vn_character-name = personnage
 cmd-vn_character-desc = Obtenir des informations sur un personnage VN.
 
-cmd-vn_staff-name = personnel
 cmd-vn_staff-desc = Obtenir des informations sur un membre du staff VN.
 
-cmd-vn_producer-name = producteur
 cmd-vn_producer-desc = Obtenir des informations sur un producteur VN.
 
-cmd-vn_user-name = utilisateur
 cmd-vn_user-desc = Obtenir des informations sur un utilisateur VN.
 
-cmd-vn_stats-name = statistiques
 cmd-vn_stats-desc = Obtenir les statistiques VN.
 
 # ─── Arg translations ─────────────────────────────────────────────────────────
@@ -423,7 +416,7 @@ arg-vn_producer-name-name = nom
 arg-vn_producer-name-desc = Nom du producteur.
 
 # vn/user
-arg-vn_user-username-name = nom_d'utilisateur
+arg-vn_user-username-name = nom_utilisateur
 arg-vn_user-username-desc = Nom d'utilisateur VN.
 
 # ─── Choice translations ──────────────────────────────────────────────────────

@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -21,7 +21,7 @@ use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use tokio::sync::RwLock;
 
@@ -32,14 +32,9 @@ use tokio::sync::RwLock;
 	args = [(name = "staff_name", desc = "Name of the staff you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-
-	let _config = bot_data.config.clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let staff = get_staff(&command_interaction, anilist_cache).await?;
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
+	let staff = get_staff(&cx.command_interaction, anilist_cache).await?;
 
 	let va = staff
 		.characters
@@ -83,14 +78,8 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 
 	let lang = staff.language_v2.unwrap_or_default();
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let mut fields = vec![
 		(

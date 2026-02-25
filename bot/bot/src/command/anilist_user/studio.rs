@@ -82,7 +82,7 @@ use anyhow::anyhow;
 
 use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::constant::DEFAULT_STRING;
-use crate::event_handler::BotData;
+use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::studio::{
@@ -93,7 +93,7 @@ use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -105,15 +105,10 @@ use std::collections::HashMap;
 	args = [(name = "studio", desc = "Name of the studio you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let anilist_cache = cx.anilist_cache.clone();
 
-	let _config = bot_data.config.clone();
-
-	let anilist_cache = bot_data.anilist_cache.clone();
-
-	let map = get_option_map_string(&command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let value = map
 		.get(&FixedString::from_str_trunc("studio"))
@@ -144,15 +139,8 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 		data.data.unwrap().studio.unwrap()
 	};
 
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for localization
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Initialize a string to store the content of the response
 	let mut content = String::new();

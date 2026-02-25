@@ -6,8 +6,6 @@ use serenity::all::Colour;
 
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
 
-pub const RANDOM_STATS_PATH: &str = "db/random_stats.json";
-
 /*
 App embed color.
  */

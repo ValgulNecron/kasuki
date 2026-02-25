@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tracing::trace;
 
-use crate::helper::vndbapi::common::do_request_cached;
+use crate::vndb::common::do_request_cached;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 
@@ -24,7 +24,7 @@ pub struct Stats {
 	pub vn: i32,
 }
 use anyhow::Result;
-use shared::cache::CacheInterface;
+use crate::cache::CacheInterface;
 
 pub async fn get_stats(vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<Stats> {
 	let path = "/stats".to_string();
