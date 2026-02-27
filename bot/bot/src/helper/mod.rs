@@ -3,7 +3,6 @@ pub mod create_default_embed;
 pub mod fuzzy_search;
 pub mod general_channel_info;
 pub mod get_option;
-pub mod image_saver;
 pub mod load_items;
 pub mod make_graphql_cached;
 pub mod progress_bar_generator;

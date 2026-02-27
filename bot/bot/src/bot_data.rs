@@ -16,7 +16,9 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicUsize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::error;
+use tracing::{error, info, warn};
+
+pub type RedisConnection = Arc<RwLock<Option<redis::aio::MultiplexedConnection>>>;
 
 pub struct BotData {
 	pub config: Arc<Config>,
@@ -39,11 +41,11 @@ pub struct BotData {
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 	pub user_color_update_count: Arc<AtomicUsize>,
 	pub server_image_running: Arc<AtomicBool>,
+	pub redis_connection: RedisConnection,
 }
 
 impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
-		// Query database for command usage in the current hour
 		let conn = self.db_connection.clone();
 		let now = chrono::Utc::now();
 		let hour_start = now
@@ -69,7 +71,34 @@ impl BotData {
 		}
 	}
 
-	// Insert command usage record to DB
+	pub async fn get_redis_connection(
+		&self,
+	) -> Option<tokio::sync::RwLockWriteGuard<'_, Option<redis::aio::MultiplexedConnection>>> {
+		let mut guard = self.redis_connection.write().await;
+		if guard.is_some() {
+			return Some(guard);
+		}
+
+		let redis_url = self.config.queue.redis_url();
+		match redis::Client::open(redis_url.as_str()) {
+			Ok(client) => match client.get_multiplexed_async_connection().await {
+				Ok(conn) => {
+					info!("Reconnected to Redis at {}:{}", self.config.queue.host, self.config.queue.port);
+					*guard = Some(conn);
+					Some(guard)
+				},
+				Err(e) => {
+					warn!("Redis reconnect failed: {}", e);
+					None
+				},
+			},
+			Err(e) => {
+				warn!("Redis client creation failed: {}", e);
+				None
+			},
+		}
+	}
+
 	pub async fn increment_command_use_per_command(
 		&self, command_name: String, user_id: String, _user_name: String,
 	) {

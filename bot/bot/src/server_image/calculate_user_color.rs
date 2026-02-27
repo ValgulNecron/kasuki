@@ -1,323 +1,21 @@
-use anyhow::{Context, Result};
-use std::collections::HashMap;
-use std::io::Cursor;
 use std::sync::Arc;
-use std::time::Duration;
 
-use crate::event_handler::{add_user_data_to_db, BotData};
-use base64::engine::general_purpose;
-use base64::Engine;
-use image::codecs::png::PngEncoder;
-use image::ImageReader;
-use image::{DynamicImage, ExtendedColorType, ImageEncoder};
-use sea_orm::sea_query::OnConflict;
-use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
-use sea_orm::QueryFilter;
-use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
-use shared::database::prelude::UserColor;
-use shared::database::user_color::{ActiveModel, Column, Model};
-use tokio::sync::{RwLock, Semaphore};
-use tokio::time::sleep;
-use tracing::{debug, error, info, trace};
+use shared::queue::publisher::publish_task;
+use shared::queue::tasks::ImageTask;
+use tokio::sync::RwLock;
+use tracing::{debug, error, info, warn};
 
-/// Maximum number of concurrent database operations for color management.
-/// This prevents overwhelming the database connection pool.
-const MAX_CONCURRENT_DB_OPS: usize = 10;
+use crate::event_handler::BotData;
 
 pub fn change_to_x128_url(url: String) -> String {
 	debug!("Changing URL size to 128x128: {}", url);
-
-	// Strip existing query params and rebuild with desired size
 	let base_url = url.split('?').next().unwrap_or(&url);
-
 	format!("{}?size=128&quality=lossless", base_url)
 }
 
-pub async fn calculate_users_color(
-	members: Vec<Member>, user_blacklist_server_image: Arc<RwLock<Vec<String>>>,
-	bot_data: Arc<BotData>,
-) -> Result<()> {
-	let guard = user_blacklist_server_image.read().await;
-
-	let connection = bot_data.db_connection.clone();
-
-	// Batch fetch all existing user colors in one query
-	let all_colors = UserColor::find().all(&*connection).await?;
-	let color_map: HashMap<String, Model> = all_colors
-		.into_iter()
-		.map(|c| (c.user_id.clone(), c))
-		.collect();
-
-	// Use a semaphore to limit concurrent database operations
-	let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_DB_OPS));
-	let mut handles = Vec::new();
-
-	for member in members {
-		trace!("Calculating user color for {}", member.user.id);
-
-		if guard.contains(&member.user.id.to_string()) {
-			debug!(
-				"Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
-				member.user.id
-			);
-
-			continue;
-		}
-
-		let pfp_url = change_to_x128_url(member.user.face());
-
-		let id = member.user.id.to_string();
-
-		let pfp_url_old = color_map
-			.get(&id)
-			.map(|c| c.profile_picture_url.clone())
-			.unwrap_or_default();
-
-		if pfp_url != pfp_url_old {
-			let semaphore = semaphore.clone();
-			let connection = connection.clone();
-			let user = member.user.clone();
-
-			let handle = tokio::spawn(async move {
-				// Acquire semaphore permit to limit concurrency
-				let _permit = semaphore.acquire().await;
-
-				let (average_color, image): (String, String) =
-					match calculate_user_color(user.clone()).await {
-						Ok(result) => result,
-						Err(e) => {
-							error!("Failed to calculate color for user {}: {:?}", user.id, e);
-							return;
-						},
-					};
-
-				if let Err(e) = add_user_data_to_db(user.clone(), connection.clone()).await {
-					error!("Failed to add user data for {}: {:?}", user.id, e);
-				}
-
-				if let Err(e) = UserColor::insert(ActiveModel {
-					user_id: Set(id.clone()),
-					profile_picture_url: Set(pfp_url.clone()),
-					color: Set(average_color.clone()),
-					images: Set(image.clone()),
-					..Default::default()
-				})
-				.on_conflict(
-					OnConflict::column(Column::UserId)
-						.update_column(Column::Color)
-						.update_column(Column::ProfilePictureUrl)
-						.update_column(Column::Images)
-						.to_owned(),
-				)
-				.exec(&*connection)
-				.await
-				{
-					error!("Failed to insert user color for {}: {:?}", user.id, e);
-				}
-
-				trace!("Done calculating user color for {}", user.id);
-			});
-
-			handles.push(handle);
-
-			// Add a small delay between spawning tasks to avoid bursts
-			if handles.len() % 50 == 0 {
-				sleep(Duration::from_millis(10)).await;
-			}
-		}
-	}
-
-	// Wait for all handles to complete
-	for handle in handles {
-		let _ = handle.await;
-	}
-
-	Ok(())
-}
-
-pub async fn return_average_user_color(
-	members: Vec<Member>, connection: Arc<DatabaseConnection>, blacklist: Vec<String>,
-) -> Result<Vec<(String, String, String)>> {
-	let members: Vec<Member> = members
-		.into_iter()
-		.filter(|member| !blacklist.contains(&member.user.id.to_string()))
-		.collect();
-
-	// Batch fetch all existing user colors in one query
-	let all_colors = UserColor::find().all(&*connection).await?;
-	let color_map: HashMap<String, Model> = all_colors
-		.into_iter()
-		.map(|c| (c.user_id.clone(), c))
-		.collect();
-
-	let mut average_colors = Vec::with_capacity(members.len());
-
-	for member in members {
-		let pfp_url = change_to_x128_url(member.user.face());
-
-		let id = member.user.id.to_string();
-
-		let existing = color_map.get(&id);
-
-		match existing {
-			Some(user_color) if pfp_url == user_color.profile_picture_url => {
-				// Profile picture unchanged, use cached color
-				average_colors.push((
-					user_color.color.clone(),
-					user_color.profile_picture_url.clone(),
-					user_color.images.clone(),
-				));
-			},
-			_ => {
-				// No existing record or profile picture changed, recalculate
-				let (average_color, image) = calculate_user_color(member.user.clone()).await?;
-
-				average_colors.push((average_color.clone(), pfp_url.clone(), image.clone()));
-
-				UserColor::insert(ActiveModel {
-					user_id: Set(id.clone()),
-					profile_picture_url: Set(pfp_url.clone()),
-					color: Set(average_color.clone()),
-					images: Set(image.clone()),
-					..Default::default()
-				})
-				.on_conflict(
-					OnConflict::column(Column::UserId)
-						.update_column(Column::Color)
-						.update_column(Column::ProfilePictureUrl)
-						.update_column(Column::Images)
-						.update_column(Column::CalculatedAt)
-						.to_owned(),
-				)
-				.exec(&*connection)
-				.await?;
-			},
-		}
-	}
-
-	Ok(average_colors)
-}
-
-async fn calculate_user_color(user: User) -> Result<(String, String)> {
-	let pfp_url = change_to_x128_url(user.face());
-
-	let img = get_image_from_url(pfp_url).await?;
-
-	// Move CPU-heavy work (pixel iteration, PNG encoding, base64) to a blocking thread
-	tokio::task::spawn_blocking(move || {
-		// convert to rgba8 so every image use the same color type.
-		let img = img.to_rgba8();
-
-		let (r_total, g_total, b_total) = img
-			.enumerate_pixels()
-			.map(|(_, _, pixel)| (pixel[0] as u32, pixel[1] as u32, pixel[2] as u32))
-			.fold((0u32, 0u32, 0u32), |(r1, g1, b1), (r2, g2, b2)| {
-				(r1 + r2, g1 + g2, b1 + b2)
-			});
-
-		debug!("R: {}, G: {}, B: {}", r_total, g_total, b_total);
-
-		// Calculate the average color by dividing the sum by the total number of pixels
-		let num_pixels = img.width() * img.height();
-
-		let r_avg = r_total / num_pixels;
-
-		let g_avg = g_total / num_pixels;
-
-		let b_avg = b_total / num_pixels;
-
-		let average_color = format!("#{:02x}{:02x}{:02x}", r_avg, g_avg, b_avg);
-
-		debug!("{}", average_color);
-
-		let mut image_data: Vec<u8> = Vec::new();
-
-		PngEncoder::new(&mut image_data).write_image(
-			img.as_raw(),
-			img.width(),
-			img.height(),
-			ExtendedColorType::Rgba8,
-		)?;
-
-		let base64_image = general_purpose::STANDARD.encode(&image_data);
-
-		let image = format!("data:image/png;base64,{}", base64_image);
-
-		Ok((average_color, image))
-	})
-	.await
-	.context("spawn_blocking panicked")?
-}
-
-pub async fn get_image_from_url(url: String) -> Result<DynamicImage> {
-	// Fetch the image data
-	let resp = reqwest::get(&url)
-		.await
-		.context(format!("Failed to fetch image from URL: {}", url))?
-		.bytes()
-		.await
-		.context(format!("Failed to get image bytes from URL: {}", url))?;
-
-	// Decode the image data on a blocking thread
-	let url_clone = url.clone();
-	tokio::task::spawn_blocking(move || {
-		let img = ImageReader::new(Cursor::new(resp))
-			.with_guessed_format()
-			.context(format!(
-				"Failed to guess image format from URL: {}",
-				url_clone
-			))?
-			.decode()
-			.context(format!("Failed to decode image from URL: {}", url_clone))?;
-
-		Ok(img)
-	})
-	.await
-	.context(format!("spawn_blocking panicked for URL: {}", url))?
-}
-
-pub async fn color_management(
-	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
-) {
-	info!("Starting color management for {} guilds", guilds.len());
-
-	// Process guilds one at a time to avoid accumulating all members in memory
-	for (idx, guild) in guilds.iter().enumerate() {
-		let guild_id = guild.to_string();
-		debug!(guild_id);
-
-		let members = get_member(ctx_clone.clone(), *guild).await;
-		debug!("{}: {}", guild_id, members.len());
-
-		match calculate_users_color(
-			members,
-			user_blacklist_server_image.clone(),
-			bot_data.clone(),
-		)
-		.await
-		{
-			Ok(_) => {
-				trace!("Completed color calculation for guild {}", guild_id);
-			},
-			Err(e) => error!(guild_id, "{:?}", e),
-		};
-
-		// Add a small delay between guilds to prevent overwhelming the database
-		// This gives the connection pool time to recover
-		if idx < guilds.len() - 1 {
-			sleep(Duration::from_millis(100)).await;
-		}
-	}
-
-	info!("Completed color management for all guilds");
-}
-
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
-	// Try cache first
 	if let Some(guild_cache) = guild.to_guild_cached(&ctx_clone.cache) {
 		debug!("Using cached members for guild {}", guild);
 		let members = guild_cache.members.clone();
@@ -325,7 +23,6 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 	}
 
 	debug!("Cache miss for guild {}, fetching from API", guild);
-	// Fall back to API pagination if not in cache
 	let mut i = 0;
 	let mut members_temp_out: Vec<Member> = Vec::new();
 
@@ -374,9 +71,8 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 	members_temp_out
 }
 
-pub async fn get_specific_user_color(
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User,
-	connection: Arc<DatabaseConnection>,
+pub async fn enqueue_user_color(
+	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, bot_data: Arc<BotData>,
 ) {
 	if user_blacklist_server_image
 		.read()
@@ -387,63 +83,53 @@ pub async fn get_specific_user_color(
 			"Skipping user {} due to USER_BLACKLIST_SERVER_IMAGE",
 			user.id
 		);
-
 		return;
 	}
 
 	let pfp_url = change_to_x128_url(user.face());
 
-	let id = user.id.to_string();
+	let task = ImageTask::CalculateUserColor {
+		user_id: user.id.to_string(),
+		profile_picture_url: pfp_url,
+	};
 
-	let user_color = match UserColor::find()
-		.filter(Column::UserId.eq(id.clone()))
-		.one(&*connection)
-		.await
-	{
-		Ok(color) => color.unwrap_or(Model {
-			user_id: id.clone(),
-			profile_picture_url: String::from(""),
-			color: String::from(""),
-			images: String::from(""),
-			calculated_at: Default::default(),
-		}),
-		Err(e) => {
-			error!("Failed to query user color for {}: {:?}", id, e);
+	let mut guard = match bot_data.get_redis_connection().await {
+		Some(g) => g,
+		None => {
+			warn!(
+				"Redis unavailable, cannot enqueue color calculation for user {}",
+				user.id
+			);
 			return;
 		},
 	};
+	if let Err(e) = publish_task(guard.as_mut().unwrap(), &task).await {
+		error!("Failed to enqueue user color task for {}: {:#}", user.id, e);
+	}
+}
 
-	let pfp_url_old = user_color.profile_picture_url.clone();
+pub async fn color_management(
+	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
+	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
+) {
+	info!("Starting color management for {} guilds", guilds.len());
 
-	if pfp_url_old == pfp_url {
-		return;
+	for guild in guilds.iter() {
+		let guild_id = guild.to_string();
+		debug!(guild_id);
+
+		let members = get_member(ctx_clone.clone(), *guild).await;
+		debug!("{}: {}", guild_id, members.len());
+
+		for member in members {
+			enqueue_user_color(
+				user_blacklist_server_image.clone(),
+				member.user,
+				bot_data.clone(),
+			)
+			.await;
+		}
 	}
 
-	let (average_color, image): (String, String) = match calculate_user_color(user.clone()).await {
-		Ok(result) => result,
-		Err(e) => {
-			error!("Failed to calculate user color for {}: {:?}", id, e);
-			return;
-		},
-	};
-
-	if let Err(e) = UserColor::insert(ActiveModel {
-		user_id: Set(id.clone()),
-		profile_picture_url: Set(pfp_url.clone()),
-		color: Set(average_color.clone()),
-		images: Set(image.clone()),
-		..Default::default()
-	})
-	.on_conflict(
-		OnConflict::column(Column::UserId)
-			.update_column(Column::Color)
-			.update_column(Column::ProfilePictureUrl)
-			.update_column(Column::Images)
-			.to_owned(),
-	)
-	.exec(&*connection)
-	.await
-	{
-		error!("Failed to insert user color for {}: {:?}", id, e);
-	}
+	info!("Completed color management for all guilds");
 }

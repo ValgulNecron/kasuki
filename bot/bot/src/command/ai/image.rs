@@ -9,7 +9,7 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
-use crate::helper::image_saver::general_image_saver::image_saver;
+use shared::image_saver::general_image_saver::image_saver;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use image::EncodableLayout;

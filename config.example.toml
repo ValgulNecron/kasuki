@@ -74,5 +74,6 @@ bot_info_update = 1800
 
 [queue]
 queue_type = "redis"
-host = ""
-port = ""
+host = "redis"
+port = 6379
+# password = ""

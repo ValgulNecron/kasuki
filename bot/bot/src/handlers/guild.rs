@@ -1,6 +1,6 @@
 use crate::event_handler::{BotData, Handler};
 use crate::handlers::user_db::add_user_data_to_db;
-use crate::server_image::calculate_user_color::{color_management, get_specific_user_color};
+use crate::server_image::calculate_user_color::{color_management, enqueue_user_color};
 use crate::server_image::generate_server_image::server_image_management;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
@@ -77,10 +77,10 @@ impl Handler {
 			"New member joined guild"
 		);
 
-		get_specific_user_color(
+		enqueue_user_color(
 			user_blacklist_server_image,
 			member.user.clone(),
-			bot_data.db_connection.clone(),
+			bot_data.clone(),
 		)
 		.await;
 

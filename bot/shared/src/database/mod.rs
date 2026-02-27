@@ -14,6 +14,7 @@ pub mod kill_switch;
 pub mod leader_board;
 pub mod message;
 pub mod module_activation;
+pub mod oauth_token;
 pub mod ping_history;
 pub mod random_stats;
 pub mod registered_user;

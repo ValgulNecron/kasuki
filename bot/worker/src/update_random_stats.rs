@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,15 +12,31 @@ use shared::cache::CacheInterface;
 use shared::config::TaskIntervalConfig;
 use shared::database::random_stats;
 use tokio::sync::RwLock;
-use tokio::time::{interval, sleep};
-use tracing::{debug, error, info, trace, warn};
+use tokio::sync::broadcast;
+use tokio::time::sleep;
+use tracing::{debug, error, info, warn};
 
-struct RandomStat {
+#[derive(Clone, Copy)]
+enum StatCategory {
+	Anime,
+	Manga,
+}
+
+impl fmt::Display for StatCategory {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::Anime => write!(f, "anime"),
+			Self::Manga => write!(f, "manga"),
+		}
+	}
+}
+
+struct PageState {
 	anime_last_page: i32,
 	manga_last_page: i32,
 }
 
-impl Default for RandomStat {
+impl Default for PageState {
 	fn default() -> Self {
 		Self {
 			anime_last_page: 1796,
@@ -28,166 +45,89 @@ impl Default for RandomStat {
 	}
 }
 
-/// Launches a background task to update the random statistics at regular intervals.
-///
-/// # Arguments
-///
-/// * `anilist_cache` - A cache for storing Anilist API responses.
-/// * `task_intervals` - Configuration for task intervals.
-#[tracing::instrument(skip(anilist_cache, task_intervals, db), level = "info")]
 pub async fn update_random_stats_launcher(
 	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
-	db: Arc<DatabaseConnection>,
+	db: Arc<DatabaseConnection>, mut shutdown_rx: broadcast::Receiver<()>,
 ) {
-	// Log the start of the random stats update task.
-	info!("Launching random stats update background task");
-	debug!(
-		"Random stats update interval configured for {} seconds",
-		task_intervals.random_stats_update
-	);
+	info!("Launching random stats update task");
+	let mut interval =
+		tokio::time::interval(Duration::from_secs(task_intervals.random_stats_update));
 
-	// Create an interval that ticks every `random_stats_update` seconds.
-	let mut interval = interval(Duration::from_secs(task_intervals.random_stats_update));
-
-	// Maximum number of consecutive failures before increasing wait time
 	const MAX_CONSECUTIVE_FAILURES: u32 = 3;
 	let mut consecutive_failures = 0;
 	let base_retry_delay = Duration::from_secs(5);
-	let mut update_count = 0;
+	let mut cycle = 0u64;
 
-	// Run the update task indefinitely.
 	loop {
-		// Wait for the next tick of the interval.
-		trace!("Waiting for next random stats update interval tick");
-		interval.tick().await;
-		update_count += 1;
+		tokio::select! {
+			_ = shutdown_rx.recv() => {
+				info!("Random stats task received shutdown signal");
+				break;
+			}
+			_ = interval.tick() => {
+				cycle += 1;
+				info!("Starting random stats update cycle #{}", cycle);
 
-		let current_time = chrono::Utc::now();
-		info!(
-			"Starting random stats update cycle #{} at {}",
-			update_count, current_time
-		);
+				match update_random_stats(anilist_cache.clone(), db.clone()).await {
+					Ok(state) => {
+						info!(
+							"Cycle #{} done: anime_page={}, manga_page={}",
+							cycle, state.anime_last_page, state.manga_last_page
+						);
+						if consecutive_failures > 0 {
+							info!("Recovered after {} consecutive failures", consecutive_failures);
+							consecutive_failures = 0;
+						}
+					},
+					Err(err) => {
+						consecutive_failures += 1;
+						error!("Cycle #{} failed: {:#}", cycle, err);
 
-		// Update the random statistics and handle any errors.
-		trace!("Calling update_random_stats function with Anilist cache");
-		match update_random_stats(anilist_cache.clone(), db.clone()).await {
-			Ok(stats) => {
-				info!(
-					"Random stats update cycle #{} completed successfully",
-					update_count
-				);
-				debug!(
-					"Updated random stats: anime_last_page={}, manga_last_page={}",
-					stats.anime_last_page, stats.manga_last_page
-				);
-
-				// Reset failure counter on success
-				if consecutive_failures > 0 {
-					info!(
-						"Random stats update recovered after {} consecutive failures",
-						consecutive_failures
-					);
-					consecutive_failures = 0;
+						if consecutive_failures > MAX_CONSECUTIVE_FAILURES {
+							let delay = base_retry_delay
+								.mul_f32(1.5_f32.powi(consecutive_failures as i32 - 3));
+							warn!("Backing off for {:?} after {} failures", delay, consecutive_failures);
+							sleep(delay).await;
+						}
+					},
 				}
-			},
-			Err(err) => {
-				consecutive_failures += 1;
-				error!(
-					"Random stats update cycle #{} failed: {:#}",
-					update_count, err
-				);
-				warn!(
-					"This is consecutive failure #{} for random stats updates",
-					consecutive_failures
-				);
-
-				// Log more details about the error for debugging
-				debug!("Error type: {}", std::any::type_name_of_val(&err));
-				debug!("Error context: {}", err.to_string());
-
-				// Implement exponential backoff if we have consecutive failures
-				if consecutive_failures > MAX_CONSECUTIVE_FAILURES {
-					let delay =
-						base_retry_delay.mul_f32(1.5_f32.powi(consecutive_failures as i32 - 3));
-					warn!(
-						"Multiple consecutive random stats update failures detected. Implementing backoff strategy."
-					);
-					error!("Waiting for {:?} before next attempt", delay);
-					sleep(delay).await;
-				}
-			},
+			}
 		}
-
-		debug!(
-			"Next random stats update scheduled in {} seconds",
-			task_intervals.random_stats_update
-		);
-		trace!(
-			"Update cycle #{} completed at {}",
-			update_count,
-			chrono::Utc::now()
-		);
-		trace!(
-			"Elapsed time for this cycle: {} ms",
-			(chrono::Utc::now() - current_time).num_milliseconds()
-		);
 	}
 }
 
-/// Updates the random statistics by fetching the latest statistics from the Anilist API and saving them to a JSON file.
-///
-/// # Arguments
-///
-/// * `anilist_cache` - A cache for storing Anilist API responses.
-///
-/// # Returns
-///
-/// Returns the updated `RandomStat` on success, or an error on failure.
-#[tracing::instrument(skip(anilist_cache, db), level = "info")]
 async fn update_random_stats(
 	anilist_cache: Arc<RwLock<CacheInterface>>, db: Arc<DatabaseConnection>,
-) -> Result<RandomStat> {
-	trace!("Starting update_random_stats function");
-	debug!("Loading random stats from database");
+) -> Result<PageState> {
+	let mut state = match random_stats::Entity::find_by_id(1).one(&*db).await? {
+		Some(model) => {
+			debug!(
+				"Loaded page state: anime={}, manga={}",
+				model.last_anime_page, model.last_manga_page
+			);
+			PageState {
+				anime_last_page: model.last_anime_page,
+				manga_last_page: model.last_manga_page,
+			}
+		},
+		None => {
+			info!("No saved page state, using defaults");
+			PageState::default()
+		},
+	};
 
-	// Load random stats from the database (row with id=1).
-	let mut random_stats: RandomStat =
-		match random_stats::Entity::find_by_id(1).one(&*db).await? {
-			Some(model) => {
-				debug!(
-					"Loaded random stats from DB: anime_last_page={}, manga_last_page={}",
-					model.last_anime_page, model.last_manga_page
-				);
-				RandomStat {
-					anime_last_page: model.last_anime_page,
-					manga_last_page: model.last_manga_page,
-				}
-			},
-			None => {
-				info!("No random stats row found in database, using default values");
-				RandomStat::default()
-			},
-		};
+	// Update anime pages, then manga pages
+	let anime_pages = update_category(StatCategory::Anime, &mut state, anilist_cache.clone()).await;
+	info!("Anime stats: processed {} pages", anime_pages);
 
-	// Update the random statistics.
-	debug!("Calling update_random function to fetch latest statistics");
+	let manga_pages = update_category(StatCategory::Manga, &mut state, anilist_cache).await;
+	info!("Manga stats: processed {} pages", manga_pages);
 
-	let start_time = chrono::Utc::now();
-	random_stats = update_random(random_stats, anilist_cache)
-		.await
-		.with_context(|| "Failed to update random statistics from Anilist API")?;
-
-	let elapsed = chrono::Utc::now() - start_time;
-	debug!(
-		"update_random completed in {} ms",
-		elapsed.num_milliseconds()
-	);
-
-	// Upsert the updated random statistics into the database.
+	// Persist updated page state
 	let active_model = random_stats::ActiveModel {
 		id: Set(1),
-		last_anime_page: Set(random_stats.anime_last_page),
-		last_manga_page: Set(random_stats.manga_last_page),
+		last_anime_page: Set(state.anime_last_page),
+		last_manga_page: Set(state.manga_last_page),
 	};
 
 	random_stats::Entity::insert(active_model)
@@ -201,472 +141,109 @@ async fn update_random_stats(
 		)
 		.exec(&*db)
 		.await
-		.context("Failed to save random stats to database")?;
+		.context("Failed to save page state to database")?;
 
-	info!(
-		"Successfully updated random stats: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page, random_stats.manga_last_page
-	);
-
-	Ok(random_stats)
+	Ok(state)
 }
 
-/// Updates the random statistics by repeatedly calling `update_page` until there are no more pages to update.
-///
-/// # Arguments
-///
-/// * `random_stats` - The current random statistics.
-/// * `anilist_cache` - A cache for storing Anilist API responses.
-///
-/// # Returns
-///
-/// A `Result` containing the updated random statistics or an error.
-#[tracing::instrument(skip(random_stats, anilist_cache), level = "debug")]
-async fn update_random(
-	mut random_stats: RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>,
-) -> Result<RandomStat> {
-	trace!("Starting update_random function");
-	debug!(
-		"Initial stats: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page, random_stats.manga_last_page
-	);
-
-	// Maximum number of consecutive failures before giving up on a category
+/// Paginate through one category (anime or manga) until no more pages or too many failures.
+async fn update_category(
+	category: StatCategory, state: &mut PageState,
+	anilist_cache: Arc<RwLock<CacheInterface>>,
+) -> u32 {
 	const MAX_FAILURES: u32 = 5;
-	let mut anime_failures = 0;
-	let mut manga_failures = 0;
+	let mut failures = 0;
+	let mut pages_processed = 0;
 
-	// Track overall performance
-	let start_time = chrono::Utc::now();
-
-	// Update anime statistics
 	info!(
-		"Starting anime statistics update from page {}",
-		random_stats.anime_last_page
+		"Starting {} update from page {}",
+		category,
+		get_page(state, category)
 	);
-	trace!("Anime update max failures threshold: {}", MAX_FAILURES);
-	let mut has_more_pages = true;
-	let mut pages_updated = 0;
-	let anime_start_time = chrono::Utc::now();
 
-	while has_more_pages && anime_failures < MAX_FAILURES {
-		trace!(
-			"Calling update_page for anime (page {})",
-			random_stats.anime_last_page
-		);
-		let page_start_time = chrono::Utc::now();
-		has_more_pages = update_page(&mut random_stats, anilist_cache.clone(), true, false).await;
-		let page_elapsed = chrono::Utc::now() - page_start_time;
-		trace!(
-			"update_page for anime completed in {} ms",
-			page_elapsed.num_milliseconds()
-		);
+	loop {
+		if failures >= MAX_FAILURES {
+			warn!("{} update stopped after {} failures", category, MAX_FAILURES);
+			break;
+		}
 
-		if has_more_pages {
-			pages_updated += 1;
-			debug!(
-				"Successfully updated anime page {}, moving to next page",
-				random_stats.anime_last_page - 1
-			);
+		let page = get_page(state, category);
+		match fetch_page(category, page, anilist_cache.clone()).await {
+			Ok(has_next) => {
+				failures = 0;
+				pages_processed += 1;
 
-			if anime_failures > 0 {
-				debug!(
-					"Reset anime failure counter from {} to 0 after successful update",
-					anime_failures
-				);
-				anime_failures = 0; // Reset failure counter on success
-			}
+				if has_next {
+					increment_page(state, category);
 
-			if pages_updated % 10 == 0 {
-				info!("Anime update progress: {} pages processed", pages_updated);
-			}
-		} else {
-			// If we didn't get more pages, it could be an error or end of data
-			// The update_page function will log specific errors
-			anime_failures += 1;
-			warn!(
-				"Anime update attempt failed for page {}, failure {}/{}",
-				random_stats.anime_last_page, anime_failures, MAX_FAILURES
-			);
-
-			if anime_failures < MAX_FAILURES {
-				// Wait a bit longer before retry on failure
-				let retry_delay = 2 * anime_failures; // Increase delay with each failure
-				debug!("Retrying anime update after {}s delay", retry_delay);
-				sleep(Duration::from_secs(retry_delay.into())).await;
-				has_more_pages = true; // Try again
-				continue;
-			} else {
+					if pages_processed % 10 == 0 {
+						debug!("{} progress: {} pages processed", category, pages_processed);
+					}
+				} else {
+					debug!("{} reached last page at {}", category, page);
+					break;
+				}
+			},
+			Err(e) => {
+				failures += 1;
 				warn!(
-					"Reached maximum anime update failures ({}), moving to manga updates",
-					MAX_FAILURES
+					"{} page {} failed ({}/{}): {:#}",
+					category, page, failures, MAX_FAILURES, e
 				);
-			}
-		}
 
-		// Sleep to avoid rate limiting
-		trace!("Sleeping 1s to avoid API rate limiting");
-		sleep(Duration::from_secs(1)).await;
-	}
-
-	if anime_failures >= MAX_FAILURES {
-		error!(
-			"Exceeded maximum failures ({}) for anime statistics update",
-			MAX_FAILURES
-		);
-		warn!("Some anime statistics may not be up to date");
-	}
-
-	let anime_elapsed = chrono::Utc::now() - anime_start_time;
-	info!(
-		"Completed anime statistics update, processed {} pages in {} seconds",
-		pages_updated,
-		anime_elapsed.num_seconds()
-	);
-	debug!(
-		"Average time per anime page: {} ms",
-		if pages_updated > 0 {
-			anime_elapsed.num_milliseconds() / pages_updated as i64
-		} else {
-			0
-		}
-	);
-
-	// Update manga statistics
-	info!(
-		"Starting manga statistics update from page {}",
-		random_stats.manga_last_page
-	);
-	trace!("Manga update max failures threshold: {}", MAX_FAILURES);
-	has_more_pages = true;
-	pages_updated = 0;
-	let manga_start_time = chrono::Utc::now();
-
-	while has_more_pages && manga_failures < MAX_FAILURES {
-		trace!(
-			"Calling update_page for manga (page {})",
-			random_stats.manga_last_page
-		);
-		let page_start_time = chrono::Utc::now();
-		has_more_pages = update_page(&mut random_stats, anilist_cache.clone(), false, true).await;
-		let page_elapsed = chrono::Utc::now() - page_start_time;
-		trace!(
-			"update_page for manga completed in {} ms",
-			page_elapsed.num_milliseconds()
-		);
-
-		if has_more_pages {
-			pages_updated += 1;
-			debug!(
-				"Successfully updated manga page {}, moving to next page",
-				random_stats.manga_last_page - 1
-			);
-
-			if manga_failures > 0 {
-				debug!(
-					"Reset manga failure counter from {} to 0 after successful update",
-					manga_failures
-				);
-				manga_failures = 0; // Reset failure counter on success
-			}
-
-			if pages_updated % 10 == 0 {
-				info!("Manga update progress: {} pages processed", pages_updated);
-			}
-		} else {
-			// If we didn't get more pages, it could be an error or end of data
-			manga_failures += 1;
-			warn!(
-				"Manga update attempt failed for page {}, failure {}/{}",
-				random_stats.manga_last_page, manga_failures, MAX_FAILURES
-			);
-
-			if manga_failures < MAX_FAILURES {
-				// Wait a bit longer before retry on failure
-				let retry_delay = 2 * manga_failures; // Increase delay with each failure
-				debug!("Retrying manga update after {}s delay", retry_delay);
-				sleep(Duration::from_secs(retry_delay.into())).await;
-				has_more_pages = true; // Try again
+				let delay = Duration::from_secs((2 * failures).into());
+				sleep(delay).await;
 				continue;
-			} else {
-				warn!("Reached maximum manga update failures ({})", MAX_FAILURES);
-			}
+			},
 		}
 
-		// Sleep to avoid rate limiting
-		trace!("Sleeping 1s to avoid API rate limiting");
+		// Avoid API rate limiting
 		sleep(Duration::from_secs(1)).await;
 	}
 
-	if manga_failures >= MAX_FAILURES {
-		error!(
-			"Exceeded maximum failures ({}) for manga statistics update",
-			MAX_FAILURES
-		);
-		warn!("Some manga statistics may not be up to date");
-	}
-
-	let manga_elapsed = chrono::Utc::now() - manga_start_time;
-	info!(
-		"Completed manga statistics update, processed {} pages in {} seconds",
-		pages_updated,
-		manga_elapsed.num_seconds()
-	);
-	debug!(
-		"Average time per manga page: {} ms",
-		if pages_updated > 0 {
-			manga_elapsed.num_milliseconds() / pages_updated as i64
-		} else {
-			0
-		}
-	);
-
-	let total_elapsed = chrono::Utc::now() - start_time;
-	info!(
-		"Total statistics update completed in {} seconds",
-		total_elapsed.num_seconds()
-	);
-	debug!(
-		"Final stats: anime_last_page={}, manga_last_page={}",
-		random_stats.anime_last_page, random_stats.manga_last_page
-	);
-	trace!("Exiting update_random function");
-
-	Ok(random_stats)
+	pages_processed
 }
 
-/// Updates a page of random statistics by fetching data from the Anilist API.
-///
-/// # Arguments
-///
-/// * `random_stats` - The current random statistics to update.
-/// * `anilist_cache` - A cache for storing Anilist API responses.
-/// * `update_anime` - Whether to update anime statistics.
-/// * `update_manga` - Whether to update manga statistics.
-///
-/// # Returns
-///
-/// Returns true if there are more pages to update, false otherwise.
-#[tracing::instrument(skip(random_stats, anilist_cache), level = "debug")]
-async fn update_page(
-	random_stats: &mut RandomStat, anilist_cache: Arc<RwLock<CacheInterface>>, update_anime: bool,
-	update_manga: bool,
-) -> bool {
-	// If neither anime nor manga updates are requested, return early
-	if !update_anime && !update_manga {
-		trace!("Neither anime nor manga updates requested, returning early");
-		return false;
+/// Fetch a single page of statistics from the AniList API.
+async fn fetch_page(
+	category: StatCategory, page: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
+) -> Result<bool> {
+	// Both AnimeStat and MangaStat share the same response shape and both
+	// use a field named `manga` on SiteStatistics (this is how the shared
+	// GraphQL types are defined — the field name doesn't affect correctness).
+	let data: GraphQlResponse<AnimeStat> = match category {
+		StatCategory::Anime => {
+			let op = AnimeStat::build(AnimeStatVariables { page: Some(page) });
+			make_request_anilist(op, true, anilist_cache).await?
+		},
+		StatCategory::Manga => {
+			let op = MangaStat::build(MangaStatVariables { page: Some(page) });
+			make_request_anilist(op, true, anilist_cache).await?
+		},
+	};
+
+	// Extract has_next_page from the nested response
+	let has_next = data
+		.data
+		.and_then(|d| d.site_statistics)
+		.and_then(|s| s.manga)
+		.and_then(|m| m.page_info)
+		.and_then(|p| p.has_next_page)
+		.unwrap_or(false);
+
+	Ok(has_next)
+}
+
+fn get_page(state: &PageState, category: StatCategory) -> i32 {
+	match category {
+		StatCategory::Anime => state.anime_last_page,
+		StatCategory::Manga => state.manga_last_page,
 	}
+}
 
-	let page_type = if update_anime { "anime" } else { "manga" };
-	let page_num = if update_anime {
-		random_stats.anime_last_page
-	} else {
-		random_stats.manga_last_page
-	};
-
-	trace!("Starting update_page for {} page {}", page_type, page_num);
-	debug!(
-		"Preparing GraphQL request for {} statistics page {}",
-		page_type, page_num
-	);
-
-	// Track API request performance
-	let request_start_time = chrono::Utc::now();
-
-	let data = if update_anime {
-		let var = AnimeStatVariables {
-			page: Some(random_stats.anime_last_page),
-		};
-
-		trace!(
-			"Building AnimeStat GraphQL operation with variables: {:?}",
-			var.page
-		);
-		let operation = AnimeStat::build(var);
-
-		trace!("Making Anilist API request for anime statistics");
-		let data: Result<GraphQlResponse<AnimeStat>> =
-			make_request_anilist(operation, true, anilist_cache.clone())
-				.await
-				.with_context(|| {
-					format!(
-						"Failed to fetch {} statistics for page {}",
-						page_type, page_num
-					)
-				});
-
-		data
-	} else {
-		let var = MangaStatVariables {
-			page: Some(random_stats.manga_last_page),
-		};
-
-		trace!(
-			"Building MangaStat GraphQL operation with variables: {:?}",
-			var.page
-		);
-		let operation = MangaStat::build(var);
-
-		trace!("Making Anilist API request for manga statistics");
-		let data: Result<GraphQlResponse<AnimeStat>> =
-			make_request_anilist(operation, true, anilist_cache.clone())
-				.await
-				.with_context(|| {
-					format!(
-						"Failed to fetch {} statistics for page {}",
-						page_type, page_num
-					)
-				});
-
-		data
-	};
-
-	let request_elapsed = chrono::Utc::now() - request_start_time;
-	debug!(
-		"Anilist API request for {} page {} completed in {} ms",
-		page_type,
-		page_num,
-		request_elapsed.num_milliseconds()
-	);
-
-	let data = match data {
-		Ok(data) => {
-			trace!(
-				"Successfully received API response for {} page {}",
-				page_type,
-				page_num
-			);
-			data
-		},
-		Err(err) => {
-			// Log the error with details about which page failed
-			error!(
-				"Error updating {} stats for page {}: {:#}",
-				page_type, page_num, err
-			);
-			debug!("Error type: {}", std::any::type_name_of_val(&err));
-
-			// Check for specific error patterns
-			let err_string = err.to_string();
-			if err_string.contains("timeout") {
-				warn!(
-					"API timeout detected for {} page {}. The external service might be experiencing high load.",
-					page_type, page_num
-				);
-			} else if err_string.contains("rate") {
-				warn!(
-					"Possible rate limiting detected for {} page {}. Consider increasing the update interval.",
-					page_type, page_num
-				);
-			} else if err_string.contains("network") || err_string.contains("connection") {
-				warn!(
-					"Network connectivity issue detected for {} page {}. Check internet connection.",
-					page_type, page_num
-				);
-			}
-
-			// Return false to indicate no more pages (will retry on next scheduled run)
-			trace!("Returning false due to API request error");
-			return false;
-		},
-	};
-
-	trace!("Parsing API response to extract pagination information");
-
-	// Extract has_next_page value with better error handling
-	let has_next_page = match &data.data {
-		Some(data) => {
-			trace!("Found data in API response");
-			match &data.site_statistics {
-				Some(site_statistics) => {
-					trace!("Found site_statistics in API response");
-					match &site_statistics.manga {
-						Some(manga) => {
-							trace!("Found manga data in API response");
-							match &manga.page_info {
-								Some(page_info) => {
-									trace!("Found page_info in API response");
-									let result = page_info.has_next_page.unwrap_or(false);
-									if result {
-										debug!(
-											"Found more pages to process for {} after page {}",
-											page_type, page_num
-										);
-									} else {
-										debug!(
-											"No more pages available for {} after page {}",
-											page_type, page_num
-										);
-									}
-									result
-								},
-								None => {
-									error!(
-										"Missing page_info in API response for {} page {}",
-										page_type, page_num
-									);
-									warn!("API response structure may have changed, check schema");
-									trace!("Response data structure: {:?}", data);
-									false
-								},
-							}
-						},
-						None => {
-							error!(
-								"Missing manga data in API response for {} page {}",
-								page_type, page_num
-							);
-							warn!("API response structure may have changed, check schema");
-							trace!("Response data structure: {:?}", data);
-							false
-						},
-					}
-				},
-				None => {
-					error!(
-						"Missing site_statistics in API response for {} page {}",
-						page_type, page_num
-					);
-					warn!("API response structure may have changed, check schema");
-					trace!("Response data structure: {:?}", data);
-					false
-				},
-			}
-		},
-		None => {
-			error!(
-				"Empty data in API response for {} page {}",
-				page_type, page_num
-			);
-			warn!("API may have returned an empty response, check for service issues");
-			trace!("Full response: {:?}", data);
-			false
-		},
-	};
-
-	if has_next_page {
-		if update_anime {
-			random_stats.anime_last_page += 1;
-			debug!(
-				"Incrementing anime_last_page to {}",
-				random_stats.anime_last_page
-			);
-		} else {
-			random_stats.manga_last_page += 1;
-			debug!(
-				"Incrementing manga_last_page to {}",
-				random_stats.manga_last_page
-			);
-		}
-		trace!("Returning true to indicate more pages available");
-	} else {
-		info!(
-			"Reached last page for {} stats: page {}",
-			page_type, page_num
-		);
-		trace!("Returning false to indicate no more pages available");
+fn increment_page(state: &mut PageState, category: StatCategory) {
+	match category {
+		StatCategory::Anime => state.anime_last_page += 1,
+		StatCategory::Manga => state.manga_last_page += 1,
 	}
-
-	has_next_page
 }

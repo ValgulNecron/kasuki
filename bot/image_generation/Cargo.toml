@@ -1,5 +1,5 @@
 [package]
-name = "worker"
+name = "image_generation"
 version.workspace = true
 edition.workspace = true
 
@@ -7,15 +7,16 @@ edition.workspace = true
 tokio.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
-tracing-subscriber.workspace = true
 shared.workspace = true
-futures.workspace = true
 reqwest.workspace = true
 sea-orm.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-governor.workspace = true
+tracing-subscriber.workspace = true
 chrono.workspace = true
-cynic.workspace = true
 base64.workspace = true
-serenity.workspace = true
+image.workspace = true
+palette.workspace = true
+rayon.workspace = true
+uuid.workspace = true
+redis.workspace = true

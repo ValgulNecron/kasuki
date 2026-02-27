@@ -108,8 +108,6 @@ fabric.properties
 
 .idea/rust-project.json
 
-.claude
-CLAUDE.md
 
 logs
 /.idea/.gitignore
@@ -364,9 +362,7 @@ pkg/
 
 cache.db
 data.db
-!/.claude/
-!/bot/.claude/
-!/.kilocode/
+
 !/website/lighthouse-improved-report.json
 
 !/website/lighthouse-prod-report.json

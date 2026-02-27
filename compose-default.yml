@@ -31,12 +31,30 @@ services:
     deploy:
       replicas: 1
 
+  image-generation:
+    image: valgul/kasuki:latest
+    command: --image-generation
+    container_name: kasuki-image-generation
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    tty: true
+    volumes:
+      - ./logs/:/kasuki/logs/
+      - ./config.toml:/kasuki/config.toml
+      - ./images:/kasuki/images
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      kasuki:
+
   bot:
     image: valgul/kasuki:latest
     command: --bot
     restart: unless-stopped
     depends_on:
       - db
+      - redis
       - worker
       - lavalink
     tty: true
@@ -68,6 +86,18 @@ services:
         ipv4_address: 172.65.0.3
     ports:
       - "10001:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: kasuki-redis
+    restart: always
+    hostname: redis
+    # Uncomment and set a password to enable Redis auth:
+    # command: redis-server --requirepass YOUR_PASSWORD_HERE
+    networks:
+      kasuki:
+    volumes:
+      - ./redis-data:/data
 
   gluetun:
     image: qmcgaw/gluetun

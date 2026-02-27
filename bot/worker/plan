@@ -1,0 +1,60 @@
+1. Activity timestamp matching is effectively broken
+run every 1min and send all activity between the last cycle and now.
+
+2. No graceful shutdown for spawned tasks
+add graceful shutdown
+
+3. Anisong task spawns 100,000 futures then join_all
+This should use a streaming approach (e.g., futures::stream::iter(...).buffer_unordered(N)) or process in batches.
+
+4. Semaphore concurrency is set to 1 — effectively sequential
+run up to 10task at a time
+
+5. get_url only supports PostgreSQL, panics on SQLite
+reuse the shared config's connection logic
+
+6. Redundant double-check in activity loop
+After querying WHERE timestamp = now, the code iterates results and does if now != row.timestamp { continue; }. This second check is redundant since the DB already filtered it.
+
+7. Webhook avatar is re-uploaded on every notification
+the avatar may change since there is 1 webhook for all activity.
+
+8. No SQLite support
+same a 5
+
+9. structure.rs is dead code
+remove dead code
+
+10. Verbose logging — excessive trace/debug noise
+please improve the login over the entire crate
+
+11. update_page always reads manga.page_info regardless of type
+please fix the confusion
+
+12. Duplicated anime/manga update logic
+should be a single function parameterized by category.
+
+13. Media URLs are constructed even when empty
+These broken URLs get stored in the database. Should store an empty string or None instead.
+
+14. No connection pooling configuration
+use the shared way to create connection do update to it if necessary.
+
+15. Unused dependencies in Cargo.toml
+image, palette, rayon, uuid, dashmap, async-trait (not listed but implied by shared) are declared but appear unused in the worker's source files. Removing them would speed up compilation.
+
+16. No health check or observability endpoint
+The worker runs as a headless process. There's no way to check if it's alive, what cycle it's on, or when the last successful run was. A metrics export (e.g., Prometheus) would help with monitoring.
+
+17. Hardcoded ANN ID range (1 to 100,000)
+The upper bound of 100k is a magic number. As the ANN database grows, this will need to increase. It should be configurable or, better, use the API's pagination rather than brute-forcing ID ranges.
+it possible that 1-500 exist but then 501-1999 dont and 2000-10000 exist again
+
+18. No incremental anisong updates
+Every cycle re-fetches all 100k ANN IDs. There's no mechanism to track which IDs have already been processed or to only fetch new/updated entries. An incremental approach (e.g., tracking the last-fetched ID or using API timestamps) would drastically reduce the 7-day cycle time and API load.
+an previously fetched id let say 10 may get new song in the future
+
+20. base64 + image crate imported but image processing is minimal
+The activity task decodes base64 to raw bytes and passes them to Serenity's CreateAttachment. The image crate is in Cargo.toml but isn't actually used for any processing. The base64 decode could use the base64 crate's simpler STANDARD.decode() API instead of the streaming DecoderReader.
+
+

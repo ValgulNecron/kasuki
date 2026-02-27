@@ -175,6 +175,28 @@ async fn main() {
 	let (shutdown_tx, _) = broadcast::channel(1);
 	info!("Created shutdown signal channel");
 
+	info!("Connecting to Redis for image queue");
+	let redis_connection = {
+		let queue_config = &config.queue;
+		let redis_url = queue_config.redis_url();
+		match redis::Client::open(redis_url.as_str()) {
+			Ok(client) => match client.get_multiplexed_async_connection().await {
+				Ok(conn) => {
+					info!("Connected to Redis at {}:{}", queue_config.host, queue_config.port);
+					Arc::new(RwLock::new(Some(conn)))
+				},
+				Err(e) => {
+					warn!("Failed to connect to Redis (image queue will be unavailable): {}", e);
+					Arc::new(RwLock::new(None))
+				},
+			},
+			Err(e) => {
+				warn!("Failed to create Redis client (image queue will be unavailable): {}", e);
+				Arc::new(RwLock::new(None))
+			},
+		}
+	};
+
 	info!("Initializing bot data structure");
 	let bot_data: Arc<BotData> = Arc::new(BotData {
 		config: Arc::from(config.clone()),
@@ -193,6 +215,7 @@ async fn main() {
 		vocal_session: Arc::new(Default::default()),
 		user_color_update_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
 		server_image_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+		redis_connection,
 	});
 	info!("Bot data structure initialized successfully");
 

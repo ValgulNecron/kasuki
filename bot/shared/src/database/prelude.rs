@@ -12,6 +12,7 @@ pub use super::kill_switch::Entity as KillSwitch;
 pub use super::leader_board::Entity as LeaderBoard;
 pub use super::message::Entity as Message;
 pub use super::module_activation::Entity as ModuleActivation;
+pub use super::oauth_token::Entity as OAuthToken;
 pub use super::ping_history::Entity as PingHistory;
 pub use super::random_stats::Entity as RandomStats;
 pub use super::registered_user::Entity as RegisteredUser;

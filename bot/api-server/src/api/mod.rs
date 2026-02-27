@@ -1,20 +1,25 @@
 pub mod auth;
+pub mod error;
+pub mod health;
 pub mod oauth;
+pub mod rate_limit;
 pub mod server;
+pub mod state;
+#[cfg(test)]
+mod tests;
 
-use shared::config::Config;
-use std::sync::Arc;
+use crate::api::state::AppState;
 use tracing::info;
 
-pub async fn start_api_server(config: Arc<Config>) {
-	if !config.api.enabled {
-		info!("API server is disabled in configuration");
+pub async fn start_api_server(state: AppState) {
+	if !state.config.api.enabled {
+		info!("api server disabled in config");
 		return;
 	}
 
-	info!("Starting API server on port {}", config.api.port);
+	info!(port = state.config.api.port, "starting api server");
 
-	if let Err(e) = server::run_server(config).await {
-		tracing::error!("API server error: {}", e);
+	if let Err(e) = server::run_server(state).await {
+		tracing::error!(error = %e, "api server stopped with error");
 	}
 }

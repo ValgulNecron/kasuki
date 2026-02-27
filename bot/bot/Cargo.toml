@@ -50,6 +50,7 @@ walkdir.workspace = true
 inventory.workspace = true
 kasuki-macros.workspace = true
 rustls.workspace = true
+redis.workspace = true
 
 [build-dependencies]
 cynic-codegen.workspace = true

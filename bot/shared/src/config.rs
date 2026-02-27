@@ -1,5 +1,8 @@
-use anyhow::Result;
+use anyhow::{Context, Result, bail};
+use sea_orm::DatabaseConnection;
 use serde::Deserialize;
+use std::time::Duration;
+use tracing::info;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -12,10 +15,40 @@ pub struct Config {
 	pub task_intervals: TaskIntervalConfig,
 	pub api: ApiConfig,
 	pub cache: CacheConfig,
+	pub queue: QueueConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct CacheConfig {}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct QueueConfig {
+	pub queue_type: String,
+	pub host: String,
+	pub port: u16,
+	pub password: Option<String>,
+}
+
+impl QueueConfig {
+	pub fn redis_url(&self) -> String {
+		match self.password.as_deref() {
+			Some(pw) if !pw.is_empty() => {
+				// Percent-encode the password so special chars don't break URL parsing
+				let encoded: String = pw
+					.bytes()
+					.map(|b| match b {
+						b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+							String::from(b as char)
+						},
+						_ => format!("%{:02X}", b),
+					})
+					.collect();
+				format!("redis://:{}@{}:{}", encoded, self.host, self.port)
+			},
+			_ => format!("redis://{}:{}", self.host, self.port),
+		}
+	}
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BotConfig {
@@ -48,6 +81,66 @@ pub struct DbConfig {
 	pub connect_timeout: Option<u64>,
 	/// Idle timeout in seconds (default: 600)
 	pub idle_timeout: Option<u64>,
+}
+
+impl DbConfig {
+	/// Build a database connection URL from the config.
+	pub fn get_url(&self) -> Result<String> {
+		match self.db_type.as_str() {
+			"postgresql" => {
+				let host = self.host.as_deref().context("No database host provided")?;
+				let port = self.port.context("No database port provided")?;
+				let user = self.user.as_deref().context("No database user provided")?;
+				let password = self
+					.password
+					.as_deref()
+					.context("No database password provided")?;
+				let db_name = self
+					.database
+					.as_deref()
+					.unwrap_or("kasuki");
+
+				let param = serde_urlencoded::to_string(&[("user", user), ("password", password)])
+					.context("Failed to encode database parameters")?;
+
+				Ok(format!("postgresql://{}:{}/{}?{}", host, port, db_name, param))
+			},
+			"sqlite" => {
+				let path = self
+					.database
+					.as_deref()
+					.context("No database path provided for SQLite")?;
+				Ok(format!("sqlite://{}?mode=rwc", path))
+			},
+			other => bail!("Unsupported database type: {}", other),
+		}
+	}
+
+	/// Create a SeaORM database connection with pool settings from config.
+	pub async fn connect(&self) -> Result<DatabaseConnection> {
+		let url = self.get_url()?;
+		let mut opts = sea_orm::ConnectOptions::new(url);
+
+		let max_connections = self.max_connections.unwrap_or(100);
+		let min_connections = self.min_connections.unwrap_or(5);
+		let connect_timeout = self.connect_timeout.unwrap_or(30);
+		let idle_timeout = self.idle_timeout.unwrap_or(600);
+
+		opts.max_connections(max_connections)
+			.min_connections(min_connections)
+			.connect_timeout(Duration::from_secs(connect_timeout))
+			.idle_timeout(Duration::from_secs(idle_timeout))
+			.sqlx_logging(false);
+
+		info!(
+			"Database pool config: max={}, min={}, connect_timeout={}s, idle_timeout={}s",
+			max_connections, min_connections, connect_timeout, idle_timeout
+		);
+
+		sea_orm::Database::connect(opts)
+			.await
+			.context("Failed to connect to database")
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -112,6 +205,9 @@ pub struct TaskIntervalConfig {
 pub struct ApiConfig {
 	pub enabled: bool,
 	pub port: u16,
+	#[serde(default)]
+	pub debug: bool,
+	pub allowed_domain: Option<String>,
 	pub oauth: OAuthConfig,
 }
 
@@ -134,6 +230,22 @@ impl Config {
 	pub fn load_from_path(path: &str) -> Result<Self> {
 		let config = std::fs::read_to_string(path)?;
 		let config: Config = toml::from_str(&config)?;
+		Ok(config)
+	}
+}
+
+/// Lightweight config for the worker binary — only the sections it needs.
+#[derive(Debug, Deserialize, Clone)]
+pub struct WorkerConfig {
+	pub bot: BotConfig,
+	pub db: DbConfig,
+	pub task_intervals: TaskIntervalConfig,
+}
+
+impl WorkerConfig {
+	pub fn new() -> Result<Self> {
+		let config = std::fs::read_to_string("config.toml")?;
+		let config: WorkerConfig = toml::from_str(&config)?;
 		Ok(config)
 	}
 }
