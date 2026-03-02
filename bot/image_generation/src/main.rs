@@ -19,6 +19,10 @@ use uuid::Uuid;
 use crate::calculate::{calculate_user_color_from_url, get_image_from_url};
 use crate::color::create_color_vector_from_tuple;
 
+use shared::database::guild_data::ActiveModel as GuildActiveModel;
+use shared::database::prelude::{GuildData, ServerImage};
+use shared::database::server_image::{ActiveModel, Column};
+
 #[tokio::main]
 async fn main() -> Result<()> {
 	let config = Config::new().context("Failed to load config.toml")?;
@@ -58,10 +62,13 @@ async fn main() -> Result<()> {
 	);
 
 	loop {
-		let result: Option<(String, String)> = connection
-			.blpop(QUEUE_KEY, 0.0)
-			.await
-			.context("Failed to receive task from Redis")?;
+		let result: Option<(String, String)> = match connection.blpop(QUEUE_KEY, 30.0).await {
+			Ok(r) => r,
+			Err(e) => {
+				error!("Redis error while waiting for task: {:#}", e);
+				continue;
+			},
+		};
 
 		match result {
 			Some((_key, payload)) => {
@@ -193,8 +200,21 @@ async fn handle_generate_server_image(
 	.await
 	.context("Failed to save server image")?;
 
-	use shared::database::prelude::ServerImage;
-	use shared::database::server_image::{ActiveModel, Column};
+
+	GuildData::insert(GuildActiveModel {
+		guild_id: Set(guild_id.clone()),
+		guild_name: Set(guild_name.clone()),
+		updated_at: Set(chrono::Utc::now().naive_utc()),
+	})
+	.on_conflict(
+		sea_orm::sea_query::OnConflict::column(shared::database::guild_data::Column::GuildId)
+			.update_column(shared::database::guild_data::Column::GuildName)
+			.update_column(shared::database::guild_data::Column::UpdatedAt)
+			.to_owned(),
+	)
+	.exec(&**db)
+	.await
+	.context("Failed to upsert guild_data before server image")?;
 
 	ServerImage::insert(ActiveModel {
 		server_id: Set(guild_id.clone()),
