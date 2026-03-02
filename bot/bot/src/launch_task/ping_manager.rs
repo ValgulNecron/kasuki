@@ -1,18 +1,18 @@
 use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
-use dashmap::DashMap;
-use futures::channel::mpsc::UnboundedSender;
+use sea_orm::ActiveValue::Set;
 use sea_orm::DatabaseConnection;
+use sea_orm::EntityTrait;
 use serenity::all::{Context as SerenityContext, ShardId};
-use serenity::gateway::{ShardRunnerInfo, ShardRunnerMessage};
+use serenity::gateway::ShardRunnerInfo;
 use shared::config::TaskIntervalConfig;
 use shared::database::ping_history::ActiveModel;
 use shared::database::prelude::PingHistory;
-use sea_orm::ActiveValue::Set;
-use sea_orm::EntityTrait;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use tracing::{debug, error, info, trace, warn};
+use tokio::sync::RwLock;
+use tracing::{debug, error, info, trace};
 
 /// Monitors and records the latency (ping) of each Discord gateway shard.
 #[tracing::instrument(skip(ctx, db_connection, task_intervals), level = "info")]
@@ -27,31 +27,8 @@ pub async fn ping_manager_thread(
 	);
 
 	trace!("Attempting to retrieve shard manager from context");
-	let shard_manager: Arc<
-		DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>,
-	> = match ctx
-		.data::<BotData>()
-		.shard_manager
-		.clone()
-		.read()
-		.await
-		.clone()
-	{
-		Some(shard_manager) => {
-			debug!("Successfully retrieved shard manager");
-			shard_manager
-		},
-		None => {
-			warn!(
-				"Shard manager not available, waiting for {} seconds before retry",
-				task_intervals.ping_update
-			);
-			tokio::time::sleep(Duration::from_secs(task_intervals.ping_update)).await;
-			debug!("Retrying shard manager retrieval");
-			Box::pin(ping_manager_thread(ctx, db_connection, task_intervals)).await?;
-			return Ok(());
-		},
-	};
+	let shard_manager: Arc<RwLock<HashMap<ShardId, Arc<parking_lot::RwLock<ShardRunnerInfo>>>>> =
+		ctx.data::<BotData>().shard_manager.clone();
 
 	let mut interval = tokio::time::interval(Duration::from_secs(task_intervals.ping_update));
 	debug!(
@@ -74,21 +51,18 @@ pub async fn ping_manager_thread(
 		);
 		trace!("Ping update cycle started");
 
-		let runner = &shard_manager;
-		let shard_count = runner.len();
+		let read = shard_manager.read().await;
+		let shard_count = read.len();
 		debug!("Processing {} shards in this cycle", shard_count);
 
 		let mut cycle_successful_updates = 0;
 		let mut cycle_failed_updates = 0;
 
-		for entry in runner.iter() {
-			let shard_id = entry.key();
+		for (shard_id, shard_arc) in read.iter() {
 			trace!("Processing shard {}", shard_id);
 
-			let shard = entry.value();
-
 			let (now, latency) = {
-				let (shard_info, _) = shard;
+				let shard_info = shard_arc.read();
 
 				let latency = shard_info
 					.latency

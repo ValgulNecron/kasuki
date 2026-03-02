@@ -28,9 +28,7 @@ async fn main() -> Result<()> {
 		.log_level
 		.parse()
 		.unwrap_or(tracing::Level::INFO);
-	let subscriber = FmtSubscriber::builder()
-		.with_max_level(log_level)
-		.finish();
+	let subscriber = FmtSubscriber::builder().with_max_level(log_level).finish();
 	tracing::subscriber::set_global_default(subscriber)
 		.context("Failed to set default subscriber")?;
 

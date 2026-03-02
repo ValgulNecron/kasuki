@@ -10,7 +10,7 @@ use shared::config::WorkerConfig;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{RwLock, broadcast};
+use tokio::sync::{broadcast, RwLock};
 use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 

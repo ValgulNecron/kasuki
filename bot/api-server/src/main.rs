@@ -17,12 +17,10 @@ async fn main() -> anyhow::Result<()> {
 		e
 	})?;
 
-	let jwt_secret_bytes = STANDARD
-		.decode(&config.api.oauth.jwt_secret)
-		.map_err(|e| {
-			error!(error = %e, "invalid base64 jwt secret in config");
-			anyhow::anyhow!("Invalid base64 JWT secret: {}", e)
-		})?;
+	let jwt_secret_bytes = STANDARD.decode(&config.api.oauth.jwt_secret).map_err(|e| {
+		error!(error = %e, "invalid base64 jwt secret in config");
+		anyhow::anyhow!("Invalid base64 JWT secret: {}", e)
+	})?;
 	info!("jwt secret validated");
 
 	let config = Arc::new(config);
@@ -50,10 +48,12 @@ async fn main() -> anyhow::Result<()> {
 		"database pool configured"
 	);
 
-	let db = sea_orm::Database::connect(connect_options).await.map_err(|e| {
-		error!(error = %e, "failed to connect to database");
-		anyhow::anyhow!("Database connection failed: {}", e)
-	})?;
+	let db = sea_orm::Database::connect(connect_options)
+		.await
+		.map_err(|e| {
+			error!(error = %e, "failed to connect to database");
+			anyhow::anyhow!("Database connection failed: {}", e)
+		})?;
 	info!("database connected");
 
 	let state = AppState::new(config, db, jwt_secret_bytes);

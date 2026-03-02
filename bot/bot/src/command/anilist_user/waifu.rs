@@ -34,7 +34,10 @@ use kasuki_macros::slash_command;
 	install_contexts = [Guild, User],
 )]
 async fn waifu_command(self_: WaifuCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 
 	// Execute the corresponding search function based on the specified type

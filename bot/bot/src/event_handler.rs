@@ -1,8 +1,11 @@
 pub use crate::bot_data::BotData;
 pub use crate::handlers::user_db::add_user_data_to_db;
 
-use serenity::all::{Entitlement, Guild, GuildMembersChunkEvent, Interaction, Member, Message, Presence, Ready, VoiceState};
 use serenity::all::FullEvent;
+use serenity::all::{
+	Entitlement, Guild, GuildMembersChunkEvent, Interaction, Member, Message, Presence, Ready,
+	VoiceState,
+};
 use serenity::async_trait;
 use serenity::prelude::{Context as SerenityContext, EventHandler};
 use tracing::trace;

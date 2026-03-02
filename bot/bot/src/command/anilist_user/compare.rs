@@ -17,9 +17,9 @@ use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::command::anilist_user::user::get_user;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::ComponentVersion::V2;
 use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsContents};
-use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{
 	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
@@ -36,7 +36,10 @@ use crate::structure::run::anilist::user::{
 	],
 )]
 async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 
 	let map = get_option_map_string(&cx.command_interaction);

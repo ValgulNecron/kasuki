@@ -159,7 +159,7 @@ pub async fn join<'a>(
 		.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
 		.is_none()
 	{
-		let handler = manager.join_gateway(guild_id, connect_to).await;
+		let handler = manager.join_gateway(guild_id, connect_to.clone()).await;
 
 		let (result, return_data) = match handler {
 			Ok((connection_info, _)) => {
@@ -170,6 +170,7 @@ pub async fn join<'a>(
 							endpoint: connection_info.endpoint,
 							token: connection_info.token,
 							session_id: connection_info.session_id,
+							channel_id: Some(ChannelId::from(connect_to)),
 						},
 						Arc::new((ChannelId(channel_id.get()), ctx.http.clone())),
 					)

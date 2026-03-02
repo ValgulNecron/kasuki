@@ -23,7 +23,10 @@ pub async fn get_image_from_url(url: &str) -> Result<DynamicImage> {
 	tokio::task::spawn_blocking(move || {
 		let img = ImageReader::new(Cursor::new(resp))
 			.with_guessed_format()
-			.context(format!("Failed to guess image format from URL: {}", url_owned))?
+			.context(format!(
+				"Failed to guess image format from URL: {}",
+				url_owned
+			))?
 			.decode()
 			.context(format!("Failed to decode image from URL: {}", url_owned))?;
 		Ok(img)

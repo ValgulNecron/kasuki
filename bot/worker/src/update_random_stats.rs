@@ -11,8 +11,8 @@ use shared::anilist::site_statistic_manga::{MangaStat, MangaStatVariables};
 use shared::cache::CacheInterface;
 use shared::config::TaskIntervalConfig;
 use shared::database::random_stats;
-use tokio::sync::RwLock;
 use tokio::sync::broadcast;
+use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, info, warn};
 
@@ -148,8 +148,7 @@ async fn update_random_stats(
 
 /// Paginate through one category (anime or manga) until no more pages or too many failures.
 async fn update_category(
-	category: StatCategory, state: &mut PageState,
-	anilist_cache: Arc<RwLock<CacheInterface>>,
+	category: StatCategory, state: &mut PageState, anilist_cache: Arc<RwLock<CacheInterface>>,
 ) -> u32 {
 	const MAX_FAILURES: u32 = 5;
 	let mut failures = 0;
@@ -163,7 +162,10 @@ async fn update_category(
 
 	loop {
 		if failures >= MAX_FAILURES {
-			warn!("{} update stopped after {} failures", category, MAX_FAILURES);
+			warn!(
+				"{} update stopped after {} failures",
+				category, MAX_FAILURES
+			);
 			break;
 		}
 

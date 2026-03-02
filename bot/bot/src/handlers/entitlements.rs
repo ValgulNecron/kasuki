@@ -1,11 +1,11 @@
 use crate::event_handler::{BotData, Handler};
 use sea_orm::ActiveValue::Set;
+use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use serenity::all::Entitlement;
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::{GuildSubscription, UserSubscription};
 use std::sync::Arc;
-use sea_orm::DatabaseConnection;
 use tracing::{info, warn};
 
 impl Handler {

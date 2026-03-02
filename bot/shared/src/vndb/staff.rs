@@ -1,8 +1,8 @@
 use anyhow::Result;
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
 use crate::cache::CacheInterface;
+use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tracing::info;
 

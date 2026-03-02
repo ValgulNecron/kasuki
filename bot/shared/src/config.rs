@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use std::time::Duration;
@@ -95,15 +95,15 @@ impl DbConfig {
 					.password
 					.as_deref()
 					.context("No database password provided")?;
-				let db_name = self
-					.database
-					.as_deref()
-					.unwrap_or("kasuki");
+				let db_name = self.database.as_deref().unwrap_or("kasuki");
 
 				let param = serde_urlencoded::to_string(&[("user", user), ("password", password)])
 					.context("Failed to encode database parameters")?;
 
-				Ok(format!("postgresql://{}:{}/{}?{}", host, port, db_name, param))
+				Ok(format!(
+					"postgresql://{}:{}/{}?{}",
+					host, port, db_name, param
+				))
 			},
 			"sqlite" => {
 				let path = self

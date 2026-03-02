@@ -87,7 +87,10 @@ use small_fixed_array::FixedString;
 	args = [(name = "anime_name", desc = "Name of the anime you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn anime_command(self_: AnimeCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	let map = get_option_map_string(&cx.command_interaction);
 	let value = map

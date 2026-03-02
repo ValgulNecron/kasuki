@@ -27,8 +27,8 @@ use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_user_url, User};
 use shared::database::prelude::RegisteredUser;
@@ -41,7 +41,10 @@ use shared::database::registered_user::{ActiveModel, Column};
 	args = [(name = "username", desc = "Username you want to register.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 	let connection = cx.db.clone();
 

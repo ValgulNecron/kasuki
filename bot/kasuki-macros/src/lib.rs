@@ -378,11 +378,9 @@ fn generate(
 		sn.clone()
 	} else {
 		// Extract from first param: `self_: FooCommand`
-		let first_param = input_fn
-			.sig
-			.inputs
-			.first()
-			.ok_or_else(|| syn::Error::new_spanned(&input_fn.sig, "expected at least one parameter"))?;
+		let first_param = input_fn.sig.inputs.first().ok_or_else(|| {
+			syn::Error::new_spanned(&input_fn.sig, "expected at least one parameter")
+		})?;
 
 		match first_param {
 			syn::FnArg::Typed(pat_type) => {
@@ -391,12 +389,19 @@ fn generate(
 						.segments
 						.last()
 						.map(|s| s.ident.clone())
-						.ok_or_else(|| syn::Error::new_spanned(pat_type, "cannot determine struct name"))?
+						.ok_or_else(|| {
+							syn::Error::new_spanned(pat_type, "cannot determine struct name")
+						})?
 				} else {
 					return Err(syn::Error::new_spanned(pat_type, "expected a type path"));
 				}
 			},
-			_ => return Err(syn::Error::new_spanned(first_param, "expected typed parameter")),
+			_ => {
+				return Err(syn::Error::new_spanned(
+					first_param,
+					"expected typed parameter",
+				))
+			},
 		}
 	};
 
@@ -513,7 +518,9 @@ fn generate(
 	let nsfw_val = attrs.nsfw;
 
 	let command_type_tokens = match &attrs.command_type {
-		CommandTypeDef::ChatInput => quote! { crate::command::registry::DiscordCommandType::ChatInput },
+		CommandTypeDef::ChatInput => {
+			quote! { crate::command::registry::DiscordCommandType::ChatInput }
+		},
 		CommandTypeDef::SubCommand { parent } => {
 			quote! { crate::command::registry::DiscordCommandType::SubCommand { parent: #parent } }
 		},

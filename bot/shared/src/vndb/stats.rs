@@ -23,8 +23,8 @@ pub struct Stats {
 
 	pub vn: i32,
 }
-use anyhow::Result;
 use crate::cache::CacheInterface;
+use anyhow::Result;
 
 pub async fn get_stats(vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<Stats> {
 	let path = "/stats".to_string();

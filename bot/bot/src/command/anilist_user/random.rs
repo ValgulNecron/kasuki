@@ -62,8 +62,8 @@ use std::collections::HashMap;
 use tracing::trace;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -82,7 +82,10 @@ use kasuki_macros::slash_command;
 		choices = [(name = "anime"), (name = "manga")])],
 )]
 async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 
 	// Get the language identifier for localization

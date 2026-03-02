@@ -87,7 +87,11 @@ mod tests {
 	fn all_ftl_files_are_valid_syntax() {
 		let dir = translation_dir();
 		let files = collect_ftl_files(&dir);
-		assert!(!files.is_empty(), "No .ftl files found in {}", dir.display());
+		assert!(
+			!files.is_empty(),
+			"No .ftl files found in {}",
+			dir.display()
+		);
 
 		let mut errors = Vec::new();
 
@@ -95,9 +99,7 @@ mod tests {
 			let content = fs::read_to_string(path)
 				.unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
 
-			if let Err((_resource, parse_errors)) =
-				fluent_syntax::parser::parse(content.as_str())
-			{
+			if let Err((_resource, parse_errors)) = fluent_syntax::parser::parse(content.as_str()) {
 				for err in parse_errors {
 					errors.push(format!(
 						"{}:{:?} - {:?}",
@@ -169,10 +171,7 @@ mod tests {
 		}
 
 		if !errors.is_empty() {
-			panic!(
-				"Locale file mismatches:\n{}",
-				errors.join("\n")
-			);
+			panic!("Locale file mismatches:\n{}", errors.join("\n"));
 		}
 	}
 
@@ -191,8 +190,7 @@ mod tests {
 		let mut errors = Vec::new();
 
 		for ftl_file in &fallback_ftl_files {
-			let fallback_content =
-				fs::read_to_string(fallback_dir.join(ftl_file)).unwrap();
+			let fallback_content = fs::read_to_string(fallback_dir.join(ftl_file)).unwrap();
 			let fallback_ids: HashSet<String> =
 				parse_message_ids(&fallback_content).into_iter().collect();
 
@@ -225,10 +223,7 @@ mod tests {
 		}
 
 		if !errors.is_empty() {
-			panic!(
-				"Message ID mismatches:\n{}",
-				errors.join("\n")
-			);
+			panic!("Message ID mismatches:\n{}", errors.join("\n"));
 		}
 	}
 

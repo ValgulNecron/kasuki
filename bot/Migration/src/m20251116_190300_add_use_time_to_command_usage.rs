@@ -51,11 +51,9 @@ impl MigrationTrait for Migration {
 			)
 			.await?;
 
-		db.execute_unprepared(
-			"ALTER TABLE command_usage ADD PRIMARY KEY (command, \"user\")",
-		)
-		.await
-		.map(|_| ())
+		db.execute_unprepared("ALTER TABLE command_usage ADD PRIMARY KEY (command, \"user\")")
+			.await
+			.map(|_| ())
 	}
 }
 

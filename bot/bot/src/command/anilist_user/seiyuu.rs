@@ -10,8 +10,8 @@ use bytes::Bytes;
 use std::io::Cursor;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::seiyuu_id::{
@@ -35,7 +35,10 @@ use uuid::Uuid;
 	args = [(name = "staff_name", desc = "Name of the seiyuu you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 
 	let map = get_option_map_string(&cx.command_interaction);

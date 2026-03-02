@@ -52,8 +52,7 @@ pub struct CommandDescriptor {
 
 	/// Dispatches this command. The wrapper extracts typed args from the
 	/// interaction and calls the user's async handler function.
-	pub handler_fn:
-		for<'a> fn(&'a SerenityContext, &'a CommandInteraction) -> CommandResult<'a>,
+	pub handler_fn: for<'a> fn(&'a SerenityContext, &'a CommandInteraction) -> CommandResult<'a>,
 }
 
 // SAFETY: CommandDescriptor contains only function pointers and static references.

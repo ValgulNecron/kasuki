@@ -12,8 +12,8 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
@@ -32,7 +32,10 @@ use small_fixed_array::FixedString;
 	args = [(name = "username", desc = "Username of the user you want the level of.", arg_type = String, required = false, autocomplete = true)],
 )]
 async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 	let config = cx.bot_data.config.clone();
 	let map = get_option_map_string(&cx.command_interaction);

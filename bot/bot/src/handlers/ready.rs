@@ -98,11 +98,16 @@ impl Handler {
 					{
 						match e {
 							sea_orm::DbErr::RecordNotInserted => {},
-							_ => warn!(command = %command_name, error = %e, "Failed to upsert command into command_list"),
+							_ => {
+								warn!(command = %command_name, error = %e, "Failed to upsert command into command_list")
+							},
 						}
 					}
 				}
-				info!("Populated command_list table with {} commands", registry.len());
+				info!(
+					"Populated command_list table with {} commands",
+					registry.len()
+				);
 			});
 
 			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {

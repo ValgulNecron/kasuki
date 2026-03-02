@@ -82,10 +82,12 @@ pub async fn enqueue_local_server_image(
 		image_save_config: build_image_save_config(image_config),
 	};
 
-	let mut guard = bot_data
-		.get_redis_connection()
-		.await
-		.ok_or_else(|| anyhow!("Redis unavailable, cannot enqueue local server image for guild {}", guild_id))?;
+	let mut guard = bot_data.get_redis_connection().await.ok_or_else(|| {
+		anyhow!(
+			"Redis unavailable, cannot enqueue local server image for guild {}",
+			guild_id
+		)
+	})?;
 	publish_task(guard.as_mut().unwrap(), &task).await?;
 
 	Ok(())
@@ -128,10 +130,12 @@ pub async fn enqueue_global_server_image(
 		image_save_config: build_image_save_config(image_config),
 	};
 
-	let mut guard = bot_data
-		.get_redis_connection()
-		.await
-		.ok_or_else(|| anyhow!("Redis unavailable, cannot enqueue global server image for guild {}", guild_id))?;
+	let mut guard = bot_data.get_redis_connection().await.ok_or_else(|| {
+		anyhow!(
+			"Redis unavailable, cannot enqueue global server image for guild {}",
+			guild_id
+		)
+	})?;
 	publish_task(guard.as_mut().unwrap(), &task).await?;
 
 	Ok(())

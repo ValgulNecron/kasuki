@@ -31,11 +31,7 @@ pub struct BotData {
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Arc<Client>,
-	pub shard_manager: Arc<
-		RwLock<
-			Option<Arc<DashMap<ShardId, (ShardRunnerInfo, UnboundedSender<ShardRunnerMessage>)>>>,
-		>,
-	>,
+	pub shard_manager: Arc<RwLock<HashMap<ShardId, Arc<parking_lot::RwLock<ShardRunnerInfo>>>>>,
 	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
 	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
@@ -43,7 +39,6 @@ pub struct BotData {
 	pub server_image_running: Arc<AtomicBool>,
 	pub redis_connection: RedisConnection,
 }
-
 impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
 		let conn = self.db_connection.clone();
@@ -83,7 +78,10 @@ impl BotData {
 		match redis::Client::open(redis_url.as_str()) {
 			Ok(client) => match client.get_multiplexed_async_connection().await {
 				Ok(conn) => {
-					info!("Reconnected to Redis at {}:{}", self.config.queue.host, self.config.queue.port);
+					info!(
+						"Reconnected to Redis at {}:{}",
+						self.config.queue.host, self.config.queue.port
+					);
 					*guard = Some(conn);
 					Some(guard)
 				},

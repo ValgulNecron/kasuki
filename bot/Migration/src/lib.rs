@@ -64,7 +64,7 @@ impl MigratorTrait for Migrator {
 			Box::new(m20250716_151508_add_foreign_key::Migration),
 			Box::new(m20251116_190300_add_use_time_to_command_usage::Migration),
 			Box::new(m20260210_000000_remove_user_banner::Migration),
-		Box::new(m20260225_000000_create_oauth_token::Migration),
+			Box::new(m20260225_000000_create_oauth_token::Migration),
 		]
 	}
 }

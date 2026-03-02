@@ -1,9 +1,4 @@
-use axum::{
-	extract::State,
-	http::Request,
-	middleware::Next,
-	response::Response,
-};
+use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use jsonwebtoken::{decode, Validation};
 use tracing::warn;
 
@@ -24,8 +19,8 @@ pub async fn auth_middleware(
 
 	let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
 
-	let decoded_token = decode::<Claims>(token, &state.jwt_decoding_key, &validation)
-		.map_err(|e| {
+	let decoded_token =
+		decode::<Claims>(token, &state.jwt_decoding_key, &validation).map_err(|e| {
 			warn!(error = ?e, "jwt validation failed");
 			AppError::unauthorized()
 		})?;

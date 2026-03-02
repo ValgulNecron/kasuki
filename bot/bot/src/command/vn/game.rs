@@ -1,12 +1,12 @@
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use shared::vndb::game::get_vn;
 use kasuki_macros::slash_command;
 use markdown_converter::vndb::convert_vndb_markdown;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
+use shared::vndb::game::get_vn;
 use tracing::trace;
 
 #[slash_command(
@@ -18,7 +18,10 @@ use tracing::trace;
 )]
 async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 	self_.defer().await?;
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let vndb_cache = cx.vndb_cache.clone();
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);

@@ -1,10 +1,10 @@
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
-use shared::vndb::game::{get_vn, VN};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
+use shared::vndb::game::{get_vn, VN};
 use tracing::trace;
 
 pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {

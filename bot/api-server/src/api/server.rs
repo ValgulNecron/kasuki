@@ -5,7 +5,11 @@ use crate::api::rate_limit::{create_rate_limiter, rate_limit_middleware};
 use crate::api::state::AppState;
 use crate::api::{health, oauth as oauth_handlers};
 use axum::{
-	extract::State, http::Method, middleware, response::IntoResponse, routing::{get, post},
+	extract::State,
+	http::Method,
+	middleware,
+	response::IntoResponse,
+	routing::{get, post},
 	Extension, Json, Router,
 };
 use chrono::{Duration, Utc};

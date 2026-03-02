@@ -26,11 +26,13 @@ Each invocation leaks a few KB. Over hours/days of uptime this grows unboundedly
 
 ### 2. `UserColor::find().all()` Loads Entire Table into RAM
 
-**File:** `bot/src/server_image/generate_server_image.rs:70`
+**File:** `bot/src/server_image/generate_server_image.rs:49` (bot), `image_generation/src/main.rs:109` (worker)
 
-The global server image generator calls `UserColor::find().all(&*connection).await?`, loading **every row** from the `user_color` table into memory at once. Each row contains a base64-encoded 128x128 PNG image (~25-30 KB of text per user). For a bot serving 100,000 users, this is **2.5-3 GB** loaded into a single `Vec`.
+The global server image path calls `UserColor::find().all(&*connection).await?`, loading **every row** from the `user_color` table into memory at once. Each row contains a base64-encoded 128x128 PNG image (~25-30 KB of text per user). For a bot serving 100,000 users, this is **2.5-3 GB** loaded into a single `Vec`.
 
-**Fix:** Use `.paginate(page_size)` or `.find().stream()` to process rows in batches, generating the image incrementally rather than holding all data in memory.
+**Update (2025-02):** Image generation has been moved to a dedicated `image_generation` worker binary communicating via Redis queue. The bot now pre-fetches the color map and sends it as part of the task payload, so this load no longer blocks the bot's async runtime. However, the memory spike still occurs in two places: the bot (for building the task payload in `enqueue_global_server_image`) and the worker (during mosaic generation). The worker is a separate process, so this no longer degrades bot responsiveness.
+
+**Fix:** Use `.paginate(page_size)` or `.find().stream()` to process rows in batches. In the bot, consider sending only user IDs in the task and letting the worker fetch color data itself in batches.
 
 ---
 
@@ -96,15 +98,15 @@ For a bot in 100 guilds averaging 500 members each: **50,000 Member structs** ca
 
 ### 6. `user_blacklist.read().await.clone()` Copies Entire Vec
 
-**File:** `bot/src/server_image/generate_server_image.rs:39, 74`
+**File:** `bot/src/server_image/generate_server_image.rs:47`
 
 ```rust
-let read_guard = user_blacklist.read().await.clone();
+let user_blacklist = bot_data.user_blacklist.read().await.clone();
 ```
 
-Clones the entire `Vec<String>` blacklist out of the RwLock. The read guard should be held for the duration of the check instead of copying the whole vector.
+Clones the entire `Vec<String>` blacklist out of the RwLock. The clone is serialized into the Redis task payload and sent to the `image_generation` worker. This is unavoidable for the queue-based architecture since the data must be serialized, but the Vec itself is still cloned from the RwLock.
 
-**Fix:** Hold the `RwLockReadGuard` while checking membership, or switch to an `Arc<HashSet<String>>` that can be cheaply cloned via Arc.
+**Fix:** Switch to an `Arc<HashSet<String>>` that can be cheaply cloned via Arc. The serialization into the task payload is necessary, but holding the read guard while serializing (instead of cloning first) would avoid the extra allocation.
 
 ### 7. `lava_client.read().await.clone()` in Every Music Command
 
@@ -124,13 +126,15 @@ Clones the inner `Option<LavalinkClient>` on every music command invocation. If 
 
 ### 8. Server Image Generation: 64 MB Canvas + Bulk Member Clone
 
-**File:** `bot/src/server_image/generate_server_image.rs:119`
+**File:** `image_generation/src/mosaic.rs` (worker), `bot/src/server_image/calculate_user_color.rs:18` (bot)
 
 - A `DynamicImage::new_rgba8(4096, 4096)` allocates **64 MB** of RGBA pixel data
 - `guild_cache.members.clone()` clones all `Member` structs from the serenity cache into a `Vec`
 - Per-user avatar images (128x128, ~65 KB each) are decoded and held simultaneously
 
 For a 1,000-member guild, peak memory during generation is **~130 MB** (64 MB canvas + 65 MB decoded avatars).
+
+**Update (2025-02):** The 64 MB canvas allocation and image compositing now happen in the dedicated `image_generation` worker process, not the bot. The bot still clones guild members from the serenity cache (via `get_member()`) to build the task payload, but the heavy image processing is fully isolated. This means the bot's memory footprint during server image operations is now limited to the member list + task serialization, while the worker handles the 64 MB canvas independently.
 
 **Fix:**
 - Process members in batches rather than cloning all at once
@@ -301,16 +305,38 @@ EmbedsContents::new(...).add_files(command_files).clone(); // clone of owned val
 
 ---
 
+## Architecture Change (2025-02): Image Generation Worker
+
+Server image generation and user color calculation have been moved from the bot process into a dedicated `image_generation` worker binary. Communication happens via a Redis queue (`image_generation:tasks` key, rpush/blpop pattern).
+
+**What moved out of the bot:**
+- Color calculation (CIELAB Delta-E 2000 matching)
+- Mosaic generation (4096x4096 canvas compositing via rayon)
+- Image saving (local filesystem or catbox upload)
+- DB upserts for `user_color` and `server_image` tables
+
+**What stays in the bot:**
+- Guild member fetching from Discord API/cache
+- Pre-fetching `UserColor` records to build task payloads
+- Publishing serialized `ImageTask` to Redis
+
+**Impact on memory issues:**
+- Issues #2 and #8 are **mitigated** for the bot process -- the heavy allocations now happen in the worker
+- Issue #2 still applies to the worker and to the bot's `enqueue_global_server_image` (loads full color table for payload)
+- The bot gains a small Redis connection overhead (~few KB)
+
+---
+
 ## Summary by Estimated Memory Impact
 
-| Priority | Issue | Estimated Impact |
+| Priority | Issue | Estimated Impact (bot process) |
 |---|---|---|
 | Critical | `Box::leak` in `load_localization` | Unbounded growth (leak) |
-| Critical | `UserColor::find().all()` in global image gen | Up to several GB for large bots |
+| Critical | `UserColor::find().all()` in global image gen | Up to several GB (now mitigated: loads in bot for payload, heavy processing in worker) |
 | Critical | AniList/VNDB caches (3x 10,000 entries) | 150-300 MB |
 | High | Guild member chunking (all members, all guilds) | Hundreds of MB for large bots |
 | High | `reqwest::Client::new()` per request | Connection pool churn (indirect) |
-| Medium | Server image 64 MB canvas + member clones | ~130 MB peak per generation |
+| Medium | Server image 64 MB canvas + member clones | ~130 MB peak (now in worker process, not bot) |
 | Medium | Steam game HashMap | ~7-10 MB steady, ~30 MB peak during refresh |
 | Medium | Rate limiter unbounded growth | Slow leak over weeks/months |
 | Medium | DB tables without pruning | Disk/query performance over time |
@@ -322,7 +348,7 @@ EmbedsContents::new(...).add_files(command_files).clone(); // clone of owned val
 ## Recommended Priority Actions
 
 1. **Fix the `Box::leak`** in `load_localization` -- this is a real memory leak
-2. **Paginate `UserColor::find().all()`** in global image generation
+2. **Paginate `UserColor::find().all()`** in both bot payload builder and worker -- still loads full table
 3. **Hash cache keys** instead of storing full GraphQL queries
 4. **Make cache capacity configurable** and reduce defaults to 1,000-2,000
 5. **Share a single `reqwest::Client`** across all HTTP-calling code

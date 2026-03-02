@@ -9,7 +9,6 @@ use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_integer_subcommand, get_option_map_string_subcommand,
 };
-use shared::image_saver::general_image_saver::image_saver;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use image::EncodableLayout;
@@ -20,6 +19,7 @@ use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::config::Config;
 use shared::helper::get_guild_lang::get_guild_language;
+use shared::image_saver::general_image_saver::image_saver;
 use shared::localization::USABLE_LOCALES;
 use std::str::FromStr;
 use tracing::{error, trace};

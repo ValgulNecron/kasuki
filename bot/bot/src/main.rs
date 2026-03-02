@@ -182,16 +182,25 @@ async fn main() {
 		match redis::Client::open(redis_url.as_str()) {
 			Ok(client) => match client.get_multiplexed_async_connection().await {
 				Ok(conn) => {
-					info!("Connected to Redis at {}:{}", queue_config.host, queue_config.port);
+					info!(
+						"Connected to Redis at {}:{}",
+						queue_config.host, queue_config.port
+					);
 					Arc::new(RwLock::new(Some(conn)))
 				},
 				Err(e) => {
-					warn!("Failed to connect to Redis (image queue will be unavailable): {}", e);
+					warn!(
+						"Failed to connect to Redis (image queue will be unavailable): {}",
+						e
+					);
 					Arc::new(RwLock::new(None))
 				},
 			},
 			Err(e) => {
-				warn!("Failed to create Redis client (image queue will be unavailable): {}", e);
+				warn!(
+					"Failed to create Redis client (image queue will be unavailable): {}",
+					e
+				);
 				Arc::new(RwLock::new(None))
 			},
 		}
@@ -209,7 +218,7 @@ async fn main() {
 		db_connection: Arc::new(connection),
 		manager: Arc::clone(&manager),
 		http_client: Arc::from(reqwest::Client::new()),
-		shard_manager: Arc::new(Default::default()),
+		shard_manager: Default::default(),
 		lavalink: Arc::new(Default::default()),
 		shutdown_signal: Arc::new(shutdown_tx),
 		vocal_session: Arc::new(Default::default()),
@@ -232,13 +241,6 @@ async fn main() {
 	info!("Discord client created successfully");
 
 	let data = bot_data.clone();
-	info!("Setting up shard manager");
-	let bot_data = data;
-	let mut guard = bot_data.shard_manager.write().await;
-	let runner = client.shard_manager.runners.clone();
-	*guard = Some(runner);
-	drop(guard);
-	info!("Shard manager configured successfully");
 
 	info!("Starting Discord client with auto-sharding");
 	tokio::spawn(async move {

@@ -1,8 +1,8 @@
 use anyhow::Result;
 use std::sync::Arc;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use crate::cache::CacheInterface;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::RwLock;
 
 pub async fn get_producer(

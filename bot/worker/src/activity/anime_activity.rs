@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Context, Result, anyhow};
-use base64::Engine;
+use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter};
@@ -158,7 +158,10 @@ async fn update_info(
 	let next_airing = match media.next_airing_episode {
 		Some(airing) => airing,
 		None => {
-			trace!("No next airing for anime_id={}, removing activity", row.anime_id);
+			trace!(
+				"No next airing for anime_id={}, removing activity",
+				row.anime_id
+			);
 			remove_activity(row, guild_id, db_connection.clone()).await?;
 			return Ok(());
 		},

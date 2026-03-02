@@ -34,7 +34,10 @@ use tokio::sync::RwLock;
 	args = [(name = "username", desc = "Username of the user you want to check.", arg_type = String, required = false, autocomplete = true)],
 )]
 async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let config = cx.bot_data.config.clone();
 	let anilist_cache = cx.anilist_cache.clone();
 

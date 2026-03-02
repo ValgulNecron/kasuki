@@ -8,8 +8,8 @@ use serde::Deserialize;
 use serde_json::json;
 use shared::database::prelude::AnimeSong;
 use std::num::NonZeroU32;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, info, trace, warn};
 

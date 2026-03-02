@@ -6,8 +6,8 @@
 //! to be formatted into Discord Embed responses.
 use std::sync::Arc;
 
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -32,7 +32,10 @@ use tokio::sync::RwLock;
 	args = [(name = "staff_name", desc = "Name of the staff you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 	let staff = get_staff(&cx.command_interaction, anilist_cache).await?;
 

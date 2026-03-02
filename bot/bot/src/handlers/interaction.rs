@@ -9,9 +9,7 @@ use serenity::prelude::Context as SerenityContext;
 use tracing::{trace, warn};
 
 impl Handler {
-	pub(crate) async fn interaction_create(
-		&self, ctx: SerenityContext, interaction: Interaction,
-	) {
+	pub(crate) async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
 		let mut user = None;
 		let bot_data = ctx.data::<BotData>().clone();
 		trace!("Interaction received: {:?}", interaction.kind());

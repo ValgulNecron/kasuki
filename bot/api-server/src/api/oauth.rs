@@ -251,9 +251,7 @@ pub async fn exchange_auth_code(
 	Ok(Json(TokenExchangeResponse { token }))
 }
 
-async fn exchange_code_for_token(
-	state: &AppState, code: &str,
-) -> Result<TokenResponse, AppError> {
+async fn exchange_code_for_token(state: &AppState, code: &str) -> Result<TokenResponse, AppError> {
 	let oauth_config = &state.config.api.oauth;
 
 	let params = [
@@ -370,13 +368,10 @@ pub async fn get_user_guilds(
 		)));
 	}
 
-	let raw_guilds = response
-		.json::<Vec<RawDiscordGuild>>()
-		.await
-		.map_err(|e| {
-			error!(error = %e, "malformed discord guilds response");
-			AppError::bad_gateway("Failed to parse guilds")
-		})?;
+	let raw_guilds = response.json::<Vec<RawDiscordGuild>>().await.map_err(|e| {
+		error!(error = %e, "malformed discord guilds response");
+		AppError::bad_gateway("Failed to parse guilds")
+	})?;
 
 	Ok(raw_guilds
 		.into_iter()

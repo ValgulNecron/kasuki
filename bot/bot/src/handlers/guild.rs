@@ -4,10 +4,12 @@ use crate::server_image::calculate_user_color::{color_management, enqueue_user_c
 use crate::server_image::generate_server_image::server_image_management;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
-use serenity::all::{Guild, GuildMembersChunkEvent, Member};
+use serenity::all::{Guild, GuildMembersChunkEvent, Member, ShardRunnerInfo};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::{GuildData, ServerUserRelation};
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::{info, trace, warn};
 
 impl Handler {
@@ -18,6 +20,16 @@ impl Handler {
 		let image_config = bot_data.config.image.clone();
 		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 		let db_connection = bot_data.db_connection.clone();
+
+		let shard_info = ctx.runner_info.clone();
+		let shard_id = ctx.shard_id.clone();
+		let data = bot_data.shard_manager.read().await;
+		let shard_data = data.get(&shard_id);
+		if let None = shard_data {
+			drop(data);
+			let mut write = bot_data.shard_manager.write().await;
+			write.insert(shard_id, shard_info);
+		}
 
 		if is_new.unwrap_or_default() {
 			info!(guild_id = %guild.id, "Joined a new guild");

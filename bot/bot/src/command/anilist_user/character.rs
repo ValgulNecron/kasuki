@@ -35,7 +35,10 @@ use tokio::sync::RwLock;
 	args = [(name = "name", desc = "Name of the character you want to check.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let anilist_cache = cx.anilist_cache.clone();
 
 	let map = get_option_map_string(&cx.command_interaction);

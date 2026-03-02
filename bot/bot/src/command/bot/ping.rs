@@ -41,20 +41,7 @@ async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 	let lang_id = get_language_identifier(guild_id, db_connection).await;
 
 	debug!("Retrieving shard manager from bot data");
-	let guard = ctx.data::<BotData>().shard_manager.clone();
-	let guard = guard.read().await;
-	let manager = guard.clone();
-	drop(guard);
-	let shard_manager = match manager {
-		Some(shard_manager) => {
-			debug!("Successfully retrieved shard manager");
-			shard_manager.clone()
-		},
-		None => {
-			error!("Failed to get shard manager from bot data");
-			return Err(anyhow!("failed to get the shard manager"));
-		},
-	};
+	let shard_runner_info = ctx.runner_info.read();
 
 	// Retrieve the shard ID from the context
 	let shard_id = ctx.shard_id;
@@ -63,20 +50,8 @@ async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 	// Retrieve the shard runner info from the shard manager
 	debug!("Retrieving shard runner info for shard {}", shard_id);
 	let (latency, stage) = {
-		let shard_runner_info = match shard_manager.get(&shard_id) {
-			Some(info) => {
-				debug!("Found shard runner info for shard {}", shard_id);
-				info
-			},
-			None => {
-				error!("Failed to get shard info for shard {}", shard_id);
-				return Err(anyhow!("failed to get the shard info"));
-			},
-		};
-
 		// Format the latency as a string
-		let (info, _) = shard_runner_info.value();
-		let latency = match info.latency {
+		let latency = match shard_runner_info.latency {
 			Some(latency) => {
 				let formatted = format!("{:.2}ms", latency.as_millis());
 				debug!("Shard {} latency: {}", shard_id, formatted);
@@ -89,7 +64,7 @@ async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 		};
 
 		// Retrieve the stage of the shard runner
-		let stage = info.stage.to_string();
+		let stage = shard_runner_info.stage.to_string();
 		debug!("Shard {} connection stage: {}", shard_id, stage);
 		drop(shard_runner_info);
 		(latency, stage)

@@ -1,10 +1,10 @@
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use crate::command::context::CommandContext;
-use shared::vndb::stats::get_stats;
+use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
+use shared::vndb::stats::get_stats;
 use tracing::{debug, info, trace};
 
 #[slash_command(
@@ -18,7 +18,10 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Deferring command response");
 	self_.defer().await?;
 
-	let cx = CommandContext::new(self_.get_ctx().clone(), self_.get_command_interaction().clone());
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let vndb_cache = cx.vndb_cache.clone();
 	debug!("Retrieved bot data and VNDB cache");
 

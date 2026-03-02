@@ -179,34 +179,56 @@ pub async fn update_user_blacklist(
 
 		trace!("Extracting user_id array from JSON response");
 		let user_ids: Vec<String> = match blacklist_json["user_id"].as_array() {
-            Some(arr) => {
-                debug!("Found user_id array in blacklist with {} entries", arr.len());
-                trace!("First 5 user IDs in array: {:?}",
-					arr.iter().take(5).map(|v| v.to_string()).collect::<Vec<String>>());
-                arr
-            }
-            None => {
-                consecutive_failures += 1;
-                error!("Failed to get user_id array from blacklist JSON");
-                warn!("This is consecutive failure #{} for blacklist updates", consecutive_failures);
-                debug!("JSON keys available: {:?}",
-					blacklist_json.as_object().map(|o| o.keys().cloned().collect::<Vec<String>>()));
-                debug!("Next blacklist update scheduled in {} seconds", task_intervals.blacklisted_user_update);
-                trace!("Update cycle #{} failed at {}", update_count, chrono::Utc::now());
-                continue;
-            }
-        }
-            .iter()
-            .map(|id| match id.as_str() {
-                Some(id) => id.to_string(),
-                None => {
-                    error!("Found non-string value in user_id array");
-                    debug!("Invalid value type: {}", id.to_string());
-                    "".to_string()
-                }
-            })
-            .filter(|id| !id.is_empty())
-            .collect();
+			Some(arr) => {
+				debug!(
+					"Found user_id array in blacklist with {} entries",
+					arr.len()
+				);
+				trace!(
+					"First 5 user IDs in array: {:?}",
+					arr.iter()
+						.take(5)
+						.map(|v| v.to_string())
+						.collect::<Vec<String>>()
+				);
+				arr
+			},
+			None => {
+				consecutive_failures += 1;
+				error!("Failed to get user_id array from blacklist JSON");
+				warn!(
+					"This is consecutive failure #{} for blacklist updates",
+					consecutive_failures
+				);
+				debug!(
+					"JSON keys available: {:?}",
+					blacklist_json
+						.as_object()
+						.map(|o| o.keys().cloned().collect::<Vec<String>>())
+				);
+				debug!(
+					"Next blacklist update scheduled in {} seconds",
+					task_intervals.blacklisted_user_update
+				);
+				trace!(
+					"Update cycle #{} failed at {}",
+					update_count,
+					chrono::Utc::now()
+				);
+				continue;
+			},
+		}
+		.iter()
+		.map(|id| match id.as_str() {
+			Some(id) => id.to_string(),
+			None => {
+				error!("Found non-string value in user_id array");
+				debug!("Invalid value type: {}", id.to_string());
+				"".to_string()
+			},
+		})
+		.filter(|id| !id.is_empty())
+		.collect();
 
 		info!("Updating blacklist with {} users", user_ids.len());
 		trace!("Acquiring write lock on blacklist");
