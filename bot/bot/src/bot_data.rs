@@ -1,6 +1,4 @@
 use chrono::{DateTime, Timelike, Utc};
-use dashmap::DashMap;
-use futures::channel::mpsc::UnboundedSender;
 use lavalink_rs::client::LavalinkClient;
 use reqwest::Client;
 use sea_orm::ActiveValue::Set;
@@ -8,7 +6,8 @@ use sea_orm::{
 	ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
 };
 use serenity::all::{CurrentApplicationInfo, ShardId};
-use serenity::gateway::{ShardRunnerInfo, ShardRunnerMessage};
+use serenity::gateway::ShardRunnerInfo;
+use shared::queue::tasks::ImageTask;
 use shared::cache::CacheInterface;
 use shared::config::Config;
 use songbird::Songbird;
@@ -38,6 +37,8 @@ pub struct BotData {
 	pub user_color_update_count: Arc<AtomicUsize>,
 	pub server_image_running: Arc<AtomicBool>,
 	pub redis_connection: RedisConnection,
+	pub user_color_task_tx: tokio::sync::mpsc::UnboundedSender<ImageTask>,
+	pub server_image_task_tx: tokio::sync::mpsc::UnboundedSender<ImageTask>,
 }
 impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {

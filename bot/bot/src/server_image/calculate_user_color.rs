@@ -2,10 +2,9 @@ use std::sync::Arc;
 
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
-use shared::queue::publisher::publish_task;
 use shared::queue::tasks::ImageTask;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 use crate::event_handler::BotData;
 
@@ -93,18 +92,8 @@ pub async fn enqueue_user_color(
 		profile_picture_url: pfp_url,
 	};
 
-	let mut guard = match bot_data.get_redis_connection().await {
-		Some(g) => g,
-		None => {
-			warn!(
-				"Redis unavailable, cannot enqueue color calculation for user {}",
-				user.id
-			);
-			return;
-		},
-	};
-	if let Err(e) = publish_task(guard.as_mut().unwrap(), &task).await {
-		error!("Failed to enqueue user color task for {}: {:#}", user.id, e);
+	if let Err(_) = bot_data.user_color_task_tx.send(task) {
+		error!("User color queue publisher stopped, dropping task for user {}", user.id);
 	}
 }
 

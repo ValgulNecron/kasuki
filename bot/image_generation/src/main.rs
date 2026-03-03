@@ -5,14 +5,15 @@ mod mosaic;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use tokio::sync::Semaphore;
 use redis::AsyncCommands;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use shared::config::Config;
 use shared::image_saver::general_image_saver::image_saver;
-use shared::queue::publisher::QUEUE_KEY;
+use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
 use shared::queue::tasks::{ImageSaveConfig, ImageTask, MemberColorData};
-use tracing::{error, info, warn};
+use tracing::{error, info, warn, debug};
 use tracing_subscriber::FmtSubscriber;
 use uuid::Uuid;
 
@@ -61,11 +62,21 @@ async fn main() -> Result<()> {
 		queue_config.host, queue_config.port
 	);
 
+	let max_workers = config.image.max_workers;
+	let semaphore = Arc::new(Semaphore::new(max_workers));
+	info!("Image generation worker pool size: {}", max_workers);
+
 	loop {
-		let result: Option<(String, String)> = match connection.blpop(QUEUE_KEY, 30.0).await {
+		let permit = semaphore.clone().acquire_owned().await.unwrap();
+
+		let result: Option<(String, String)> = match connection
+			.blpop(&[SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY], 30.0)
+			.await
+		{
 			Ok(r) => r,
 			Err(e) => {
-				error!("Redis error while waiting for task: {:#}", e);
+				debug!("Redis error while waiting for task: {:#}", e);
+				drop(permit);
 				continue;
 			},
 		};
@@ -77,15 +88,23 @@ async fn main() -> Result<()> {
 					Ok(t) => t,
 					Err(e) => {
 						error!("Failed to deserialize task: {:#}", e);
+						drop(permit);
 						continue;
 					},
 				};
 
-				if let Err(e) = handle_task(task, &db).await {
-					error!("Failed to process task: {:#}", e);
-				}
+				let db = db.clone();
+				tokio::spawn(async move {
+					let _permit = permit;
+					if let Err(e) = handle_task(task, &db).await {
+						error!("Failed to process task: {:#}", e);
+					}
+				});
 			},
-			None => continue,
+			None => {
+				drop(permit);
+				continue;
+			},
 		}
 	}
 }

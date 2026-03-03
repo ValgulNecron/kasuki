@@ -148,6 +148,14 @@ pub struct ImageConfig {
 	pub save_image: String,
 	pub save_server: Option<String>,
 	pub token: Option<String>,
+	/// Maximum number of tasks processed concurrently. Defaults to 1.
+	#[serde(default = "default_max_workers")]
+	pub max_workers: usize,
+}
+
+fn default_max_workers() -> usize {
+	let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+	(cpus / 10).max(1)
 }
 
 #[derive(Debug, Deserialize, Clone)]

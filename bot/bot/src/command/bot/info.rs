@@ -1,7 +1,6 @@
 use crate::command::embed_content::{CommandType, CreateFooter, EmbedContent, EmbedsContents};
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::event_handler::BotData;
-use crate::get_url;
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
@@ -21,8 +20,6 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction();
-	let config = bot_data.config.clone();
-
 	debug!("Retrieving bot data and configuration");
 
 	// Retrieve the guild ID from the command interaction
@@ -39,7 +36,7 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	let db_connection = bot_data.db_connection.clone();
 
 	// Get the language identifier for the guild
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = get_language_identifier(guild_id, db_connection.clone()).await;
 
 	// Retrieve various details about the bot and the server
 	debug!("Retrieving bot and server details");
@@ -49,12 +46,8 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	let shard = ctx.shard_id.to_string();
 	debug!("Current shard: {}", shard);
 
-	debug!("Connecting to database");
-	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-	debug!("Database connection established");
-
 	debug!("Retrieving user count");
-	let user_count = UserColor::find().all(&connection).await?.len();
+	let user_count = UserColor::find().all(&*db_connection).await?.len();
 	debug!("User count: {}", user_count);
 
 	debug!("Retrieving application info");
@@ -92,12 +85,12 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 
 	let avatar = if bot_icon.is_animated() {
 		format!(
-			"https://cdn.discordapp.com/icons/{}/{}.gif?size=1024",
+			"https://cdn.discordapp.com/app-icons/{}/{}.gif?size=1024",
 			bot_id, bot_icon
 		)
 	} else {
 		format!(
-			"https://cdn.discordapp.com/icons/{}/{}.webp?size=1024",
+			"https://cdn.discordapp.com/app-icons/{}/{}.webp?size=1024",
 			bot_id, bot_icon
 		)
 	};

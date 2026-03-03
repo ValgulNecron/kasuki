@@ -1,6 +1,7 @@
 pub mod bot_info_update;
 pub mod game_management;
 pub mod ping_manager;
+pub mod queue_publisher;
 pub mod user_blacklist;
 
 use crate::event_handler::BotData;

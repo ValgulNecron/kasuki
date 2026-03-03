@@ -6,7 +6,7 @@ use crate::event_handler::{BotData, Handler};
 use crate::handlers::user_db::add_user_data_to_db;
 use serenity::all::{CommandType, Interaction};
 use serenity::prelude::Context as SerenityContext;
-use tracing::{trace, warn};
+use tracing::{error, trace, warn};
 
 impl Handler {
 	pub(crate) async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
@@ -20,6 +20,7 @@ impl Handler {
 				match command_interaction.data.kind {
 					CommandType::ChatInput => {
 						if let Err(e) = dispatch_command(&ctx, &command_interaction).await {
+							error!(error = ?e, "Error executing command");
 							message = e.to_string();
 						} else {
 							return;
@@ -27,6 +28,7 @@ impl Handler {
 					},
 					CommandType::User => {
 						if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
+							error!(error = ?e, "Error executing user command");
 							message = e.to_string();
 						} else {
 							return;

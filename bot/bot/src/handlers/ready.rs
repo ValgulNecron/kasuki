@@ -21,37 +21,37 @@ impl Handler {
 	pub(crate) async fn ready(&self, ctx: SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
 		if bot_data.lavalink.read().await.is_none() {
-			let events = events::Events {
-				raw: Some(music_events::raw_event),
-				ready: Some(music_events::ready_event),
-				track_start: Some(music_events::track_start),
-				..Default::default()
-			};
+			if let Some(music_config) = bot_data.config.music.as_ref() {
+				let events = events::Events {
+					raw: Some(music_events::raw_event),
+					ready: Some(music_events::ready_event),
+					track_start: Some(music_events::track_start),
+					..Default::default()
+				};
 
-			let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+				let user_id =
+					lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
 
-			let music_config = bot_data
-				.config
-				.music
-				.as_ref()
-				.expect("Music configuration is required");
+				let node_local = NodeBuilder {
+					hostname: music_config.lavalink_hostname.clone(),
+					is_ssl: music_config.https,
+					events: events::Events::default(),
+					password: music_config.lavalink_password.clone(),
+					user_id,
+					session_id: None,
+				};
 
-			let node_local = NodeBuilder {
-				hostname: music_config.lavalink_hostname.clone(),
-				is_ssl: music_config.https,
-				events: events::Events::default(),
-				password: music_config.lavalink_password.clone(),
-				user_id,
-				session_id: None,
-			};
-
-			let client = lavalink_rs::client::LavalinkClient::new(
-				events,
-				vec![node_local],
-				NodeDistributionStrategy::round_robin(),
-			)
-			.await;
-			*bot_data.lavalink.write().await = Some(client);
+				let client = lavalink_rs::client::LavalinkClient::new(
+					events,
+					vec![node_local],
+					NodeDistributionStrategy::round_robin(),
+				)
+				.await;
+				*bot_data.lavalink.write().await = Some(client);
+				info!("Lavalink client initialized");
+			} else {
+				warn!("No music configuration found. Music features will be disabled.");
+			}
 		}
 
 		for guild in ctx.cache.guilds() {

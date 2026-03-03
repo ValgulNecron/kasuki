@@ -7,7 +7,6 @@ use serenity::all::{Context as SerenityContext, GuildId, Member};
 use shared::config::ImageConfig;
 use shared::database::prelude::UserColor;
 use shared::database::user_color::Model;
-use shared::queue::publisher::publish_task;
 use shared::queue::tasks::{ImageSaveConfig, ImageTask, MemberColorData};
 use tracing::{info, warn};
 
@@ -82,13 +81,10 @@ pub async fn enqueue_local_server_image(
 		image_save_config: build_image_save_config(image_config),
 	};
 
-	let mut guard = bot_data.get_redis_connection().await.ok_or_else(|| {
-		anyhow!(
-			"Redis unavailable, cannot enqueue local server image for guild {}",
-			guild_id
-		)
-	})?;
-	publish_task(guard.as_mut().unwrap(), &task).await?;
+	bot_data
+		.server_image_task_tx
+		.send(task)
+		.map_err(|_| anyhow!("Server image queue publisher task stopped"))?;
 
 	Ok(())
 }
@@ -130,13 +126,10 @@ pub async fn enqueue_global_server_image(
 		image_save_config: build_image_save_config(image_config),
 	};
 
-	let mut guard = bot_data.get_redis_connection().await.ok_or_else(|| {
-		anyhow!(
-			"Redis unavailable, cannot enqueue global server image for guild {}",
-			guild_id
-		)
-	})?;
-	publish_task(guard.as_mut().unwrap(), &task).await?;
+	bot_data
+		.server_image_task_tx
+		.send(task)
+		.map_err(|_| anyhow!("Server image queue publisher task stopped"))?;
 
 	Ok(())
 }

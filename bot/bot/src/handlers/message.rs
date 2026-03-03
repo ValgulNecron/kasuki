@@ -1,4 +1,5 @@
 use crate::event_handler::{BotData, Handler};
+use crate::handlers::user_db::add_user_data_to_db;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::Message;
@@ -23,6 +24,16 @@ impl Handler {
 		);
 
 		let db_connection = bot_data.db_connection.clone();
+
+		// Ensure user exists before inserting message (FK constraint)
+		if let Err(e) = add_user_data_to_db(message.author.clone(), db_connection.clone()).await {
+			warn!(
+				user_id = %user_id,
+				error = ?e,
+				"Failed to insert user data from message into database"
+			);
+		}
+
 		let message_id = message.id.to_string();
 		let data = message.content.to_string();
 		let length = data.len();

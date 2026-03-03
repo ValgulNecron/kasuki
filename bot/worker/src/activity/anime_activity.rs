@@ -1,13 +1,14 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use std::borrow::Cow;
+
 use anyhow::{anyhow, Context, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter};
-use serde::{Deserialize, Serialize};
 use serenity::builder::{CreateAttachment, EditWebhook, ExecuteWebhook};
 use serenity::http::Http;
 use serenity::model::webhook::Webhook;
@@ -16,15 +17,9 @@ use shared::cache::CacheInterface;
 use shared::database::activity_data;
 use shared::database::activity_data::Model;
 use shared::database::prelude::ActivityData;
-use shared::localization::load_localization;
+use shared::localization::{get_language_identifier, FluentValue, Loader, USABLE_LOCALES};
 use tokio::sync::RwLock;
 use tracing::{error, info, trace};
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct SendActivityLocalised {
-	pub title: String,
-	pub desc: String,
-}
 
 /// Manages activity notifications. Tracks the last check time internally
 /// so it can find all activities that should have fired since the last poll.
@@ -93,12 +88,21 @@ async fn send_specific_activity(
 	row: &Model, guild_id: String, http: &Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
-	let localised_text: SendActivityLocalised = load_localization(
-		guild_id.clone(),
-		"json/message/anilist_user/send_activity.json",
-		db_connection.clone(),
-	)
-	.await?;
+	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
+
+	let mut args = std::collections::HashMap::new();
+	args.insert(
+		Cow::Borrowed("ep"),
+		FluentValue::from(row.episode.to_string()),
+	);
+	args.insert(
+		Cow::Borrowed("anime"),
+		FluentValue::from(row.name.clone()),
+	);
+
+	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_user_send_activity-title");
+	let desc =
+		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_send_activity-desc", &args);
 
 	let mut webhook = Webhook::from_url(http, &row.webhook).await?;
 
@@ -113,14 +117,9 @@ async fn send_specific_activity(
 	webhook.edit(http, edit_webhook).await?;
 
 	let embed = serenity::builder::CreateEmbed::new()
-		.description(
-			localised_text
-				.desc
-				.replace("$ep$", &row.episode.to_string())
-				.replace("$anime$", &row.name),
-		)
+		.description(desc)
 		.url(format!("https://anilist.co/anime/{}", row.anime_id))
-		.title(&localised_text.title);
+		.title(title);
 
 	let builder_message = ExecuteWebhook::new().embed(embed);
 	webhook.execute(http, false, builder_message).await?;

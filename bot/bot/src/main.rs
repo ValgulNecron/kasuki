@@ -175,6 +175,11 @@ async fn main() {
 	let (shutdown_tx, _) = broadcast::channel(1);
 	info!("Created shutdown signal channel");
 
+	let (user_color_tx, user_color_rx) =
+		tokio::sync::mpsc::unbounded_channel::<shared::queue::tasks::ImageTask>();
+	let (server_image_tx, server_image_rx) =
+		tokio::sync::mpsc::unbounded_channel::<shared::queue::tasks::ImageTask>();
+
 	info!("Connecting to Redis for image queue");
 	let redis_connection = {
 		let queue_config = &config.queue;
@@ -225,8 +230,20 @@ async fn main() {
 		user_color_update_count: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
 		server_image_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
 		redis_connection,
+		user_color_task_tx: user_color_tx,
+		server_image_task_tx: server_image_tx,
 	});
 	info!("Bot data structure initialized successfully");
+
+	let bd = bot_data.clone();
+	tokio::spawn(
+		crate::launch_task::queue_publisher::user_color_queue_publisher(user_color_rx, bd),
+	);
+	let bd = bot_data.clone();
+	tokio::spawn(
+		crate::launch_task::queue_publisher::server_image_queue_publisher(server_image_rx, bd),
+	);
+	info!("Queue publisher tasks spawned");
 
 	info!("Creating Discord client");
 	let mut client = Client::builder(discord_token, gateway_intent)
@@ -239,8 +256,6 @@ async fn main() {
 			process::exit(5);
 		});
 	info!("Discord client created successfully");
-
-	let data = bot_data.clone();
 
 	info!("Starting Discord client with auto-sharding");
 	tokio::spawn(async move {
