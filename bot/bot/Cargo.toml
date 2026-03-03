@@ -51,7 +51,8 @@ inventory.workspace = true
 kasuki-macros.workspace = true
 rustls.workspace = true
 redis.workspace = true
-parking_lot = "0.12.5"
+sentry.workspace = true
+parking_lot.workspace = true
 
 [build-dependencies]
 cynic-codegen.workspace = true

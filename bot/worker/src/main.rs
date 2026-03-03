@@ -11,8 +11,9 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{broadcast, RwLock};
-use tracing::{error, info, Level};
-use tracing_subscriber::FmtSubscriber;
+use tracing::{error, info, warn, Level};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::activity::anime_activity::manage_activity;
 use crate::get_anisong_db::get_anisong;
@@ -20,15 +21,28 @@ use crate::update_random_stats::update_random_stats_launcher;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-	let subscriber = FmtSubscriber::builder()
-		.with_max_level(Level::INFO)
-		.finish();
-	tracing::subscriber::set_global_default(subscriber)
-		.context("setting default subscriber failed")?;
+	let config = WorkerConfig::new().context("Failed to load config.toml")?;
+
+	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
+		let guard = sentry::init((
+			url,
+			sentry::ClientOptions {
+				release: sentry::release_name!(),
+				..Default::default()
+			},
+		));
+		println!("Sentry initialized successfully");
+		guard
+	});
+
+	let sentry_layer = sentry::integrations::tracing::layer();
+	tracing_subscriber::registry()
+		.with(tracing_subscriber::filter::LevelFilter::from_level(Level::INFO))
+		.with(sentry_layer)
+		.with(tracing_subscriber::fmt::layer())
+		.init();
 
 	info!("Starting Worker...");
-
-	let config = WorkerConfig::new().context("Failed to load config.toml")?;
 	info!("Configuration loaded");
 
 	info!("Connecting to database...");
@@ -41,7 +55,21 @@ async fn main() -> Result<()> {
 	);
 	info!("Database connected");
 
-	let anilist_cache = Arc::new(RwLock::new(CacheInterface::new()));
+	let anilist_cache = Arc::new(RwLock::new(
+		match CacheInterface::from_config(&config.cache).await {
+			Ok(c) => {
+				info!("AniList cache initialized with {} backend", config.cache.cache_type);
+				c
+			},
+			Err(e) => {
+				warn!(
+					"Failed to init cache with {} backend, falling back to memory: {}",
+					config.cache.cache_type, e
+				);
+				CacheInterface::new()
+			},
+		},
+	));
 
 	let token = Token::from_str(&config.bot.discord_token).context("Invalid Discord token")?;
 	let http = Arc::new(Http::new(token));

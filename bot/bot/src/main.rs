@@ -48,6 +48,18 @@ async fn main() {
 	};
 	println!("Config loaded successfully");
 
+	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
+		let guard = sentry::init((
+			url,
+			sentry::ClientOptions {
+				release: sentry::release_name!(),
+				..Default::default()
+			},
+		));
+		println!("Sentry initialized successfully");
+		guard
+	});
+
 	let log = config.logging.log_level.clone();
 	let max_log_retention_days = config.logging.max_log_retention;
 	if let Err(e) = create_log_directory() {
@@ -86,10 +98,38 @@ async fn main() {
 	}
 	info!("Database initialized successfully");
 
-	let _cache_config = config.cache.clone();
-	info!("Initializing caches");
-	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));
-	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(CacheInterface::new()));
+	let cache_config = config.cache.clone();
+	info!("Initializing caches (backend: {})", cache_config.cache_type);
+	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
+		match CacheInterface::from_config(&cache_config).await {
+			Ok(c) => {
+				info!("AniList cache initialized with {} backend", cache_config.cache_type);
+				c
+			},
+			Err(e) => {
+				warn!(
+					"Failed to init AniList cache with {} backend, falling back to memory: {}",
+					cache_config.cache_type, e
+				);
+				CacheInterface::new()
+			},
+		},
+	));
+	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
+		match CacheInterface::from_config(&cache_config).await {
+			Ok(c) => {
+				info!("VNDB cache initialized with {} backend", cache_config.cache_type);
+				c
+			},
+			Err(e) => {
+				warn!(
+					"Failed to init VNDB cache with {} backend, falling back to memory: {}",
+					cache_config.cache_type, e
+				);
+				CacheInterface::new()
+			},
+		},
+	));
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");

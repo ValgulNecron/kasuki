@@ -14,7 +14,8 @@ use shared::image_saver::general_image_saver::image_saver;
 use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
 use shared::queue::tasks::{ImageSaveConfig, ImageTask, MemberColorData};
 use tracing::{error, info, warn, debug};
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 use uuid::Uuid;
 
 use crate::calculate::{calculate_user_color_from_url, get_image_from_url};
@@ -28,14 +29,29 @@ use shared::database::server_image::{ActiveModel, Column};
 async fn main() -> Result<()> {
 	let config = Config::new().context("Failed to load config.toml")?;
 
-	let log_level = config
+	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
+		let guard = sentry::init((
+			url,
+			sentry::ClientOptions {
+				release: sentry::release_name!(),
+				..Default::default()
+			},
+		));
+		println!("Sentry initialized successfully");
+		guard
+	});
+
+	let log_level: tracing::Level = config
 		.logging
 		.log_level
 		.parse()
 		.unwrap_or(tracing::Level::INFO);
-	let subscriber = FmtSubscriber::builder().with_max_level(log_level).finish();
-	tracing::subscriber::set_global_default(subscriber)
-		.context("Failed to set default subscriber")?;
+	let sentry_layer = sentry::integrations::tracing::layer();
+	tracing_subscriber::registry()
+		.with(tracing_subscriber::filter::LevelFilter::from_level(log_level))
+		.with(sentry_layer)
+		.with(tracing_subscriber::fmt::layer())
+		.init();
 
 	info!("Starting Image Generation worker...");
 

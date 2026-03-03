@@ -16,10 +16,39 @@ pub struct Config {
 	pub api: ApiConfig,
 	pub cache: CacheConfig,
 	pub queue: QueueConfig,
+	pub sentry_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct CacheConfig {}
+pub struct CacheConfig {
+	/// "memory" (default) or "redis"
+	#[serde(default = "default_cache_type")]
+	pub cache_type: String,
+	/// Redis host (only used when cache_type = "redis")
+	pub host: Option<String>,
+	/// Redis port (only used when cache_type = "redis")
+	pub port: Option<u16>,
+	/// Redis password (only used when cache_type = "redis")
+	pub password: Option<String>,
+	/// TTL in seconds for cache entries (default: 3600)
+	#[serde(default = "default_cache_ttl")]
+	pub ttl_secs: u64,
+	/// Maximum number of entries for the in-memory backend (default: 10 000)
+	#[serde(default = "default_cache_max_capacity")]
+	pub max_capacity: u64,
+}
+
+fn default_cache_type() -> String {
+	"memory".to_string()
+}
+
+fn default_cache_ttl() -> u64 {
+	3600
+}
+
+fn default_cache_max_capacity() -> u64 {
+	10_000
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct QueueConfig {
@@ -248,6 +277,8 @@ pub struct WorkerConfig {
 	pub bot: BotConfig,
 	pub db: DbConfig,
 	pub task_intervals: TaskIntervalConfig,
+	pub cache: CacheConfig,
+	pub sentry_url: Option<String>,
 }
 
 impl WorkerConfig {

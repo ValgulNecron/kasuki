@@ -20,3 +20,4 @@ palette.workspace = true
 rayon.workspace = true
 uuid.workspace = true
 redis.workspace = true
+sentry.workspace = true

@@ -6,16 +6,34 @@ use shared::config::Config;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-	tracing_subscriber::fmt::init();
-	info!("starting api-server");
-
 	let config = Config::new().map_err(|e| {
-		error!(error = %e, "failed to load config");
+		eprintln!("failed to load config: {}", e);
 		e
 	})?;
+
+	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
+		let guard = sentry::init((
+			url,
+			sentry::ClientOptions {
+				release: sentry::release_name!(),
+				..Default::default()
+			},
+		));
+		println!("Sentry initialized successfully");
+		guard
+	});
+
+	let sentry_layer = sentry::integrations::tracing::layer();
+	tracing_subscriber::registry()
+		.with(sentry_layer)
+		.with(tracing_subscriber::fmt::layer())
+		.init();
+	info!("starting api-server");
 
 	let jwt_secret_bytes = STANDARD.decode(&config.api.oauth.jwt_secret).map_err(|e| {
 		error!(error = %e, "invalid base64 jwt secret in config");

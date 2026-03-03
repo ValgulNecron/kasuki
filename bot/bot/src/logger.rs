@@ -106,8 +106,11 @@ pub fn init_logger(log: &str, max_log_retention_days: u32) -> Result<WorkerGuard
 
 	let format = fmt::layer().with_ansi(true);
 
+	let sentry_layer = sentry::integrations::tracing::layer();
+
 	let registry = tracing_subscriber::registry()
 		.with(filter)
+		.with(sentry_layer)
 		.with(format)
 		.with(
 			tracing_subscriber::fmt::layer()

@@ -404,9 +404,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	let data = vec![
 		common,
-		CreateContainerComponent::Separator(CreateSeparator::new(true)),
+		CreateContainerComponent::Separator(CreateSeparator::new()),
 		u1,
-		CreateContainerComponent::Separator(CreateSeparator::new(true)),
+		CreateContainerComponent::Separator(CreateSeparator::new()),
 		u2,
 	];
 
