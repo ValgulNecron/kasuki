@@ -2,7 +2,7 @@ use bytes::Bytes;
 use std::sync::Arc;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -61,7 +61,6 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 	let n = *map.get(&String::from("n")).unwrap_or(&1);
 	let data = get_value(command_interaction, n, &config);
 
-	self_.defer().await?;
 
 	let uuid_name = Uuid::new_v4();
 	let filename = format!("{}.png", uuid_name);
@@ -157,7 +156,7 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 		}
 	};
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, embed_contents)
+	let embed_contents = EmbedsContents::new(embed_contents)
 		.add_files(command_files)
 		.clone();
 

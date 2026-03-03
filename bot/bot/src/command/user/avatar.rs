@@ -3,7 +3,7 @@
 //! It takes a Serenity context and a command interaction as input and processes
 //! the command to provide appropriate responses based on the user's avatar.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use anyhow::Result;
@@ -22,7 +22,6 @@ use std::collections::HashMap;
 	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction();
@@ -85,7 +84,7 @@ async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
 		embed_content.push(content2);
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, embed_content);
+	let embed_contents = EmbedsContents::new(embed_content);
 
 	Ok(embed_contents)
 }

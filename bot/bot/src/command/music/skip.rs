@@ -41,7 +41,7 @@
 //! - If a song is currently playing, the bot skips the track and sends a success message.
 //! - If no song is playing or the Lavalink client is unavailable, the bot sends an error message.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
@@ -58,7 +58,6 @@ use std::collections::HashMap;
 	install_contexts = [Guild],
 )]
 async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -88,7 +87,7 @@ async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
 		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_skip-title"))
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-error_no_voice"));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
@@ -113,7 +112,7 @@ async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_skip-nothing_to_skip"));
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

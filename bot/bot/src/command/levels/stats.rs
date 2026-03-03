@@ -1,5 +1,5 @@
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
 use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
@@ -27,7 +27,6 @@ use uuid::Uuid;
 )]
 async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing levels stats command");
-	let _ = self_.defer().await;
 	debug!("Command deferred");
 
 	let ctx = self_.get_ctx();
@@ -285,8 +284,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 		]);
 	debug!("Embed content created with title: {}", title);
 
-	debug!("Creating final embed contents with CommandType::Followup");
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
 	embed_contents.add_files(vec![progress_file]);
 	debug!("Added progress bar file to embed contents");
 

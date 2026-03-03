@@ -1,5 +1,5 @@
 //! Module implementing the `CreditCommand` structure and its functionality.
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -45,8 +45,7 @@ async fn credit_command(self_: CreditCommand) -> Result<EmbedsContents<'_>> {
 	let embed_content = EmbedContent::new(title.clone()).description(desc);
 	debug!("Embed content created with title: {}", title);
 
-	debug!("Creating final embed contents with CommandType::First");
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	info!("Credit command processed successfully");
 	Ok(embed_contents)

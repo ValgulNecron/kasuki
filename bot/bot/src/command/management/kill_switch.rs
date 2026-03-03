@@ -58,7 +58,7 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
@@ -144,7 +144,7 @@ async fn kill_switch_command(self_: KillSwitchCommand) -> Result<EmbedsContents<
 
 	let embed_content = EmbedContent::new(module.clone()).description(desc);
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

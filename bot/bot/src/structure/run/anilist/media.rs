@@ -1,4 +1,4 @@
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::UNKNOWN;
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
@@ -656,7 +656,7 @@ pub async fn media_content<'a>(
 		}
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

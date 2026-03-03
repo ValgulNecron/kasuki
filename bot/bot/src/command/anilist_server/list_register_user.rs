@@ -2,7 +2,7 @@
 //! in a Discord guild. It implements the `Command` trait to define specific behaviors
 //! for interacting with Discord and retrieving necessary data.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
@@ -35,7 +35,6 @@ async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsCon
 	let _config = bot_data.config.clone();
 	let connection = bot_data.db_connection.clone();
 
-	self_.defer().await?;
 
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => id,
@@ -66,7 +65,7 @@ async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsCon
 		action_row = None
 	}
 
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
 	if let Some(action_row) = action_row {
 		embed_contents = embed_contents.action_row(action_row);
 	}

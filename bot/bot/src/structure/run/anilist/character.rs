@@ -1,4 +1,4 @@
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use anyhow::{anyhow, Result};
@@ -204,7 +204,7 @@ pub async fn character_content<'a>(
 		}
 	}
 
-	let embeds_contents = EmbedsContents::new(CommandType::First, vec![embeds_content]);
+	let embeds_contents = EmbedsContents::new(vec![embeds_content]);
 
 	Ok(embeds_contents)
 }

@@ -13,7 +13,7 @@ use std::collections::HashMap;
 
 use crate::command::anilist_user::user::get_user;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
@@ -146,7 +146,7 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		embed_content = embed_content.images_url(banner_image.clone());
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

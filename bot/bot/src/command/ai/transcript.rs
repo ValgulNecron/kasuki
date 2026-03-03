@@ -1,6 +1,6 @@
 //! Documentation for `TranscriptCommand` implementation and associated functionality.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -51,7 +51,6 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		));
 	}
 
-	self_.defer().await?;
 
 	let map = get_option_map_string_subcommand(command_interaction);
 	let attachment_map = get_option_map_attachment_subcommand(command_interaction);
@@ -168,7 +167,7 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 
 	let embed_content = EmbedContent::new(title).description(text.to_string());
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

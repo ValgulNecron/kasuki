@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::engine::Engine as _;
@@ -26,7 +26,6 @@ use uuid::Uuid;
 	install_contexts = [Guild],
 )]
 async fn generate_image_pfp_command(self_: GenerateImagePfPCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();
@@ -127,7 +126,7 @@ pub async fn get_content<'a>(
 	)
 	.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
 	embed_contents.add_files(vec![file]);
 
 	Ok(embed_contents)

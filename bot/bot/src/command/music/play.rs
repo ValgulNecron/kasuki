@@ -36,7 +36,6 @@ use tracing::trace;
 	args = [(name = "search", desc = "Search for a song.", arg_type = String, required = true, autocomplete = false)],
 )]
 async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();

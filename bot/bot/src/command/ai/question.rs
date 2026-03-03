@@ -12,7 +12,7 @@
 //! - [`Command`](crate::command::command::Command): The trait this struct implements.
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
@@ -74,7 +74,6 @@ async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> 
 
 	let map = get_option_map_string_subcommand(command_interaction);
 	let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
-	self_.defer().await?;
 
 	let api_key = config
 		.ai
@@ -106,7 +105,7 @@ async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> 
 
 	let embed_content = EmbedContent::new(String::new()).description(text);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

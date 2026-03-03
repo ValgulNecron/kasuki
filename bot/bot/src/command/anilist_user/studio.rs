@@ -81,7 +81,7 @@
 use anyhow::anyhow;
 
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -199,7 +199,7 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 		.description(desc)
 		.url(studio.site_url.unwrap_or_default());
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

@@ -6,7 +6,7 @@
 //! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
 //! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -27,7 +27,6 @@ use std::sync::Arc;
 	install_contexts = [Guild],
 )]
 async fn join_command(self_: JoinCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();
@@ -146,7 +145,7 @@ pub async fn join<'a>(
 					EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"))
 						.description(USABLE_LOCALES.lookup(&lang_id, "music_join-error_no_voice"));
 				let embed_contents =
-					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+					EmbedsContents::new(vec![embed_content]);
 				return Ok((false, embed_contents));
 			},
 		}
@@ -188,7 +187,7 @@ pub async fn join<'a>(
 					&args,
 				));
 				let embed_contents =
-					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+					EmbedsContents::new(vec![embed_content]);
 
 				(true, embed_contents)
 			},
@@ -202,14 +201,14 @@ pub async fn join<'a>(
 					&args,
 				));
 				let embed_contents =
-					EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+					EmbedsContents::new(vec![embed_content]);
 
 				(false, embed_contents)
 			},
 		};
 		return Ok((result, return_data));
 	};
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok((false, embed_contents))
 }

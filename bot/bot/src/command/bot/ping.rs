@@ -1,4 +1,4 @@
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
@@ -87,8 +87,7 @@ async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 	let embed_content = EmbedContent::new(title.clone()).description(description);
 	debug!("Embed content created with title: {}", title);
 
-	debug!("Creating final embed contents with CommandType::First");
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	info!("Ping command processed successfully");
 	Ok(embed_contents)

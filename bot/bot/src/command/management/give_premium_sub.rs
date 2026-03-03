@@ -76,7 +76,7 @@
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
 use anyhow::anyhow;
 
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -151,7 +151,7 @@ async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<Embeds
 
 	let embed_content = EmbedContent::new(String::default()).description(success_msg);
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

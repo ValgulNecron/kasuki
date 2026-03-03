@@ -1,11 +1,11 @@
-use crate::command::embed_content::{CommandType, ComponentVersion, EmbedsContents};
+use crate::command::embed_content::{ComponentVersion, EmbedsContents};
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, MessageFlags};
 use serenity::builder::{
-	CreateAttachment, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponse,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage,
+	CreateAttachment, CreateEmbedAuthor, CreateEmbedFooter,
+	CreateInteractionResponseFollowup,
 };
 use serenity::prelude::Context as SerenityContext;
 
@@ -106,35 +106,17 @@ impl<T: Command> CommandRun for T {
 		let ctx = self.get_ctx();
 		let command_interaction = self.get_command_interaction();
 
-		match contents.command_type {
-			CommandType::First => {
-				let mut builder = CreateInteractionResponseMessage::new().files(files);
-				if has_embed {
-					builder = builder.embeds(embeds);
-				} else if let Some(component) = component.clone() {
-					builder = builder
-						.components(component)
-						.flags(MessageFlags::IS_COMPONENTS_V2);
-				}
-				let builder = CreateInteractionResponse::Message(builder);
-				command_interaction
-					.create_response(&ctx.http, builder)
-					.await?;
-			},
-			CommandType::Followup => {
-				let mut builder = CreateInteractionResponseFollowup::new().files(files);
-				if has_embed {
-					builder = builder.embeds(embeds);
-				} else if let Some(component) = component.clone() {
-					builder = builder
-						.components(component)
-						.flags(MessageFlags::IS_COMPONENTS_V2);
-				}
-				command_interaction
-					.create_followup(&ctx.http, builder)
-					.await?;
-			},
+		let mut builder = CreateInteractionResponseFollowup::new().files(files);
+		if has_embed {
+			builder = builder.embeds(embeds);
+		} else if let Some(component) = component {
+			builder = builder
+				.components(component)
+				.flags(MessageFlags::IS_COMPONENTS_V2);
 		}
+		command_interaction
+			.create_followup(&ctx.http, builder)
+			.await?;
 
 		Ok(())
 	}
@@ -154,11 +136,13 @@ impl<T: Command> CommandRun for T {
 	}
 
 	async fn run_user(&self) -> Result<()> {
+		self.defer().await?;
 		let embed_contents = self.get_contents().await?;
 		self.send_embed(embed_contents).await
 	}
 
 	async fn run_slash(&self) -> Result<()> {
+		self.defer().await?;
 		let embed_contents = self.get_contents().await?;
 		self.send_embed(embed_contents).await
 	}

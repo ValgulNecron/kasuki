@@ -1,6 +1,6 @@
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::Context;
 use kasuki_macros::slash_command;
@@ -19,7 +19,6 @@ use tracing::{debug, info, warn};
 )]
 async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing VN character command");
-	self_.defer().await?;
 	let cx = CommandContext::new(
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
@@ -243,10 +242,9 @@ async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContent
 		);
 	}
 
-	// Create the final embed contents with the CommandType::Followup flag
 	// This indicates that this is a followup message after the defer
 	debug!("Creating final embed contents");
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	// Return the embed contents wrapped in Ok
 	// This indicates that the command was processed successfully

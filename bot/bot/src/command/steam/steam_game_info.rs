@@ -92,7 +92,7 @@
 //! }
 //! ```
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
@@ -114,7 +114,6 @@ use tokio::sync::RwLock;
 	args = [(name = "game_name", desc = "Name of the steam game you want info of.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let db_connection = bot_data.db_connection.clone();
@@ -307,7 +306,7 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		))
 		.images_url(game.header_image.unwrap());
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

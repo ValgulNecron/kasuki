@@ -2,7 +2,7 @@
 //! used to handle the "remove" functionality within a bot command interaction.
 //! The "remove" command allows users to remove a track from the music queue.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use anyhow::anyhow;
@@ -18,7 +18,6 @@ use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 	args = [(name = "index", desc = "Index of the song to remove.", arg_type = Integer, required = true, autocomplete = false)],
 )]
 async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -48,7 +47,7 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title"))
 				.description(USABLE_LOCALES.lookup(&lang_id, "music_remove-error_no_voice"));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
@@ -62,7 +61,7 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_remove-title"))
 		.description(USABLE_LOCALES.lookup(&lang_id, "music_remove-success"));
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

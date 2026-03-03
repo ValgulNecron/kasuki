@@ -25,18 +25,17 @@ pub async fn command_dispatching(
 ) {
 	error!("{}", message.replace("\\n", "\n"));
 
-	match send_error(message.clone(), command_interaction, ctx).await {
+	// Commands always defer, so send as followup first
+	match send_differed_error(message.clone(), command_interaction, ctx).await {
 		Ok(_) => {},
 		Err(e) => {
-			// Log the error with context
-			error!("Failed to send error response: {:#}", e);
+			error!("Failed to send followup error response: {:#}", e);
 
-			// Try the fallback method
-			match send_differed_error(message, command_interaction, ctx).await {
+			// Fallback to initial response in case defer didn't happen
+			match send_error(message, command_interaction, ctx).await {
 				Ok(_) => {},
 				Err(e) => {
-					// Log the error with full context chain
-					error!("Failed to send differed error response: {:#}", e);
+					error!("Failed to send error response: {:#}", e);
 					error!("Error context chain: {:?}", e.chain().collect::<Vec<_>>());
 				},
 			}

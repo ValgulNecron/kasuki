@@ -1,6 +1,6 @@
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
@@ -16,7 +16,6 @@ use tracing::{debug, info, trace};
 async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing VN stats command");
 	debug!("Deferring command response");
-	self_.defer().await?;
 
 	let cx = CommandContext::new(
 		self_.get_ctx().clone(),
@@ -82,8 +81,7 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Creating embed content with title: {}", title);
 	let embed_content = EmbedContent::new(title).fields(fields);
 
-	debug!("Creating final embed contents with CommandType::Followup");
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	info!("VN stats command processed successfully");
 	Ok(embed_contents)

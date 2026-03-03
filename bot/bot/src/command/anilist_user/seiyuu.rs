@@ -11,7 +11,7 @@ use std::io::Cursor;
 
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::seiyuu_id::{
@@ -97,7 +97,6 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 
 	let lang_id = cx.lang_id().await;
 
-	self_.defer().await?;
 
 	let mut buffers: Vec<Bytes> = Vec::new();
 
@@ -222,7 +221,7 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "anilist_user_seiyuu-title"))
 			.images_url(image_url);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content])
+	let embed_contents = EmbedsContents::new(vec![embed_content])
 		.add_files(vec![image])
 		.clone();
 

@@ -63,7 +63,7 @@ use tracing::trace;
 
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -98,7 +98,6 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 		.get(&FixedString::from_str_trunc("type"))
 		.ok_or(anyhow!("No type specified"))?;
 
-	self_.defer().await?;
 
 	let stats = shared::database::random_stats::Entity::find_by_id(1)
 		.one(&*cx.db)
@@ -207,7 +206,7 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 
 	let embed_content = EmbedContent::new(title).description(full_desc).url(url);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

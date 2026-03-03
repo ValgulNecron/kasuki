@@ -1,4 +1,4 @@
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -229,7 +229,7 @@ pub async fn user_content<'a>(
 		}
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

@@ -34,7 +34,7 @@
 //!       - `Result<Vec<EmbedContent<'_, '_>>>`: A vector of `EmbedContent` containing the activity list for display.
 //!       - Errors if the guild ID cannot be retrieved or if database interaction fails.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::components::anilist::list_all_activity::get_formatted_activity_list;
 use crate::constant::ACTIVITY_LIST_LIMIT;
 use crate::event_handler::BotData;
@@ -63,7 +63,6 @@ async fn list_all_activity_command(self_: ListAllActivity) -> Result<EmbedsConte
 	let command_interaction = self_.get_command_interaction().clone();
 	let _config = bot_data.config.clone();
 
-	self_.defer().await?;
 
 	let guild_id = command_interaction
 		.guild_id
@@ -98,7 +97,7 @@ async fn list_all_activity_command(self_: ListAllActivity) -> Result<EmbedsConte
 		action_row = None
 	}
 
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
 	if let Some(action_row) = action_row {
 		embed_contents = embed_contents.action_row(action_row);
 	}

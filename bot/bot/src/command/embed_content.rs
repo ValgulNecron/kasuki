@@ -3,16 +3,14 @@ use std::borrow::Cow;
 
 #[derive(Clone)]
 pub struct EmbedsContents<'a> {
-	pub command_type: CommandType,
 	pub embed_contents: Vec<EmbedContent>,
 	pub action_row: Option<ComponentVersion<'a>>,
 	pub files: Vec<CommandFiles>,
 }
 
 impl<'a> EmbedsContents<'a> {
-	pub fn new(command_type: CommandType, embed_contents: Vec<EmbedContent>) -> Self {
+	pub fn new(embed_contents: Vec<EmbedContent>) -> Self {
 		Self {
-			command_type,
 			embed_contents,
 			action_row: None,
 			files: Vec::new(),
@@ -27,18 +25,6 @@ impl<'a> EmbedsContents<'a> {
 	pub fn add_files(&mut self, files: Vec<CommandFiles>) -> &mut Self {
 		self.files.extend(files);
 		self
-	}
-}
-
-#[derive(Clone)]
-pub enum CommandType {
-	First,
-	Followup,
-}
-
-impl Default for CommandType {
-	fn default() -> Self {
-		Self::First
 	}
 }
 

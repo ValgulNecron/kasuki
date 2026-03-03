@@ -153,7 +153,6 @@ async fn anime_random_nsfw_image_command(
 
 	// Create a deferred response to the command interaction
 	debug!("Deferring command response");
-	let _ = self_.defer().await;
 	debug!("Command response deferred successfully");
 
 	// Send the random NSFW image as a response to the command interaction

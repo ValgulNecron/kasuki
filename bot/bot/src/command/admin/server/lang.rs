@@ -1,7 +1,7 @@
 //! The `LangCommand` struct handles the execution of a user command related
 //! to changing the language settings for a guild (server). This struct
 //! includes the context and command interaction necessary to process the command.
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use anyhow::anyhow;
@@ -79,7 +79,7 @@ async fn lang_command(self_: LangCommand) -> Result<EmbedsContents<'_>> {
 
 	let embed_content = EmbedContent::new(title).description(desc);
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

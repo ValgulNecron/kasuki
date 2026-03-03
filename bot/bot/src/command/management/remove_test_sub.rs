@@ -4,7 +4,7 @@
 //!
 //! # Fields
 //! - `ctx`
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use anyhow::anyhow;
@@ -73,7 +73,7 @@ async fn remove_test_sub_command(self_: RemoveTestSubCommand) -> Result<EmbedsCo
 
 	let embed_content = EmbedContent::new(String::new()).description(success_msg);
 
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

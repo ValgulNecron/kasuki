@@ -77,7 +77,7 @@ use std::io::{Cursor, Read};
 use std::sync::Arc;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
 use crate::helper::make_graphql_cached::make_request_anilist;
@@ -148,7 +148,6 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 
 	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
 
-	self_.defer().await?;
 
 	let anime_id = media.id;
 	let url = format!("https://anilist.co/anime/{}", anime_id);
@@ -175,7 +174,7 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 				))
 				.url(url);
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	}
@@ -247,7 +246,7 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 			))
 			.url(url);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

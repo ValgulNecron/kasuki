@@ -1,4 +1,4 @@
-use crate::command::embed_content::{CommandType, CreateFooter, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CreateFooter, EmbedContent, EmbedsContents};
 use crate::constant::{APP_VERSION, LIBRARY};
 use crate::event_handler::BotData;
 use anyhow::anyhow;
@@ -162,7 +162,7 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Embed content created with title: {}", title);
 
 	debug!("Creating final embed contents with buttons");
-	let embed_contents = EmbedsContents::new(CommandType::First, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	info!("Info command processed successfully");
 	Ok(embed_contents)

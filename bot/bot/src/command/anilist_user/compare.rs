@@ -19,7 +19,7 @@ use tracing::trace;
 use crate::command::anilist_user::user::get_user;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::ComponentVersion::V2;
-use crate::command::embed_content::{CommandType, ComponentVersion2, EmbedsContents};
+use crate::command::embed_content::{ComponentVersion2, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{
 	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
@@ -413,7 +413,7 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	let create_components = CreateComponent::Container(CreateContainer::new(data));
 
 	let embed_contents =
-		EmbedsContents::new(CommandType::First, vec![]).action_row(V2(ComponentVersion2 {
+		EmbedsContents::new(vec![]).action_row(V2(ComponentVersion2 {
 			components: Cow::Owned(vec![create_components]),
 		}));
 

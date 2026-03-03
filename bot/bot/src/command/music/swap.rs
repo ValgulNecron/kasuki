@@ -73,7 +73,7 @@
 //! - Invalid or missing indices to swap in the queue.
 //!
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use anyhow::anyhow;
@@ -95,7 +95,6 @@ use std::collections::HashMap;
 	],
 )]
 async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -125,7 +124,7 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_swap-title"))
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-error_no_voice"));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
@@ -172,7 +171,7 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 			embed_content.description(USABLE_LOCALES.lookup(&lang_id, "music_swap-success"));
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

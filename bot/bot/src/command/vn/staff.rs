@@ -1,6 +1,6 @@
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use kasuki_macros::slash_command;
 use markdown_converter::vndb::convert_vndb_markdown;
@@ -16,7 +16,6 @@ use shared::vndb::staff::get_staff;
 	args = [(name = "name", desc = "Name of the staff member.", arg_type = String, required = true, autocomplete = false)],
 )]
 async fn vn_staff_command(self_: VnStaffCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let cx = CommandContext::new(
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
@@ -64,7 +63,7 @@ async fn vn_staff_command(self_: VnStaffCommand) -> Result<EmbedsContents<'_>> {
 		.fields(fields)
 		.url(format!("https://vndb.org/{}", staff.id));
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

@@ -47,7 +47,7 @@
 //! # Errors
 //! - Returns an error if the image type is omitted, the API request fails, or the image URL cannot be retrieved.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandFiles, CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::{anyhow, Result};
@@ -117,7 +117,6 @@ async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<Em
 	debug!("Localization loaded successfully");
 
 	debug!("Deferring command response");
-	let _ = self_.defer().await;
 	debug!("Command response deferred successfully");
 
 	debug!("Fetching random image content for type: {}", image_type);
@@ -232,7 +231,7 @@ pub async fn random_image_content<'a>(
 	let embed_content =
 		EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
 
-	let mut embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
 	embed_contents.add_files(vec![file]);
 
 	Ok(embed_contents)

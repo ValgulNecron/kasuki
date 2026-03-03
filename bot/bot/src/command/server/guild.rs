@@ -82,7 +82,7 @@
 use anyhow::anyhow;
 
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -96,7 +96,6 @@ use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 	install_contexts = [Guild],
 )]
 async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction();
@@ -255,7 +254,7 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 		embed_content = embed_content.images_url(guild_banner.unwrap())
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

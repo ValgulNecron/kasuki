@@ -3,7 +3,7 @@
 //! enabling the ability to delete activities associated with an anime, and the helper function `remove_activity` to handle database operations.
 use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_name};
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::get_url;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
@@ -47,7 +47,6 @@ async fn delete_activity_command(self_: DeleteActivityCommand) -> Result<EmbedsC
 	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
 	let media = get_minimal_anime_media(anime.to_string(), anilist_cache);
 
-	self_.defer().await?;
 
 	let media = media.await?;
 	let anime_id = media.id;
@@ -76,7 +75,7 @@ async fn delete_activity_command(self_: DeleteActivityCommand) -> Result<EmbedsC
 			))
 			.url(url);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

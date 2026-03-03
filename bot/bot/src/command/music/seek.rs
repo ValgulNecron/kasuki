@@ -64,7 +64,7 @@
 //! - This command only functions within a guild context where Lavalink is properly configured.
 //! - If no track is currently playing in the guild, the command will notify the user accordingly.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use anyhow::anyhow;
@@ -84,7 +84,6 @@ use std::time::Duration;
 	args = [(name = "time", desc = "Time to seek to in seconds.", arg_type = Integer, required = true, autocomplete = false)],
 )]
 async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -114,7 +113,7 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_seek-title"))
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-error_no_voice"));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
@@ -141,7 +140,7 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_seek-nothing_playing"));
 	}
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

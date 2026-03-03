@@ -1,5 +1,5 @@
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -23,7 +23,6 @@ use tracing::debug;
 	install_contexts = [Guild],
 )]
 async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction();
@@ -46,7 +45,7 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-title"))
 				.description(USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-empty"));
 
-		let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embeds_contents = EmbedsContents::new(vec![embed_content]);
 		return Ok(embeds_contents);
 	}
 
@@ -285,7 +284,7 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 
 	// Add other item types if needed in the future
 
-	let embeds_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embeds_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embeds_contents)
 }

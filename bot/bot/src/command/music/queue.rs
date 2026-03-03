@@ -1,6 +1,6 @@
 //! Documentation for QueueCommand and associated functionality
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
@@ -19,7 +19,6 @@ use std::collections::HashMap;
 	install_contexts = [Guild],
 )]
 async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -48,7 +47,7 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_queue-title"))
 			.description(USABLE_LOCALES.lookup(&lang_id, "music_queue-error_no_voice"));
 
-		let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
@@ -118,7 +117,7 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 
 	let embed_content = EmbedContent::new(now_playing_message).description(queue_message);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

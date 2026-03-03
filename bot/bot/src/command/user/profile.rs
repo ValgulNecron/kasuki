@@ -2,7 +2,7 @@
 //! information in a Discord bot. It contains the Serenity context and the interaction data for
 //! processing and responding to the user command.
 use crate::command::command::CommandRun;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
 use crate::event_handler::BotData;
 use fluent_templates::fluent_bundle::FluentValue;
@@ -21,7 +21,6 @@ use unic_langid::LanguageIdentifier;
 	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let ctx = self_.get_ctx();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction();
@@ -130,7 +129,7 @@ async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
 	.fields(fields)
 	.images_url(user.banner_url().unwrap_or_default());
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }

@@ -1,6 +1,6 @@
 use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{CommandType, EmbedContent, EmbedsContents};
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
@@ -19,7 +19,6 @@ use std::collections::HashMap;
 	args = [(name = "username", desc = "Username of the VN user.", arg_type = String, required = true, autocomplete = false)],
 )]
 async fn vn_user_command(self_: VnUserCommand) -> Result<EmbedsContents<'_>> {
-	self_.defer().await?;
 	let cx = CommandContext::new(
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
@@ -70,7 +69,7 @@ async fn vn_user_command(self_: VnUserCommand) -> Result<EmbedsContents<'_>> {
 		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "vn_user-title", &title_args))
 			.fields(fields);
 
-	let embed_contents = EmbedsContents::new(CommandType::Followup, vec![embed_content]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
 }
