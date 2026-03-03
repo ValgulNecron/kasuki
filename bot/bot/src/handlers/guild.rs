@@ -4,12 +4,10 @@ use crate::server_image::calculate_user_color::{color_management, enqueue_user_c
 use crate::server_image::generate_server_image::server_image_management;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
-use serenity::all::{Guild, GuildMembersChunkEvent, Member, ShardRunnerInfo};
+use serenity::all::{Guild, GuildMembersChunkEvent, Member};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::{GuildData, ServerUserRelation};
 use std::sync::atomic::Ordering;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::{info, trace, warn};
 
 impl Handler {
