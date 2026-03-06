@@ -1,278 +1,247 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasuki - Discord Anime Bot</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, anime notifications, and more. Get instant anime and manga information right in your server!"
+          name="description"/>
+    <meta content="#ff6b9d" name="theme-color"/>
+    <meta content="index, follow" name="robots"/>
+
+    <title>Kasuki - Discord Bot for Anime & Manga Lovers</title>
+
+    <!-- Open Graph / Social Media -->
+    <meta content="website" property="og:type"/>
+    <meta content="Kasuki - Discord Bot for Anime & Manga" property="og:title"/>
+    <meta content="A powerful Discord bot with AniList integration, AI features, anime notifications, and more."
+          property="og:description"/>
+    <meta content="/public/assets/icon.webp" property="og:image"/>
+
+    <!-- Twitter Card -->
+    <meta content="summary_large_image" name="twitter:card"/>
+    <meta content="Kasuki - Discord Bot for Anime & Manga" name="twitter:title"/>
+    <meta content="A powerful Discord bot with AniList integration, AI features, anime notifications, and more."
+          name="twitter:description"/>
+
     <!-- Favicon -->
-    <link rel="icon" href="assets/icon.png" type="image/png">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <link href="/public/assets/icon.png" rel="icon" type="image/png"/>
+    <link href="/public/assets/icon.png" rel="apple-touch-icon"/>
+
+    <!-- Preconnect to external resources -->
+    <link crossorigin href="https://cdn.discordapp.com" rel="preconnect"/>
+    <link href="https://cdn.discordapp.com" rel="dns-prefetch"/>
+
+    <!-- Preload critical CSS and icons -->
+    <link as="style" href="/public/style.css" rel="preload"/>
+    <link as="style" href="/public/icons.css" rel="preload"/>
+
+    <!-- Custom icon subset (replaces Font Awesome - 98% smaller) -->
+    <link href="/public/icons.css" rel="stylesheet"/>
+
+    <!-- Critical CSS inlined for faster FCP/LCP -->
+    <style>
+        :root {
+            --primary: #c93d73;
+            --primary-dark: #a82d5e;
+            --secondary: #6a4299;
+            --light: #ffebf3;
+            --dark: #1a1428;
+            --text: #1a1a2e;
+            --text-light: #555566;
+            --background: #fcf8ff;
+            --card-bg: #fff;
+            --border-radius: 12px;
+            --shadow: 0 4px 20px rgba(255, 107, 157, .1)
+        }
+
+        [data-theme=dark] {
+            --primary: #ff7eb3;
+            --primary-dark: #ff6b9d;
+            --secondary: #a88de0;
+            --light: #2a2a45;
+            --dark: #0d0d18;
+            --text: #f5f5f5;
+            --text-light: #c5c5c5;
+            --background: #1a1a2e;
+            --card-bg: #212134;
+            --shadow: 0 4px 20px rgba(143, 104, 201, .2)
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .1)
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            text-decoration: none;
+            color: #fff
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity .3s
+        }
+
+        .add-btn {
+            background-color: #fff;
+            color: var(--primary);
+            padding: .5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all .3s;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            background: 0 0;
+            border: none
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background-color: #fff;
+            margin: 2px 0;
+            border-radius: 3px
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: #fff;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600
+        }
+
+        .skip-link:focus {
+            top: 0
+        }
+
+        @media (max-width: 900px) {
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                flex-direction: column;
+                background-color: var(--primary);
+                width: 70%;
+                height: 100vh;
+                padding: 80px 40px 40px;
+                transition: right .5s ease-in-out
+            }
+
+            .nav-links.active {
+                right: 0
+            }
+
+            .menu-toggle {
+                display: flex;
+                z-index: 1001
+            }
+        }
+    </style>
+
+    <!-- CSS (non-blocking) -->
+    <link as="style" href="/public/style.css" onload="this.onload=null;this.rel='stylesheet'" rel="preload"/>
+    <noscript>
+        <link data-trunk href="/public/style.css" rel="css"/>
+    </noscript>
+    <link data-trunk href="/public/style.css" rel="css"/>
+    <link data-trunk href="public" rel="copy-dir"/>
+    <link data-trunk data-wasm-opt="z" rel="rust"/>
 </head>
 <body>
-
-<!-- Header -->
-<header>
-    <div class="container">
-        <nav class="navbar">
-            <a href="index.html" class="logo">
-                <img src="assets/icon.png" alt="Kasuki Logo">
-                <h1>Kasuki</h1>
-            </a>
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#commands">Commands</a></li>
-                <li><a href="#screenshots">Screenshots</a></li>
-                <li><a href="#setup">Setup</a></li>
-                <li><a class="add-btn" href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer">
-                    <i class="fab fa-github"></i> GitHub
-                </a></li>
-            </ul>
-            <button class="menu-toggle" aria-label="Toggle navigation menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </nav>
+<!-- Static hero skeleton for faster LCP - hidden once WASM loads -->
+<div id="hero-skeleton"
+     style="min-height:100vh;background:linear-gradient(135deg,#1a1625 0%,#2a2438 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+    <div style="max-width:800px;">
+        <h1 style="font-size:clamp(2rem,5vw,3.5rem);color:#fff;margin-bottom:1rem;">Enhance Your Discord Server with
+            Anime & Manga</h1>
+        <p style="font-size:1.25rem;color:#b8b5c4;margin-bottom:2rem;">Kasuki is a powerful Discord bot that provides
+            seamless access to AniList data, AI features, anime notifications, and more.</p>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot"
+           style="display:inline-block;padding:1rem 2rem;background:#ff6b9d;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Add
+            to Discord</a>
     </div>
-</header>
-
-<main>
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h2>Enhance Your Discord Server with Anime & Manga</h2>
-                <p>Kasuki is a powerful Discord bot that provides seamless access to AniList data, AI features, and more. Get instant anime and manga information, notifications, and user stats right in your server!</p>
-                <div class="hero-buttons">
-                    <a class="btn btn-primary" href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-discord"></i> Add to Discord
-                    </a>
-                    <a class="btn btn-secondary" href="#setup">
-                        <i class="fas fa-server"></i> Self-Host Guide
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="section" id="features">
-        <div class="container">
-            <div class="section-title">
-                <h2>Powerful Features</h2>
-                <p>Kasuki comes packed with features to enhance your Discord anime experience.</p>
-            </div>
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-tv"></i></div>
-                    <h3>AniList Integration</h3>
-                    <p>Access anime, manga, characters, staff, and studio information directly from AniList. Get detailed information and statistics with simple commands.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
-                    <h3>Anime Airing Notifications</h3>
-                    <p>Get notified when your favorite anime episodes are about to air. Never miss an episode again!</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-user-friends"></i></div>
-                    <h3>User Profiles & Comparison</h3>
-                    <p>Link your AniList account to Discord and view profiles, compare anime tastes with friends, and show off your anime stats.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-microphone-alt"></i></div>
-                    <h3>Seiyuu Image Generation</h3>
-                    <p>Generate custom images showing voice actors alongside characters they've voiced for easy reference.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
-                    <h3>AI Features</h3>
-                    <p>Generate images, get answers to questions, and access video transcription and translation using advanced AI technology.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-language"></i></div>
-                    <h3>Multi-Language Support</h3>
-                    <p>Kasuki supports multiple languages for both commands and responses, making it accessible to users worldwide.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Commands Section -->
-    <section class="section commands" id="commands">
-        <div class="container">
-            <div class="section-title">
-                <h2>Command Examples</h2>
-                <p>Explore Kasuki's wide range of commands organized by category.</p>
-            </div>
-            <div class="command-tabs">
-                <button class="command-tab active" data-tab="anime">Anime</button>
-                <button class="command-tab" data-tab="ai">AI</button>
-                <button class="command-tab" data-tab="games">Games</button>
-                <button class="command-tab" data-tab="user">User</button>
-                <button class="command-tab" data-tab="bot">Bot</button>
-                <button class="command-tab" data-tab="server">Server</button>
-            </div>
-            <div class="command-content">
-                <!-- Anime Commands -->
-                <div class="command-group anime active" data-tab="anime">
-                    <div class="command">
-                        <h4><span class="command-name">/anime</span>Get Anime Information</h4>
-                        <p>Search for an anime and get detailed information including synopsis, genres, and studios.</p>
-                    </div>
-                    <div class="command">
-                        <h4><span class="command-name">/manga</span>Get Manga Information</h4>
-                        <p>Search for manga and get detailed information including synopsis, genres, and authors.</p>
-                    </div>
-                     <div class="command">
-                        <h4><span class="command-name">/character</span>Get Character Information</h4>
-                        <p>Search for anime and manga characters and view their details.</p>
-                    </div>
-                    <div class="command">
-                        <h4><span class="command-name">/compare</span>Compare Two AniList Users</h4>
-                        <p>Compare two AniList users and see their anime/manga taste compatibility.</p>
-                    </div>
-                </div>
-                <!-- AI Commands -->
-                <div class="command-group ai" data-tab="ai">
-                     <div class="command">
-                        <h4><span class="command-name">/ai image</span>Generate AI Images</h4>
-                        <p>Generate custom images using AI based on your text descriptions.</p>
-                    </div>
-                    <div class="command">
-                        <h4><span class="command-name">/ai question</span>Ask AI Questions</h4>
-                        <p>Ask questions and get AI-generated answers (the AI has no conversation context).</p>
-                    </div>
-                </div>
-                <!-- Add other command groups here -->
-                <div class="command-group games" data-tab="games">...</div>
-                <div class="command-group user" data-tab="user">...</div>
-                <div class="command-group bot" data-tab="bot">...</div>
-                <div class="command-group server" data-tab="server">...</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Screenshots Section -->
-    <section class="section screenshots" id="screenshots">
-        <div class="container">
-            <div class="section-title">
-                <h2>See Kasuki in Action</h2>
-                <p>Take a look at Kasuki's sleek interface and powerful features.</p>
-            </div>
-            <div class="screenshot-gallery">
-                <div class="screenshot"><img src="assets/anime.png" alt="Screenshot of the anime command result"></div>
-                <div class="screenshot"><img src="assets/user.png" alt="Screenshot of a user profile command"></div>
-                <div class="screenshot"><img src="assets/character.png" alt="Screenshot of a character search result"></div>
-                <div class="screenshot"><img src="assets/autocomplete.png" alt="Screenshot showing command autocomplete"></div>
-                <div class="screenshot"><img src="assets/seiyuu.png" alt="Screenshot of the seiyuu command image"></div>
-                <div class="screenshot"><img src="https://placehold.co/600x400/2a2438/ff6b9d?text=More+Features" alt="Placeholder for another feature screenshot"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Setup Section -->
-    <section class="section" id="setup">
-        <div class="container">
-            <div class="section-title">
-                <h2>Self-Hosting Guide</h2>
-                <p>Follow these steps to set up your own instance of Kasuki.</p>
-            </div>
-            <div class="setup-steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Install Docker & Docker Compose</h3>
-                        <p>Ensure Docker and Docker Compose are installed on your system. They are required to run Kasuki in a containerized environment.</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Clone the Repository</h3>
-                        <p>Clone the Kasuki repository from GitHub to your local machine.</p>
-                        <div class="code-block">git clone https://github.com/ValgulNecron/kasuki.git</div>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Configure Settings</h3>
-                        <p>Copy the example configuration file and edit it to add your Discord bot token and other settings.</p>
-                        <div class="code-block">cp config.example.toml config.toml
-# Edit config.toml with your preferred text editor</div>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Start the Container</h3>
-                        <p>Use Docker Compose to build and start the Kasuki bot. For the latest version, add the `--pull always` flag.</p>
-                        <div class="code-block">docker compose up -d --pull always</div>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <div class="step-content">
-                        <h3>Invite Your Bot</h3>
-                        <p>Create an invite link for your bot in the Discord Developer Portal and add it to your server. Your bot is now ready to use!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</main>
-
-<!-- Footer -->
-<footer>
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-column">
-                <h3>Kasuki</h3>
-                <p>A Discord bot for anime and manga lovers, packed with features and AI integration.</p>
-                <div class="social-links">
-                    <a href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                    <a href="https://discord.gg/your-server-invite" target="_blank" rel="noopener noreferrer" aria-label="Discord"><i class="fab fa-discord"></i></a>
-                </div>
-            </div>
-            <div class="footer-column">
-                <h3>Quick Links</h3>
-                <ul class="footer-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#commands">Commands</a></li>
-                    <li><a href="#screenshots">Screenshots</a></li>
-                    <li><a href="#setup">Setup Guide</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Resources</h3>
-                <ul class="footer-links">
-                    <li><a href="https://github.com/ValgulNecron/kasuki" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
-                    <li><a href="https://github.com/ValgulNecron/kasuki/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
-                    <li><a href="terms.html">Terms of Service</a></li>
-                    <li><a href="privacy.html">Privacy Policy</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; <span class="year">2025</span> Kasuki Bot. All rights reserved. Created with <i class="fas fa-heart" style="color: var(--primary);"></i> for the anime community.</p>
-        </div>
-    </div>
-</footer>
-
-<!-- UI Elements -->
-<button class="theme-toggle" aria-label="Toggle dark mode">
-    <i class="fas fa-moon"></i>
-</button>
-
-<div class="image-modal" role="dialog" aria-modal="true">
-    <img src="" alt="Enlarged screenshot">
 </div>
+<script>window.addEventListener('TrunkApplicationStarted', function () {
+    document.getElementById('hero-skeleton').remove();
+});</script>
 
-<!-- JavaScript -->
-<script src="script.js"></script>
-
+<!-- Fallback content for SEO and accessibility when JS is disabled -->
+<noscript>
+    <div style="padding: 20px; text-align: center; background: #ff6b9d; color: white;">
+        <h1>Kasuki Discord Bot</h1>
+        <p>Please enable JavaScript to use this website. Kasuki is a powerful Discord bot for anime and manga
+            lovers.</p>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=923286536445894697&permissions=533113194560&scope=bot"
+           style="color: white;">Add Kasuki to Discord</a>
+    </div>
+</noscript>
 </body>
 </html>

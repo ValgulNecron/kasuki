@@ -1,0 +1,233 @@
+//! A module for handling the `LevelCommand` and calculating user level
+//! progress based on anime and manga statistics. Additionally, this module
+//! supports fetching user data from AniList and database, processing and
+//! preparing data for the embed visualization.
+use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::Loader;
+use once_cell::sync::Lazy;
+use sea_orm::EntityTrait;
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::localization::USABLE_LOCALES;
+use std::borrow::Cow;
+use std::collections::HashMap;
+
+use crate::command::anilist_user::user::get_user;
+use crate::command::context::CommandContext;
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::get_url;
+use crate::helper::get_option::command::get_option_map_string;
+use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
+use anyhow::anyhow;
+use kasuki_macros::slash_command;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
+use shared::database::prelude::RegisteredUser;
+use shared::database::registered_user::Column;
+use small_fixed_array::FixedString;
+
+#[slash_command(
+	name = "level", desc = "Get the level of a user.", command_type = ChatInput,
+	contexts = [Guild, BotDm, PrivateChannel],
+	install_contexts = [Guild, User],
+	args = [(name = "username", desc = "Username of the user you want the level of.", arg_type = String, required = false, autocomplete = true)],
+)]
+async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
+	let anilist_cache = cx.anilist_cache.clone();
+	let config = cx.bot_data.config.clone();
+	let map = get_option_map_string(&cx.command_interaction);
+
+	let user = map.get(&FixedString::from_str_trunc("username"));
+
+	let data = match user {
+		Some(value) => get_user(value, anilist_cache).await?,
+		None => {
+			let user_id = &cx.command_interaction.user.id.to_string();
+
+			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
+			let row = RegisteredUser::find()
+				.filter(Column::UserId.eq(user_id))
+				.one(&connection)
+				.await?;
+
+			let user = row.ok_or(anyhow!(
+				"No user specified or linked to this discord account",
+			))?;
+
+			get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
+		},
+	};
+
+	let user = data;
+
+	// Get the language identifier for localization
+	let lang_id = cx.lang_id().await;
+
+	// Clone the manga and anime statistics
+	let statistics = user.statistics.clone().unwrap();
+
+	let manga = statistics.manga.clone();
+
+	let anime = statistics.anime.clone();
+
+	// Calculate the number of manga and anime completed
+	let manga_completed = if let Some(manga) = manga.clone() {
+		get_completed(manga.statuses.unwrap())
+	} else {
+		0
+	};
+
+	let anime_completed = if let Some(anime) = anime.clone() {
+		get_completed(anime.statuses.unwrap())
+	} else {
+		0
+	};
+
+	// Get the number of chapters read and minutes watched
+	let chap_read = if let Some(manga) = manga.clone() {
+		manga.chapters_read
+	} else {
+		0
+	};
+
+	let tw = if let Some(anime) = anime.clone() {
+		anime.minutes_watched
+	} else {
+		0
+	};
+
+	// Calculate the experience points
+	let xp = (8.0 * (manga_completed + anime_completed) as f64)
+		+ (2.0 * chap_read as f64)
+		+ (tw as f64 * 0.5);
+
+	// Get the username
+	let username = user.name.clone();
+
+	// Calculate the level and progress
+	let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
+
+	let next_level_display = if next_xp <= 1.0 {
+		// Using 1.0 as a threshold assuming xp_for_next_level won't be fractional in practice.
+		// This effectively means MAX_XP if next_xp is calculated to be 0 or less,
+		// which would happen if current XP is already at or beyond the max level XP.
+		USABLE_LOCALES.lookup(&lang_id, "anilist_user_level-max")
+	} else {
+		next_xp.to_string()
+	};
+
+	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
+	args.insert(
+		Cow::Borrowed("username"),
+		FluentValue::from(username.as_str()),
+	);
+	args.insert(Cow::Borrowed("level"), FluentValue::from(level.to_string()));
+	args.insert(Cow::Borrowed("xp"), FluentValue::from(format!("{:.2}", xp)));
+	args.insert(
+		Cow::Borrowed("actual"),
+		FluentValue::from(format!("{:.2}", actual)),
+	);
+	args.insert(Cow::Borrowed("next"), FluentValue::from(next_level_display));
+
+	let description = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
+
+	let mut embed_content = EmbedContent::new(user.clone().name)
+		.description(description)
+		.thumbnail(user.clone().avatar.unwrap().large.clone().unwrap())
+		.url(get_user_url(&user.id))
+		.colour(get_color(user.clone()));
+
+	// Add the user's banner image to the embed if it exists
+	if let Some(banner_image) = &user.banner_image {
+		embed_content = embed_content.images_url(banner_image.clone());
+	}
+
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
+
+	Ok(embed_contents)
+}
+
+/// A constant that represents the maximum possible value for an XP (experience points) system,
+pub const MAX_XP: f64 = f64::MAX;
+///
+pub const TOTAL_LEVELS: usize = 200;
+
+/// A static variable `LEVELS` initialized lazily at runtime using the `generate_levels` function.
+///
+/// This static contains an array of tuples, where each tuple represents a level's details.
+pub static LEVELS: Lazy<[(u32, f64, f64); TOTAL_LEVELS]> = Lazy::new(generate_levels);
+
+/// Generates an array containing information about player levels and their respective XP requirements.
+///
+/// This function initializes an array where each element represents a level and contains three values:
+/// - The level number (`u32`)
+/// - The XP required to reach that level (`f64`)
+/// - The XP required to reach the next level (`f64`)
+fn generate_levels() -> [(u32, f64, f64); TOTAL_LEVELS] {
+	let mut levels = [(0, 0.0, 0.0); TOTAL_LEVELS];
+	for level in 0..(TOTAL_LEVELS as u32) {
+		let required_xp = xp_required_for_level(level);
+		let next_level_xp = if level < (TOTAL_LEVELS as u32 - 1) {
+			xp_required_for_level(level + 1)
+		} else {
+			MAX_XP
+		};
+		levels[level as usize] = (level, required_xp, next_level_xp);
+	}
+	levels
+}
+
+/// Determines the level of a user based on their experience points (XP)
+/// and provides additional information about their progression within the level.
+///
+/// # Parameters
+/// - `xp` (`f64`): The total experience points of the user.
+///
+/// # Returns
+/// A tuple containing:
+/// - `u32`: The user's current level.
+/// - `f64`: The amount of XP the user has accumulated within their current level.
+/// - `f64`: The amount of XP required to reach the next level from the start of the current level.
+fn get_level(xp: f64) -> (u32, f64, f64) {
+	for &(level, required_xp, next_level_xp) in LEVELS.iter().rev() {
+		if xp >= required_xp {
+			let xp_in_current_level = xp - required_xp;
+			let xp_for_next_level = next_level_xp - required_xp;
+			// Ensure next_xp is not zero to prevent division by zero in description
+			let xp_for_next_level = if xp_for_next_level <= 0.0 {
+				1.0
+			} else {
+				xp_for_next_level
+			};
+			return (level, xp_in_current_level, xp_for_next_level);
+		}
+	}
+	(0, 0.0, xp_required_for_level(1)) // Fallback: level 0, 0 XP in current, XP to level 1
+}
+
+/// Calculates the experience points (XP) required to reach a given level.
+///
+/// # Parameters
+/// - `level`: The target level for which the required XP is being calculated.
+///   Level must be a non-negative integer (`u32`).
+///
+/// # Returns
+/// A `f64` representing the total experience points needed to reach the specified level.
+fn xp_required_for_level(level: u32) -> f64 {
+	const BASE_XP: f64 = 100.0;
+	const GROWTH_RATE: f64 = 1.12;
+
+	match level {
+		0 => 0.0,
+		1 => BASE_XP,
+		2..=25 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64),
+		26..=50 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.2,
+		51..=75 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 1.5,
+		76..=100 => BASE_XP * GROWTH_RATE.powf((level - 1) as f64) * 2.0,
+		_ => xp_required_for_level(100) + (level - 100) as f64 * 10000.0, // Linear growth after level 100
+	}
+}

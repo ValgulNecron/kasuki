@@ -1,0 +1,394 @@
+[
+  {
+    "id": "gaming_01",
+    "difficulty": "1",
+    "question": {
+      "en": "Which company developed the game 'The Legend of Zelda'?",
+      "fr": "Quelle entreprise a développé le jeu 'The Legend of Zelda' ?",
+      "de": "Welche Firma entwickelte das Spiel 'The Legend of Zelda'?",
+      "ja": "『ゼルダの伝説』を開発した会社はどこですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Sony",
+          "fr": "Sony",
+          "de": "Sony",
+          "ja": "ソニー"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Nintendo",
+          "fr": "Nintendo",
+          "de": "Nintendo",
+          "ja": "任天堂"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Microsoft",
+          "fr": "Microsoft",
+          "de": "Microsoft",
+          "ja": "マイクロソフト"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Sega",
+          "fr": "Sega",
+          "de": "Sega",
+          "ja": "セガ"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_02",
+    "difficulty": "2",
+    "question": {
+      "en": "In 'Minecraft', what material do you need to make a Nether Portal?",
+      "fr": "Dans 'Minecraft', quel matériau faut-il pour construire un portail du Nether ?",
+      "de": "Welches Material braucht man in 'Minecraft', um ein Nether-Portal zu bauen?",
+      "ja": "『マインクラフト』でネザーゲートを作るにはどの素材が必要ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Obsidian",
+          "fr": "Obsidienne",
+          "de": "Obsidian",
+          "ja": "黒曜石"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Stone",
+          "fr": "Pierre",
+          "de": "Stein",
+          "ja": "石"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Iron Blocks",
+          "fr": "Blocs de fer",
+          "de": "Eisenblöcke",
+          "ja": "鉄ブロック"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Glass",
+          "fr": "Verre",
+          "de": "Glas",
+          "ja": "ガラス"
+        }
+      }
+    ],
+    "valid_response": "a"
+  },
+  {
+    "id": "gaming_03",
+    "difficulty": "3",
+    "question": {
+      "en": "What is the best-selling video game of all time?",
+      "fr": "Quel est le jeu vidéo le plus vendu de tous les temps ?",
+      "de": "Was ist das meistverkaufte Videospiel aller Zeiten?",
+      "ja": "史上最も売れたビデオゲームは何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Tetris",
+          "fr": "Tetris",
+          "de": "Tetris",
+          "ja": "テトリス"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Minecraft",
+          "fr": "Minecraft",
+          "de": "Minecraft",
+          "ja": "マインクラフト"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Grand Theft Auto V",
+          "fr": "Grand Theft Auto V",
+          "de": "Grand Theft Auto V",
+          "ja": "グランド・セフト・オートV"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Super Mario Bros.",
+          "fr": "Super Mario Bros.",
+          "de": "Super Mario Bros.",
+          "ja": "スーパーマリオブラザーズ"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_04",
+    "difficulty": "1",
+    "question": {
+      "en": "Which of these is not a 'Pokemon' type?",
+      "fr": "Lequel de ces types n'est pas un type de 'Pokémon' ?",
+      "de": "Welcher dieser Typen ist kein 'Pokémon'-Typ?",
+      "ja": "この中で「ポケモン」のタイプでないものはどれですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Fairy",
+          "fr": "Fée",
+          "de": "Fee",
+          "ja": "フェアリー"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Sound",
+          "fr": "Son",
+          "de": "Klang",
+          "ja": "サウンド"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Dark",
+          "fr": "Ténèbres",
+          "de": "Unlicht",
+          "ja": "あく"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Steel",
+          "fr": "Acier",
+          "de": "Stahl",
+          "ja": "はがね"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_05",
+    "difficulty": "2",
+    "question": {
+      "en": "In the game 'Among Us', what is the primary objective of the Impostors?",
+      "fr": "Dans le jeu 'Among Us', quel est l'objectif principal des Imposteurs ?",
+      "de": "Was ist das Hauptziel der Impostoren im Spiel 'Among Us'?",
+      "ja": "ゲーム「Among Us」で、インポスターの主な目的は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Complete all the tasks",
+          "fr": "Accomplir toutes les tâches",
+          "de": "Alle Aufgaben erledigen",
+          "ja": "すべてのタスクを完了する"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Sabotage the ship and kill the Crewmates",
+          "fr": "Saboter le vaisseau et tuer les Équipiers",
+          "de": "Das Schiff sabotieren und die Besatzungsmitglieder töten",
+          "ja": "船を妨害し、クルーメイトを殺す"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Vote out all the Crewmates",
+          "fr": "Voter pour éliminer tous les Équipiers",
+          "de": "Alle Besatzungsmitglieder rauswählen",
+          "ja": "すべてのクルーメイトを投票で追放する"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Fix the sabotages",
+          "fr": "Réparer les sabotages",
+          "de": "Die Sabotagen reparieren",
+          "ja": "妨害工作を修理する"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_06",
+    "difficulty": "3",
+    "question": {
+      "en": "Which game is often credited with popularizing the battle royale genre?",
+      "fr": "Quel jeu est souvent crédité pour avoir popularisé le genre du battle royale ?",
+      "de": "Welchem Spiel wird oft die Popularisierung des Battle-Royale-Genres zugeschrieben?",
+      "ja": "バトルロイヤルジャンルを普及させたとよく言われるゲームはどれですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Fortnite",
+          "fr": "Fortnite",
+          "de": "Fortnite",
+          "ja": "フォートナイト"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "PlayerUnknown's Battlegrounds (PUBG)",
+          "fr": "PlayerUnknown's Battlegrounds (PUBG)",
+          "de": "PlayerUnknown's Battlegrounds (PUBG)",
+          "ja": "PlayerUnknown's Battlegrounds (PUBG)"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Apex Legends",
+          "fr": "Apex Legends",
+          "de": "Apex Legends",
+          "ja": "Apex Legends"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "H1Z1",
+          "fr": "H1Z1",
+          "de": "H1Z1",
+          "ja": "H1Z1"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_07",
+    "difficulty": "2",
+    "question": {
+      "en": "What is the name of the protagonist in the video game 'The Witcher 3: Wild Hunt'?",
+      "fr": "Quel est le nom du protagoniste du jeu vidéo 'The Witcher 3: Wild Hunt' ?",
+      "de": "Wie heißt der Protagonist im Videospiel 'The Witcher 3: Wild Hunt'?",
+      "ja": "ビデオゲーム「ウィッチャー3 ワイルドハント」の主人公の名前は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Ciri",
+          "fr": "Ciri",
+          "de": "Ciri",
+          "ja": "シリ"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Geralt of Rivia",
+          "fr": "Geralt de Riv",
+          "de": "Geralt von Riva",
+          "ja": "リヴィアのゲラルト"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Yennefer of Vengerberg",
+          "fr": "Yennefer de Vengerberg",
+          "de": "Yennefer von Vengerberg",
+          "ja": "ヴェンガーバーグのイェネファー"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Triss Merigold",
+          "fr": "Triss Merigold",
+          "de": "Triss Merigold",
+          "ja": "トリス・メリゴールド"
+        }
+      }
+    ],
+    "valid_response": "b"
+  },
+  {
+    "id": "gaming_08",
+    "difficulty": "1",
+    "question": {
+      "en": "Which company developed the popular MOBA game 'League of Legends'?",
+      "fr": "Quelle entreprise a développé le célèbre jeu MOBA 'League of Legends' ?",
+      "de": "Welche Firma entwickelte das beliebte MOBA-Spiel 'League of Legends'?",
+      "ja": "人気のMOBAゲーム「リーグ・オブ・レジェンド」を開発した会社はどこですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Blizzard Entertainment",
+          "fr": "Blizzard Entertainment",
+          "de": "Blizzard Entertainment",
+          "ja": "ブリザード・エンターテイメント"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Valve Corporation",
+          "fr": "Valve Corporation",
+          "de": "Valve Corporation",
+          "ja": "Valve Corporation"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Riot Games",
+          "fr": "Riot Games",
+          "de": "Riot Games",
+          "ja": "ライアットゲームズ"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Epic Games",
+          "fr": "Epic Games",
+          "de": "Epic Games",
+          "ja": "エピックゲームズ"
+        }
+      }
+    ],
+    "valid_response": "c"
+  }
+]

@@ -1,0 +1,150 @@
+//! The `KillSwitchCommand` struct implements a Discord slash command for managing
+//! guild-specific module states in the application. It updates the module's "kill-switch"
+//! state in the database and provides feedback to the user.
+//!
+//! # Fields
+//! - `ctx`: The Serenity context that provides access to the bot's state and utilities.
+//! - `command_interaction`: Represents the slash command interaction received from Discord.
+//!
+//! # Traits Implementations
+//!
+//! ## `Command`
+//! This trait contains methods that are necessary for processing the slash command.
+//!
+//! ### `get_ctx`
+//! Retrieves the reference to the `SerenityContext`.
+//!
+//! ### `get_command_interaction`
+//! Retrieves the reference to the `CommandInteraction`.
+//!
+//! ### `get_contents`
+//! Asynchronously processes the command and executes the kill-switch functionality.
+//!
+//! # `get_contents` Method Details
+//!
+//! - Retrieves configuration and context data to process the command.
+//! - Determines the module name and state options from the interaction inputs.
+//! - Loads guild-specific localization settings for the kill-switch description.
+//! - Connects to the database and updates the state of the specified module.
+//! - Composes an embed containing feedback for the user, e.g., enabling/disabling the module.
+//!
+//! ## Expected Errors
+//! - If the `name` option is missing from the interaction.
+//! - If the `state` option is missing from the interaction.
+//! - If the module name provided in the interaction doesn't match any known modules.
+//! - If a kill-switch row for the guild-specific ID is not found in the database.
+//! - If database or localization read/write errors occur.
+//!
+//! ## Supported Modules
+//! - `ANILIST`
+//! - `AI`
+//! - `GAME`
+//! - `NEW_MEMBER`
+//! - `ANIME`
+//! - `VN`
+//!
+//! ## Return Value
+//! - Returns a vector of `EmbedContent` instances containing localized feedback about the
+//!   operation success or failure.
+//!
+//! ## Usage Example
+//! ```rust
+//! let command = KillSwitchCommand {
+//!     ctx: context.clone(),
+//!     command_interaction: interaction.clone(),
+//! };
+//!
+//! if let Ok(embeds) = command.get_contents().await {
+//!     // Send embeds as a response to the user.
+//! }
+//! ```
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::event_handler::BotData;
+use crate::get_url;
+use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
+use anyhow::anyhow;
+use kasuki_macros::slash_command;
+use sea_orm::ActiveModelTrait;
+use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
+use sea_orm::{EntityTrait, IntoActiveModel};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::kill_switch::{ActiveModel, Column};
+use shared::database::prelude::KillSwitch;
+use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use small_fixed_array::FixedString;
+
+#[slash_command(
+	name = "kill_switch", desc = "Globally turn on or off a module",
+	command_type = GuildChatInput { guild_id = 1117152661620408531 },
+	permissions = [Administrator],
+	args = [
+		(name = "name", desc = "The module you want to change the state of.", arg_type = String, required = true, autocomplete = false,
+			choices = [(name = "AI"), (name = "ANILIST"), (name = "GAME"), (name = "NEW_MEMBER"), (name = "ANIME"), (name = "VN")]),
+		(name = "state", desc = "The state you want to to.", arg_type = Boolean, required = true, autocomplete = false)
+	],
+)]
+async fn kill_switch_command(self_: KillSwitchCommand) -> Result<EmbedsContents<'_>> {
+	let ctx = self_.get_ctx();
+	let command_interaction = self_.get_command_interaction();
+	let bot_data = ctx.data::<BotData>().clone();
+
+	let config = bot_data.config.clone();
+
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+
+	let map = get_option_map_string(command_interaction);
+
+	let module = map
+		.get(&FixedString::from_str_trunc("name"))
+		.ok_or(anyhow!("No option for name"))?;
+	let db_connection = bot_data.db_connection.clone();
+
+	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
+
+	let map = get_option_map_boolean(command_interaction);
+
+	let state = *map
+		.get(&FixedString::from_str_trunc("state"))
+		.ok_or(anyhow!("No option for state"))?;
+
+	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
+
+	let mut row = KillSwitch::find()
+		.filter(Column::GuildId.eq("0"))
+		.one(&connection)
+		.await?
+		.ok_or(anyhow!("KillSwitch not found"))?;
+
+	match module.as_str() {
+		"ANILIST" => row.anilist_module = state,
+		"AI" => row.ai_module = state,
+		"GAME" => row.game_module = state,
+		"LEVEL" => row.level_module = state,
+		"MINIGAME" => row.mini_game_module = state,
+		"ANIME" => row.anime_module = state,
+		"VN" => row.vn_module = state,
+		_ => {
+			return Err(anyhow!("The module specified does not exist"));
+		},
+	}
+
+	let active_model: ActiveModel = row.into_active_model();
+
+	active_model.update(&connection).await?;
+
+	let desc = if state {
+		USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-on")
+	} else {
+		USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-off")
+	};
+
+	let embed_content = EmbedContent::new(module.clone()).description(desc);
+
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
+
+	Ok(embed_contents)
+}

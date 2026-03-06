@@ -1,0 +1,16 @@
+game_steam_game_info-coming_soon = Coming soon
+game_steam_game_info-field1 = Price
+game_steam_game_info-field2 = Release date
+game_steam_game_info-field3 = Developers
+game_steam_game_info-field4 = Publishers
+game_steam_game_info-field5 = App type
+game_steam_game_info-field6 = Languages
+game_steam_game_info-field7 = Categories
+game_steam_game_info-field8 = Reviews
+game_steam_game_info-free = Free
+game_steam_game_info-linux = Linux
+game_steam_game_info-mac = Mac
+game_steam_game_info-required_age = Required age
+game_steam_game_info-tba = TBA
+game_steam_game_info-website = Website
+game_steam_game_info-win = Windows

@@ -1,0 +1,100 @@
+[
+  {
+    "id": "geography_01",
+    "difficulty": "1",
+    "question": {
+      "en": "What is the capital of France?",
+      "fr": "Quelle est la capitale de la France ?",
+      "de": "Was ist die Hauptstadt von Frankreich?",
+      "ja": "フランスの首都は何ですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Berlin",
+          "fr": "Berlin",
+          "de": "Berlin",
+          "ja": "ベルリン"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Madrid",
+          "fr": "Madrid",
+          "de": "Madrid",
+          "ja": "マドリード"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Paris",
+          "fr": "Paris",
+          "de": "Paris",
+          "ja": "パリ"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Rome",
+          "fr": "Rome",
+          "de": "Rom",
+          "ja": "ローマ"
+        }
+      }
+    ],
+    "valid_response": "c"
+  },
+  {
+    "id": "geography_02",
+    "difficulty": "2",
+    "question": {
+      "en": "Which is the longest river in the world?",
+      "fr": "Quel est le plus long fleuve du monde ?",
+      "de": "Welcher ist der längste Fluss der Welt?",
+      "ja": "世界で最も長い川はどれですか？"
+    },
+    "choice": [
+      {
+        "a": "a",
+        "text": {
+          "en": "Amazon River",
+          "fr": "Amazone",
+          "de": "Amazonas",
+          "ja": "アマゾン川"
+        }
+      },
+      {
+        "b": "b",
+        "text": {
+          "en": "Nile River",
+          "fr": "Nil",
+          "de": "Nil",
+          "ja": "ナイル川"
+        }
+      },
+      {
+        "c": "c",
+        "text": {
+          "en": "Yangtze River",
+          "fr": "Yangtsé",
+          "de": "Jangtsekiang",
+          "ja": "長江"
+        }
+      },
+      {
+        "d": "d",
+        "text": {
+          "en": "Mississippi River",
+          "fr": "Mississippi",
+          "de": "Mississippi",
+          "ja": "ミシシッピ川"
+        }
+      }
+    ],
+    "valid_response": "b"
+  }
+]

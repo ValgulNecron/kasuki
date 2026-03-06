@@ -1,0 +1,13 @@
+anilist_user_media-chapter = チャプター:
+anilist_user_media-characters = キャラクター:
+anilist_user_media-duration = 期間:
+anilist_user_media-end_date = 終了日:
+anilist_user_media-fav = お気に入り:
+anilist_user_media-format = フォーマット:
+anilist_user_media-genre = ジャンル
+anilist_user_media-minutes = 分
+anilist_user_media-song = 歌
+anilist_user_media-source = ソース:
+anilist_user_media-staffs = スタッフとロール:
+anilist_user_media-start_date = 開始日:
+anilist_user_media-tag = タグ

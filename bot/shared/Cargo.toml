@@ -1,0 +1,34 @@
+[package]
+name = "shared"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sea-orm.workspace = true
+moka.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+cynic.workspace = true
+reqwest.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+chrono.workspace = true
+fluent-templates.workspace = true
+unic-langid.workspace = true
+inventory.workspace = true
+serenity.workspace = true
+serde_urlencoded.workspace = true
+futures.workspace = true
+redis.workspace = true
+rust-s3.workspace = true
+async-trait.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+fluent-syntax.workspace = true
+walkdir.workspace = true
+
+[build-dependencies]
+cynic-codegen.workspace = true

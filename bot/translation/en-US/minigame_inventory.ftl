@@ -1,0 +1,24 @@
+minigame_inventory-title = Your Inventory
+minigame_inventory-empty = Your inventory is empty. Try using the `/minigame fishing` command to catch some fish!
+minigame_inventory-fish = Fish
+minigame_inventory-fish_format = **{ $fish_name }** x{ $count } (Total Value: { $total_value } coins)
+minigame_inventory-best_fish = Your Best Fish
+minigame_inventory-best_fish_format = **{ $count }. { $item_name }** - { $size_description } ({ $size } cm), { $rarity_text } rarity, { $xp_boost }% XP boost
+minigame_inventory-all_fish = All Fish (Numbered)
+minigame_inventory-all_fish_format = **{ $fish_number }. { $item_name }** - { $size_description } ({ $size } cm), { $rarity_text } rarity, Value: { $price } coins
+minigame_inventory-summary = Summary
+minigame_inventory-summary_format = Total Fish: { $total_fish_count }
+    Total Value: { $total_fish_value } coins
+minigame_inventory-common = Common
+minigame_inventory-uncommon = Uncommon
+minigame_inventory-rare = Rare
+minigame_inventory-epic = Epic
+minigame_inventory-legendary = Legendary
+minigame_inventory-unknown = Unknown
+minigame_inventory-tiny = tiny
+minigame_inventory-small = small
+minigame_inventory-average = average
+minigame_inventory-large = large
+minigame_inventory-huge = huge
+minigame_inventory-massive = massive
+minigame_inventory-unknown_size = unknown

@@ -1,0 +1,12 @@
+vn_character-age = Alter
+vn_character-birthday = Geburtstag
+vn_character-blood_type = Blutgruppe
+vn_character-bust = Brust
+vn_character-cup = Körbchengröße
+vn_character-height = Größe
+vn_character-hip = Hüfte
+vn_character-sex = Geschlecht
+vn_character-traits = Merkmale
+vn_character-vns = Visual Novels
+vn_character-waist = Taille
+vn_character-weight = Gewicht

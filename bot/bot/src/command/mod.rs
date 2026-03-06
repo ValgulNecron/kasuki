@@ -1,0 +1,24 @@
+pub mod command;
+pub mod context;
+pub mod guess_kind;
+pub mod parents;
+pub mod registry;
+pub mod user;
+
+pub mod admin;
+pub mod ai;
+pub mod anilist_server;
+pub mod anilist_user;
+pub mod anime;
+pub mod anime_nsfw;
+pub mod bot;
+pub mod command_dispatch;
+pub mod embed_content;
+pub mod levels;
+pub mod management;
+pub mod minigame;
+pub mod music;
+pub mod prenium_command;
+pub mod server;
+pub mod steam;
+pub mod vn;

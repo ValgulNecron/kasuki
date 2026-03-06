@@ -1,0 +1,662 @@
+use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::constant::UNKNOWN;
+use crate::event_handler::BotData;
+use anyhow::{anyhow, Result};
+use fluent_templates::Loader;
+use sea_orm::{entity::*, query::*, DatabaseConnection};
+use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::database::anime_song::Column::AnilistId;
+use shared::database::prelude::AnimeSong;
+use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use std::fmt::Display;
+use std::sync::Arc;
+
+#[cynic::schema("anilist")]
+
+mod schema {}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+
+pub struct MediaQuerryIdVariables {
+	pub format_in: Option<Vec<Option<MediaFormat>>>,
+	pub id: Option<i32>,
+	pub media_type: Option<MediaType>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaQuerryIdVariables")]
+
+pub struct MediaQuerryId {
+	#[arguments(type: $ media_type, id: $ id, format_in: $ format_in)]
+	#[cynic(rename = "Media")]
+	pub media: Option<Media>,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+
+pub struct MediaQuerrySearchVariables<'a> {
+	pub format_in: Option<Vec<Option<MediaFormat>>>,
+	pub media_type: Option<MediaType>,
+	pub search: Option<&'a str>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaQuerrySearchVariables")]
+
+pub struct MediaQuerrySearch {
+	#[arguments(search: $ search, type: $ media_type, format_in: $ format_in)]
+	#[cynic(rename = "Media")]
+	pub media: Option<Media>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct Media {
+	pub id: i32,
+	pub cover_image: Option<MediaCoverImage>,
+	pub title: Option<MediaTitle>,
+	pub source: Option<MediaSource>,
+	pub site_url: Option<String>,
+	pub genres: Option<Vec<Option<String>>>,
+	pub favourites: Option<i32>,
+	pub format: Option<MediaFormat>,
+	pub duration: Option<i32>,
+	pub staff: Option<StaffConnection>,
+	pub start_date: Option<FuzzyDate>,
+	pub end_date: Option<FuzzyDate>,
+	pub chapters: Option<i32>,
+	pub characters: Option<CharacterConnection>,
+	pub tags: Option<Vec<Option<MediaTag>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct StaffConnection {
+	pub edges: Option<Vec<Option<StaffEdge>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct StaffEdge {
+	pub role: Option<String>,
+	pub node: Option<Staff>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct Staff {
+	pub name: Option<StaffName>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct StaffName {
+	pub user_preferred: Option<String>,
+	pub full: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct MediaTitle {
+	pub english: Option<String>,
+	pub romaji: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct MediaCoverImage {
+	pub extra_large: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct FuzzyDate {
+	pub year: Option<i32>,
+	pub month: Option<i32>,
+	pub day: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct CharacterConnection {
+	pub edges: Option<Vec<Option<CharacterEdge>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct CharacterEdge {
+	pub node: Option<Character>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct Character {
+	pub name: Option<CharacterName>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct CharacterName {
+	pub user_preferred: Option<String>,
+	pub full: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+
+pub struct MediaTag {
+	pub name: String,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(dead_code)]
+pub enum CharacterRole {
+	Main,
+	Supporting,
+	Background,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+
+pub enum MediaFormat {
+	Tv,
+	TvShort,
+	Movie,
+	Special,
+	Ova,
+	Ona,
+	Music,
+	Manga,
+	Novel,
+	OneShot,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(dead_code)]
+pub enum MediaSeason {
+	Winter,
+	Spring,
+	Summer,
+	Fall,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+
+pub enum MediaSource {
+	Original,
+	Manga,
+	LightNovel,
+	VisualNovel,
+	VideoGame,
+	Other,
+	Novel,
+	Doujinshi,
+	Anime,
+	WebNovel,
+	LiveAction,
+	Game,
+	Comic,
+	MultimediaProject,
+	PictureBook,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(dead_code)]
+pub enum MediaStatus {
+	Finished,
+	Releasing,
+	NotYetReleased,
+	Cancelled,
+	Hiatus,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+
+pub enum MediaType {
+	Anime,
+	Manga,
+}
+
+#[derive(cynic::Scalar, Debug, Clone)]
+#[allow(dead_code)]
+pub struct CountryCode(pub String);
+
+impl Display for CountryCode {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}", self.0.clone())
+	}
+}
+
+impl Display for MediaType {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			MediaType::Anime => write!(f, "Anime"),
+			MediaType::Manga => write!(f, "Manga"),
+		}
+	}
+}
+
+impl Display for MediaStatus {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			MediaStatus::Finished => write!(f, "Finished"),
+			MediaStatus::Releasing => write!(f, "Releasing"),
+			MediaStatus::NotYetReleased => write!(f, "Not Yet Released"),
+			MediaStatus::Cancelled => write!(f, "Cancelled"),
+			MediaStatus::Hiatus => write!(f, "Hiatus"),
+		}
+	}
+}
+
+impl Display for MediaSource {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			MediaSource::Original => write!(f, "Original"),
+			MediaSource::Manga => write!(f, "Manga"),
+			MediaSource::LightNovel => write!(f, "Light Novel"),
+			MediaSource::VisualNovel => write!(f, "Visual Novel"),
+			MediaSource::VideoGame => write!(f, "Video Game"),
+			MediaSource::Other => write!(f, "Other"),
+			MediaSource::Novel => write!(f, "Novel"),
+			MediaSource::Doujinshi => write!(f, "Doujinshi"),
+			MediaSource::Anime => write!(f, "Anime"),
+			MediaSource::WebNovel => write!(f, "Web Novel"),
+			MediaSource::LiveAction => write!(f, "Live Action"),
+			MediaSource::Game => write!(f, "Game"),
+			MediaSource::Comic => write!(f, "Comic"),
+			MediaSource::MultimediaProject => write!(f, "Multimedia Project"),
+			MediaSource::PictureBook => write!(f, "Picture Book"),
+		}
+	}
+}
+
+impl Display for MediaFormat {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			MediaFormat::Tv => write!(f, "TV"),
+			MediaFormat::TvShort => write!(f, "TV Short"),
+			MediaFormat::Movie => write!(f, "Movie"),
+			MediaFormat::Special => write!(f, "Special"),
+			MediaFormat::Ova => write!(f, "OVA"),
+			MediaFormat::Ona => write!(f, "ONA"),
+			MediaFormat::Music => write!(f, "Music"),
+			MediaFormat::Manga => write!(f, "Manga"),
+			MediaFormat::Novel => write!(f, "Novel"),
+			MediaFormat::OneShot => write!(f, "One Shot"),
+		}
+	}
+}
+
+impl Display for MediaSeason {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			MediaSeason::Winter => write!(f, "Winter"),
+			MediaSeason::Spring => write!(f, "Spring"),
+			MediaSeason::Summer => write!(f, "Summer"),
+			MediaSeason::Fall => write!(f, "Fall"),
+		}
+	}
+}
+
+impl Display for CharacterRole {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			CharacterRole::Main => write!(f, "Main"),
+			CharacterRole::Supporting => write!(f, "Supporting"),
+			CharacterRole::Background => write!(f, "Background"),
+		}
+	}
+}
+
+fn embed_title(title: &MediaTitle) -> String {
+	let en = title.english.clone();
+
+	let rj = title.romaji.clone();
+
+	let en = en.unwrap_or_default();
+
+	let rj = rj.unwrap_or_default();
+
+	let mut title = String::new();
+
+	let mut has_en_title = false;
+
+	match en.as_str() {
+		"" => {},
+		_ => {
+			has_en_title = true;
+
+			title.push_str(en.as_str())
+		},
+	}
+
+	match rj.as_str() {
+		"" => {},
+		_ => {
+			if has_en_title {
+				title.push_str(" / ");
+
+				title.push_str(rj.as_str())
+			} else {
+				title.push_str(rj.as_str())
+			}
+		},
+	}
+
+	title
+}
+
+fn get_url(media: &Media) -> String {
+	media
+		.site_url
+		.clone()
+		.unwrap_or("https://example.com".to_string())
+}
+
+pub fn get_banner(media: &Media) -> String {
+	format!("https://img.anili.st/media/{}", media.id)
+}
+
+fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
+	let mut staff_text = String::new();
+
+	// iterate over staff with index
+	let mut i = 0;
+
+	for s in staff.into_iter() {
+		if i > 4 {
+			break;
+		}
+
+		let s = match s {
+			Some(s) => s,
+			None => continue,
+		};
+
+		let node = match s.node.clone() {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let name = match node.name {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let full = name.full;
+
+		let user_pref = name.user_preferred;
+
+		let staff_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
+
+		let s_role = s.role.clone();
+
+		let role = s_role.unwrap_or(UNKNOWN.to_string());
+
+		staff_text.push_str(format!("{}: {}\n", staff_name.as_str(), role.as_str()).as_str());
+
+		i += 1;
+	}
+
+	staff_text
+}
+
+fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
+	let mut characters_text = String::new();
+
+	let mut i = 0;
+
+	for c in characters.into_iter() {
+		if i > 4 {
+			break;
+		}
+
+		let c = match c {
+			Some(c) => c,
+			None => continue,
+		};
+
+		let node = match c.node.clone() {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let name = match node.name {
+			Some(n) => n,
+			None => continue,
+		};
+
+		let full = name.full;
+
+		let user_pref = name.user_preferred;
+
+		let char_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
+
+		characters_text.push_str(format!("{}\n", char_name.as_str()).as_str());
+
+		i += 1;
+	}
+
+	characters_text
+}
+
+pub async fn media_content<'a>(
+	_ctx: SerenityContext, command_interaction: CommandInteraction, data: Media,
+	db_connection: Arc<DatabaseConnection>, bot_data: Arc<BotData>,
+) -> Result<EmbedsContents<'a>> {
+	let guild_id = match command_interaction.guild_id {
+		Some(id) => id.to_string(),
+		None => String::from("0"),
+	};
+
+	let connection = bot_data.db_connection.clone();
+
+	let anime_song = AnimeSong::find()
+		.filter(AnilistId.eq(data.id.to_string()))
+		.all(&*connection.clone())
+		.await?;
+
+	let mut song_list = anime_song
+		.into_iter()
+		.map(|song| {
+			let mut message = song.song_name;
+			if song.audio != String::new() {
+				message.push_str(format!(" | [mp3]({})", song.audio).as_str());
+			}
+			if song.hq != String::new() {
+				message.push_str(format!(" | [mp4]({})", song.hq).as_str());
+			} else if song.mq != String::new() {
+				message.push_str(format!(" | [mp4]({})", song.mq).as_str());
+			}
+			message.push('\n');
+			message
+		})
+		.collect::<String>();
+
+	if song_list.len() > 1024 {
+		song_list.truncate(1024);
+		// check until only \n is the last char
+		while !song_list.ends_with('\n') {
+			song_list.pop(); // Remove the last character until it ends with '\n'
+		}
+	}
+
+	let lang_id = get_language_identifier(guild_id, db_connection).await;
+
+	let mut fields = Vec::new();
+
+	if !song_list.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-song"),
+			song_list,
+			false,
+		));
+	}
+
+	let genres = data.genres.clone().unwrap_or_default();
+
+	// take the first 5 non-optional genres
+	let genres = genres
+		.into_iter()
+		.flatten()
+		.take(5)
+		.collect::<Vec<String>>();
+
+	if !genres.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-genre"),
+			genres.join(","),
+			false,
+		))
+	}
+
+	if let Some(staff) = data.staff.clone() {
+		if let Some(edges) = staff.edges {
+			let staffs = get_staff(edges);
+
+			if !staffs.is_empty() {
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-staffs"),
+					staffs,
+					false,
+				));
+			}
+		}
+	}
+
+	if let Some(characters) = data.characters.clone() {
+		if let Some(edges) = characters.edges {
+			let chars = get_characters(edges);
+
+			if !chars.is_empty() {
+				fields.push((
+					USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-characters"),
+					chars,
+					false,
+				));
+			}
+		}
+	}
+
+	let tags = data.tags.clone().unwrap_or_default();
+
+	let tags: Vec<String> = tags.into_iter().flatten().take(5).map(|t| t.name).collect();
+
+	if !tags.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-tag"),
+			tags.join(", "),
+			false,
+		));
+	}
+
+	if let Some(format) = data.format {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-format"),
+			format.to_string(),
+			true,
+		))
+	}
+
+	if let Some(source) = data.source {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-source"),
+			source.to_string(),
+			true,
+		))
+	}
+
+	if let Some(start_date) = data.start_date.clone() {
+		let mut start_date_str = String::new();
+
+		if let Some(day) = start_date.day {
+			start_date_str.push_str(format!("{}/", day).as_str());
+		}
+
+		if let Some(month) = start_date.month {
+			start_date_str.push_str(format!("{}/", month).as_str());
+		}
+
+		if let Some(year) = start_date.year {
+			start_date_str.push_str(year.to_string().as_str());
+		}
+
+		if !start_date_str.is_empty() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-start_date"),
+				start_date_str,
+				true,
+			));
+		}
+	}
+
+	if let Some(end_date) = data.end_date.clone() {
+		let mut end_date_str = String::new();
+
+		if let Some(day) = end_date.day {
+			end_date_str.push_str(format!("{}/", day).as_str());
+		}
+
+		if let Some(month) = end_date.month {
+			end_date_str.push_str(format!("{}/", month).as_str());
+		}
+
+		if let Some(year) = end_date.year {
+			end_date_str.push_str(year.to_string().as_str());
+		}
+
+		if !end_date_str.is_empty() {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-end_date"),
+				end_date_str,
+				true,
+			));
+		}
+	}
+
+	if let Some(favourites) = data.favourites {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-fav"),
+			favourites.to_string(),
+			true,
+		))
+	}
+
+	if let Some(duration) = data.duration {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-duration"),
+			format!(
+				"{} {}",
+				duration,
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-minutes")
+			),
+			true,
+		));
+	}
+
+	if let Some(chapters) = data.chapters {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-chapter"),
+			chapters.to_string(),
+			true,
+		));
+	}
+
+	let title = match data.title.clone() {
+		Some(t) => t,
+		None => return Err(anyhow!("No title")),
+	};
+
+	let mut embed_content = EmbedContent::new(embed_title(&title))
+		.url(get_url(&data.clone()))
+		.fields(fields)
+		.images_url(get_banner(&data.clone()));
+
+	if let Some(image) = data.cover_image {
+		if let Some(extra_large) = image.extra_large {
+			embed_content = embed_content.images_url(extra_large);
+		}
+	}
+
+	let embed_contents = EmbedsContents::new(vec![embed_content]);
+
+	Ok(embed_contents)
+}

@@ -1,0 +1,13 @@
+levels_stats-level_progress = **レベル { $current_level }** → **レベル { $next_level }** ({ $current_xp }/{ $next_level_xp } XP)
+levels_stats-level_progress_title = レベル進行状況
+levels_stats-message = **送信メッセージ:** { $message }
+levels_stats-message_title = メッセージアクティビティ
+levels_stats-title = サーバーアクティビティ統計
+levels_stats-vocal = **セッション数:** { $session }
+levels_stats-vocal_len = **経過時間:** { $hours }時間 { $minutes }分 { $seconds }秒
+levels_stats-vocal_title = ボイスアクティビティ
+levels_stats-xp_message = **メッセージから:** { $xp } XP
+levels_stats-xp_title = XP内訳
+levels_stats-xp_total = **合計XP:** { $xp }
+levels_stats-xp_vocal = **ボイスセッションから:** { $xp } XP
+levels_stats-xp_vocal_len = **ボイス時間から:** { $xp } XP

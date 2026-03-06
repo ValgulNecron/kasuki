@@ -1,18 +1,62 @@
 version: '3'
 services:
-  kasuki:
-    # let you build with the git file you have cloned (there is no guaranteed on a working states)
-    #build:
-    #  context: .
-    #  dockerfile: Dockerfile
-    image: valgul/kasuki:latest # the latest stable version of kasuki
-    # image: valgul/kasuki:dev # the latest dev build that compile there could be error.
-    container_name: kasuki
+  worker:
+    image: valgul/kasuki:latest
+    command: --worker
+    container_name: kasuki-worker
     restart: unless-stopped
-    hostname: kasuki
     depends_on:
       - db
-      - reverse-proxy
+    tty: true
+    volumes:
+      - ./logs/:/kasuki/logs/
+      - ./config.toml:/kasuki/config.toml
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      kasuki:
+
+  api-server:
+    image: valgul/kasuki:latest
+    command: --api
+    restart: unless-stopped
+    depends_on:
+      - db
+    tty: true
+    volumes:
+      - ./logs/:/kasuki/logs/
+      - ./config.toml:/kasuki/config.toml
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      kasuki:
+    deploy:
+      replicas: 1
+
+  image-generation:
+    image: valgul/kasuki:latest
+    command: --image-generation
+    container_name: kasuki-image-generation
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    tty: true
+    volumes:
+      - ./logs/:/kasuki/logs/
+      - ./config.toml:/kasuki/config.toml
+      - ./images:/kasuki/images
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      kasuki:
+
+  bot:
+    image: valgul/kasuki:latest
+    command: --bot
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+      - worker
+      - lavalink
     tty: true
     volumes:
       - ./db/:/kasuki/db
@@ -23,16 +67,15 @@ services:
       - ./config.toml:/kasuki/config.toml
       - ./images:/kasuki/images
       - /etc/localtime:/etc/localtime:ro
-      # - ./proxy.txt:/kasuki/valid_proxy.txt # Uncomment this line if you want to use proxy you need to have a valid proxy list please check if they work before.
     networks:
       kasuki:
-        ipv4_address: 172.65.0.4
+    deploy:
+      replicas: 1
+
   db:
     image: postgres
     restart: always
     hostname: db
-    depends_on:
-      - reverse-proxy
     volumes:
       - ./db/:/var/lib/postgresql/data
     environment:
@@ -43,36 +86,59 @@ services:
         ipv4_address: 172.65.0.3
     ports:
       - "10001:5432"
-  reverse-proxy:
-    image: traefik:v3.1
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=your_email@example.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--api.dashboard=true"
-      - "--ping=false"
-    ports:
-      - "80:80"
-      - "8080:8080"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./acme.json:/letsencrypt/acme.json
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.example.com`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.service=api@internal"
+
+  redis:
+    image: redis:7-alpine
+    container_name: kasuki-redis
+    restart: always
+    hostname: redis
+    # Uncomment and set a password to enable Redis auth:
+    # command: redis-server --requirepass YOUR_PASSWORD_HERE
     networks:
       kasuki:
-        ipv4_address: 172.65.0.2
+    volumes:
+      - ./redis-data:/data
 
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun-kasuki
+    hostname: gluetun-kasuki
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      FIREWALL_INPUT_PORTS: 8080,6881,43211,5432,2333
+      VPN_SERVICE_PROVIDER: # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: CHANGE_ME_TO_YOUR_PRIVATE_KEY
+      SERVER_COUNTRIES: Germany
+      PORT_FORWARD_ONLY: true
+    networks:
+      - kasuki
+
+  lavalink:
+    # pin the image version to Lavalink v4
+    image: ghcr.io/lavalink-devs/lavalink
+    user: "0"
+    container_name: lavalink
+    restart: always
+    depends_on:
+      - gluetun
+    environment:
+      # set Java options here
+      - _JAVA_OPTIONS=-Xmx6G
+      # set lavalink server port
+      - SERVER_PORT=2333
+      # set password for lavalink
+      - LAVALINK_SERVER_PASSWORD=CHANGE_ME_TO_A_STRONG_PASSWORD
+    volumes:
+      # mount application.yml from the same directory or use environment variables
+      - /docker/app/kasuki/application.yml:/opt/Lavalink/application.yml
+      # persist plugins between restarts, make sure to set the correct permissions (user: 322, group: 322)
+      - /docker/app/kasuki/plugins/:/opt/Lavalink/plugins/
+    network_mode: "service:gluetun"
 
 networks:
   kasuki:

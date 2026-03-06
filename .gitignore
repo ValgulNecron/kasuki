@@ -108,6 +108,7 @@ fabric.properties
 
 .idea/rust-project.json
 
+
 logs
 /.idea/.gitignore
 /.idea/codeStyles/codeStyleConfig.xml
@@ -361,3 +362,12 @@ pkg/
 
 cache.db
 data.db
+
+!/website/lighthouse-improved-report.json
+
+!/website/lighthouse-prod-report.json
+
+!/website/lighthouse-report.json
+
+!/website/lighthouse-report-fixed.json
+!/config2.toml

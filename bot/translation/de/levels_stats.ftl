@@ -1,0 +1,13 @@
+levels_stats-level_progress = **Level { $current_level }** → **Level { $next_level }** ({ $current_xp }/{ $next_level_xp } XP)
+levels_stats-level_progress_title = Levelfortschritt
+levels_stats-message = **Gesendete Nachrichten:** { $message }
+levels_stats-message_title = Nachrichtenaktivität
+levels_stats-title = Server-Aktivitätsstatistik
+levels_stats-vocal = **Sitzungen:** { $session }
+levels_stats-vocal_len = **Verbrachte Zeit:** { $hours }h { $minutes }m { $seconds }s
+levels_stats-vocal_title = Sprachaktivität
+levels_stats-xp_message = **Von Nachrichten:** { $xp } XP
+levels_stats-xp_title = XP-Aufschlüsselung
+levels_stats-xp_total = **Gesamt-XP:** { $xp }
+levels_stats-xp_vocal = **Von Sprachsitzungen:** { $xp } XP
+levels_stats-xp_vocal_len = **Von Sprachdauer:** { $xp } XP

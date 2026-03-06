@@ -1,0 +1,24 @@
+minigame_inventory-title = インベントリ
+minigame_inventory-empty = インベントリは空です。`/minigame fishing` コマンドを使って魚を釣ってみましょう！
+minigame_inventory-fish = 魚
+minigame_inventory-fish_format = **{ $fish_name }** x{ $count } (合計価値: { $total_value } コイン)
+minigame_inventory-best_fish = ベストフィッシュ
+minigame_inventory-best_fish_format = **{ $count }. { $item_name }** - { $size_description } ({ $size } cm), レア度: { $rarity_text }, { $xp_boost }% XPブースト
+minigame_inventory-all_fish = すべての魚 (番号順)
+minigame_inventory-all_fish_format = **{ $fish_number }. { $item_name }** - { $size_description } ({ $size } cm), レア度: { $rarity_text }, 価値: { $price } コイン
+minigame_inventory-summary = 概要
+minigame_inventory-summary_format = 魚の総数: { $total_fish_count }
+    合計価値: { $total_fish_value } コイン
+minigame_inventory-common = コモン
+minigame_inventory-uncommon = アンコモン
+minigame_inventory-rare = レア
+minigame_inventory-epic = エピック
+minigame_inventory-legendary = レジェンダリー
+minigame_inventory-unknown = 不明
+minigame_inventory-tiny = 極小
+minigame_inventory-small = 小
+minigame_inventory-average = 中
+minigame_inventory-large = 大
+minigame_inventory-huge = 特大
+minigame_inventory-massive = 超巨大
+minigame_inventory-unknown_size = 不明

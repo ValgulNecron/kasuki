@@ -24,37 +24,47 @@ mod m20250701_204100_update_module;
 mod m20250712_120900_create_item;
 mod m20250712_120918_create_inventory;
 mod m20250713_181925_remove_max_quantity;
+mod m20250716_151106_add_leaderboard;
+mod m20250716_151508_add_foreign_key;
+mod m20251116_190300_add_use_time_to_command_usage;
+mod m20260210_000000_remove_user_banner;
+mod m20260225_000000_create_oauth_token;
 
 pub struct Migrator;
 
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
-    fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-        vec![
-            Box::new(m20240815_180000_guild_data::Migration),
-            Box::new(m20240815_180201_user_data::Migration),
-            Box::new(m20240815_180308_server_image::Migration),
-            Box::new(m20240815_182736_user_color::Migration),
-            Box::new(m20240815_183343_registered_anilist_user::Migration),
-            Box::new(m20240815_190656_module_activation::Migration),
-            Box::new(m20240815_213206_guild_lang::Migration),
-            Box::new(m20240815_231355_kill_switch::Migration),
-            Box::new(m20240815_231524_activity_data::Migration),
-            Box::new(m20240815_231538_ping_history::Migration),
-            Box::new(m20240826_215627_server_user_relation::Migration),
-            Box::new(m20240831_133253_user_subscription::Migration),
-            Box::new(m20240831_134027_guild_subscription::Migration),
-            Box::new(m20241221_192311_command_list::Migration),
-            Box::new(m20241221_192314_command_usage::Migration),
-            Box::new(m20241221_192339_random_stats::Migration),
-            Box::new(m20241225_163933_anime_song::Migration),
-            Box::new(m20250312_195747_update_unique::Migration),
-            Box::new(m20250630_200300_message::Migration),
-            Box::new(m20250630_200400_vocal::Migration),
-            Box::new(m20250701_204100_update_module::Migration),
-            Box::new(m20250712_120900_create_item::Migration),
-            Box::new(m20250712_120918_create_inventory::Migration),
-            Box::new(m20250713_181925_remove_max_quantity::Migration),
-        ]
-    }
+	fn migrations() -> Vec<Box<dyn MigrationTrait>> {
+		vec![
+			Box::new(m20240815_180000_guild_data::Migration),
+			Box::new(m20240815_180201_user_data::Migration),
+			Box::new(m20240815_180308_server_image::Migration),
+			Box::new(m20240815_182736_user_color::Migration),
+			Box::new(m20240815_183343_registered_anilist_user::Migration),
+			Box::new(m20240815_190656_module_activation::Migration),
+			Box::new(m20240815_213206_guild_lang::Migration),
+			Box::new(m20240815_231355_kill_switch::Migration),
+			Box::new(m20240815_231524_activity_data::Migration),
+			Box::new(m20240815_231538_ping_history::Migration),
+			Box::new(m20240826_215627_server_user_relation::Migration),
+			Box::new(m20240831_133253_user_subscription::Migration),
+			Box::new(m20240831_134027_guild_subscription::Migration),
+			Box::new(m20241221_192311_command_list::Migration),
+			Box::new(m20241221_192314_command_usage::Migration),
+			Box::new(m20241221_192339_random_stats::Migration),
+			Box::new(m20241225_163933_anime_song::Migration),
+			Box::new(m20250312_195747_update_unique::Migration),
+			Box::new(m20250630_200300_message::Migration),
+			Box::new(m20250630_200400_vocal::Migration),
+			Box::new(m20250701_204100_update_module::Migration),
+			Box::new(m20250712_120900_create_item::Migration),
+			Box::new(m20250712_120918_create_inventory::Migration),
+			Box::new(m20250713_181925_remove_max_quantity::Migration),
+			Box::new(m20250716_151106_add_leaderboard::Migration),
+			Box::new(m20250716_151508_add_foreign_key::Migration),
+			Box::new(m20251116_190300_add_use_time_to_command_usage::Migration),
+			Box::new(m20260210_000000_remove_user_banner::Migration),
+			Box::new(m20260225_000000_create_oauth_token::Migration),
+		]
+	}
 }

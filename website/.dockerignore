@@ -1,0 +1,32 @@
+# Build artifacts
+target/
+
+# Tauri (not needed for web build)
+src-tauri/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Documentation and reports
+*.md
+!README.md
+lighthouse-report*.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Rust
+**/*.rs.bk
