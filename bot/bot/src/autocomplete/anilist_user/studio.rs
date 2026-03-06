@@ -19,6 +19,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let studio_search = map
 		.get(&FixedString::from_str_trunc("studio"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	trace!("studio_search: {}", studio_search);

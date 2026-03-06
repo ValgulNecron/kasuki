@@ -83,7 +83,6 @@ use crate::command::ai::question::question_api_url;
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
-use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
@@ -138,8 +137,8 @@ async fn translation_command(self_: TranslationCommand) -> Result<EmbedsContents
 
 	let lang = map
 		.get(&String::from("lang"))
-		.unwrap_or(DEFAULT_STRING)
-		.clone();
+		.cloned()
+		.unwrap_or_default();
 	let attachment = attachment_map
 		.get(&String::from("video"))
 		.ok_or(anyhow!("No option for video"))?;
@@ -186,10 +185,10 @@ async fn translation_command(self_: TranslationCommand) -> Result<EmbedsContents
 		.clone()
 		.unwrap_or_default();
 
-	let response = reqwest::get(content.as_str()).await?; // save the file into a buffer
+	let client = bot_data.http_client.clone();
+	let response = client.get(content.as_str()).send().await?;
 	let buffer = response.bytes().await?;
 	let uuid_name = Uuid::new_v4().to_string();
-	let client = reqwest::Client::new();
 	let mut headers = HeaderMap::new();
 	headers.insert(
 		AUTHORIZATION,

@@ -1,6 +1,4 @@
 use anyhow::{Context, Result};
-use base64::engine::general_purpose;
-use base64::Engine;
 use image::codecs::png::PngEncoder;
 use image::{DynamicImage, ExtendedColorType, ImageEncoder, ImageReader};
 use std::io::Cursor;
@@ -35,8 +33,19 @@ pub async fn get_image_from_url(url: &str) -> Result<DynamicImage> {
 	.context("spawn_blocking panicked")?
 }
 
-pub async fn calculate_user_color_from_url(profile_picture_url: &str) -> Result<(String, String)> {
-	let url = change_to_x128_url(profile_picture_url);
+fn change_to_full_size_url(url: &str) -> String {
+	let base_url = url.split('?').next().unwrap_or(url);
+	format!("{}?size=4096&quality=lossless", base_url)
+}
+
+/// Calculate the average color and produce PNG bytes for a user's profile picture.
+/// Returns `(hex_color, thumbnail_png_bytes, full_png_bytes)`.
+/// - `thumbnail_png_bytes`: 128x128 image for mosaic tile usage
+/// - `full_png_bytes`: full-size (4096) image for display/storage
+pub async fn calculate_user_color_from_url(
+	profile_picture_url: &str,
+) -> Result<(String, Vec<u8>, Vec<u8>)> {
+	let url = change_to_full_size_url(profile_picture_url);
 	let img = get_image_from_url(&url).await?;
 
 	tokio::task::spawn_blocking(move || {
@@ -57,18 +66,26 @@ pub async fn calculate_user_color_from_url(profile_picture_url: &str) -> Result<
 
 		debug!("Calculated color: {}", average_color);
 
-		let mut image_data: Vec<u8> = Vec::new();
-		PngEncoder::new(&mut image_data).write_image(
+		// Full-size PNG for display
+		let mut full_png_bytes: Vec<u8> = Vec::new();
+		PngEncoder::new(&mut full_png_bytes).write_image(
 			img.as_raw(),
 			img.width(),
 			img.height(),
 			ExtendedColorType::Rgba8,
 		)?;
 
-		let base64_image = general_purpose::STANDARD.encode(&image_data);
-		let image = format!("data:image/png;base64,{}", base64_image);
+		// 128x128 thumbnail for mosaic tiles
+		let thumb = image::imageops::resize(&img, 128, 128, image::imageops::FilterType::Lanczos3);
+		let mut thumb_png_bytes: Vec<u8> = Vec::new();
+		PngEncoder::new(&mut thumb_png_bytes).write_image(
+			thumb.as_raw(),
+			thumb.width(),
+			thumb.height(),
+			ExtendedColorType::Rgba8,
+		)?;
 
-		Ok((average_color, image))
+		Ok((average_color, thumb_png_bytes, full_png_bytes))
 	})
 	.await
 	.context("spawn_blocking panicked")?

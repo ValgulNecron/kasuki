@@ -9,9 +9,10 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let search_type = map
 		.get(&FixedString::from_str_trunc("type"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
-	match search_type.as_str() {
+	match search_type {
 		"anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
 		"ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
 		"manga" => manga::autocomplete(ctx, autocomplete_interaction).await,

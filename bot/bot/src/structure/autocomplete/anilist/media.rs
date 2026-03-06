@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::constant::DEFAULT_STRING;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
@@ -130,7 +129,7 @@ pub async fn send_auto_complete(
 
 		let native = title_data.native;
 
-		let title = english.unwrap_or(romaji.unwrap_or(native.unwrap_or(DEFAULT_STRING.clone())));
+		let title = english.unwrap_or(romaji.unwrap_or(native.unwrap_or_default()));
 
 		choices.push(AutocompleteChoice::new(title, media.id.to_string()))
 	}

@@ -79,7 +79,9 @@ pub struct VNRoot {
 	pub more: bool,
 }
 
-pub async fn get_vn(value: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<VNRoot> {
+pub async fn get_vn(
+	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+) -> Result<VNRoot> {
 	let value = value.to_lowercase();
 
 	let value = value.trim();
@@ -106,6 +108,7 @@ pub async fn get_vn(value: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> R
 		path.clone(),
 		json.to_string(),
 		vndb_cache,
+		client,
 	)
 	.await?;
 

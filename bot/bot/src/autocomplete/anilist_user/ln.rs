@@ -13,10 +13,11 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let ln_search = map
 		.get(&FixedString::from_str_trunc("ln_name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let var = MediaAutocompleteVariables {
-		search: Some(ln_search.as_str()),
+		search: Some(ln_search),
 		in_media_format: Some(vec![Some(MediaFormat::Novel)]),
 		media_type: Some(MediaType::Manga),
 	};

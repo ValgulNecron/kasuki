@@ -17,6 +17,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let user_search = map
 		.get(&FixedString::from_str_trunc("username"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	trace!("user_search: {}", user_search);

@@ -15,6 +15,7 @@ pub async fn give_premium_sub_autocomplete(
 
 	let _subscription = map
 		.get(&FixedString::from_str_trunc("subscription"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	trace!("subscription: {}", _subscription);

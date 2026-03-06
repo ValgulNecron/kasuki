@@ -79,6 +79,7 @@ rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] 
 redis = { version = "1.0.4", features = ["aio", "tokio-comp"] }
 sentry = { version = "0.46.2", default-features = false, features = ["backtrace", "contexts", "debug-images", "panic", "tracing", "reqwest", "rustls"] }
 parking_lot = "0.12.5"
+rust-s3 = { version = "0.37.1", default-features = false, features = ["fail-on-err", "tokio-rustls-tls"] }
 
 [patch.crates-io]
 serenity = { git = "https://github.com/serenity-rs/serenity.git", branch = "next" }

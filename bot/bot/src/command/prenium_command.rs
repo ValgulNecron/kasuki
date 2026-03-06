@@ -1,9 +1,4 @@
 use crate::command::command::Command;
-use crate::constant::{
-	MAX_FREE_AI_IMAGES, MAX_FREE_AI_QUESTIONS, MAX_FREE_AI_TRANSCRIPTS, MAX_FREE_AI_TRANSLATIONS,
-	PAID_IMAGE_MULTIPLIER, PAID_QUESTION_MULTIPLIER, PAID_TRANSCRIPT_MULTIPLIER,
-	PAID_TRANSLATION_MULTIPLIER,
-};
 use crate::event_handler::BotData;
 use serenity::all::{SkuFlags, SkuId};
 use serenity::builder::{
@@ -27,18 +22,19 @@ impl<T: Command> PremiumCommand for T {
 
 		let command_interaction = self.get_command_interaction();
 
+		let rate_limits = &bot_data.config.ai.rate_limits;
 		let free_limit = match command {
-			PremiumCommandType::AIImage => MAX_FREE_AI_IMAGES,
-			PremiumCommandType::AIQuestion => MAX_FREE_AI_QUESTIONS,
-			PremiumCommandType::AITranscript => MAX_FREE_AI_TRANSCRIPTS,
-			PremiumCommandType::AITranslation => MAX_FREE_AI_TRANSLATIONS,
+			PremiumCommandType::AIImage => rate_limits.free_images,
+			PremiumCommandType::AIQuestion => rate_limits.free_questions,
+			PremiumCommandType::AITranscript => rate_limits.free_transcripts,
+			PremiumCommandType::AITranslation => rate_limits.free_translations,
 		};
 
 		let paid_multiplier = match command {
-			PremiumCommandType::AIImage => PAID_IMAGE_MULTIPLIER,
-			PremiumCommandType::AIQuestion => PAID_QUESTION_MULTIPLIER,
-			PremiumCommandType::AITranscript => PAID_TRANSCRIPT_MULTIPLIER,
-			PremiumCommandType::AITranslation => PAID_TRANSLATION_MULTIPLIER,
+			PremiumCommandType::AIImage => rate_limits.paid_image_multiplier,
+			PremiumCommandType::AIQuestion => rate_limits.paid_question_multiplier,
+			PremiumCommandType::AITranscript => rate_limits.paid_transcript_multiplier,
+			PremiumCommandType::AITranslation => rate_limits.paid_translation_multiplier,
 		};
 
 		if !bot_data.config.bot.respect_premium {

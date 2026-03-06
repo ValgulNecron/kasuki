@@ -2,73 +2,48 @@
 
 Analysis of the Kasuki bot codebase for memory-heavy patterns, potential leaks, and optimization opportunities.
 
-**Last updated:** 2026-03-02
+**Last updated:** 2026-03-04
 
 ---
 
 ## Critical Issues
 
-### 1. Memory Leak via `Box::leak` in `load_localization`
+### ~~1. Memory Leak via `Box::leak` in `load_localization`~~ (FIXED)
 
-**File:** `shared/src/localization.rs:291`
-
-```rust
-let json: &'a str = Box::leak(json_content.into_boxed_str());
-```
-
-Every call to `load_localization()` reads a JSON file from disk, allocates a `String`, and then **permanently leaks it** via `Box::leak()`. The allocation is never reclaimed. This function is called from:
-- `worker/src/activity/anime_activity.rs:96` (called in a loop per notification)
-- Multiple command handlers
-
-Each invocation leaks a few KB. Over hours/days of uptime this grows unboundedly.
-
-**Fix:** Use the Fluent `USABLE_LOCALES` static loader (already used by newer code) for all localization. If JSON loading is still needed, parse with an owned `String` instead of leaking into `'static`.
+**Status:** Resolved. The `Box::leak` call and the `load_localization` function have been removed from `shared/src/localization.rs`. All localization now uses the Fluent `USABLE_LOCALES` static loader.
 
 ---
 
-### 2. `UserColor::find().all()` Loads Entire Table into RAM
+### ~~2. `UserColor::find().all()` Loads Entire Table into RAM~~ (FIXED)
 
-**Files:**
-- `bot/src/server_image/generate_server_image.rs:48` — `enqueue_local_server_image()`
-- `bot/src/server_image/generate_server_image.rs:107` — `enqueue_global_server_image()`
-- `bot/src/command/bot/info.rs:57` — `UserColor::find().all(&connection).await?.len()` just to get a count
-
-The server image paths call `UserColor::find().all(&*connection).await?`, loading **every row** from the `user_color` table into memory at once. Each row contains a base64-encoded 128x128 PNG image (~25-30 KB of text per user). For a bot serving 100,000 users, this is **2.5-3 GB** loaded into a single `Vec`.
-
-The `info.rs` usage is particularly wasteful — it loads all rows only to call `.len()` when a SQL `COUNT(*)` would suffice.
-
-**Update (2025-02):** The `image_generation` worker no longer calls `.all()` — it uses `.one()` with a filter per user. The bulk load now only occurs in the bot process (for building task payloads and the info command).
-
-**Fix:** Use `.paginate(page_size)` or `.find().stream()` to process rows in batches. For `info.rs`, use `UserColor::find().count(&connection).await?` instead. Consider sending only user IDs in the task and letting the worker fetch color data itself.
+**Status:** Resolved.
+- `info.rs` now uses `UserColor::find().count()` (SQL `COUNT(*)`) instead of loading all rows
+- `enqueue_local_server_image` no longer queries DB — sends only `(user_id, profile_picture_url)` from Discord API; worker fetches color data from DB
+- `enqueue_global_server_image` sends empty `members` vec — worker fetches all `UserColor` records from DB directly in a single query
+- Removed `cached_color` from `MemberColorData` (redundant — worker always loads from DB)
+- Bot process no longer loads the `user_color` table at all for server image tasks
 
 ---
 
-### 3. AniList/VNDB Caches: Oversized and Non-Configurable
+### 3. AniList/VNDB Caches: Partially Improved, Remaining Issues
 
-**File:** `shared/src/cache.rs:12-15`
+**File:** `shared/src/cache.rs`, `shared/src/config.rs`
 
-```rust
-Cache::builder()
-    .max_capacity(10_000)
-    .time_to_live(Duration::from_secs(3600))
-    .build()
-```
+**What's been fixed (2025-11):**
+- `CacheConfig` now has configurable fields: `cache_type` (memory/redis), `max_capacity`, `ttl_secs`, `host`, `port`, `password`
+- Redis backend added as alternative to Moka (in-memory), selectable via `config.toml`
+- `CacheInterface::from_config()` respects configuration settings
+- Graceful fallback: if Redis connection fails, falls back to in-memory cache automatically
 
-Both caches store `String -> String` (full GraphQL query as key, full JSON response as value). AniList responses can be 2-10 KB each. At max capacity:
-- **10,000 entries x ~5 KB average = ~50-100 MB per cache**
-- **3 instances** exist (bot anilist, bot vndb, worker anilist) = up to **150-300 MB total**
+**What's still open:**
+- Cache keys are still **full GraphQL query strings** concatenated with serialized variables (hundreds of bytes per key), wasting memory on key storage
+- Default capacity is still 10,000 entries — 3 instances (bot anilist, bot vndb, worker anilist) = up to **150-300 MB total** at max capacity
+- Caches are still double-wrapped: `BotData` wraps `CacheInterface` in `Arc<RwLock<CacheInterface>>`. Moka is already `Clone + Send + Sync` internally; the `RwLock` adds unnecessary contention on concurrent reads (~30+ call sites pass `Arc<RwLock<CacheInterface>>`)
 
-The cache keys are the **full GraphQL query string** concatenated with serialized variables (hundreds of bytes per key), wasting memory on key storage alone.
-
-`CacheConfig` in `config.rs` is an **empty struct** -- capacity and TTL are hardcoded with no way to tune them from `config.toml`.
-
-The caches are also double-wrapped: `CacheInterface` wraps `Arc<Cache<>>`, and `BotData` wraps that in `Arc<RwLock<CacheInterface>>`. Moka is already `Clone + Send + Sync` internally; the `RwLock` adds unnecessary contention.
-
-**Fix:**
+**Remaining fix:**
 - Hash the query+variables into a fixed-size key (e.g., `u64` via `xxhash` or `seahash`)
-- Make `max_capacity` and `time_to_live` configurable via `config.toml`
 - Reduce default capacity to 1,000-2,000 (more realistic for a Discord bot)
-- Remove the `Arc<RwLock<>>` wrapper around Moka caches -- Moka is already `Clone + Send + Sync` internally; the RwLock adds unnecessary contention
+- Remove the `Arc<RwLock<>>` wrapper — Moka handles concurrency internally
 
 ---
 
@@ -340,28 +315,28 @@ Server image generation and user color calculation have been moved from the bot 
 
 ## Summary by Estimated Memory Impact
 
-| Priority | Issue | Estimated Impact (bot process) |
-|---|---|---|
-| Critical | #1 `Box::leak` in `load_localization` | Unbounded growth (leak) |
-| Critical | #2 `UserColor::find().all()` in bot (payload + info command) | Up to several GB |
-| Critical | #3 AniList/VNDB caches (3x 10,000 entries, double-wrapped) | 150-300 MB |
-| High | #5 Guild member chunking (all members, all guilds) | Hundreds of MB for large bots |
-| High | #4 `reqwest::Client::new()` per request (shared lib) | Connection pool churn (indirect) |
-| Medium | #8 Server image 64 MB canvas + avatars | ~130 MB peak (worker process only) |
-| Medium | #9 Steam game HashMap | ~7-10 MB steady, ~30 MB peak during refresh |
-| Medium | #14 Rate limiter unbounded growth | Slow leak over weeks/months |
-| Medium | #13 DB tables without pruning | Disk/query performance over time |
-| Low | #10-12,#16-22 String allocation micro-patterns | Bytes to low KB per occurrence |
-| Low | #15 Oversized API cache capacities | Wasted capacity reservation |
+| Priority | Issue | Status | Estimated Impact (bot process) |
+|---|---|---|---|
+| ~~Critical~~ | ~~#1 `Box::leak` in `load_localization`~~ | **FIXED** | ~~Unbounded growth (leak)~~ |
+| ~~Critical~~ | ~~#2 `UserColor::find().all()` in bot (payload + info command)~~ | **FIXED** | ~~Up to several GB~~ |
+| Critical | #3 AniList/VNDB caches (keys unhashed, double-wrapped) | **Partial** | 150-300 MB |
+| High | #5 Guild member chunking (all members, all guilds) | Open | Hundreds of MB for large bots |
+| High | #4 `reqwest::Client::new()` per request (shared lib) | Open | Connection pool churn (indirect) |
+| Medium | #8 Server image 64 MB canvas + avatars | Open | ~130 MB peak (worker process only) |
+| Medium | #9 Steam game HashMap | Open | ~7-10 MB steady, ~30 MB peak during refresh |
+| Medium | #14 Rate limiter unbounded growth | Open | Slow leak over weeks/months |
+| Medium | #13 DB tables without pruning | Open | Disk/query performance over time |
+| Low | #10-12,#16-22 String allocation micro-patterns | Open | Bytes to low KB per occurrence |
+| Low | #15 Oversized API cache capacities | Open | Wasted capacity reservation |
 
 ---
 
 ## Recommended Priority Actions
 
-1. **Fix the `Box::leak`** in `load_localization` -- this is a real memory leak
-2. **Paginate `UserColor::find().all()`** in bot payload builders; use `.count()` in `info.rs`
-3. **Hash cache keys** instead of storing full GraphQL queries
-4. **Make cache capacity configurable** and reduce defaults to 1,000-2,000
+1. ~~**Fix the `Box::leak`** in `load_localization`~~ — **DONE**
+2. ~~**Paginate `UserColor::find().all()`** in bot payload builders; use `.count()` in `info.rs`~~ — **DONE**
+3. **Hash cache keys** instead of storing full GraphQL queries; reduce default capacity to 1,000-2,000
+4. **Remove the `Arc<RwLock<>>` wrapper** around caches — Moka handles concurrency internally
 5. **Pass the shared `reqwest::Client`** from `BotData` to shared library request functions
 6. **Remove or lazy-load guild member chunking** -- only chunk when needed
 7. **Configure serenity `CacheSettings`** with `max_messages` limit

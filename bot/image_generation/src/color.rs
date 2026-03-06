@@ -1,5 +1,3 @@
-use base64::engine::general_purpose::STANDARD as BASE64;
-use base64::engine::Engine as _;
 use image::DynamicImage;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
@@ -23,54 +21,17 @@ fn convert_hex_to_rgb(hex: &str) -> (u8, u8, u8) {
 	)
 }
 
-pub fn create_color_vector_from_tuple(tuples: Vec<(String, String, String)>) -> Vec<ColorWithUrl> {
+/// Create color vector from tuples of `(hex_color, png_bytes)`.
+pub fn create_color_vector(tuples: Vec<(String, Vec<u8>)>) -> Vec<ColorWithUrl> {
 	tuples
 		.into_iter()
-		.filter_map(|(hex, _, image)| {
+		.filter_map(|(hex, png_bytes)| {
+			let img = match image::load_from_memory(&png_bytes) {
+				Ok(img) => img,
+				Err(_) => return None,
+			};
+
 			let (r, g, b) = convert_hex_to_rgb(&hex);
-
-			let input = image.trim_start_matches("data:image/png;base64,");
-
-			let img = match image::load_from_memory(match &BASE64.decode(input) {
-				Ok(img) => img,
-				Err(_) => return None,
-			}) {
-				Ok(img) => img,
-				Err(_) => return None,
-			};
-
-			Some(get_color_with_url(img, r, g, b))
-		})
-		.collect()
-}
-
-#[allow(dead_code)]
-pub fn create_color_vector_from_user_color(
-	tuples: Vec<shared::database::user_color::Model>, blacklist: &[String],
-) -> Vec<ColorWithUrl> {
-	tuples
-		.into_iter()
-		.filter_map(|user_color| {
-			if blacklist.contains(&user_color.user_id) {
-				return None;
-			}
-
-			let (r, g, b) = convert_hex_to_rgb(&user_color.color);
-
-			let input = user_color
-				.images
-				.trim_start_matches("data:image/png;base64,");
-
-			let decoded = match BASE64.decode(input) {
-				Ok(decoded) => decoded,
-				Err(_) => return None,
-			};
-
-			let img = match image::load_from_memory(&decoded) {
-				Ok(img) => img,
-				Err(_) => return None,
-			};
-
 			Some(get_color_with_url(img, r, g, b))
 		})
 		.collect()

@@ -4,15 +4,9 @@ use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
 use serenity::nonmax::NonMaxU16;
 use shared::queue::tasks::ImageTask;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
 use crate::event_handler::BotData;
-
-pub fn change_to_x128_url(url: String) -> String {
-	debug!("Changing URL size to 128x128: {}", url);
-	let base_url = url.split('?').next().unwrap_or(&url);
-	format!("{}?size=128&quality=lossless", base_url)
-}
 
 pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
 	if let Some(guild_cache) = guild.to_guild_cached(&ctx_clone.cache) {
@@ -85,40 +79,12 @@ pub async fn enqueue_user_color(
 		return;
 	}
 
-	let pfp_url = change_to_x128_url(user.face());
-
 	let task = ImageTask::CalculateUserColor {
 		user_id: user.id.to_string(),
-		profile_picture_url: pfp_url,
+		profile_picture_url: user.face(),
 	};
 
 	if let Err(_) = bot_data.user_color_task_tx.send(task) {
 		error!("User color queue publisher stopped, dropping task for user {}", user.id);
 	}
-}
-
-pub async fn color_management(
-	guilds: &Vec<GuildId>, ctx_clone: &SerenityContext,
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, bot_data: Arc<BotData>,
-) {
-	info!("Starting color management for {} guilds", guilds.len());
-
-	for guild in guilds.iter() {
-		let guild_id = guild.to_string();
-		debug!(guild_id);
-
-		let members = get_member(ctx_clone.clone(), *guild).await;
-		debug!("{}: {}", guild_id, members.len());
-
-		for member in members {
-			enqueue_user_color(
-				user_blacklist_server_image.clone(),
-				member.user,
-				bot_data.clone(),
-			)
-			.await;
-		}
-	}
-
-	info!("Completed color management for all guilds");
 }

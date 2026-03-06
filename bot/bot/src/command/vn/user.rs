@@ -33,7 +33,7 @@ async fn vn_user_command(self_: VnUserCommand) -> Result<EmbedsContents<'_>> {
 
 	let path = format!("/user?q={}&fields=lengthvotes,lengthvotes_sum", user);
 
-	let user = get_user(path, vndb_cache).await?;
+	let user = get_user(path, vndb_cache, &cx.bot_data.http_client).await?;
 
 	let lang_id = cx.lang_id().await;
 

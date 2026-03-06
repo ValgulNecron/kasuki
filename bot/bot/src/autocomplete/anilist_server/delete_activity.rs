@@ -17,6 +17,7 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 
 	let activity_search = map
 		.get(&String::from("anime_name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let guild_id = match autocomplete_interaction.guild_id {

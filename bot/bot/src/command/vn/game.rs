@@ -34,7 +34,7 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 
 	let lang_id = cx.lang_id().await;
 
-	let vn = get_vn(game.clone(), vndb_cache).await?;
+	let vn = get_vn(game.clone(), vndb_cache, &cx.bot_data.http_client).await?;
 
 	let vn = vn.results[0].clone();
 

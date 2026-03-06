@@ -134,7 +134,7 @@ pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 	let port = state.config.api.port;
 	let cors = build_cors_layer(&state.config);
 
-	let rate_limiter = create_rate_limiter(10);
+	let rate_limiter = create_rate_limiter(state.config.api.rate_limit_per_minute);
 
 	let oauth_router = Router::new()
 		.route("/login", get(oauth_handlers::oauth_login))

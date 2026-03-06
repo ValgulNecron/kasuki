@@ -82,7 +82,6 @@ use anyhow::anyhow;
 
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::studio::{
@@ -165,7 +164,7 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 			"[{}/{}]({})",
 			rj,
 			en,
-			m.site_url.unwrap_or(DEFAULT_STRING.clone())
+			m.site_url.unwrap_or_default()
 		);
 
 		// Append the text to the content string

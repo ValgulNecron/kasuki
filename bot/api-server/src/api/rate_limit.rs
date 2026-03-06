@@ -9,9 +9,9 @@ use crate::api::error::AppError;
 pub type KeyedRateLimiter = RateLimiter<String, DashMapStateStore<String>, DefaultClock>;
 
 pub fn create_rate_limiter(requests_per_minute: u32) -> Arc<KeyedRateLimiter> {
-	Arc::new(RateLimiter::keyed(Quota::per_minute(
-		NonZeroU32::new(requests_per_minute).expect("non-zero"),
-	)))
+	let requests = NonZeroU32::new(requests_per_minute)
+		.expect("requests_per_minute must be > 0");
+	Arc::new(RateLimiter::keyed(Quota::per_minute(requests)))
 }
 
 pub async fn rate_limit_middleware(

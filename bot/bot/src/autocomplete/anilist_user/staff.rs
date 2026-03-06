@@ -18,6 +18,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 	let bot_data = ctx.data::<BotData>().clone();
 	let staff_search = map
 		.get(&FixedString::from_str_trunc("staff_name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let var = StaffAutocompleteVariables {
@@ -68,7 +69,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 		let full = name.full;
 
-		let name = user_pref.unwrap_or(native.unwrap_or(full.unwrap_or(DEFAULT_STRING.clone())));
+		let name = user_pref.unwrap_or(native.unwrap_or(full.unwrap_or_default()));
 
 		choices.push(AutocompleteChoice::new(name, data.id.to_string()))
 	}

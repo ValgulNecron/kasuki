@@ -7,7 +7,7 @@ use tokio::sync::RwLock;
 use tracing::info;
 
 pub async fn get_staff(
-	value: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
 ) -> Result<StaffRoot> {
 	let value = value.to_lowercase();
 
@@ -35,6 +35,7 @@ pub async fn get_staff(
 		path.clone(),
 		json.to_string(),
 		vndb_cache,
+		client,
 	)
 	.await?;
 

@@ -14,6 +14,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let anime_search = map
 		.get(&String::from("anime_name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let var = get_autocomplete_media_variables(anime_search);

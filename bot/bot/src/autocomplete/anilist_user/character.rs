@@ -20,10 +20,11 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let character_search = map
 		.get(&FixedString::from_str_trunc("name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let var = CharacterAutocompleteVariables {
-		search: Some(character_search.as_str()),
+		search: Some(character_search),
 	};
 
 	let operation = CharacterAutocomplete::build(var);
@@ -68,7 +69,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 		let native = name.native.clone();
 
-		let name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or(DEFAULT_STRING.clone())));
+		let name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or_default()));
 
 		choices.push(AutocompleteChoice::new(name, data.id.to_string()))
 	}

@@ -3,11 +3,42 @@ discord_token = ""
 bot_activity = "Let you get info from anilist."
 remove_old_commands = false
 respect_premium = true
+# sentry_url = "https://...@sentry.io/..."
+
+[db]
+db_type = "postgresql"
+host = ""
+port = 5432
+user = ""
+password = ""
+database = ""
+# max_connections = 100
+# min_connections = 5
+# connect_timeout = 30
+# idle_timeout = 600
+
+[cache]
+cache_type = "memory"    # "memory" (default) or "redis"
+# host = ""              # Redis host (only when cache_type = "redis")
+# port = 6379            # Redis port (only when cache_type = "redis")
+# password = ""          # Redis password (only when cache_type = "redis")
+# ttl_secs = 3600        # TTL for cache entries (default: 3600)
+# max_capacity = 10000   # Max entries for in-memory backend (default: 10000)
 
 [api]
 enabled = true
 port = 8080
-api_key = "your_secure_api_key_here"
+# debug = false
+# allowed_domain = "example.com"
+# rate_limit_per_minute = 10
+
+# [api.cache]
+# user_cache_capacity = 10000
+# user_cache_ttl_secs = 86400
+# auth_code_capacity = 1000
+# auth_code_ttl_secs = 300
+# oauth_state_capacity = 1000
+# oauth_state_ttl_secs = 600
 
 [api.oauth]
 discord_client_id = "your_discord_client_id"
@@ -19,27 +50,24 @@ jwt_secret = ""
 [music]
 lavalink_hostname = ""
 lavalink_password = ""
-
-[db]
-db_type = "postgresql"
-host = ""
-port = 1
-user = ""
-password = ""
-database = ""
+https = false
 
 [image]
-save_image = "false"
-save_server = ""
-token = ""
+# max_workers = 1        # Defaults to max(cpus/10, 1)
+
+[image.storage]
+storage_type = "s3"      # "local" or "s3"
+# local_path = "./images"
+# S3-compatible settings (MinIO, AWS S3, R2, etc.)
+s3_endpoint = ""
+s3_bucket = ""
+s3_region = ""
+s3_access_key = ""
+s3_secret_key = ""
 
 [logging]
 log_level = "trace"
 max_log_retention = 30
-
-[ai]
-ai_token = ""
-ai_base_url = ""
 
 [ai.image]
 ai_image_token = ""
@@ -59,12 +87,21 @@ ai_transcription_token = ""
 ai_transcription_base_url = ""
 ai_transcription_model = ""
 
+# [ai.rate_limits]
+# free_images = 5
+# free_questions = 5
+# free_translations = 5
+# free_transcripts = 5
+# paid_image_multiplier = 5.0
+# paid_question_multiplier = 5.0
+# paid_translation_multiplier = 5.0
+# paid_transcript_multiplier = 5.0
+
 [task_intervals]
 ping_update = 600
 before_server_image = 1800
 server_image_update = 21600
 game_update = 86400
-cache_update = 259200
 bot_info = 1800
 blacklisted_user_update = 3600
 activity_check = 1

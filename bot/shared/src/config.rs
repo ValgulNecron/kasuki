@@ -174,17 +174,53 @@ impl DbConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ImageConfig {
-	pub save_image: String,
-	pub save_server: Option<String>,
-	pub token: Option<String>,
 	/// Maximum number of tasks processed concurrently. Defaults to 1.
 	#[serde(default = "default_max_workers")]
 	pub max_workers: usize,
+	#[serde(default)]
+	pub storage: StorageConfig,
 }
 
 fn default_max_workers() -> usize {
 	let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
 	(cpus / 10).max(1)
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct StorageConfig {
+	/// "local" (default) or "s3"
+	#[serde(default = "default_storage_type")]
+	pub storage_type: String,
+	/// Base path for local storage (default: "./images")
+	pub local_path: Option<String>,
+	/// S3-compatible endpoint URL
+	pub s3_endpoint: Option<String>,
+	/// S3 bucket name
+	pub s3_bucket: Option<String>,
+	/// S3 region (default: "us-east-1")
+	pub s3_region: Option<String>,
+	/// S3 access key
+	pub s3_access_key: Option<String>,
+	/// S3 secret key
+	pub s3_secret_key: Option<String>,
+}
+
+fn default_storage_type() -> String {
+	"local".to_string()
+}
+
+impl Default for StorageConfig {
+	fn default() -> Self {
+		Self {
+			storage_type: default_storage_type(),
+			local_path: None,
+			s3_endpoint: None,
+			s3_bucket: None,
+			s3_region: None,
+			s3_access_key: None,
+			s3_secret_key: None,
+		}
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -198,6 +234,51 @@ pub struct AICfg {
 	pub image: AICfgImage,
 	pub question: AICfgQuestion,
 	pub transcription: AICfgTranscription,
+	#[serde(default)]
+	pub rate_limits: AiRateLimits,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct AiRateLimits {
+	#[serde(default = "default_free_limit")]
+	pub free_images: usize,
+	#[serde(default = "default_free_limit")]
+	pub free_questions: usize,
+	#[serde(default = "default_free_limit")]
+	pub free_translations: usize,
+	#[serde(default = "default_free_limit")]
+	pub free_transcripts: usize,
+	#[serde(default = "default_paid_multiplier")]
+	pub paid_image_multiplier: f64,
+	#[serde(default = "default_paid_multiplier")]
+	pub paid_question_multiplier: f64,
+	#[serde(default = "default_paid_multiplier")]
+	pub paid_translation_multiplier: f64,
+	#[serde(default = "default_paid_multiplier")]
+	pub paid_transcript_multiplier: f64,
+}
+
+fn default_free_limit() -> usize {
+	5
+}
+
+fn default_paid_multiplier() -> f64 {
+	5.0
+}
+
+impl Default for AiRateLimits {
+	fn default() -> Self {
+		Self {
+			free_images: default_free_limit(),
+			free_questions: default_free_limit(),
+			free_translations: default_free_limit(),
+			free_transcripts: default_free_limit(),
+			paid_image_multiplier: default_paid_multiplier(),
+			paid_question_multiplier: default_paid_multiplier(),
+			paid_translation_multiplier: default_paid_multiplier(),
+			paid_transcript_multiplier: default_paid_multiplier(),
+		}
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -246,6 +327,61 @@ pub struct ApiConfig {
 	pub debug: bool,
 	pub allowed_domain: Option<String>,
 	pub oauth: OAuthConfig,
+	#[serde(default = "default_rate_limit")]
+	pub rate_limit_per_minute: u32,
+	#[serde(default)]
+	pub cache: ApiCacheConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ApiCacheConfig {
+	#[serde(default = "default_user_cache_capacity")]
+	pub user_cache_capacity: u64,
+	#[serde(default = "default_user_cache_ttl")]
+	pub user_cache_ttl_secs: u64,
+	#[serde(default = "default_auth_code_capacity")]
+	pub auth_code_capacity: u64,
+	#[serde(default = "default_auth_code_ttl")]
+	pub auth_code_ttl_secs: u64,
+	#[serde(default = "default_oauth_state_capacity")]
+	pub oauth_state_capacity: u64,
+	#[serde(default = "default_oauth_state_ttl")]
+	pub oauth_state_ttl_secs: u64,
+}
+
+fn default_rate_limit() -> u32 {
+	10
+}
+fn default_user_cache_capacity() -> u64 {
+	10_000
+}
+fn default_user_cache_ttl() -> u64 {
+	86400
+}
+fn default_auth_code_capacity() -> u64 {
+	1_000
+}
+fn default_auth_code_ttl() -> u64 {
+	300
+}
+fn default_oauth_state_capacity() -> u64 {
+	1_000
+}
+fn default_oauth_state_ttl() -> u64 {
+	600
+}
+
+impl Default for ApiCacheConfig {
+	fn default() -> Self {
+		Self {
+			user_cache_capacity: default_user_cache_capacity(),
+			user_cache_ttl_secs: default_user_cache_ttl(),
+			auth_code_capacity: default_auth_code_capacity(),
+			auth_code_ttl_secs: default_auth_code_ttl(),
+			oauth_state_capacity: default_oauth_state_capacity(),
+			oauth_state_ttl_secs: default_oauth_state_ttl(),
+		}
+	}
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -47,9 +47,8 @@ pub const LOGS_PREFIX: &str = "kasuki_";
 
 pub const LOGS_SUFFIX: &str = "log";
 
-/// Default string value.
-
-pub const DEFAULT_STRING: &String = &String::new();
+/// Default string value used as a fallback when a command option is not provided.
+pub const DEFAULT_STRING: &str = "";
 
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 
@@ -61,22 +60,5 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const LIBRARY: &str = "serenity";
 
-pub const MAX_FREE_AI_IMAGES: usize = 5;
-
-pub const PAID_IMAGE_MULTIPLIER: f64 = 4.0;
-
-pub const MAX_FREE_AI_QUESTIONS: usize = 5;
-
-pub const PAID_QUESTION_MULTIPLIER: f64 = 5.0;
-
-pub const MAX_FREE_AI_TRANSLATIONS: usize = 5;
-
-pub const PAID_TRANSLATION_MULTIPLIER: f64 = 5.0;
-
-pub const MAX_FREE_AI_TRANSCRIPTS: usize = 5;
-
-pub const PAID_TRANSCRIPT_MULTIPLIER: f64 = 5.0;
-
 pub const ACTIVITY_LIST_LIMIT: u64 = 10;
 pub const MEMBER_LIST_LIMIT: u16 = 10;
-pub const THREAD_POOL_SIZE: usize = 25;

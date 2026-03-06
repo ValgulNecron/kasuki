@@ -3,7 +3,7 @@ use crate::constant::{APP_VERSION, LIBRARY};
 use crate::event_handler::BotData;
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
-use sea_orm::EntityTrait;
+use sea_orm::{EntityTrait, PaginatorTrait};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::UserColor;
 use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
@@ -47,7 +47,7 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Current shard: {}", shard);
 
 	debug!("Retrieving user count");
-	let user_count = UserColor::find().all(&*db_connection).await?.len();
+	let user_count = UserColor::find().count(&*db_connection).await?;
 	debug!("User count: {}", user_count);
 
 	debug!("Retrieving application info");

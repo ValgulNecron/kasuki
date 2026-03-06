@@ -19,7 +19,7 @@ use serde_json::{json, Value};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::config::Config;
 use shared::helper::get_guild_lang::get_guild_language;
-use shared::image_saver::general_image_saver::image_saver;
+use shared::image_saver::storage::ImageStore;
 use shared::localization::USABLE_LOCALES;
 use std::str::FromStr;
 use tracing::{error, trace};
@@ -57,6 +57,7 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 	let config = bot_data.config.clone();
 	let map = get_option_map_integer_subcommand(command_interaction);
 	let client = bot_data.http_client.clone();
+	let image_store = bot_data.image_store.clone();
 
 	let n = *map.get(&String::from("n")).unwrap_or(&1);
 	let data = get_value(command_interaction, n, &config);
@@ -96,15 +97,10 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 		Some(guild_id) => guild_id.to_string(),
 		None => String::from("0"),
 	};
+	let user_id = command_interaction.user.id.to_string();
 
-	let bytes = get_image_from_response(
-		res,
-		config.image.save_image.clone(),
-		config.image.save_server.clone(),
-		config.image.token.clone(),
-		guild_id.clone(),
-	)
-	.await?;
+	let bytes =
+		get_image_from_response(res, &user_id, &guild_id, &image_store, &client).await?;
 
 	let lang = get_guild_language(guild_id.clone(), bot_data.db_connection.clone()).await;
 	let lang_code = match lang.as_str() {
@@ -143,16 +139,12 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 					.images_url(format!("attachment://{}", name.clone())),
 			);
 
-			let image_config = bot_data.config.image.clone();
-			image_saver(
-				guild_id.to_string(),
-				name.to_string(),
-				bytes,
-				image_config.save_server.unwrap_or_default(),
-				image_config.token.unwrap_or_default(),
-				image_config.save_image,
-			)
-			.await?;
+			let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+			let storage_key =
+				format!("ai_images/ai_{}_{}_{}.png", user_id, guild_id, timestamp);
+			if let Err(e) = image_store.save(&storage_key, &bytes).await {
+				error!("Error saving AI image: {}", e);
+			}
 		}
 	};
 
@@ -168,15 +160,16 @@ fn get_value(command_interaction: &CommandInteraction, n: i64, config: &Arc<Conf
 
 	let prompt = map
 		.get(&String::from("description"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	let model = config.ai.image.ai_image_model.clone().unwrap_or_default();
 
 	let model = model.as_str();
 
-	let quality = config.ai.image.ai_image_style.clone();
+	let quality = config.ai.image.ai_image_quality.clone();
 
-	let style = config.ai.image.ai_image_quality.clone();
+	let style = config.ai.image.ai_image_style.clone();
 
 	let size = config
 		.ai
@@ -254,13 +247,9 @@ async fn image_with_n_greater_than_1<'a>(
 }
 
 async fn get_image_from_response(
-	json: Value, saver_server: String, token: Option<String>, save_type: Option<String>,
-	guild_id: String,
+	json: Value, user_id: &str, guild_id: &str, image_store: &Arc<dyn ImageStore>,
+	client: &reqwest::Client,
 ) -> Result<Vec<Bytes>> {
-	let token = token.unwrap_or_default();
-
-	let saver = save_type.unwrap_or_default();
-
 	let mut bytes = Vec::new();
 
 	let root: Root = match serde_json::from_value(json.clone()) {
@@ -285,27 +274,17 @@ async fn get_image_from_response(
 
 	trace!("{:?}", urls);
 
-	for (i, url) in urls.iter().enumerate() {
-		let client = reqwest::Client::new();
-
+	for url in &urls {
 		let res = client.get(url).send().await?;
 
 		let body = res.bytes().await?;
 
-		let filename = format!("ai_{}_{}.png", i, Uuid::new_v4());
+		let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+		let storage_key =
+			format!("ai_images/ai_{}_{}_{}.png", user_id, guild_id, timestamp);
 
-		match image_saver(
-			guild_id.clone(),
-			filename.clone(),
-			Vec::from(body.clone()),
-			saver_server.clone(),
-			token.clone(),
-			saver.clone(),
-		)
-		.await
-		{
-			Ok(_) => (),
-			Err(e) => error!("Error saving image: {}", e),
+		if let Err(e) = image_store.save(&storage_key, &body).await {
+			error!("Error saving image: {}", e);
 		}
 
 		bytes.push(body);

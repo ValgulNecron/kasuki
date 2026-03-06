@@ -6,6 +6,7 @@ use tokio::sync::RwLock;
 
 pub async fn do_request_cached(
 	path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	client: &reqwest::Client,
 ) -> Result<String> {
 	let cache = vndb_cache.read().await.read(&path).await?;
 
@@ -13,12 +14,12 @@ pub async fn do_request_cached(
 		return Ok(cached);
 	}
 
-	do_request(path, vndb_cache).await
+	do_request(path, vndb_cache, client).await
 }
 
-pub async fn do_request(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<String> {
-	let client = reqwest::Client::new();
-
+pub async fn do_request(
+	path: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+) -> Result<String> {
 	let url = format!("https://api.vndb.org/kana{}", path);
 
 	let res = client
@@ -41,6 +42,7 @@ pub async fn do_request(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -
 
 pub async fn do_request_cached_with_json(
 	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
 
@@ -50,15 +52,14 @@ pub async fn do_request_cached_with_json(
 		return Ok(cached);
 	}
 
-	do_request_with_json(path, json, vndb_cache).await
+	do_request_with_json(path, json, vndb_cache, client).await
 }
 
 pub async fn do_request_with_json(
 	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
-
-	let client = reqwest::Client::new();
 
 	let url = format!("https://api.vndb.org/kana{}", path);
 

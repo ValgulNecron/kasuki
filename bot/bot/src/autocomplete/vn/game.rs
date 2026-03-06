@@ -13,7 +13,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let game = map.get(&String::from("title")).unwrap();
 
-	let vn = get_vn(game.clone(), bot_data.vndb_cache.clone())
+	let vn = get_vn(game.clone(), bot_data.vndb_cache.clone(), &bot_data.http_client)
 		.await
 		.unwrap();
 

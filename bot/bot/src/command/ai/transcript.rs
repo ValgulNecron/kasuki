@@ -2,7 +2,6 @@
 use crate::command::command::CommandRun;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
-use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
@@ -56,12 +55,12 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 	let attachment_map = get_option_map_attachment_subcommand(command_interaction);
 	let prompt = map
 		.get(&String::from("lang"))
-		.unwrap_or(DEFAULT_STRING)
-		.clone();
+		.cloned()
+		.unwrap_or_default();
 	let lang = map
 		.get(&String::from("prompt"))
-		.unwrap_or(DEFAULT_STRING)
-		.clone();
+		.cloned()
+		.unwrap_or_default();
 	let attachment = attachment_map
 		.get(&String::from("video"))
 		.ok_or(anyhow!("No option for video"))?;
@@ -95,8 +94,9 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		None => String::from("0"),
 	};
 	let db_connection = bot_data.db_connection.clone();
+	let client = bot_data.http_client.clone();
 
-	let response = reqwest::get(content.to_string()).await?;
+	let response = client.get(content.to_string()).send().await?;
 	let buffer = response.bytes().await?;
 	let uuid_name = Uuid::new_v4().to_string();
 
@@ -126,7 +126,6 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		format!("{}/v1/audio/transcriptions/", api_base_url)
 	};
 
-	let client = bot_data.http_client.clone();
 	let mut headers = HeaderMap::new();
 	headers.insert(
 		AUTHORIZATION,

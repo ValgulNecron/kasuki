@@ -22,8 +22,8 @@ serenity.workspace = true
 serde_urlencoded.workspace = true
 futures.workspace = true
 redis.workspace = true
-catbox.workspace = true
-tempfile.workspace = true
+rust-s3.workspace = true
+async-trait.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

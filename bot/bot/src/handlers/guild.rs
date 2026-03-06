@@ -1,7 +1,9 @@
 use crate::event_handler::{BotData, Handler};
 use crate::handlers::user_db::add_user_data_to_db;
-use crate::server_image::calculate_user_color::{color_management, enqueue_user_color};
-use crate::server_image::generate_server_image::server_image_management;
+use crate::server_image::calculate_user_color::{enqueue_user_color, get_member};
+use crate::server_image::generate_server_image::{
+	enqueue_global_server_image, enqueue_local_server_image, server_image_management,
+};
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{Guild, GuildMembersChunkEvent, Member};
@@ -31,19 +33,30 @@ impl Handler {
 
 		if is_new.unwrap_or_default() {
 			info!(guild_id = %guild.id, "Joined a new guild");
-			color_management(
-				&ctx.cache.guilds(),
-				&ctx,
-				user_blacklist_server_image,
-				bot_data.clone(),
-			)
-			.await;
-			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
-				let flag = bot_data.server_image_running.clone();
-				server_image_management(&ctx, image_config, db_connection.clone()).await;
-				flag.store(false, Ordering::SeqCst);
-			} else {
-				info!(guild_id = %guild.id, "Server image generation already running, skipping");
+
+			// Enqueue color calculation for this guild's members only
+			let members = get_member(ctx.clone(), guild.id).await;
+			for member in members {
+				enqueue_user_color(
+					user_blacklist_server_image.clone(),
+					member.user,
+					bot_data.clone(),
+				)
+				.await;
+			}
+
+			// Generate server images for this guild only
+			if let Err(e) =
+				enqueue_local_server_image(&ctx, guild.id, &image_config, db_connection.clone())
+					.await
+			{
+				warn!(guild_id = %guild.id, error = %e, "Failed to enqueue local server image");
+			}
+			if let Err(e) =
+				enqueue_global_server_image(&ctx, guild.id, &image_config, db_connection.clone())
+					.await
+			{
+				warn!(guild_id = %guild.id, error = %e, "Failed to enqueue global server image");
 			}
 		} else {
 			info!(guild_id = %guild.id, "Guild already exists, skipping setup");

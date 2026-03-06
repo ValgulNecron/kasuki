@@ -3,6 +3,7 @@ use crate::logger::{create_log_directory, init_logger};
 use anyhow::Context;
 use shared::cache::CacheInterface;
 use shared::config::{Config, DbConfig};
+use shared::image_saver::storage::{create_image_store, ImageStore};
 
 use serenity::all::GatewayIntents;
 use serenity::secrets::Token;
@@ -215,6 +216,18 @@ async fn main() {
 	let (shutdown_tx, _) = broadcast::channel(1);
 	info!("Created shutdown signal channel");
 
+	info!("Initializing image store (type: {})", config.image.storage.storage_type);
+	let image_store: Arc<dyn ImageStore> = match create_image_store(&config.image.storage) {
+		Ok(store) => {
+			info!("Image store initialized successfully");
+			Arc::from(store)
+		},
+		Err(e) => {
+			error!("Failed to create image store: {}", e);
+			process::exit(9);
+		},
+	};
+
 	let (user_color_tx, user_color_rx) =
 		tokio::sync::mpsc::unbounded_channel::<shared::queue::tasks::ImageTask>();
 	let (server_image_tx, server_image_rx) =
@@ -272,6 +285,7 @@ async fn main() {
 		redis_connection,
 		user_color_task_tx: user_color_tx,
 		server_image_task_tx: server_image_tx,
+		image_store,
 	});
 	info!("Bot data structure initialized successfully");
 
@@ -315,23 +329,28 @@ async fn main() {
 		// If a signal is received, print a shutdown message.
 		// All signals and not only ctrl-c
 		let mut sigint =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt()).unwrap();
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+				.expect("failed to register SIGINT handler");
 		info!("Registered SIGINT handler");
 
 		let mut sigterm =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+				.expect("failed to register SIGTERM handler");
 		info!("Registered SIGTERM handler");
 
 		let mut sigquit =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit()).unwrap();
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
+				.expect("failed to register SIGQUIT handler");
 		info!("Registered SIGQUIT handler");
 
 		let mut sigusr1 =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1()).unwrap();
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined1())
+				.expect("failed to register SIGUSR1 handler");
 		info!("Registered SIGUSR1 handler");
 
 		let mut sigusr2 =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2()).unwrap();
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::user_defined2())
+				.expect("failed to register SIGUSR2 handler");
 		info!("Registered SIGUSR2 handler");
 
 		info!("All Unix signal handlers registered successfully, waiting for signals");
@@ -366,19 +385,24 @@ async fn main() {
 		// Create a signal handler for "all" signals in windows.
 		// If a signal is received, print a shutdown message.
 		// All signals and not only ctrl-c
-		let mut ctrl_break = tokio::signal::windows::ctrl_break().unwrap();
+		let mut ctrl_break = tokio::signal::windows::ctrl_break()
+			.expect("failed to register CTRL+BREAK handler");
 		info!("Registered CTRL+BREAK handler");
 
-		let mut ctrl_c = tokio::signal::windows::ctrl_c().unwrap();
+		let mut ctrl_c = tokio::signal::windows::ctrl_c()
+			.expect("failed to register CTRL+C handler");
 		info!("Registered CTRL+C handler");
 
-		let mut ctrl_close = tokio::signal::windows::ctrl_close().unwrap();
+		let mut ctrl_close = tokio::signal::windows::ctrl_close()
+			.expect("failed to register CTRL+CLOSE handler");
 		info!("Registered CTRL+CLOSE handler");
 
-		let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff().unwrap();
+		let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff()
+			.expect("failed to register CTRL+LOGOFF handler");
 		info!("Registered CTRL+LOGOFF handler");
 
-		let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown().unwrap();
+		let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown()
+			.expect("failed to register CTRL+SHUTDOWN handler");
 		info!("Registered CTRL+SHUTDOWN handler");
 
 		info!("All Windows signal handlers registered successfully, waiting for signals");
@@ -495,7 +519,8 @@ pub fn get_url(db_config: DbConfig) -> String {
 
 			let param = vec![("user", user.as_str()), ("password", password.as_str())];
 
-			let param = serde_urlencoded::to_string(&param).unwrap();
+			let param = serde_urlencoded::to_string(&param)
+				.expect("failed to encode database connection params");
 
 			let url = format!("postgresql://{}:{}/{}?{}", host, port, db_name, param);
 

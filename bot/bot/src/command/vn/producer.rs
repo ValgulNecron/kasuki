@@ -34,7 +34,8 @@ async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<
 
 	let lang_id = cx.lang_id().await;
 
-	let producer = get_producer(producer.clone(), vndb_cache.clone()).await?;
+	let producer =
+		get_producer(producer.clone(), vndb_cache.clone(), &cx.bot_data.http_client).await?;
 
 	let producer = producer.results[0].clone();
 

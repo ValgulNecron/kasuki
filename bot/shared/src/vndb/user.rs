@@ -20,8 +20,10 @@ pub struct VnUser {
 use crate::cache::CacheInterface;
 use anyhow::Result;
 
-pub async fn get_user(path: String, vndb_cache: Arc<RwLock<CacheInterface>>) -> Result<VnUser> {
-	let response = do_request_cached(path.clone(), vndb_cache).await?;
+pub async fn get_user(
+	path: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+) -> Result<VnUser> {
+	let response = do_request_cached(path.clone(), vndb_cache, client).await?;
 
 	let response: HashMap<String, VnUser> = serde_json::from_str(&response)?;
 

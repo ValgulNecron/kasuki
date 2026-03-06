@@ -73,7 +73,7 @@ async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> 
 	}
 
 	let map = get_option_map_string_subcommand(command_interaction);
-	let prompt = map.get(&String::from("prompt")).unwrap_or(DEFAULT_STRING);
+	let prompt = map.get(&String::from("prompt")).map(String::as_str).unwrap_or(DEFAULT_STRING);
 
 	let api_key = config
 		.ai
@@ -164,7 +164,7 @@ async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> 
 /// log = "0.4"
 /// ```
 async fn question(
-	text: &String, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>,
+	text: &str, api_key: String, api_base_url: String, model: String, http_client: Arc<Client>,
 ) -> Result<String> {
 	let api_url = api_base_url.to_string();
 

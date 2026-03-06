@@ -30,7 +30,7 @@ async fn vn_staff_command(self_: VnStaffCommand) -> Result<EmbedsContents<'_>> {
 
 	let lang_id = cx.lang_id().await;
 
-	let staff = get_staff(staff.clone(), vndb_cache.clone()).await?;
+	let staff = get_staff(staff.clone(), vndb_cache.clone(), &cx.bot_data.http_client).await?;
 
 	let staff = staff.results[0].clone();
 

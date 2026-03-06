@@ -100,7 +100,8 @@ pub async fn oauth_login(State(state): State<AppState>) -> impl IntoResponse {
 		("state", csrf_state.as_str()),
 	];
 
-	let query_string = serde_urlencoded::to_string(&params).unwrap();
+	let query_string = serde_urlencoded::to_string(&params)
+		.expect("failed to encode OAuth query params");
 	let discord_auth_url = format!("https://discord.com/api/oauth2/authorize?{}", query_string);
 
 	debug!("redirecting to discord oauth");

@@ -57,7 +57,7 @@ pub struct CharacterRoot {
 }
 
 pub async fn get_character(
-	value: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
 ) -> Result<CharacterRoot> {
 	let value = value.to_lowercase();
 
@@ -85,6 +85,7 @@ pub async fn get_character(
 		path.clone(),
 		json.to_string(),
 		vndb_cache,
+		client,
 	)
 	.await
 	.context(format!(

@@ -107,7 +107,8 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 
 	let url = get_staff_image(staff_image);
 
-	let response = reqwest::get(url).await?;
+	let client = &cx.bot_data.http_client;
+	let response = client.get(url).send().await?;
 
 	let bytes = response.bytes().await?;
 
@@ -118,17 +119,19 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 	let characters_images_url = get_characters_image(character);
 
 	for character_image in characters_images_url {
-		let response = reqwest::get(match &character_image {
-			Some(char) => match char.clone().image {
-				Some(image) => match image.large {
-					Some(large) => large,
+		let response = client
+			.get(match &character_image {
+				Some(char) => match char.clone().image {
+					Some(image) => match image.large {
+						Some(large) => large,
+						None => continue,
+					},
 					None => continue,
 				},
 				None => continue,
-			},
-			None => continue,
-		})
-		.await?;
+			})
+			.send()
+			.await?;
 
 		let bytes = match response.bytes().await {
 			Ok(bytes) => bytes,

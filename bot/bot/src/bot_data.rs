@@ -7,9 +7,10 @@ use sea_orm::{
 };
 use serenity::all::{CurrentApplicationInfo, ShardId};
 use serenity::gateway::ShardRunnerInfo;
-use shared::queue::tasks::ImageTask;
 use shared::cache::CacheInterface;
 use shared::config::Config;
+use shared::image_saver::storage::ImageStore;
+use shared::queue::tasks::ImageTask;
 use songbird::Songbird;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicUsize};
@@ -39,6 +40,7 @@ pub struct BotData {
 	pub redis_connection: RedisConnection,
 	pub user_color_task_tx: tokio::sync::mpsc::UnboundedSender<ImageTask>,
 	pub server_image_task_tx: tokio::sync::mpsc::UnboundedSender<ImageTask>,
+	pub image_store: Arc<dyn ImageStore>,
 }
 impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {

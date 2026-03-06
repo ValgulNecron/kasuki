@@ -4,15 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct MemberColorData {
 	pub user_id: String,
 	pub profile_picture_url: String,
-	pub cached_color: Option<String>,
-	pub cached_image: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageSaveConfig {
-	pub save_type: String,
-	pub save_server: String,
-	pub token: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,7 +16,6 @@ pub enum ImageTask {
 		image_type: String,
 		members: Vec<MemberColorData>,
 		blacklist: Vec<String>,
-		image_save_config: ImageSaveConfig,
 	},
 	CalculateUserColor {
 		user_id: String,

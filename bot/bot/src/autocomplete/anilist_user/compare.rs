@@ -28,12 +28,14 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 
 	let user1 = map
 		.get(&FixedString::from_str_trunc("username"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	choice.extend(get_choices(user1, bot_data.anilist_cache.clone()).await);
 
 	let user2 = map
 		.get(&FixedString::from_str_trunc("username2"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	choice.extend(get_choices(user2, bot_data.anilist_cache.clone()).await);

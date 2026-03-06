@@ -15,6 +15,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	let game_search = map
 		.get(&String::from("game_name"))
+		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
 	trace!("game_search: {}", game_search);
@@ -42,7 +43,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		let name_str: &str = name.as_str();
 		// Fast path: exact or prefix (case-insensitive, no allocation for prefix compare)
 		if name_str.len() >= game_search.len()
-			&& name_str[..game_search.len()].eq_ignore_ascii_case(game_search.as_str())
+			&& name_str[..game_search.len()].eq_ignore_ascii_case(game_search)
 		{
 			prefix_candidates.push(name_str);
 			if prefix_candidates.len() >= MAX_CANDIDATES {
@@ -52,7 +53,7 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		}
 
 		// Fallback: case-sensitive contains (cheap) then case-insensitive contains
-		if name_str.contains(game_search.as_str()) {
+		if name_str.contains(game_search) {
 			contain_candidates.push(name_str);
 		} else if name_str.to_ascii_lowercase().contains(&search_lc) {
 			contain_candidates.push(name_str);

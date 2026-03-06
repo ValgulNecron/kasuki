@@ -25,19 +25,21 @@ impl AppState {
 	pub fn new(
 		config: Arc<Config>, db: sea_orm::DatabaseConnection, jwt_secret_bytes: Vec<u8>,
 	) -> Self {
+		let cache_cfg = &config.api.cache;
+
 		let user_cache = Cache::builder()
-			.max_capacity(10_000)
-			.time_to_live(Duration::from_secs(24 * 60 * 60))
+			.max_capacity(cache_cfg.user_cache_capacity)
+			.time_to_live(Duration::from_secs(cache_cfg.user_cache_ttl_secs))
 			.build();
 
 		let auth_codes = Cache::builder()
-			.max_capacity(10_000)
-			.time_to_live(Duration::from_secs(5 * 60))
+			.max_capacity(cache_cfg.auth_code_capacity)
+			.time_to_live(Duration::from_secs(cache_cfg.auth_code_ttl_secs))
 			.build();
 
 		let oauth_states = Cache::builder()
-			.max_capacity(10_000)
-			.time_to_live(Duration::from_secs(10 * 60))
+			.max_capacity(cache_cfg.oauth_state_capacity)
+			.time_to_live(Duration::from_secs(cache_cfg.oauth_state_ttl_secs))
 			.build();
 
 		let jwt_encoding_key = jsonwebtoken::EncodingKey::from_secret(&jwt_secret_bytes);

@@ -25,7 +25,7 @@ async fn vn_stats_command(self_: VnStatsCommand) -> Result<EmbedsContents<'_>> {
 	debug!("Retrieved bot data and VNDB cache");
 
 	debug!("Fetching VNDB stats from cache");
-	let stats = get_stats(vndb_cache).await?;
+	let stats = get_stats(vndb_cache, &cx.bot_data.http_client).await?;
 	debug!("VNDB stats retrieved successfully");
 
 	debug!("Loading localization for guild: {}", cx.guild_id);

@@ -41,7 +41,7 @@ async fn vn_character_command(self_: VnCharacterCommand) -> Result<EmbedsContent
 	debug!("Character localization loaded successfully");
 
 	info!("Fetching character information for: {}", character);
-	let character = get_character(character.clone(), vndb_cache)
+	let character = get_character(character.clone(), vndb_cache, &cx.bot_data.http_client)
 		.await
 		.context(format!(
 			"Failed to get character information for: {}",
