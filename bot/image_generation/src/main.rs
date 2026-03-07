@@ -2,6 +2,7 @@ mod calculate;
 mod color;
 mod mosaic;
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
@@ -103,8 +104,22 @@ async fn main() -> Result<()> {
 		{
 			Ok(r) => r,
 			Err(e) => {
-				debug!("Redis error while waiting for task: {:#}", e);
+				warn!("Redis error while waiting for task: {:#}", e);
 				drop(permit);
+				// Reconnect before retrying
+				match client.get_multiplexed_async_connection().await {
+					Ok(new_conn) => {
+						connection = new_conn;
+						info!(
+							"Reconnected to Redis at {}:{}",
+							queue_config.host, queue_config.port
+						);
+					},
+					Err(re) => {
+						error!("Redis reconnect failed: {:#}", re);
+						tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+					},
+				}
 				continue;
 			},
 		};
@@ -171,7 +186,7 @@ async fn handle_task(
 
 async fn handle_generate_server_image(
 	guild_id: String, guild_name: String, guild_icon_url: String, image_type: String,
-	members: Vec<MemberColorData>, blacklist: Vec<String>, db: &Arc<DatabaseConnection>,
+	members: Vec<MemberColorData>, blacklist: HashSet<String>, db: &Arc<DatabaseConnection>,
 	store: &Arc<dyn ImageStore>,
 ) -> Result<()> {
 	// For global images, members is empty — fetch all users from DB directly.
