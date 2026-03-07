@@ -1,4 +1,5 @@
 use shared::config::TaskIntervalConfig;
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
@@ -7,7 +8,7 @@ use tracing::{debug, error, info, trace, warn};
 /// Maintains a list of blacklisted users by periodically fetching from a remote source.
 #[tracing::instrument(skip(blacklist_lock, task_intervals), level = "info")]
 pub async fn update_user_blacklist(
-	blacklist_lock: Arc<RwLock<Vec<String>>>, task_intervals: TaskIntervalConfig,
+	blacklist_lock: Arc<RwLock<HashSet<String>>>, task_intervals: TaskIntervalConfig,
 ) {
 	let mut interval =
 		tokio::time::interval(Duration::from_secs(task_intervals.blacklisted_user_update));
@@ -178,7 +179,7 @@ pub async fn update_user_blacklist(
 		};
 
 		trace!("Extracting user_id array from JSON response");
-		let user_ids: Vec<String> = match blacklist_json["user_id"].as_array() {
+		let user_ids: HashSet<String> = match blacklist_json["user_id"].as_array() {
 			Some(arr) => {
 				debug!(
 					"Found user_id array in blacklist with {} entries",

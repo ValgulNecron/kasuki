@@ -2,7 +2,7 @@
 
 Analysis of the Kasuki bot codebase for memory-heavy patterns, potential leaks, and optimization opportunities.
 
-**Last updated:** 2026-03-04
+**Last updated:** 2026-03-07
 
 ---
 
@@ -83,17 +83,16 @@ For a bot in 100 guilds averaging 500 members each: **50,000 Member structs** ca
 - Configure `CacheSettings` with `max_messages` and consider disabling member caching if not essential
 - If member caching is needed, use `ChunkGuildFilter` to request only specific members
 
-### 6. `user_blacklist.read().await.clone()` Copies Entire Vec
+### ~~6. `user_blacklist.read().await.clone()` Copies Entire Vec~~ (FIXED)
 
-**File:** `bot/src/server_image/generate_server_image.rs:46, 105`
+**Status:** Resolved. Changed `user_blacklist` from `Vec<String>` to `HashSet<String>` across:
+- `BotData.user_blacklist` field type
+- `update_user_blacklist` task parameter and collection type
+- `enqueue_user_color` parameter type
+- `ImageTask::GenerateServerImage.blacklist` field type
+- All callers already use `.contains()` which is now O(1) instead of O(n)
 
-```rust
-let user_blacklist = bot_data.user_blacklist.read().await.clone();
-```
-
-The `user_blacklist` field in `BotData` is `Arc<RwLock<Vec<String>>>`. Both `enqueue_local_server_image` and `enqueue_global_server_image` clone the entire `Vec<String>` out of the RwLock. The clone is serialized into the Redis task payload.
-
-**Fix:** Switch to an `Arc<HashSet<String>>` that can be cheaply cloned via Arc. The serialization into the task payload is necessary, but holding the read guard while serializing (instead of cloning first) would avoid the extra allocation.
+---
 
 ### 7. `lava_client.read().await.clone()` in Every Music Command
 
@@ -115,14 +114,13 @@ The `lavalink` field is `Arc<RwLock<Option<LavalinkClient>>>`. Clones the inner 
 
 **File:** `image_generation/src/mosaic.rs` (worker)
 
-- A `DynamicImage::new_rgba8(4096, 4096)` allocates **64 MB** of RGBA pixel data
-- Per-user avatar images (128x128, ~65 KB each) are decoded and held simultaneously
+- A `DynamicImage::new_rgba8(4096, 4096)` allocates **64 MB** of RGBA pixel data (128x128 tiles × 32×32 grid = 4096x4096 — resolution is intentional)
+- Per-user avatar images (128x128 thumbnails from S3, ~65 KB each) are decoded and held simultaneously
 
-The 64 MB canvas allocation and image compositing happen in the dedicated `image_generation` worker process, not the bot. The bot's memory footprint during server image operations is limited to the member list + task serialization.
+The 64 MB canvas allocation and image compositing happen in the dedicated `image_generation` worker process, not the bot. The bot's memory footprint during server image operations is limited to a lightweight task payload (IDs + URLs).
 
 **Fix:**
-- Process members in batches rather than cloning all at once
-- Consider a smaller canvas (2048x2048 = 16 MB) unless the resolution is essential
+- Process members in batches rather than holding all decoded avatars at once
 - Stream and composite avatar tiles incrementally
 
 ### 9. Steam Game HashMap (~7-10 MB, 3x Peak During Refresh)
@@ -290,26 +288,28 @@ EmbedsContents::new(...).add_files(command_files).clone(); // clone of owned val
 
 ---
 
-## Architecture Change (2025-02): Image Generation Worker
+## Architecture Change: Image Generation Worker
 
-Server image generation and user color calculation have been moved from the bot process into a dedicated `image_generation` worker binary. Communication happens via a Redis queue.
+Server image generation and user color calculation run in a dedicated `image_generation` worker binary. Communication happens via Redis queue (mpsc channels on the bot side).
 
-**What moved out of the bot:**
+**What runs in the worker:**
 - Color calculation (CIELAB Delta-E 2000 matching)
 - Mosaic generation (4096x4096 canvas compositing via rayon)
-- Image saving (local filesystem or catbox upload)
+- Image saving to S3-compatible storage (two versions: 128x128 thumbnail for mosaic tiles + 4096x4096 full-size for display)
 - DB upserts for `user_color` and `server_image` tables
+- DB queries for `UserColor` records (worker fetches its own data)
 
 **What stays in the bot:**
 - Guild member fetching from Discord API/cache
-- Pre-fetching `UserColor` records to build task payloads
-- Publishing serialized `ImageTask` to Redis
+- Publishing lightweight `ImageTask` to Redis (IDs + avatar URLs only, no color data)
+- For local server images: sends `(user_id, profile_picture_url)` per member
+- For global server images: sends empty `members` vec — worker fetches all `UserColor` from DB
 
 **Impact on memory issues:**
-- Issues #2 and #8 are **mitigated** for the bot process -- the heavy allocations now happen in the worker
-- Issue #2 still applies to the bot's `enqueue_local_server_image` and `enqueue_global_server_image` (loads full color table for payload)
-- The worker no longer bulk-loads `UserColor` — it fetches per-user via `.one()` with filter
-- The bot gains a small Redis connection overhead (~few KB)
+- Issues #2, #6, and #8 are **resolved/mitigated** for the bot process
+- The bot no longer loads the `user_color` table at all — worker handles all DB queries
+- Worker does a single bulk query for global images, or batch-filtered query for local images
+- `user_blacklist` uses `HashSet<String>` for O(1) lookups and is serialized into the task payload
 
 ---
 
@@ -321,6 +321,7 @@ Server image generation and user color calculation have been moved from the bot 
 | ~~Critical~~ | ~~#2 `UserColor::find().all()` in bot (payload + info command)~~ | **FIXED** | ~~Up to several GB~~ |
 | Critical | #3 AniList/VNDB caches (keys unhashed, double-wrapped) | **Partial** | 150-300 MB |
 | High | #5 Guild member chunking (all members, all guilds) | Open | Hundreds of MB for large bots |
+| ~~High~~ | ~~#6 `user_blacklist` Vec clone~~ | **FIXED** | ~~O(n) contains + full Vec clone~~ |
 | High | #4 `reqwest::Client::new()` per request (shared lib) | Open | Connection pool churn (indirect) |
 | Medium | #8 Server image 64 MB canvas + avatars | Open | ~130 MB peak (worker process only) |
 | Medium | #9 Steam game HashMap | Open | ~7-10 MB steady, ~30 MB peak during refresh |

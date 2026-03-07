@@ -12,7 +12,7 @@ use shared::config::Config;
 use shared::image_saver::storage::ImageStore;
 use shared::queue::tasks::ImageTask;
 use songbird::Songbird;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, AtomicUsize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -27,7 +27,7 @@ pub struct BotData {
 	pub vndb_cache: Arc<RwLock<CacheInterface>>,
 	pub already_launched: RwLock<bool>,
 	pub apps: Arc<RwLock<HashMap<String, u128>>>,
-	pub user_blacklist: Arc<RwLock<Vec<String>>>,
+	pub user_blacklist: Arc<RwLock<HashSet<String>>>,
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Arc<Client>,

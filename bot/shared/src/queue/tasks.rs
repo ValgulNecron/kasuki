@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemberColorData {
@@ -15,7 +16,7 @@ pub enum ImageTask {
 		guild_icon_url: String,
 		image_type: String,
 		members: Vec<MemberColorData>,
-		blacklist: Vec<String>,
+		blacklist: HashSet<String>,
 	},
 	CalculateUserColor {
 		user_id: String,

@@ -55,7 +55,7 @@ pub async fn dispatch_command(
 
 	bot_data
 		.increment_command_use_per_command(
-			full_command_name.clone(),
+			name.to_string(),
 			command_interaction.user.id.to_string(),
 			command_interaction.user.name.to_string(),
 		)

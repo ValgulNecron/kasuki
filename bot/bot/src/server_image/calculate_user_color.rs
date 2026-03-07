@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
@@ -65,7 +66,7 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 }
 
 pub async fn enqueue_user_color(
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, bot_data: Arc<BotData>,
+	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: User, bot_data: Arc<BotData>,
 ) {
 	if user_blacklist_server_image
 		.read()
