@@ -7,7 +7,6 @@ use serenity::all::{
 	CreateInteractionResponse,
 };
 use shared::cache::CacheInterface;
-use tokio::sync::RwLock;
 
 #[cynic::schema("anilist")]
 
@@ -77,7 +76,7 @@ pub enum MediaType {
 
 pub async fn send_auto_complete(
 	ctx: &SerenityContext, autocomplete_interaction: CommandInteraction,
-	media: MediaAutocompleteVariables<'_>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	media: MediaAutocompleteVariables<'_>, anilist_cache: Arc<CacheInterface>,
 ) {
 	let operation = MediaAutocomplete::build(media);
 

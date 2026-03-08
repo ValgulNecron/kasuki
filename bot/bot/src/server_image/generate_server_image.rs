@@ -8,7 +8,7 @@ use shared::queue::tasks::{ImageTask, MemberColorData};
 use tracing::{info, warn};
 
 use crate::event_handler::BotData;
-use crate::server_image::calculate_user_color::get_member;
+use crate::server_image::calculate_user_color::{enqueue_user_color, get_member};
 
 fn get_guild_icon_url(guild_icon_url: Option<String>) -> String {
 	guild_icon_url
@@ -92,6 +92,17 @@ pub async fn enqueue_global_server_image(
 pub async fn server_image_management(
 	ctx: &SerenityContext, image_config: ImageConfig, connection: Arc<DatabaseConnection>,
 ) {
+	let bot_data = ctx.data::<BotData>().clone();
+	let user_blacklist = bot_data.user_blacklist.clone();
+
+	for guild in ctx.cache.guilds() {
+		let members: Vec<Member> = get_member(ctx.clone(), guild).await;
+		for member in members {
+			enqueue_user_color(user_blacklist.clone(), member.user, bot_data.clone()).await;
+		}
+		info!("Enqueued user color calculations for guild {}", guild);
+	}
+
 	for guild in ctx.cache.guilds() {
 		if let Err(e) =
 			enqueue_local_server_image(ctx, guild, &image_config, connection.clone()).await

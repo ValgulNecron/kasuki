@@ -55,7 +55,6 @@ pub async fn get_content<'a>(
 		)))?
 		.image;
 
-	// Load image data from storage
 	let image_data = image_store
 		.load(&image_key)
 		.await
@@ -69,8 +68,8 @@ pub async fn get_content<'a>(
 	)
 	.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
-	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
-	embed_contents.add_files(vec![file]);
+	let embed_contents = EmbedsContents::new(vec![embed_content])
+		.add_files(vec![file]);
 
 	Ok(embed_contents)
 }

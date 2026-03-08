@@ -6,7 +6,6 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context as SerenityContext, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-use tokio::sync::RwLock;
 use tracing::{error, trace};
 
 use crate::constant::DEFAULT_STRING;
@@ -50,7 +49,7 @@ pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: Comman
 }
 
 async fn get_choices(
-	search: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
+	search: &str, anilist_cache: Arc<CacheInterface>,
 ) -> Vec<AutocompleteChoice<'_>> {
 	trace!("{:?}", search);
 

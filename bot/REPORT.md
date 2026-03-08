@@ -2,7 +2,7 @@
 
 Analysis of the Kasuki bot codebase for memory-heavy patterns, potential leaks, and optimization opportunities.
 
-**Last updated:** 2026-03-07
+**Last updated:** 2026-03-08
 
 ---
 
@@ -25,9 +25,9 @@ Analysis of the Kasuki bot codebase for memory-heavy patterns, potential leaks, 
 
 ---
 
-### 3. AniList/VNDB Caches: Partially Improved, Remaining Issues
+### ~~3. AniList/VNDB Caches: Partially Improved, Remaining Issues~~ (FIXED)
 
-**File:** `shared/src/cache.rs`, `shared/src/config.rs`
+**Status:** Resolved.
 
 **What's been fixed (2025-11):**
 - `CacheConfig` now has configurable fields: `cache_type` (memory/redis), `max_capacity`, `ttl_secs`, `host`, `port`, `password`
@@ -35,34 +35,22 @@ Analysis of the Kasuki bot codebase for memory-heavy patterns, potential leaks, 
 - `CacheInterface::from_config()` respects configuration settings
 - Graceful fallback: if Redis connection fails, falls back to in-memory cache automatically
 
-**What's still open:**
-- Cache keys are still **full GraphQL query strings** concatenated with serialized variables (hundreds of bytes per key), wasting memory on key storage
-- Default capacity is still 10,000 entries — 3 instances (bot anilist, bot vndb, worker anilist) = up to **150-300 MB total** at max capacity
-- Caches are still double-wrapped: `BotData` wraps `CacheInterface` in `Arc<RwLock<CacheInterface>>`. Moka is already `Clone + Send + Sync` internally; the `RwLock` adds unnecessary contention on concurrent reads (~30+ call sites pass `Arc<RwLock<CacheInterface>>`)
-
-**Remaining fix:**
-- Hash the query+variables into a fixed-size key (e.g., `u64` via `xxhash` or `seahash`)
-- Reduce default capacity to 1,000-2,000 (more realistic for a Discord bot)
-- Remove the `Arc<RwLock<>>` wrapper — Moka handles concurrency internally
+**What's been fixed (2026-03):**
+- Cache keys are now **hashed to fixed 32-char hex strings** (128-bit, two independent SipHash passes) inside `CacheInterface::read()`/`write()` — all callers benefit automatically. Collision probability for 10K entries: ~2.9×10⁻³¹
+- Default capacity reduced from 10,000 to **2,000** entries (both `CacheInterface::new()` default and `CacheConfig` default)
+- Removed `Arc<RwLock<>>` wrapper — caches are now `Arc<CacheInterface>` across all 3 crates (bot, worker, shared). Moka and Redis multiplexed connections handle concurrency internally. ~30 call sites simplified.
 
 ---
 
 ## High-Severity Issues
 
-### 4. `reqwest::Client::new()` Created Per Request
+### ~~4. `reqwest::Client::new()` Created Per Request~~ (FIXED)
 
-Creating a new HTTP client per request discards the connection pool and forces a fresh TLS handshake every time.
-
-`BotData` already has a shared `http_client: Arc<Client>` field (initialized in `main.rs`), but the shared library code does not use it.
-
-| File | Line | Context |
-|---|---|---|
-| `shared/src/anilist/make_request.rs` | 104 | Every AniList API call via the shared library |
-| `shared/src/vndb/common.rs` | 20, 61 | Every VNDB API call (both `do_request` and `do_request_with_json`) |
-
-**Note:** `bot/src/command/ai/image.rs` now correctly uses `bot_data.http_client.clone()` (line 59) for its main request. However, `image.rs:290` still creates `Client::new()` inside `get_image_from_response()` for downloading images in a loop.
-
-**Fix:** Pass the shared `reqwest::Client` from `BotData` through to the shared library's request functions instead of creating new clients.
+**Status:** Resolved. All HTTP client usage now reuses a shared pooled client:
+- `shared/src/anilist/make_request.rs` — uses `static LazyLock<Client>` (shared across all AniList calls from shared lib and worker)
+- `bot/src/helper/make_graphql_cached.rs` — already used `static LazyLock<Client>` for bot-side AniList calls
+- `shared/src/vndb/common.rs` — already accepts `&reqwest::Client` parameter from callers
+- `bot/src/command/ai/image.rs` — already uses `bot_data.http_client` for all requests
 
 ### 5. Guild Member Chunking Loads All Members of All Guilds
 
@@ -94,59 +82,39 @@ For a bot in 100 guilds averaging 500 members each: **50,000 Member structs** ca
 
 ---
 
-### 7. `lava_client.read().await.clone()` in Every Music Command
+### ~~7. `lava_client.read().await.clone()` in Every Music Command~~ (FIXED)
 
-**Files:** Music command files (`play.rs`, `skip.rs`, `pause.rs`, and others)
-
-```rust
-let lava_client = bot_data.lavalink.read().await.clone();
-```
-
-The `lavalink` field is `Arc<RwLock<Option<LavalinkClient>>>`. Clones the inner `Option<LavalinkClient>` on every music command invocation. If `LavalinkClient` is not just an Arc wrapper, this duplicates internal state.
-
-**Fix:** Hold the read guard for the duration of the operation, or ensure the inner type is `Arc`-wrapped so cloning is a pointer bump.
+**Status:** Resolved. Changed `lavalink` field from `Arc<RwLock<Option<LavalinkClient>>>` to `Arc<RwLock<Option<Arc<LavalinkClient>>>>`. Cloning the inner value is now a single `Arc` refcount bump instead of allocating a new `Vec<Arc<Node>>` + bumping multiple `Arc` refcounts per music command.
 
 ---
 
 ## Medium-Severity Issues
 
-### 8. Server Image Generation: 64 MB Canvas + Bulk Member Clone
+### 8. Server Image Generation: 64 MB Canvas + Bulk Member Clone (WON'T FIX)
 
 **File:** `image_generation/src/mosaic.rs` (worker)
 
-- A `DynamicImage::new_rgba8(4096, 4096)` allocates **64 MB** of RGBA pixel data (128x128 tiles × 32×32 grid = 4096x4096 — resolution is intentional)
-- Per-user avatar images (128x128 thumbnails from S3, ~65 KB each) are decoded and held simultaneously
+- A `DynamicImage::new_rgba8(4096, 4096)` allocates **64 MB** of RGBA pixel data — inherent to the 4096×4096 output resolution
+- All avatar images must be held simultaneously because `find_closest_color_index` picks from the full set for each pixel — the same tile can be reused for multiple pixels, so streaming/batching isn't possible without fundamentally changing the algorithm
 
-The 64 MB canvas allocation and image compositing happen in the dedicated `image_generation` worker process, not the bot. The bot's memory footprint during server image operations is limited to a lightweight task payload (IDs + URLs).
+**Why won't fix:** Both the canvas and the avatar set are required by the mosaic algorithm. This runs in a dedicated worker process, not the bot. The ~130 MB peak is acceptable for the worker's purpose.
 
-**Fix:**
-- Process members in batches rather than holding all decoded avatars at once
-- Stream and composite avatar tiles incrementally
+### ~~9. Steam Game HashMap (~7-10 MB, 3x Peak During Refresh)~~ (FIXED)
 
-### 9. Steam Game HashMap (~7-10 MB, 3x Peak During Refresh)
+**Status:** Resolved.
+- `reqwest::get()` (new client per call) replaced with a `static LazyLock<Client>` shared HTTP client
+- Response is now deserialized directly from the response stream via `.json::<AppListResponse>()` — no intermediate `String` or `serde_json::Value`
+- Removed `.clone()` of the JSON apps array — typed struct is consumed directly
+- Changed `u128` to `u32` for Steam app IDs (saves 12 bytes per entry × ~170K entries = ~2 MB)
+- `Vec<App>` consumed via `.into_iter()` to build the HashMap — no cloning of game names
+- Peak memory during refresh reduced from ~3x to ~2x steady state
 
-**File:** `bot/src/structure/steam_game_id_struct.rs`
+### ~~10. `push_str(format!(...).as_str())` -- Unnecessary Temp String~~ (FIXED)
 
-The Steam API returns ~170,000 apps. During refresh, the raw JSON body, the parsed `Vec<App>`, and the new `HashMap` all exist simultaneously before the old map is dropped. Peak memory is ~3x the steady-state ~7-10 MB. Uses `HashMap<String, u128>` when Steam app IDs fit in `u32`.
-
-**Fix:**
-- Parse directly from the response stream into the HashMap (avoid intermediate `Vec<App>`)
-- Consider using `u32` instead of `u128` for app IDs (Steam app IDs fit in u32)
-- Use `CompactString` or intern game names if memory is critical
-
-### 10. `push_str(format!(...).as_str())` -- Unnecessary Temp String
-
-**Files:**
-- `bot/src/structure/run/anilist/character.rs:105, 115, 125`
-- `bot/src/structure/run/anilist/media.rs:394, 433, 462, 465, 467`
-
-```rust
-staff_text.push_str(format!("{}: {}\n", staff_name, role).as_str());
-```
-
-Each `format!()` allocates a temporary `String` on the heap, only to immediately borrow it.
-
-**Fix:** Use `write!(staff_text, "{}: {}\n", staff_name, role).unwrap()` from `std::fmt::Write` to write directly into the target String with zero intermediate allocation.
+**Status:** Resolved. All `push_str(format!(...).as_str())` replaced with `write!()` / `writeln!()` from `std::fmt::Write`:
+- `character.rs` — 3 date formatting calls
+- `media.rs` — staff text, character text, and 3 song link calls
+- Also fixed `!= String::new()` comparisons to `!.is_empty()` in `media.rs` (issue #17)
 
 ### 11. Double `collect()` + Struct Clones in `get_tag_list` / `get_genre_list`
 
@@ -215,17 +183,17 @@ The `governor` rate limiter uses a `DashMapStateStore<String>` keyed by IP addre
 
 ## Low-Severity Issues
 
-### 15. API Server Cache Capacities Oversized
+### ~~15. API Server Cache Capacities Oversized~~ (PARTIALLY FIXED)
+
+**Status:** `auth_codes` and `oauth_states` reduced from 10,000 to 1,000. `user_cache` remains at 10,000 (reasonable given 24h TTL).
 
 **File:** `api-server/src/api/state.rs`
 
-| Cache | Capacity | TTL | Realistic Need |
+| Cache | Capacity | TTL | Status |
 |---|---|---|---|
-| `user_cache` | 10,000 | 24h | 100-500 |
-| `auth_codes` | 10,000 | 5m | 100-200 |
-| `oauth_states` | 10,000 | 10m | 100-200 |
-
-The user cache stores `(UserInfo, Vec<Guild>)` per user. A Discord power user may belong to 100+ guilds. At 10,000 entries with 24h TTL, this is excessive for a bot's API server.
+| `user_cache` | 10,000 | 24h | Acceptable |
+| `auth_codes` | 1,000 | 5m | **FIXED** (was 10,000) |
+| `oauth_states` | 1,000 | 10m | **FIXED** (was 10,000) |
 
 ### 16. `DEFAULT_STRING: &String` with `.clone()` Callers
 
@@ -257,34 +225,20 @@ Callers use `DEFAULT_STRING.clone()` which allocates a new heap String for a fal
 
 `Bytes::clone()` is cheap (Arc bump), but `Vec::from()` copies the entire buffer. The `.clone()` before `Vec::from()` is redundant.
 
-### 20. Minigame Inventory: Cloning Vec of DB Structs to Sort
+### ~~20. Minigame Inventory: Cloning Vec of DB Structs to Sort~~ (FIXED)
 
-**Files:** `bot/src/command/minigame/fish_inventory.rs`, `bot/src/command/minigame/inventory.rs`
+**Status:** Resolved.
+- `inventory.rs` — Two `fish_items.clone()` replaced with `Vec<usize>` index sorting (rarity/size sort and name sort)
+- `fish_inventory.rs` — `fish_list.clone()` + sort + `.first()` replaced with `iter().max_by()` (zero allocation)
+- `fish_inventory.rs` — Removed dead `all_fish = inventory_items.clone()` that was sorted but never used
 
-```rust
-let mut sorted_fish = fish_list.clone();
-sorted_fish.sort_by(...)
-```
+### ~~21. Unused Clone~~ (FIXED)
 
-Clones a `Vec<(UserInventoryModel, ItemModel)>` (full DB row structs) just to sort.
+**Status:** Resolved. Removed `let _config = bot_data.config.clone();` from `list_all_activity.rs`.
 
-**Fix:** Sort a `Vec<usize>` of indices, or take ownership of the data instead of borrowing and cloning.
+### ~~22. Redundant `.clone()` at End of Builder Chain~~ (FIXED)
 
-### 21. Unused Clone
-
-**File:** `bot/src/command/anilist_server/list_all_activity.rs:64`
-
-```rust
-let _config = bot_data.config.clone(); // never used
-```
-
-### 22. Redundant `.clone()` at End of Builder Chain
-
-**Files:** `bot/src/command/ai/image.rs:160-162`, `bot/src/command/anilist_user/seiyuu.rs:227`
-
-```rust
-EmbedsContents::new(...).add_files(command_files).clone(); // clone of owned value
-```
+**Status:** Resolved. Changed `add_files` signature from `&mut self → &mut Self` to `self → Self` (consuming builder pattern, matching `action_row`). Removed redundant `.clone()` at 2 call sites and converted 3 other callers from mutable-then-return to chained builder style.
 
 ---
 
@@ -315,20 +269,21 @@ Server image generation and user color calculation run in a dedicated `image_gen
 
 ## Summary by Estimated Memory Impact
 
-| Priority | Issue | Status | Estimated Impact (bot process) |
-|---|---|---|---|
-| ~~Critical~~ | ~~#1 `Box::leak` in `load_localization`~~ | **FIXED** | ~~Unbounded growth (leak)~~ |
-| ~~Critical~~ | ~~#2 `UserColor::find().all()` in bot (payload + info command)~~ | **FIXED** | ~~Up to several GB~~ |
-| Critical | #3 AniList/VNDB caches (keys unhashed, double-wrapped) | **Partial** | 150-300 MB |
-| High | #5 Guild member chunking (all members, all guilds) | Open | Hundreds of MB for large bots |
-| ~~High~~ | ~~#6 `user_blacklist` Vec clone~~ | **FIXED** | ~~O(n) contains + full Vec clone~~ |
-| High | #4 `reqwest::Client::new()` per request (shared lib) | Open | Connection pool churn (indirect) |
-| Medium | #8 Server image 64 MB canvas + avatars | Open | ~130 MB peak (worker process only) |
-| Medium | #9 Steam game HashMap | Open | ~7-10 MB steady, ~30 MB peak during refresh |
-| Medium | #14 Rate limiter unbounded growth | Open | Slow leak over weeks/months |
-| Medium | #13 DB tables without pruning | Open | Disk/query performance over time |
-| Low | #10-12,#16-22 String allocation micro-patterns | Open | Bytes to low KB per occurrence |
-| Low | #15 Oversized API cache capacities | Open | Wasted capacity reservation |
+| Priority     | Issue                                                                 | Status        | Estimated Impact (bot process)                  |
+|--------------|-----------------------------------------------------------------------|---------------|-------------------------------------------------|
+| ~~Critical~~ | ~~#1 `Box::leak` in `load_localization`~~                             | **FIXED**     | ~~Unbounded growth (leak)~~                     |
+| ~~Critical~~ | ~~#2 `UserColor::find().all()` in bot (payload + info command)~~      | **FIXED**     | ~~Up to several GB~~                            |
+| ~~Critical~~ | ~~#3 AniList/VNDB caches (keys unhashed, double-wrapped, oversized)~~ | **FIXED**     | ~~150-300 MB~~                                  |
+| High         | #5 Guild member chunking (all members, all guilds)                    | Open          | Hundreds of MB for large bots                   |
+| ~~High~~     | ~~#6 `user_blacklist` Vec clone~~                                     | **FIXED**     | ~~O(n) contains + full Vec clone~~              |
+| ~~High~~     | ~~#4 `reqwest::Client::new()` per request (shared lib)~~              | **FIXED**     | ~~Connection pool churn (indirect)~~            |
+| Medium       | #8 Server image 64 MB canvas + avatars                                | **WON'T FIX** | ~130 MB peak (worker process, by design)        |
+| ~~Medium~~   | ~~#9 Steam game HashMap~~                                             | **FIXED**     | ~~~7-10 MB steady, ~30 MB peak during refresh~~ |
+| Medium       | #14 Rate limiter unbounded growth                                     | Open          | Slow leak over weeks/months                     |
+| Medium       | #13 DB tables without pruning                                         | Open          | Disk/query performance over time                |
+| Low          | #10 push_str(format!())                                               | **FIXED**     | Bytes per occurrence                            |
+| Low          | #11-12,#16-22 String allocation micro-patterns                        | Open          | Bytes to low KB per occurrence                  |
+| ~~Low~~      | ~~#15 Oversized API cache capacities~~                                | **PARTIALLY FIXED** | ~~auth_codes/oauth_states reduced to 1K~~  |
 
 ---
 
@@ -336,9 +291,9 @@ Server image generation and user color calculation run in a dedicated `image_gen
 
 1. ~~**Fix the `Box::leak`** in `load_localization`~~ — **DONE**
 2. ~~**Paginate `UserColor::find().all()`** in bot payload builders; use `.count()` in `info.rs`~~ — **DONE**
-3. **Hash cache keys** instead of storing full GraphQL queries; reduce default capacity to 1,000-2,000
-4. **Remove the `Arc<RwLock<>>` wrapper** around caches — Moka handles concurrency internally
-5. **Pass the shared `reqwest::Client`** from `BotData` to shared library request functions
+3. ~~**Hash cache keys** instead of storing full GraphQL queries; reduce default capacity to 1,000-2,000~~ — **DONE**
+4. ~~**Remove the `Arc<RwLock<>>` wrapper** around caches — Moka handles concurrency internally~~ — **DONE**
+5. ~~**Pass the shared `reqwest::Client`** from `BotData` to shared library request functions~~ — **DONE**
 6. **Remove or lazy-load guild member chunking** -- only chunk when needed
 7. **Configure serenity `CacheSettings`** with `max_messages` limit
 8. **Add DB cleanup tasks** for `command_usage` and `ping_history`

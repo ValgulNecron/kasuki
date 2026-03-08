@@ -141,7 +141,6 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 		buffers.push(bytes);
 	}
 
-	// Move all CPU-heavy image work to a blocking thread
 	let (image_path, bytes) =
 		tokio::task::spawn_blocking(move || -> anyhow::Result<(String, Vec<u8>)> {
 			let mut images: Vec<DynamicImage> = Vec::new();
@@ -225,8 +224,7 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 			.images_url(image_url);
 
 	let embed_contents = EmbedsContents::new(vec![embed_content])
-		.add_files(vec![image])
-		.clone();
+		.add_files(vec![image]);
 
 	Ok(embed_contents)
 }

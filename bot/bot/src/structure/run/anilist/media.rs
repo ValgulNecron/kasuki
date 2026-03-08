@@ -8,7 +8,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::anime_song::Column::AnilistId;
 use shared::database::prelude::AnimeSong;
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
-use std::fmt::Display;
+use std::fmt::{Display, Write};
 use std::sync::Arc;
 
 #[cynic::schema("anilist")]
@@ -358,7 +358,6 @@ pub fn get_banner(media: &Media) -> String {
 fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 	let mut staff_text = String::new();
 
-	// iterate over staff with index
 	let mut i = 0;
 
 	for s in staff.into_iter() {
@@ -391,7 +390,7 @@ fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 
 		let role = s_role.unwrap_or(UNKNOWN.to_string());
 
-		staff_text.push_str(format!("{}: {}\n", staff_name.as_str(), role.as_str()).as_str());
+		write!(staff_text, "{}: {}\n", staff_name, role).unwrap();
 
 		i += 1;
 	}
@@ -430,7 +429,7 @@ fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
 
 		let char_name = user_pref.unwrap_or(full.unwrap_or(UNKNOWN.to_string()));
 
-		characters_text.push_str(format!("{}\n", char_name.as_str()).as_str());
+		writeln!(characters_text, "{}", char_name).unwrap();
 
 		i += 1;
 	}
@@ -458,13 +457,13 @@ pub async fn media_content<'a>(
 		.into_iter()
 		.map(|song| {
 			let mut message = song.song_name;
-			if song.audio != String::new() {
-				message.push_str(format!(" | [mp3]({})", song.audio).as_str());
+			if !song.audio.is_empty() {
+				write!(message, " | [mp3]({})", song.audio).unwrap();
 			}
-			if song.hq != String::new() {
-				message.push_str(format!(" | [mp4]({})", song.hq).as_str());
-			} else if song.mq != String::new() {
-				message.push_str(format!(" | [mp4]({})", song.mq).as_str());
+			if !song.hq.is_empty() {
+				write!(message, " | [mp4]({})", song.hq).unwrap();
+			} else if !song.mq.is_empty() {
+				write!(message, " | [mp4]({})", song.mq).unwrap();
 			}
 			message.push('\n');
 			message
@@ -473,9 +472,8 @@ pub async fn media_content<'a>(
 
 	if song_list.len() > 1024 {
 		song_list.truncate(1024);
-		// check until only \n is the last char
 		while !song_list.ends_with('\n') {
-			song_list.pop(); // Remove the last character until it ends with '\n'
+			song_list.pop();
 		}
 	}
 
@@ -493,7 +491,6 @@ pub async fn media_content<'a>(
 
 	let genres = data.genres.clone().unwrap_or_default();
 
-	// take the first 5 non-optional genres
 	let genres = genres
 		.into_iter()
 		.flatten()

@@ -5,7 +5,6 @@ use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shared::cache::CacheInterface;
-use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace, warn};
 
 /// Shared HTTP client for all AniList requests. Reusing a single client
@@ -43,7 +42,7 @@ pub async fn make_request_anilist<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, use_cache: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, use_cache: bool, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Starting GraphQL request to Anilist");
 	debug!("GraphQL query type: {}", std::any::type_name::<T>());
@@ -96,25 +95,13 @@ async fn check_cache<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Checking cache for GraphQL query");
 
-	// Create a short hash of the query for logging purposes
-	// This makes logs more readable while still allowing query identification
 	let query_hash = operation.query.chars().take(20).collect::<String>();
 	debug!("Query hash: {}...", query_hash);
 
-	// Clone the cache reference to avoid ownership issues
-	let anilist_cache_clone = anilist_cache.clone();
-
-	// Acquire a read lock on the cache
-	// Using a read lock allows multiple concurrent readers
-	trace!("Acquiring read lock on cache");
-	let guard = anilist_cache_clone.read().await;
-
-	// Look up the query in the cache
-	// Key must include variables so different queries don't collide in the cache
 	let key = format!(
 		"{}{}",
 		operation.query,
@@ -122,21 +109,15 @@ async fn check_cache<
 	);
 
 	trace!("Looking up query in cache");
-	let cache = guard.read(&key).await?;
-
-	// Drop the lock as soon as possible to reduce contention
-	drop(guard);
-	trace!("Released cache read lock");
+	let cache = anilist_cache.read(&key).await?;
 
 	match cache {
 		Some(data) => {
-			// Cache hit - deserialize the cached JSON string
 			info!("Cache hit for GraphQL query");
 			debug!("Deserializing cached response");
 			get_type(data).with_context(|| "Failed to deserialize cached GraphQL response")
 		},
 		None => {
-			// Cache miss - make a network request
 			info!("Cache miss for GraphQL query, making network request");
 			do_request(operation, anilist_cache)
 				.await
@@ -177,27 +158,23 @@ async fn do_request<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
-	// Create a short hash of the query for logging purposes
 	let query_hash = operation.query.chars().take(20).collect::<String>();
 	info!("Making GraphQL request to Anilist API");
 	debug!("Query hash: {}...", query_hash);
 
 	let client = &*HTTP_CLIENT;
 
-	// Prepare the GraphQL request with appropriate headers
-	// Content-Type and Accept headers are required for GraphQL requests
 	trace!("Preparing GraphQL request");
 	debug!("Request URL: https://graphql.anilist.co/");
 
-	// Send the request and handle any network errors
 	trace!("Sending GraphQL request");
 	let resp = match client
         .post("https://graphql.anilist.co/")
         .header("Content-Type", "application/json")
         .header("Accept", "application/json")
-        .json(&operation)  // Serialize the operation to JSON
+        .json(&operation)
         .send()
         .await
 	{
@@ -212,7 +189,6 @@ async fn do_request<
 		},
 	};
 
-	// Extract the response text and handle any errors
 	trace!("Extracting response text");
 	let response_text = match resp.text().await {
 		Ok(text) => {
@@ -227,22 +203,17 @@ async fn do_request<
 		},
 	};
 
-	// Cache the response for future use
-	// Key must include variables so different queries don't collide in the cache
 	let key = format!(
 		"{}{}",
 		operation.query,
 		serde_json::to_string(&operation.variables).unwrap_or_default()
 	);
-	trace!("Acquiring write lock on cache");
+	trace!("Caching response");
 	anilist_cache
-		.write()
-		.await
 		.write(key, response_text.clone())
 		.await?;
 	trace!("Updated cache with new response");
 
-	// Deserialize the response to the requested type
 	debug!("Deserializing GraphQL response");
 	get_type(response_text).with_context(|| {
 		format!(
@@ -283,16 +254,12 @@ fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlRespon
 		Ok(parsed) => {
 			trace!("Successfully deserialized GraphQL response");
 
-			// Check for GraphQL-level errors in the response
-			// A GraphQL response can contain errors even with a successful HTTP status code
-			// These errors need to be logged and handled appropriately
 			if let Some(errors) = &parsed.errors {
 				if !errors.is_empty() {
 					warn!("GraphQL response contains {} errors", errors.len());
 					for (i, error) in errors.iter().enumerate() {
 						warn!("GraphQL error #{}: {}", i + 1, error.message);
 
-						// Log additional error details if available
 						if let Some(locations) = &error.locations {
 							debug!("Error locations: {:?}", locations);
 						}
@@ -306,8 +273,6 @@ fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlRespon
 			parsed
 		},
 		Err(e) => {
-			// JSON parsing failed - this could be due to invalid JSON or
-			// a mismatch between the JSON structure and the expected type
 			error!("Failed to deserialize GraphQL response: {}", e);
 			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
 				.with_context(|| "Failed to parse JSON response from GraphQL");

@@ -98,15 +98,15 @@ async fn main() -> Result<()> {
 			.await
 			.expect("semaphore closed unexpectedly");
 
-		let result: Option<(String, String)> = match connection
-			.blpop(&[SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY], 30.0)
-			.await
-		{
-			Ok(r) => r,
+		let payload = match get_priority_task(&mut connection).await {
+			Ok(Some(payload)) => payload,
+			Ok(None) => {
+				drop(permit);
+				continue;
+			},
 			Err(e) => {
 				warn!("Redis error while waiting for task: {:#}", e);
 				drop(permit);
-				// Reconnect before retrying
 				match client.get_multiplexed_async_connection().await {
 					Ok(new_conn) => {
 						connection = new_conn;
@@ -124,33 +124,44 @@ async fn main() -> Result<()> {
 			},
 		};
 
-		match result {
-			Some((_key, payload)) => {
-				info!("Received task ({} bytes)", payload.len());
-				let task: ImageTask = match serde_json::from_str(&payload) {
-					Ok(t) => t,
-					Err(e) => {
-						error!("Failed to deserialize task: {:#}", e);
-						drop(permit);
-						continue;
-					},
-				};
-
-				let db = db.clone();
-				let store = store.clone();
-				tokio::spawn(async move {
-					let _permit = permit;
-					if let Err(e) = handle_task(task, &db, &store).await {
-						error!("Failed to process task: {:#}", e);
-					}
-				});
-			},
-			None => {
+		info!("Received task ({} bytes)", payload.len());
+		let task: ImageTask = match serde_json::from_str(&payload) {
+			Ok(t) => t,
+			Err(e) => {
+				error!("Failed to deserialize task: {:#}", e);
 				drop(permit);
 				continue;
 			},
-		}
+		};
+
+		let db = db.clone();
+		let store = store.clone();
+		tokio::spawn(async move {
+			let _permit = permit;
+			if let Err(e) = handle_task(task, &db, &store).await {
+				error!("Failed to process task: {:#}", e);
+			}
+		});
 	}
+}
+
+async fn get_priority_task(
+	connection: &mut redis::aio::MultiplexedConnection,
+) -> redis::RedisResult<Option<String>> {
+	let user_color: Option<String> = connection.lpop(USER_COLOR_QUEUE_KEY, None).await?;
+	if user_color.is_some() {
+		return Ok(user_color);
+	}
+
+	let server_image: Option<String> = connection.lpop(SERVER_IMAGE_QUEUE_KEY, None).await?;
+	if server_image.is_some() {
+		return Ok(server_image);
+	}
+
+	let result: Option<(String, String)> = connection
+		.blpop(&[USER_COLOR_QUEUE_KEY, SERVER_IMAGE_QUEUE_KEY], 30.0)
+		.await?;
+	Ok(result.map(|(_key, payload)| payload))
 }
 
 async fn handle_task(
@@ -189,15 +200,12 @@ async fn handle_generate_server_image(
 	members: Vec<MemberColorData>, blacklist: HashSet<String>, db: &Arc<DatabaseConnection>,
 	store: &Arc<dyn ImageStore>,
 ) -> Result<()> {
-	// For global images, members is empty — fetch all users from DB directly.
-	// For local images, members contains user IDs + current PFP URLs from Discord API.
 	let is_global = members.is_empty();
 
 	use shared::database::prelude::UserColor;
 	use shared::database::user_color::Column as UserColorColumn;
 
 	let (effective_members, color_map) = if is_global {
-		// Global: single DB query provides both member list and color data
 		let all_colors = UserColor::find().all(&**db).await.unwrap_or_default();
 		info!(
 			"Generating global server image for guild {} ({} users from DB)",
@@ -227,7 +235,6 @@ async fn handle_generate_server_image(
 			members.len()
 		);
 
-		// Local: batch-load cached colors/image keys from DB for provided members
 		let member_user_ids: Vec<String> = members
 			.iter()
 			.filter(|m| !blacklist.contains(&m.user_id))
@@ -258,9 +265,11 @@ async fn handle_generate_server_image(
 		let db_record = color_map.get(&member.user_id);
 
 		let (hex_color, png_bytes) = match db_record {
-			Some(record) if record.profile_picture_url == member.profile_picture_url => {
+			Some(record)
+				if record.profile_picture_url == member.profile_picture_url
+					&& !record.images.starts_with("data:") =>
+			{
 				let color = record.color.clone();
-				// Load image from storage using the key stored in DB
 				match store.load(&record.images).await {
 					Ok(bytes) => (color, bytes),
 					Err(e) => {
@@ -268,7 +277,6 @@ async fn handle_generate_server_image(
 							"Failed to load cached image for user {} from storage: {:#}",
 							member.user_id, e
 						);
-						// Fall back to recalculating
 						match calculate_user_color_from_url(&member.profile_picture_url).await {
 							Ok((color, thumb_png, full_png)) => {
 								save_user_color(
@@ -341,7 +349,6 @@ async fn handle_generate_server_image(
 			.await
 			.context("spawn_blocking panicked")??;
 
-	// Save mosaic image to storage
 	let storage_key = format!("server_images/{}/{}.png", guild_id, image_type);
 	store
 		.save(&storage_key, &image_data)
@@ -363,7 +370,6 @@ async fn handle_generate_server_image(
 	.await
 	.context("Failed to upsert guild_data before server image")?;
 
-	// Store the storage key in the DB instead of base64 data
 	ServerImage::insert(ActiveModel {
 		server_id: Set(guild_id.clone()),
 		server_name: Set(guild_name),
@@ -403,7 +409,12 @@ async fn handle_calculate_user_color(
 		.await?;
 
 	if let Some(ref record) = existing {
-		if record.profile_picture_url == profile_picture_url {
+		let age = chrono::Utc::now().naive_utc() - record.calculated_at;
+		let is_stale = age > chrono::Duration::days(7);
+		if record.profile_picture_url == profile_picture_url
+			&& !record.images.starts_with("data:")
+			&& !is_stale
+		{
 			info!("User {} color is up to date, skipping", user_id);
 			return Ok(());
 		}
@@ -427,7 +438,6 @@ async fn handle_calculate_user_color(
 	Ok(())
 }
 
-/// Save user color images (thumbnail + full-size) to storage and upsert the thumbnail key into the database.
 async fn save_user_color(
 	user_id: &str, profile_picture_url: &str, color: &str, thumb_png: &[u8], full_png: &[u8],
 	db: &Arc<DatabaseConnection>, store: &Arc<dyn ImageStore>,
@@ -448,7 +458,6 @@ async fn save_user_color(
 			"Failed to save user color full image for {} to storage: {:#}",
 			user_id, e
 		);
-		// Thumbnail already saved, continue with DB upsert using thumbnail key
 	}
 
 	use shared::database::prelude::UserColor;
@@ -459,6 +468,7 @@ async fn save_user_color(
 		profile_picture_url: Set(profile_picture_url.to_string()),
 		color: Set(color.to_string()),
 		images: Set(thumb_key),
+		calculated_at: Set(chrono::Utc::now().naive_utc()),
 		..Default::default()
 	})
 	.on_conflict(
@@ -466,6 +476,7 @@ async fn save_user_color(
 			.update_column(Column::Color)
 			.update_column(Column::ProfilePictureUrl)
 			.update_column(Column::Images)
+			.update_column(Column::CalculatedAt)
 			.to_owned(),
 	)
 	.exec(&**db)

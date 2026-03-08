@@ -61,7 +61,6 @@ async fn list_all_activity_command(self_: ListAllActivity) -> Result<EmbedsConte
 	let ctx = self_.get_ctx().clone();
 	let bot_data = ctx.data::<BotData>().clone();
 	let command_interaction = self_.get_command_interaction().clone();
-	let _config = bot_data.config.clone();
 
 
 	let guild_id = command_interaction

@@ -98,7 +98,7 @@ pub struct ReleaseDate {
 
 impl SteamGameWrapper {
 	pub async fn new_steam_game_by_id(
-		appid: u128, guild_id: String, db_connection: Arc<DatabaseConnection>,
+		appid: u32, guild_id: String, db_connection: Arc<DatabaseConnection>,
 	) -> Result<SteamGameWrapper> {
 		let client = reqwest::Client::builder()
 			.user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
@@ -160,29 +160,27 @@ impl SteamGameWrapper {
 	}
 
 	pub async fn new_steam_game_by_search(
-		search: &str, guild_id: String, apps: Arc<RwLock<HashMap<String, u128>>>,
+		search: &str, guild_id: String, apps: Arc<RwLock<HashMap<String, u32>>>,
 		db_connection: Arc<DatabaseConnection>,
 	) -> Result<SteamGameWrapper> {
 		let guard = apps.read().await;
 
-		let choices: Vec<(&String, &u128)> = guard.iter().collect();
-
-		let choices: Vec<&str> = choices.into_iter().map(|(s, _)| s.as_str()).collect();
+		let choices: Vec<&str> = guard.keys().map(|s| s.as_str()).collect();
 
 		let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
 
-		let mut appid = &0u128;
+		let mut appid = &0u32;
 
 		if results.is_empty() {
-			return Err(anyhow!("No game found".to_string()));
+			return Err(anyhow!("No game found"));
 		}
 
 		for (name, _) in results {
-			if appid == &0u128 {
+			if appid == &0u32 {
 				appid = match guard.get(name) {
 					Some(appid) => appid,
 					None => {
-						return Err(anyhow!("No game found".to_string()));
+						return Err(anyhow!("No game found"));
 					},
 				}
 			}
@@ -191,7 +189,7 @@ impl SteamGameWrapper {
 				appid = match guard.get(name) {
 					Some(appid) => appid,
 					None => {
-						return Err(anyhow!("No game found".to_string()));
+						return Err(anyhow!("No game found"));
 					},
 				};
 

@@ -137,7 +137,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 
 	let mut fields = Vec::new();
 
-	// Determine the price field based on whether the game is free or not
 	let field1 = if game.is_free.unwrap() {
 		(
 			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field1"),
@@ -194,7 +193,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		));
 	}
 
-	// Determine the release date field based on whether the game is coming soon or not
 	let field2 = if game.release_date.clone().unwrap().coming_soon {
 		match game.release_date.unwrap().date {
 			Some(date) => (
@@ -218,7 +216,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 
 	fields.push(field2);
 
-	// Add the developers field if it exists
 	if let Some(dev) = game.developers {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field3"),
@@ -227,7 +224,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		))
 	}
 
-	// Add the publishers field if it exists
 	if let Some(publishers) = game.publishers {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field4"),
@@ -236,7 +232,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		))
 	}
 
-	// Add the app type field if it exists
 	if let Some(app_type) = game.app_type {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field5"),
@@ -245,7 +240,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		))
 	}
 
-	// Add the supported languages field if it exists
 	if let Some(game_lang) = game.supported_languages {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "game_steam_game_info-field6"),
@@ -278,7 +272,6 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		true,
 	));
 
-	// Add the categories field if it exists
 	if let Some(categories) = game.categories {
 		let descriptions: Vec<String> = categories
 			.into_iter()
@@ -356,7 +349,7 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 /// }
 /// ```
 async fn get_steam_game(
-	apps: Arc<RwLock<HashMap<String, u128>>>, command_interaction: CommandInteraction,
+	apps: Arc<RwLock<HashMap<String, u32>>>, command_interaction: CommandInteraction,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<SteamGameWrapper> {
 	let guild_id = command_interaction
@@ -370,7 +363,7 @@ async fn get_steam_game(
 		.get(&String::from("game_name"))
 		.ok_or(anyhow!("No option for game_name"))?;
 
-	let data: SteamGameWrapper = if value.parse::<i128>().is_ok() {
+	let data: SteamGameWrapper = if value.parse::<u32>().is_ok() {
 		SteamGameWrapper::new_steam_game_by_id(value.parse().unwrap(), guild_id, db_connection)
 			.await?
 	} else {

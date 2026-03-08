@@ -101,7 +101,7 @@ async fn main() {
 
 	let cache_config = config.cache.clone();
 	info!("Initializing caches (backend: {})", cache_config.cache_type);
-	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
+	let anilist_cache: Arc<CacheInterface> = Arc::new(
 		match CacheInterface::from_config(&cache_config).await {
 			Ok(c) => {
 				info!("AniList cache initialized with {} backend", cache_config.cache_type);
@@ -115,8 +115,8 @@ async fn main() {
 				CacheInterface::new()
 			},
 		},
-	));
-	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
+	);
+	let vndb_cache: Arc<CacheInterface> = Arc::new(
 		match CacheInterface::from_config(&cache_config).await {
 			Ok(c) => {
 				info!("VNDB cache initialized with {} backend", cache_config.cache_type);
@@ -130,14 +130,13 @@ async fn main() {
 				CacheInterface::new()
 			},
 		},
-	));
+	);
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
 	let db_url = get_url(config.db.clone());
 	let mut connect_options = sea_orm::ConnectOptions::new(db_url);
 
-	// Configure connection pool settings
 	let max_connections = config.db.max_connections.unwrap_or(100);
 	let min_connections = config.db.min_connections.unwrap_or(5);
 	let connect_timeout = config.db.connect_timeout.unwrap_or(30);
@@ -148,7 +147,7 @@ async fn main() {
 		.min_connections(min_connections)
 		.connect_timeout(Duration::from_secs(connect_timeout))
 		.idle_timeout(Duration::from_secs(idle_timeout))
-		.sqlx_logging(false); // Reduce log noise from sqlx
+		.sqlx_logging(false);
 
 	info!(
 		"Database pool config: max={}, min={}, connect_timeout={}s, idle_timeout={}s",
@@ -175,10 +174,7 @@ async fn main() {
 		gateway_intent_non_privileged
 	);
 
-	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
-        // | GatewayIntents::GUILD_PRESENCES
-        // | GatewayIntents::MESSAGE_CONTENT
-        ;
+	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS;
 	info!(
 		"Privileged intents configured: {:?}",
 		gateway_intent_privileged
@@ -325,9 +321,6 @@ async fn main() {
 	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");
-		// Create a signal handler for "all" signals in unix.
-		// If a signal is received, print a shutdown message.
-		// All signals and not only ctrl-c
 		let mut sigint =
 			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
 				.expect("failed to register SIGINT handler");
@@ -365,7 +358,6 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		// Send shutdown signal to all background tasks
 		info!("Sending shutdown signal to all background tasks");
 		if let Err(e) = bot_data.shutdown_signal.send(()) {
 			warn!("Failed to send shutdown signal: {}", e);
@@ -373,7 +365,6 @@ async fn main() {
 			info!("Shutdown signal sent successfully");
 		}
 
-		// Wait a moment for tasks to clean up
 		info!("Waiting for background tasks to shut down gracefully");
 		tokio::time::sleep(Duration::from_secs(2)).await;
 		info!("Proceeding with bot shutdown");
@@ -382,9 +373,6 @@ async fn main() {
 	#[cfg(windows)]
 	{
 		info!("Setting up signal handlers for Windows environment");
-		// Create a signal handler for "all" signals in windows.
-		// If a signal is received, print a shutdown message.
-		// All signals and not only ctrl-c
 		let mut ctrl_break = tokio::signal::windows::ctrl_break()
 			.expect("failed to register CTRL+BREAK handler");
 		info!("Registered CTRL+BREAK handler");
@@ -417,7 +405,6 @@ async fn main() {
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		// Send shutdown signal to all background tasks
 		info!("Sending shutdown signal to all background tasks");
 		if let Err(e) = bot_data.shutdown_signal.send(()) {
 			warn!("Failed to send shutdown signal: {}", e);
@@ -425,7 +412,6 @@ async fn main() {
 			info!("Shutdown signal sent successfully");
 		}
 
-		// Wait a moment for tasks to clean up
 		info!("Waiting for background tasks to shut down gracefully");
 		tokio::time::sleep(Duration::from_secs(2)).await;
 		info!("Proceeding with bot shutdown");
@@ -437,7 +423,6 @@ async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
 	unsafe {
 		std::env::set_var("DATABASE_URL", url);
 	}
-	// check if the env var is set
 	match std::env::var("DATABASE_URL") {
 		Ok(_) => {},
 		Err(e) => {

@@ -25,7 +25,6 @@ use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::Column;
 use small_fixed_array::FixedString;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[slash_command(
 	name = "anilist_user", desc = "Info of an user on AniList.", command_type = ChatInput,
@@ -45,7 +44,6 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 
 	let user = map.get(&FixedString::from_str_trunc("username"));
 
-	// If the username is provided, fetch the user's data from AniList and send it as a response
 	if let Some(value) = user {
 		let data: User = get_user(value, anilist_cache.clone()).await?;
 
@@ -65,7 +63,6 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 
 	let user = row.ok_or(anyhow!("No user found"))?;
 
-	// Fetch the user's data from AniList and send it as a response
 	let data = get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?;
 	let embed_content = user::user_content(cx.command_interaction, data, cx.db).await?;
 
@@ -117,8 +114,7 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 ///     Ok(())
 /// }
 /// ```
-pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -> Result<User> {
-	// If the value is a valid user ID, fetch the user's data by ID
+pub async fn get_user(value: &str, anilist_cache: Arc<CacheInterface>) -> Result<User> {
 	let user = if value.parse::<i32>().is_ok() {
 		let id = value.parse::<i32>()?;
 
@@ -131,7 +127,6 @@ pub async fn get_user(value: &str, anilist_cache: Arc<RwLock<CacheInterface>>) -
 
 		data.data.unwrap().user.unwrap()
 	} else {
-		// If the value is not a valid user ID, fetch the user's data by username
 		let var = UserQuerySearchVariables {
 			search: Some(value),
 		};

@@ -11,7 +11,7 @@ use tracing::{debug, error, info, trace, warn};
 /// Asynchronously launches the game management thread.
 #[tracing::instrument(skip(apps, task_intervals), level = "info")]
 pub async fn launch_game_management_thread(
-	apps: Arc<RwLock<HashMap<String, u128>>>, task_intervals: TaskIntervalConfig,
+	apps: Arc<RwLock<HashMap<String, u32>>>, task_intervals: TaskIntervalConfig,
 ) {
 	let mut interval = interval(Duration::from_secs(task_intervals.game_update));
 
@@ -43,7 +43,7 @@ pub async fn launch_game_management_thread(
 			debug!("Current game data cache size: {} entries", size);
 			trace!(
 				"Game data cache memory usage estimate: ~{} bytes",
-				size * std::mem::size_of::<(String, u128)>()
+				size * std::mem::size_of::<(String, u32)>()
 			);
 			size
 		};

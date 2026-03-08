@@ -15,6 +15,7 @@ use serenity::gateway::{ActivityData, ChunkGuildFilter};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::CommandList;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use tracing::{info, trace, warn};
 
 impl Handler {
@@ -47,7 +48,7 @@ impl Handler {
 					NodeDistributionStrategy::round_robin(),
 				)
 				.await;
-				*bot_data.lavalink.write().await = Some(client);
+				*bot_data.lavalink.write().await = Some(Arc::new(client));
 				info!("Lavalink client initialized");
 			} else {
 				warn!("No music configuration found. Music features will be disabled.");
@@ -79,7 +80,6 @@ impl Handler {
 			let db_for_commands = bot_data.db_connection.clone();
 			tokio::spawn(async move {
 				command_registration(&http, remove_old).await;
-				// Populate command_list table with all registered slash commands
 				let registry = get_slash_registry();
 				for command_name in registry.keys() {
 					let model = shared::database::command_list::ActiveModel {

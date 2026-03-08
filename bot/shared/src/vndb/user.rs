@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 use crate::vndb::common::do_request_cached;
 
@@ -21,7 +20,7 @@ use crate::cache::CacheInterface;
 use anyhow::Result;
 
 pub async fn get_user(
-	path: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+	path: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<VnUser> {
 	let response = do_request_cached(path.clone(), vndb_cache, client).await?;
 

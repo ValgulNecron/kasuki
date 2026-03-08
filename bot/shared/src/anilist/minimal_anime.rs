@@ -57,10 +57,9 @@ use crate::cache::CacheInterface;
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::trace;
 
-pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>) -> Result<Media> {
+pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<CacheInterface>) -> Result<Media> {
 	trace!(?id);
 
 	let query = MinimalAnimeIdVariables { id: Some(id) };
@@ -80,7 +79,7 @@ pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>
 }
 
 pub async fn get_minimal_anime_by_search(
-	query: &str, cache: Arc<RwLock<CacheInterface>>,
+	query: &str, cache: Arc<CacheInterface>,
 ) -> Result<Media> {
 	trace!(?query);
 
@@ -103,7 +102,7 @@ pub async fn get_minimal_anime_by_search(
 }
 
 pub async fn get_minimal_anime_media(
-	anime: String, cache: Arc<RwLock<CacheInterface>>,
+	anime: String, cache: Arc<CacheInterface>,
 ) -> Result<Media> {
 	let media = if let Ok(id) = anime.parse::<i32>() {
 		get_minimal_anime_by_id(id, cache).await?

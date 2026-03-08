@@ -22,7 +22,7 @@ impl<'a> EmbedsContents<'a> {
 		self
 	}
 
-	pub fn add_files(&mut self, files: Vec<CommandFiles>) -> &mut Self {
+	pub fn add_files(mut self, files: Vec<CommandFiles>) -> Self {
 		self.files.extend(files);
 		self
 	}

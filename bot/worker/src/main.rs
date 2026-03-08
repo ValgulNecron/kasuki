@@ -10,7 +10,7 @@ use shared::config::WorkerConfig;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::broadcast;
 use tracing::{error, info, warn, Level};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
 	);
 	info!("Database connected");
 
-	let anilist_cache = Arc::new(RwLock::new(
+	let anilist_cache = Arc::new(
 		match CacheInterface::from_config(&config.cache).await {
 			Ok(c) => {
 				info!("AniList cache initialized with {} backend", config.cache.cache_type);
@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
 				CacheInterface::new()
 			},
 		},
-	));
+	);
 
 	let token = Token::from_str(&config.bot.discord_token).context("Invalid Discord token")?;
 	let http = Arc::new(Http::new(token));
@@ -77,7 +77,6 @@ async fn main() -> Result<()> {
 	let (shutdown_tx, _) = broadcast::channel::<()>(1);
 	let task_intervals = config.task_intervals.clone();
 
-	// Spawn Anisong DB Update Task
 	let mut shutdown_rx = shutdown_tx.subscribe();
 	let db_clone = connection.clone();
 	let intervals_clone = task_intervals.clone();
@@ -105,7 +104,6 @@ async fn main() -> Result<()> {
 		}
 	});
 
-	// Spawn Random Stats Update Task
 	let shutdown_rx = shutdown_tx.subscribe();
 	let cache_clone = anilist_cache.clone();
 	let intervals_clone = task_intervals.clone();
@@ -114,7 +112,6 @@ async fn main() -> Result<()> {
 		update_random_stats_launcher(cache_clone, intervals_clone, db_clone, shutdown_rx).await;
 	});
 
-	// Spawn Activity Management Task
 	let mut shutdown_rx = shutdown_tx.subscribe();
 	let http_clone = http.clone();
 	let cache_clone = anilist_cache.clone();
@@ -153,7 +150,6 @@ async fn main() -> Result<()> {
 	info!("Sending shutdown signal to all tasks...");
 	let _ = shutdown_tx.send(());
 
-	// Give tasks time to finish current work
 	let timeout = Duration::from_secs(10);
 	let _ = tokio::time::timeout(timeout, async {
 		let _ = tokio::join!(anisong_handle, stats_handle, activity_handle);

@@ -18,17 +18,14 @@ use shared::database::activity_data;
 use shared::database::activity_data::Model;
 use shared::database::prelude::ActivityData;
 use shared::localization::{get_language_identifier, FluentValue, Loader, USABLE_LOCALES};
-use tokio::sync::RwLock;
 use tracing::{error, info, trace};
 
 /// Manages activity notifications. Tracks the last check time internally
 /// so it can find all activities that should have fired since the last poll.
 pub async fn manage_activity(
-	http: Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	http: Arc<Http>, anilist_cache: Arc<CacheInterface>,
 	db_connection: Arc<DatabaseConnection>,
 ) {
-	// Use a static to track the last time we checked.
-	// On first run, we start from "now" so we don't replay old activities.
 	use std::sync::OnceLock;
 	static LAST_CHECK: OnceLock<tokio::sync::Mutex<NaiveDateTime>> = OnceLock::new();
 
@@ -36,7 +33,6 @@ pub async fn manage_activity(
 	let last_check_mutex = LAST_CHECK.get_or_init(|| tokio::sync::Mutex::new(now));
 	let mut last_check = last_check_mutex.lock().await;
 
-	// Query: timestamp > last_check AND timestamp <= now
 	let rows = match ActivityData::find()
 		.filter(activity_data::Column::Timestamp.gt(*last_check))
 		.filter(activity_data::Column::Timestamp.lte(now))
@@ -54,9 +50,7 @@ pub async fn manage_activity(
 		info!("Found {} activities to process", rows.len());
 	}
 
-	// Update last_check to now so next cycle picks up from here
 	*last_check = now;
-	// Drop the lock early
 	drop(last_check);
 
 	for row in rows {
@@ -85,7 +79,7 @@ pub async fn manage_activity(
 }
 
 async fn send_specific_activity(
-	row: &Model, guild_id: String, http: &Arc<Http>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	row: &Model, guild_id: String, http: &Arc<Http>, anilist_cache: Arc<CacheInterface>,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
 	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
@@ -137,7 +131,6 @@ async fn send_specific_activity(
 }
 
 fn decode_image(image: &str) -> Result<Vec<u8>> {
-	// Strip optional data URI prefix (e.g. "data:image/png;base64,")
 	let base64_str = match image.find(',') {
 		Some(idx) => &image[idx + 1..],
 		None => image,
@@ -149,7 +142,7 @@ fn decode_image(image: &str) -> Result<Vec<u8>> {
 }
 
 async fn update_info(
-	row: &Model, guild_id: &str, anilist_cache: Arc<RwLock<CacheInterface>>,
+	row: &Model, guild_id: &str, anilist_cache: Arc<CacheInterface>,
 	db_connection: Arc<DatabaseConnection>,
 ) -> Result<()> {
 	let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
@@ -188,7 +181,6 @@ async fn update_info(
 		..Default::default()
 	};
 
-	// Upsert: update if this anime_id+server_id already exists
 	ActivityData::insert(new_activity)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::columns([

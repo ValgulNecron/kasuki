@@ -6,6 +6,7 @@ use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use serenity::all::CommandInteraction;
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use std::fmt::Write;
 use std::sync::Arc;
 use tracing::log::trace;
 
@@ -102,7 +103,7 @@ pub async fn character_content<'a>(
 		let mut date_of_birth_string = String::new();
 
 		if let Some(m) = date_of_birth_data.month {
-			date_of_birth_string.push_str(format!("{:02}", m).as_str());
+			write!(date_of_birth_string, "{:02}", m).unwrap();
 
 			has_month = true
 		}
@@ -112,7 +113,7 @@ pub async fn character_content<'a>(
 				date_of_birth_string.push('/')
 			}
 
-			date_of_birth_string.push_str(format!("{:02}", d).as_str());
+			write!(date_of_birth_string, "{:02}", d).unwrap();
 
 			has_day = true
 		}
@@ -122,7 +123,7 @@ pub async fn character_content<'a>(
 				date_of_birth_string.push('/')
 			}
 
-			date_of_birth_string.push_str(format!("{:04}", y).as_str());
+			write!(date_of_birth_string, "{:04}", y).unwrap();
 		}
 
 		fields.push((

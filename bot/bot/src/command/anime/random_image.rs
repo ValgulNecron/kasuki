@@ -79,7 +79,6 @@ async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<Em
 
 	debug!("Retrieving bot data and configuration");
 
-	// Retrieve the type of image to fetch from the command interaction
 	debug!("Extracting image type from command options");
 	let map = get_option_map_string_subcommand(&command_interaction);
 
@@ -91,7 +90,6 @@ async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<Em
 	let image_type = image_type.clone();
 	debug!("Requested image type: {}", image_type);
 
-	// Retrieve the guild ID from the command interaction
 	let guild_id = match command_interaction.guild_id {
 		Some(id) => {
 			debug!("Command executed in guild: {}", id);
@@ -198,41 +196,33 @@ async fn anime_random_image_command(self_: AnimeRandomImageCommand) -> Result<Em
 pub async fn random_image_content<'a>(
 	image_type: String, title: String, endpoint: &'a str,
 ) -> Result<EmbedsContents<'a>> {
-	// Construct the URL to fetch the image from
 	let url = format!("https://api.waifu.pics/{}/{}", endpoint, image_type);
 
-	// Fetch the image from the URL
 	let resp = reqwest::get(&url).await?;
 
-	// Parse the response as JSON
 	let json: serde_json::Value = resp.json().await?;
 
-	// Retrieve the URL of the image from the JSON
 	let image_url = json["url"]
 		.as_str()
 		.ok_or(anyhow!("No image found"))?
 		.to_string();
 
-	// Fetch the image from the image URL
 	let response = reqwest::get(image_url).await?;
 
-	// Retrieve the bytes of the image from the response
 	let bytes = response.bytes().await?;
 
-	// Generate a UUID for the filename of the image
 	let uuid_name = Uuid::new_v4();
 
 	let filename = format!("{}.gif", uuid_name);
 
-	// Construct the attachment for the image
 	let bytes = bytes.as_bytes().to_vec();
 	let file = CommandFiles::new(filename.clone(), bytes);
 
 	let embed_content =
 		EmbedContent::new(title).images_url(format!("attachment://{}", filename.clone()));
 
-	let mut embed_contents = EmbedsContents::new(vec![embed_content]);
-	embed_contents.add_files(vec![file]);
+	let embed_contents = EmbedsContents::new(vec![embed_content])
+		.add_files(vec![file]);
 
 	Ok(embed_contents)
 }

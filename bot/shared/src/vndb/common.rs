@@ -2,13 +2,12 @@ use anyhow::Result;
 use std::sync::Arc;
 
 use crate::cache::CacheInterface;
-use tokio::sync::RwLock;
 
 pub async fn do_request_cached(
-	path: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, vndb_cache: Arc<CacheInterface>,
 	client: &reqwest::Client,
 ) -> Result<String> {
-	let cache = vndb_cache.read().await.read(&path).await?;
+	let cache = vndb_cache.read(&path).await?;
 
 	if let Some(cached) = cache {
 		return Ok(cached);
@@ -18,7 +17,7 @@ pub async fn do_request_cached(
 }
 
 pub async fn do_request(
-	path: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+	path: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<String> {
 	let url = format!("https://api.vndb.org/kana{}", path);
 
@@ -31,22 +30,18 @@ pub async fn do_request(
 
 	let response_text = res.text().await?;
 
-	vndb_cache
-		.write()
-		.await
-		.write(path, response_text.clone())
-		.await?;
+	vndb_cache.write(path, response_text.clone()).await?;
 
 	Ok(response_text)
 }
 
 pub async fn do_request_cached_with_json(
-	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, json: String, vndb_cache: Arc<CacheInterface>,
 	client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
 
-	let cache = vndb_cache.read().await.read(&key).await?;
+	let cache = vndb_cache.read(&key).await?;
 
 	if let Some(cached) = cache {
 		return Ok(cached);
@@ -56,7 +51,7 @@ pub async fn do_request_cached_with_json(
 }
 
 pub async fn do_request_with_json(
-	path: String, json: String, vndb_cache: Arc<RwLock<CacheInterface>>,
+	path: String, json: String, vndb_cache: Arc<CacheInterface>,
 	client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
@@ -73,11 +68,7 @@ pub async fn do_request_with_json(
 
 	let response_text = res.text().await?;
 
-	vndb_cache
-		.write()
-		.await
-		.write(key, response_text.clone())
-		.await?;
+	vndb_cache.write(key, response_text.clone()).await?;
 
 	Ok(response_text)
 }

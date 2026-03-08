@@ -149,8 +149,7 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 	};
 
 	let embed_contents = EmbedsContents::new(embed_contents)
-		.add_files(command_files)
-		.clone();
+		.add_files(command_files);
 
 	Ok(embed_contents)
 }

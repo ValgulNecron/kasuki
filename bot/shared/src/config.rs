@@ -33,7 +33,7 @@ pub struct CacheConfig {
 	/// TTL in seconds for cache entries (default: 3600)
 	#[serde(default = "default_cache_ttl")]
 	pub ttl_secs: u64,
-	/// Maximum number of entries for the in-memory backend (default: 10 000)
+	/// Maximum number of entries for the in-memory backend (default: 2 000)
 	#[serde(default = "default_cache_max_capacity")]
 	pub max_capacity: u64,
 }
@@ -47,7 +47,7 @@ fn default_cache_ttl() -> u64 {
 }
 
 fn default_cache_max_capacity() -> u64 {
-	10_000
+	2_000
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -62,7 +62,6 @@ impl QueueConfig {
 	pub fn redis_url(&self) -> String {
 		match self.password.as_deref() {
 			Some(pw) if !pw.is_empty() => {
-				// Percent-encode the password so special chars don't break URL parsing
 				let encoded: String = pw
 					.bytes()
 					.map(|b| match b {
@@ -390,7 +389,7 @@ pub struct OAuthConfig {
 	pub discord_client_secret: String,
 	pub discord_redirect_uri: String,
 	pub frontend_url: String,
-	pub jwt_secret: String, // New field for JWT secret
+	pub jwt_secret: String,
 }
 
 impl Config {

@@ -23,7 +23,6 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 
 #[slash_command(
 	name = "staff", desc = "Info of a staff.", command_type = ChatInput,
@@ -81,7 +80,6 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 
 	let lang = staff.language_v2.unwrap_or_default();
 
-	// Get the language identifier for localization
 	let lang_id = cx.lang_id().await;
 
 	let mut fields = vec![
@@ -236,7 +234,7 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 /// [`Cache`]: crate::Cache
 /// [`Staff`]: crate::Staff
 async fn get_staff(
-	command_interaction: &CommandInteraction, anilist_cache: Arc<RwLock<CacheInterface>>,
+	command_interaction: &CommandInteraction, anilist_cache: Arc<CacheInterface>,
 ) -> Result<Staff> {
 	let map = get_option_map_string(command_interaction);
 

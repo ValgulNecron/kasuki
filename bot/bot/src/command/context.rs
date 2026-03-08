@@ -5,7 +5,6 @@ use shared::cache::CacheInterface;
 use shared::helper::get_guild_lang::get_guild_language;
 use std::str::FromStr;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use unic_langid::LanguageIdentifier;
 
 /// A convenience wrapper that pre-extracts the most common state accessed by every command.
@@ -17,8 +16,8 @@ pub struct CommandContext {
 	pub bot_data: Arc<BotData>,
 	pub command_interaction: CommandInteraction,
 	pub db: Arc<DatabaseConnection>,
-	pub anilist_cache: Arc<RwLock<CacheInterface>>,
-	pub vndb_cache: Arc<RwLock<CacheInterface>>,
+	pub anilist_cache: Arc<CacheInterface>,
+	pub vndb_cache: Arc<CacheInterface>,
 	/// Guild ID as a string, or `"0"` when the command was used in a DM.
 	pub guild_id: String,
 }

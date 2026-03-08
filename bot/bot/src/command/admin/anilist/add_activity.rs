@@ -114,7 +114,6 @@ use shared::database::prelude::ActivityData;
 use shared::localization::{get_language_identifier, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 #[slash_command(
@@ -668,7 +667,7 @@ async fn get_webhook(
 ///
 /// For logging purposes, the anime `id` will be traced to assist in identifying
 /// any potential issues during the request execution.
-pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>) -> Result<Media> {
+pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<CacheInterface>) -> Result<Media> {
 	trace!(?id);
 
 	let query = MinimalAnimeIdVariables { id: Some(id) };
@@ -734,7 +733,7 @@ pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<RwLock<CacheInterface>>
 /// }
 /// ```
 async fn get_minimal_anime_by_search(
-	query: &str, cache: Arc<RwLock<CacheInterface>>,
+	query: &str, cache: Arc<CacheInterface>,
 ) -> Result<Media> {
 	trace!(?query);
 
@@ -800,7 +799,7 @@ async fn get_minimal_anime_by_search(
 /// ## Logging
 /// - Debug logs (`trace!`) are emitted with the retrieved `media` details for debugging purposes.
 pub async fn get_minimal_anime_media(
-	anime: String, cache: Arc<RwLock<CacheInterface>>,
+	anime: String, cache: Arc<CacheInterface>,
 ) -> Result<Media> {
 	let media = if let Ok(id) = anime.parse::<i32>() {
 		get_minimal_anime_by_id(id, cache).await?

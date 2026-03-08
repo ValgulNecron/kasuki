@@ -3,11 +3,10 @@ use std::sync::Arc;
 
 use crate::cache::CacheInterface;
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
 use tracing::info;
 
 pub async fn get_staff(
-	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+	value: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<StaffRoot> {
 	let value = value.to_lowercase();
 

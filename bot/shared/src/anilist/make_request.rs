@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use crate::cache::CacheInterface;
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
 use tracing::{debug, error, info, trace, warn};
+
+static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
 
 pub async fn make_request_anilist<
 	'a,
@@ -14,7 +15,7 @@ pub async fn make_request_anilist<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Starting GraphQL request to Anilist");
 	debug!("GraphQL query type: {}", std::any::type_name::<T>());
@@ -49,19 +50,13 @@ async fn check_cache<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
 	trace!("Checking cache for GraphQL query");
 
 	let query_hash = operation.query.chars().take(20).collect::<String>();
 	debug!("Query hash: {}...", query_hash);
 
-	let anilist_cache_clone = anilist_cache.clone();
-
-	trace!("Acquiring read lock on cache");
-	let guard = anilist_cache_clone.read().await;
-
-	// Key must include variables so different queries don't collide in the cache
 	let key = format!(
 		"{}{}",
 		operation.query,
@@ -69,10 +64,7 @@ async fn check_cache<
 	);
 
 	trace!("Looking up query in cache");
-	let cache = guard.read(&key).await?;
-
-	drop(guard);
-	trace!("Released cache read lock");
+	let cache = anilist_cache.read(&key).await?;
 
 	match cache {
 		Some(data) => {
@@ -94,20 +86,17 @@ async fn do_request<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
 	let query_hash = operation.query.chars().take(20).collect::<String>();
 	info!("Making GraphQL request to Anilist API");
 	debug!("Query hash: {}...", query_hash);
 
-	trace!("Creating HTTP client");
-	let client = Client::new();
-
 	trace!("Preparing GraphQL request");
 	debug!("Request URL: https://graphql.anilist.co/");
 
 	trace!("Sending GraphQL request");
-	let resp = match client
+	let resp = match HTTP_CLIENT
 		.post("https://graphql.anilist.co/")
 		.header("Content-Type", "application/json")
 		.header("Accept", "application/json")
@@ -140,18 +129,13 @@ async fn do_request<
 		},
 	};
 
-	// Key must include variables so different queries don't collide in the cache
 	let key = format!(
 		"{}{}",
 		operation.query,
 		serde_json::to_string(&operation.variables).unwrap_or_default()
 	);
-	trace!("Acquiring write lock on cache");
-	anilist_cache
-		.write()
-		.await
-		.write(key, response_text.clone())
-		.await?;
+	trace!("Writing to cache");
+	anilist_cache.write(key, response_text.clone()).await?;
 	trace!("Updated cache with new response");
 
 	debug!("Deserializing GraphQL response");

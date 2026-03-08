@@ -26,7 +26,6 @@ use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::cache::CacheInterface;
 use small_fixed_array::FixedString;
-use tokio::sync::RwLock;
 
 #[slash_command(
 	name = "character", desc = "Info of a character.", command_type = ChatInput,
@@ -133,7 +132,7 @@ async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>
 /// Make sure the AniList API integration and cache handling is properly configured for this function to work as expected.
 /// The `Cache` and `GraphQlResponse` types should be pre-defined and available in your crate or the imported modules.
 pub async fn get_character_by_id(
-	value: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
+	value: i32, anilist_cache: Arc<CacheInterface>,
 ) -> Result<Character> {
 	let var = CharacterQuerryIdVariables { id: Some(value) };
 

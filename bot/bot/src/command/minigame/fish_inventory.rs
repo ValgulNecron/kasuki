@@ -30,17 +30,14 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 	let user_id = command_interaction.user.id.to_string();
 	let server_id = command_interaction.guild_id.unwrap().to_string();
 
-	// Get the user's inventory
 	let db_connection = bot_data.db_connection.clone();
 
-	// Load localization data
 	let lang_id = get_language_identifier(server_id.clone(), db_connection.clone()).await;
 
 	let inventory_items =
 		get_user_fish_inventory(&db_connection, user_id.clone(), server_id.clone()).await?;
 
 	if inventory_items.is_empty() {
-		// Create an embed message for empty inventory
 		let embed_content =
 			EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-title"))
 				.description(
@@ -51,12 +48,10 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		return Ok(embeds_contents);
 	}
 
-	// Create an embed message for the fish inventory
 	let mut embed_content =
 		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-title"))
 			.description(USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-description"));
 
-	// Group fish by name
 	let mut fish_by_name: HashMap<String, Vec<(UserInventoryModel, ItemModel)>> = HashMap::new();
 
 	for fish in &inventory_items {
@@ -66,14 +61,12 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 			.push(fish.clone());
 	}
 
-	// Create a summary of fish by type
 	let mut fish_summary = String::new();
 
 	for (fish_name, fish_list) in &fish_by_name {
 		let count = fish_list.len();
 		let total_value = fish_list.iter().map(|(_, item)| item.price).sum::<i32>();
 
-		// Get the rarity of the first fish (they all have the same base rarity)
 		let base_rarity = match fish_list[0].1.minimum_rarity {
 			1 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-common"),
 			2 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-uncommon"),
@@ -102,35 +95,25 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		));
 	}
 
-	// Create a vector to hold all fields
 	let mut fields = Vec::new();
 
-	// Add fish summary to the embed
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-fish_by_type"),
 		fish_summary,
 		false,
 	));
 
-	// Add fish details section - show best specimens of each type
 	let mut fish_details = String::new();
 
-	// Process each type of fish
 	for (fish_name, fish_list) in &fish_by_name {
-		// Sort this type of fish by rarity (highest to lowest) and size (largest to smallest)
-		let mut sorted_fish = fish_list.clone();
-		sorted_fish.sort_by(|a, b| {
-			let rarity_cmp = b.0.rarity.cmp(&a.0.rarity);
+		if let Some((inventory_item, _)) = fish_list.iter().max_by(|a, b| {
+			let rarity_cmp = a.0.rarity.cmp(&b.0.rarity);
 			if rarity_cmp == std::cmp::Ordering::Equal {
-				b.0.size.cmp(&a.0.size)
+				a.0.size.cmp(&b.0.size)
 			} else {
 				rarity_cmp
 			}
-		});
-
-		// Show only the best specimen of each type
-		if let Some((inventory_item, _)) = sorted_fish.first() {
-			// Get rarity text
+		}) {
 			let rarity_text = match inventory_item.rarity {
 				1 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-common"),
 				2 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-uncommon"),
@@ -140,7 +123,6 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 				_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-unknown"),
 			};
 
-			// Get size description
 			let size_description = match inventory_item.size {
 				1..=20 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-tiny"),
 				21..=40 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-small"),
@@ -178,18 +160,12 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		}
 	}
 
-	// Add fish details to the embed
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-best_specimens"),
 		fish_details,
 		false,
 	));
 
-	// Sort all fish by name for a consistent display
-	let mut all_fish = inventory_items.clone();
-	all_fish.sort_by(|a, b| a.1.name.cmp(&b.1.name));
-
-	// Add rarity distribution section
 	let mut rarity_distribution_map = HashMap::new();
 	for (inventory_item, _) in &inventory_items {
 		*rarity_distribution_map
@@ -220,14 +196,12 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		));
 	}
 
-	// Add rarity distribution to the embed
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-rarity_distribution"),
 		rarity_text,
 		false,
 	));
 
-	// Add total count and value
 	let total_fish_count = inventory_items.len();
 	let total_fish_value = inventory_items
 		.iter()
@@ -264,7 +238,6 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		false,
 	));
 
-	// Add all fields to the embed content
 	embed_content = embed_content.fields(fields);
 
 	let embeds_contents = EmbedsContents::new(vec![embed_content]);
@@ -281,7 +254,6 @@ async fn get_user_fish_inventory(
 		user_id, server_id
 	);
 
-	// Query the user's inventory with a join to the item table
 	let inventory_items = UserInventory::find()
 		.filter(
 			shared::database::user_inventory::Column::UserId
@@ -298,7 +270,6 @@ async fn get_user_fish_inventory(
 
 	debug!("Found {} inventory items", inventory_items.len());
 
-	// Get the item details for each inventory item and filter for fish-related items
 	let mut result = Vec::new();
 
 	for inventory_item in inventory_items {
@@ -311,11 +282,6 @@ async fn get_user_fish_inventory(
 			))?;
 
 		if let Some(item) = item {
-			// Include all fish-related items
-			// This includes items with type "fish" and any other fish types
-			// We'll consider an item to be fish-related if:
-			// 1. It has type "fish" OR
-			// 2. It has size and rarity attributes (which are typical for fish)
 			if item.r#type == "fish" || (inventory_item.size > 0 && inventory_item.rarity > 0) {
 				result.push((inventory_item, item));
 			}
