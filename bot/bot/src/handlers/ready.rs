@@ -57,12 +57,14 @@ impl Handler {
 
 		let guilds = ctx.cache.guilds();
 		info!("Requesting member chunks for {} guilds", guilds.len());
-		for guild in &guilds {
-			ctx.chunk_guild(*guild, None, true, ChunkGuildFilter::None, None);
-			trace!(guild_id = %guild, "Chunking guild");
-
-			tokio::time::sleep(std::time::Duration::from_millis(600)).await;
-		}
+		let ctx_chunk = ctx.clone();
+		tokio::spawn(async move {
+			for guild in &guilds {
+				ctx_chunk.chunk_guild(*guild, None, true, ChunkGuildFilter::None, None);
+				trace!(guild_id = %guild, "Chunking guild");
+				tokio::time::sleep(std::time::Duration::from_millis(600)).await;
+			}
+		});
 
 		info!(
 			"Shard {:?} of {} is connected!",
