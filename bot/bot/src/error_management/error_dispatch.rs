@@ -94,45 +94,45 @@ async fn send_differed_error(
 }
 
 fn censor_url_and_token(error_message: String, ctx: &Context) -> String {
-	let config = ctx.data::<BotData>().config.clone();
+	let config = &ctx.data::<BotData>().config;
 
 	let mut error_message = error_message;
 
-	let discord_token = config.bot.discord_token.clone();
+	let discord_token = &config.bot.discord_token;
 
-	let db_user = config.db.user.clone().unwrap_or_default();
+	let db_user = config.db.user.as_deref().unwrap_or_default();
 
-	let db_pass = config.db.password.clone().unwrap_or_default();
+	let db_pass = config.db.password.as_deref().unwrap_or_default();
 
 	let db_port = config.db.port.unwrap_or_default().to_string();
 
-	let db_host = config.db.host.clone().unwrap_or_default();
+	let db_host = config.db.host.as_deref().unwrap_or_default();
 
-	let image_token = config.ai.image.ai_image_token.clone().unwrap_or_default();
+	let image_token = config.ai.image.ai_image_token.as_deref().unwrap_or_default();
 
 	let transcript_token = config
 		.ai
 		.transcription
 		.ai_transcription_token
-		.clone()
+		.as_deref()
 		.unwrap_or_default();
 
 	let chat_token = config
 		.ai
 		.question
 		.ai_question_token
-		.clone()
+		.as_deref()
 		.unwrap_or_default();
 
 	error_message = error_message
-		.replace(&discord_token, "[REDACTED]")
-		.replace(&image_token, "[REDACTED]")
-		.replace(&transcript_token, "[REDACTED]")
-		.replace(&chat_token, "[REDACTED]")
-		.replace(&db_user, "[REDACTED]")
-		.replace(&db_pass, "[REDACTED]")
+		.replace(discord_token.as_str(), "[REDACTED]")
+		.replace(image_token, "[REDACTED]")
+		.replace(transcript_token, "[REDACTED]")
+		.replace(chat_token, "[REDACTED]")
+		.replace(db_user, "[REDACTED]")
+		.replace(db_pass, "[REDACTED]")
 		.replace(&db_port, "[REDACTED]")
-		.replace(&db_host, "[REDACTED]");
+		.replace(db_host, "[REDACTED]");
 
 	// replace url with [REDACTED]
 	let url_regex = Regex::new(r"https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)").unwrap();

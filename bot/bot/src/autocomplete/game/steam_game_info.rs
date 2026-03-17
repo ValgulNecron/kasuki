@@ -9,12 +9,12 @@ use crate::event_handler::BotData;
 use crate::helper::fuzzy_search::distance_top_n;
 use crate::helper::get_option::subcommand::get_option_map_string_autocomplete_subcommand;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
 	let game_search = map
-		.get(&String::from("game_name"))
+		.get("game_name")
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 

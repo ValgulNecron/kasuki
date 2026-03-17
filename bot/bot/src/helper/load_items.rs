@@ -92,8 +92,12 @@ mod tests {
 
 	#[test]
 	fn test_parse_items_json() {
-		// This test verifies that the JSON file can be parsed correctly
-		let json_content = read_file_as_string("./json/items/items.json").unwrap();
+		// CARGO_MANIFEST_DIR points to bot/bot/, the json lives at bot/json/
+		let path = format!(
+			"{}/../json/items/items.json",
+			env!("CARGO_MANIFEST_DIR")
+		);
+		let json_content = read_file_as_string(&path).unwrap();
 		let items_json: ItemsJson = serde_json::from_str(&json_content).unwrap();
 
 		assert!(!items_json.items.is_empty());

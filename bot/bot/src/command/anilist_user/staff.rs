@@ -4,13 +4,14 @@
 //! to retrieve and format staff information from the AniList GraphQL API. It includes
 //! methods for extracting staff details such as roles, media appearances, and other metadata
 //! to be formatted into Discord Embed responses.
+use std::fmt::Write;
 use std::sync::Arc;
 
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
@@ -76,7 +77,7 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 		.clone()
 		.unwrap_or_default();
 
-	let gender = staff.gender.clone().unwrap_or(String::from("Unknown."));
+	let gender = staff.gender.unwrap_or_else(|| String::from("Unknown."));
 
 	let lang = staff.language_v2.unwrap_or_default();
 
@@ -324,7 +325,7 @@ fn get_date(option: Option<FuzzyDate>) -> String {
 	if let Some(m) = date.month {
 		month = true;
 
-		date_string.push_str(m.to_string().as_str())
+		write!(date_string, "{}", m).unwrap();
 	}
 
 	if let Some(d) = date.day {
@@ -334,7 +335,7 @@ fn get_date(option: Option<FuzzyDate>) -> String {
 			date_string.push('/')
 		}
 
-		date_string.push_str(d.to_string().as_str())
+		write!(date_string, "{}", d).unwrap();
 	}
 
 	if let Some(y) = date.year {
@@ -342,7 +343,7 @@ fn get_date(option: Option<FuzzyDate>) -> String {
 			date_string.push('/')
 		}
 
-		date_string.push_str(y.to_string().as_str())
+		write!(date_string, "{}", y).unwrap();
 	}
 
 	date_string

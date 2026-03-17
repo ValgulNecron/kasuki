@@ -5,7 +5,7 @@
 //! # Attributes
 //! - `ctx`: Contains the Serenity context, which provides access to the bot's internal state, caches, and configurations.
 //! - `command_interaction`: Represents the interaction data triggered by a user's slash or text command.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
@@ -15,7 +15,7 @@ use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;
 use serenity::prelude::Mentionable;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -27,11 +27,13 @@ use std::sync::Arc;
 	install_contexts = [Guild],
 )]
 async fn join_command(self_: JoinCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let (_, embed_content) = join(ctx, bot_data, command_interaction).await?;
+	let (_, embed_content) =
+		join(cx.ctx.clone(), cx.bot_data.clone(), cx.command_interaction.clone()).await?;
 	let embed = embed_content.clone();
 
 	Ok(embed)
@@ -97,19 +99,14 @@ async fn join_command(self_: JoinCommand) -> Result<EmbedsContents<'_>> {
 ///   If Lavalink is disabled, the function will exit with an error.
 /// - Ensure the voice permissions for the bot are properly granted in the target guild.
 pub async fn join<'a>(
-	ctx: Context, bot_data: Arc<BotData>, command_interaction: CommandInteraction,
+	ctx: Context, _bot_data: Arc<BotData>, command_interaction: CommandInteraction,
 ) -> Result<(bool, EmbedsContents<'a>)> {
-	// Retrieve the guild ID from the command interaction
-	let guild_id_str = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(ctx.clone(), command_interaction.clone());
 
 	// Load the localized strings
-	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
-	let lava_client = bot_data.lavalink.read().await.clone();
+	let lava_client = cx.bot_data.lavalink.read().await.clone();
 	match lava_client {
 		Some(_) => {},
 		None => {
@@ -117,19 +114,19 @@ pub async fn join<'a>(
 		},
 	}
 	let lava_client = lava_client.unwrap();
-	let manager = bot_data.manager.clone();
+	let manager = cx.bot_data.manager.clone();
 
-	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
 	// Get the channel information BEFORE creating any futures
-	let channel_id = command_interaction.channel_id;
-	let author_id = command_interaction.user.id;
+	let channel_id = cx.command_interaction.channel_id;
+	let author_id = cx.command_interaction.user.id;
 
 	// Extract just the voice channel ID from the guild cache before awaiting anything
 	let connect_to = {
 		// Extract the voice channel data from the cache
 		let guild = guild_id
-			.to_guild_cached(&ctx.cache)
+			.to_guild_cached(&cx.ctx.cache)
 			.ok_or(anyhow!("Guild not found"))?;
 
 		let user_channel_id = guild
@@ -171,7 +168,7 @@ pub async fn join<'a>(
 							session_id: connection_info.session_id,
 							channel_id: Some(ChannelId::from(connect_to)),
 						},
-						Arc::new((ChannelId(channel_id.get()), ctx.http.clone())),
+						Arc::new((ChannelId(channel_id.get()), cx.ctx.http.clone())),
 					)
 					.await?;
 

@@ -81,13 +81,12 @@
 //! and permissions to access guild data such as its metadata, channels, and roles.
 use anyhow::anyhow;
 
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use serenity::nonmax::NonMaxU64;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 
 #[slash_command(
 	name = "guild", desc = "Get info of the guild.",
@@ -96,28 +95,22 @@ use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 	install_contexts = [Guild],
 )]
 async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-
-	// Retrieve the guild ID from the command interaction
-	let guild_id_str = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	// Load the localized guild information
-	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// Retrieve the guild ID from the command interaction or return an error if it does not exist
-	let guild_id = command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
+	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
 
 	// Retrieve the guild's information or return an error if it could not be retrieved
-	let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
+	let guild = guild_id.to_partial_guild_with_counts(&cx.ctx.http).await?;
 
 	// Retrieve various details about the guild
-	let channels = guild.id.channels(&ctx.http).await.unwrap_or_default().len();
+	let channels = guild.id.channels(&cx.ctx.http).await.unwrap_or_default().len();
 
 	let guild_id = guild.id;
 
@@ -149,7 +142,7 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 
 	let owner = guild
 		.owner_id
-		.to_user(&ctx.http)
+		.to_user(&cx.ctx.http)
 		.await
 		.map(|u| u.tag().to_string())
 		.unwrap_or_default();

@@ -76,13 +76,13 @@
 //! - `command_interaction`: CommandInteraction - A representation of the user's command interaction.
 use anyhow::anyhow;
 
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -97,24 +97,25 @@ use std::collections::HashMap;
 	],
 )]
 async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let map = get_option_map_user(command_interaction);
+	let map = get_option_map_user(&cx.command_interaction);
 
 	let user = *map
 		.get(&FixedString::from_str_trunc("user"))
 		.ok_or(anyhow!("No option for user"))?;
 
-	let map = get_option_map_string(command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let subscription = map
 		.get(&FixedString::from_str_trunc("subscription"))
 		.ok_or(anyhow!("No option for subscription"))?
 		.clone();
 
-	let skus = ctx.http.get_skus().await?;
+	let skus = cx.ctx.http.get_skus().await?;
 
 	let skus_id: Vec<String> = skus.iter().map(|sku| sku.id.to_string()).collect();
 
@@ -130,14 +131,13 @@ async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<Embeds
 		}
 	}
 
-	let _ = ctx
+	let _ = cx
+		.ctx
 		.http
 		.create_test_entitlement(sku_id, EntitlementOwner::User(user))
 		.await?;
-	let db_connection = bot_data.db_connection.clone();
 
-	let guild_id = command_interaction.guild_id.unwrap().to_string();
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));

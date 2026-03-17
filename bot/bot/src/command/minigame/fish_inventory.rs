@@ -1,6 +1,5 @@
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
@@ -11,7 +10,7 @@ use sea_orm::{
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::{Entity as UserInventory, Model as UserInventoryModel};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::debug;
@@ -23,19 +22,17 @@ use tracing::debug;
 	install_contexts = [Guild],
 )]
 async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let user_id = command_interaction.user.id.to_string();
-	let server_id = command_interaction.guild_id.unwrap().to_string();
+	let user_id = cx.command_interaction.user.id.to_string();
 
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang_id = get_language_identifier(server_id.clone(), db_connection.clone()).await;
+	let lang_id = cx.lang_id().await;
 
 	let inventory_items =
-		get_user_fish_inventory(&db_connection, user_id.clone(), server_id.clone()).await?;
+		get_user_fish_inventory(&cx.db, user_id.clone(), cx.guild_id.clone()).await?;
 
 	if inventory_items.is_empty() {
 		let embed_content =

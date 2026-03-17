@@ -8,7 +8,7 @@ use shared::database::prelude::Message as DatabaseMessage;
 use tracing::{trace, warn};
 
 impl Handler {
-	pub(crate) async fn new_message(&self, ctx: SerenityContext, message: Message) {
+	pub(crate) async fn new_message(&self, ctx: &SerenityContext, message: Message) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let user_blacklist = bot_data.user_blacklist.clone();
 		let read_guard = user_blacklist.read().await;

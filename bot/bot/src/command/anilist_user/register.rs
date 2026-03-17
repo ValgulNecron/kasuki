@@ -25,12 +25,10 @@ use small_fixed_array::FixedString;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use crate::command::anilist_user::user::get_user;
-use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::run::anilist::user::{get_color, get_user_url, User};
+use crate::structure::run::anilist::user::{get_color, get_user, get_user_url, User};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::{ActiveModel, Column};
 

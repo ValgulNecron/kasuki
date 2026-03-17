@@ -23,9 +23,8 @@
 
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 
-use crate::command::anilist_user::character::get_character_by_id;
 use crate::command::context::CommandContext;
-use crate::structure::run::anilist::character::character_content;
+use crate::structure::run::anilist::character::{character_content, get_character_by_id};
 use kasuki_macros::slash_command;
 
 #[slash_command(
@@ -40,13 +39,12 @@ async fn waifu_command(self_: WaifuCommand) -> Result<EmbedsContents<'_>> {
 	);
 	let anilist_cache = cx.anilist_cache.clone();
 
-	// Execute the corresponding search function based on the specified type
-	// Fetch the data of the character with ID 156323 from AniList
 	let value = 156323;
 
 	let data = get_character_by_id(value, anilist_cache).await?;
 
-	let embed_content = character_content(cx.command_interaction, data, cx.db).await?;
+	let lang_id = cx.lang_id().await;
+	let embed_content = character_content(data, &lang_id).await?;
 
 	Ok(embed_content)
 }

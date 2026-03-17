@@ -1,13 +1,12 @@
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
-use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, info, trace, warn};
 
 #[slash_command(
 	name = "ping", desc = "Get the ping of the bot (and the shard id).",
@@ -17,34 +16,21 @@ use tracing::{debug, error, info, trace, warn};
 )]
 async fn ping_command(self_: PingCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing ping command");
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let _config = &bot_data.config;
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	debug!("Retrieving bot data and configuration");
 
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => {
-			debug!("Command executed in guild: {}", id);
-			id.to_string()
-		},
-		None => {
-			debug!("Command executed in DM");
-			String::from("0")
-		},
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for the guild
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	debug!("Retrieving shard manager from bot data");
-	let shard_runner_info = ctx.runner_info.read();
+	let shard_runner_info = cx.ctx.runner_info.read();
 
 	// Retrieve the shard ID from the context
-	let shard_id = ctx.shard_id;
+	let shard_id = cx.ctx.shard_id;
 	debug!("Current shard ID: {}", shard_id);
 
 	// Retrieve the shard runner info from the shard manager

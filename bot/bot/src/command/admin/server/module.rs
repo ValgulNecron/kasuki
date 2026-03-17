@@ -1,7 +1,7 @@
 //! The `ModuleCommand` struct represents a command to manage module activations in a Discord bot.
 //! It contains context and interaction details necessary for processing the command.
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::{
 	get_option_map_boolean_subcommand_group, get_option_map_string_subcommand_group,
 };
@@ -13,7 +13,7 @@ use sea_orm::{ColumnTrait, Set};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::module_activation;
 use shared::database::prelude::ModuleActivation;
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use tracing::debug;
 
 #[slash_command(
@@ -34,40 +34,35 @@ use tracing::debug;
 	],
 )]
 async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let command_interaction = self_.get_command_interaction();
-	let bot_data = ctx.data::<BotData>().clone();
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let map = get_option_map_string_subcommand_group(command_interaction);
+	let map = get_option_map_string_subcommand_group(&cx.command_interaction);
 	let module = map
-		.get(&String::from("name"))
+		.get("name")
 		.ok_or(anyhow!("No option for name"))?;
 
-	let map = get_option_map_boolean_subcommand_group(command_interaction);
+	let map = get_option_map_boolean_subcommand_group(&cx.command_interaction);
 	let state = *map
-		.get(&String::from("state"))
+		.get("state")
 		.ok_or(anyhow!("No option for state"))?;
 
-	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
+	let lang_id = cx.lang_id().await;
 
 	match ModuleActivation::find()
-		.filter(module_activation::Column::GuildId.eq(guild_id.clone()))
-		.one(&*db_connection)
+		.filter(module_activation::Column::GuildId.eq(cx.guild_id.clone()))
+		.one(&*cx.db)
 		.await?
 	{
 		None => {
 			debug!(
 				"No module activation found for guild {}. Creating new one.",
-				guild_id
+				cx.guild_id
 			);
 			let mut models = module_activation::ActiveModel {
-				guild_id: Set(guild_id),
+				guild_id: Set(cx.guild_id.clone()),
 				ai_module: Set(true),
 				anilist_module: Set(true),
 				game_module: Set(true),
@@ -95,7 +90,7 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 						.do_nothing()
 						.to_owned(),
 				)
-				.exec(&*db_connection.clone())
+				.exec(&*cx.db)
 				.await?;
 		},
 		Some(mut row) => {
@@ -112,7 +107,7 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 				},
 			}
 			let active_model = row.into_active_model();
-			active_model.update(&*db_connection).await?;
+			active_model.update(&*cx.db).await?;
 		},
 	}
 

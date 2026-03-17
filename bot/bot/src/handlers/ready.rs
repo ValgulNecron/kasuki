@@ -19,7 +19,7 @@ use std::sync::Arc;
 use tracing::{info, trace, warn};
 
 impl Handler {
-	pub(crate) async fn ready(&self, ctx: SerenityContext, ready: Ready) {
+	pub(crate) async fn ready(&self, ctx: &SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
 		if bot_data.lavalink.read().await.is_none() {
 			if let Some(music_config) = bot_data.config.music.as_ref() {
@@ -55,12 +55,13 @@ impl Handler {
 			}
 		}
 
-		for guild in ctx.cache.guilds() {
-			ctx.chunk_guild(guild, None, true, ChunkGuildFilter::None, None);
-			trace!(
-				guild_id = %guild,
-				"Chunking guild"
-			);
+		let guilds = ctx.cache.guilds();
+		info!("Requesting member chunks for {} guilds", guilds.len());
+		for guild in &guilds {
+			ctx.chunk_guild(*guild, None, true, ChunkGuildFilter::None, None);
+			trace!(guild_id = %guild, "Chunking guild");
+
+			tokio::time::sleep(std::time::Duration::from_millis(600)).await;
 		}
 
 		info!(
@@ -110,12 +111,18 @@ impl Handler {
 				);
 			});
 
+			let delay_secs = bot_data.config.task_intervals.before_server_image;
 			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
 				let ctx_clone = ctx.clone();
 				let image_config_clone = bot_data.config.image.clone();
 				let db_clone = bot_data.db_connection.clone();
 				let flag = bot_data.server_image_running.clone();
 				tokio::spawn(async move {
+					info!(
+						"Waiting {}s before server image management to let cache populate",
+						delay_secs
+					);
+					tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
 					server_image_management(&ctx_clone, image_config_clone, db_clone).await;
 					flag.store(false, Ordering::SeqCst);
 				});

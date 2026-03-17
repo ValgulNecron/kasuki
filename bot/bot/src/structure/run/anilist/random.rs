@@ -40,12 +40,6 @@ pub struct Media {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct MediaCoverImage {
-	pub extra_large: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct MediaTag {
 	pub name: String,
@@ -74,16 +68,6 @@ pub enum MediaFormat {
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
-#[allow(dead_code)]
-pub enum MediaStatus {
-	Finished,
-	Releasing,
-	NotYetReleased,
-	Cancelled,
-	Hiatus,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
 
 pub enum MediaType {
 	Anime,
@@ -107,14 +91,3 @@ impl Display for MediaFormat {
 	}
 }
 
-impl Display for MediaStatus {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			MediaStatus::Finished => write!(f, "FINISHED"),
-			MediaStatus::Releasing => write!(f, "RELEASING"),
-			MediaStatus::NotYetReleased => write!(f, "NOT_YET_RELEASED"),
-			MediaStatus::Cancelled => write!(f, "CANCELLED"),
-			MediaStatus::Hiatus => write!(f, "HIATUS"),
-		}
-	}
-}

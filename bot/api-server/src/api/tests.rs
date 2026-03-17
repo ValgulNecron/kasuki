@@ -95,42 +95,32 @@ mod tests {
 	}
 
 	#[test]
-	fn test_user_info_skip_serializing() {
+	fn test_user_info_serialization() {
 		use crate::api::oauth::UserInfo;
 
 		let user = UserInfo {
 			id: "123".into(),
 			username: "test".into(),
-			discriminator: "0001".into(),
 			avatar: Some("abc123".into()),
-			email: Some("test@example.com".into()),
 		};
 
 		let json = serde_json::to_string(&user).unwrap();
-		assert!(!json.contains("discriminator"));
-		assert!(!json.contains("email"));
 		assert!(json.contains("\"id\""));
 		assert!(json.contains("\"username\""));
 		assert!(json.contains("\"avatar\""));
 	}
 
 	#[test]
-	fn test_guild_skip_serializing() {
+	fn test_guild_serialization() {
 		use crate::api::oauth::Guild;
 
 		let guild = Guild {
 			id: "789".into(),
 			name: "Test Server".into(),
-			icon_hash: Some("hash123".into()),
 			icon_url: Some("https://cdn.discordapp.com/icons/789/hash123.png".into()),
-			owner: true,
-			permissions: "123456".into(),
 		};
 
 		let json = serde_json::to_string(&guild).unwrap();
-		assert!(!json.contains("icon_hash"));
-		assert!(!json.contains("owner"));
-		assert!(!json.contains("permissions"));
 		assert!(json.contains("\"id\""));
 		assert!(json.contains("\"name\""));
 		assert!(json.contains("icon_url"));

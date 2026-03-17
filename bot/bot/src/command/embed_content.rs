@@ -1,5 +1,4 @@
-use serenity::all::Colour;
-use std::borrow::Cow;
+use crate::command::component_version::ComponentVersion;
 
 #[derive(Clone)]
 pub struct EmbedsContents<'a> {
@@ -51,7 +50,7 @@ pub struct EmbedContent {
 	pub description: Option<String>,
 	pub thumbnail: Option<String>,
 	pub url: Option<String>,
-	pub colour: Option<Colour>,
+	pub colour: Option<u32>,
 	pub fields: Vec<(String, String, bool)>,
 	pub images_url: Option<String>,
 	pub footer: Option<CreateFooter>,
@@ -88,7 +87,7 @@ impl EmbedContent {
 		self
 	}
 
-	pub fn colour(mut self, colour: Colour) -> Self {
+	pub fn colour(mut self, colour: u32) -> Self {
 		self.colour = Some(colour);
 		self
 	}
@@ -131,13 +130,3 @@ pub struct CreateAuthor {
 }
 
 impl CreateAuthor {}
-
-#[derive(Clone)]
-pub enum ComponentVersion<'a> {
-	V2(ComponentVersion2<'a>),
-}
-
-#[derive(Clone)]
-pub struct ComponentVersion2<'a> {
-	pub components: Cow<'a, [serenity::builder::CreateComponent<'a>]>,
-}

@@ -58,9 +58,8 @@
 //!     // Send embeds as a response to the user.
 //! }
 //! ```
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
-use crate::get_url;
 use crate::helper::get_option::command::{get_option_map_boolean, get_option_map_string};
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
@@ -71,7 +70,7 @@ use sea_orm::{EntityTrait, IntoActiveModel};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::kill_switch::{ActiveModel, Column};
 use shared::database::prelude::KillSwitch;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 
 #[slash_command(
@@ -85,37 +84,28 @@ use small_fixed_array::FixedString;
 	],
 )]
 async fn kill_switch_command(self_: KillSwitchCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let command_interaction = self_.get_command_interaction();
-	let bot_data = ctx.data::<BotData>().clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let config = bot_data.config.clone();
-
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let map = get_option_map_string(command_interaction);
+	let map = get_option_map_string(&cx.command_interaction);
 
 	let module = map
 		.get(&FixedString::from_str_trunc("name"))
 		.ok_or(anyhow!("No option for name"))?;
-	let db_connection = bot_data.db_connection.clone();
 
-	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
+	let lang_id = cx.lang_id().await;
 
-	let map = get_option_map_boolean(command_interaction);
+	let map = get_option_map_boolean(&cx.command_interaction);
 
 	let state = *map
 		.get(&FixedString::from_str_trunc("state"))
 		.ok_or(anyhow!("No option for state"))?;
 
-	let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
 	let mut row = KillSwitch::find()
 		.filter(Column::GuildId.eq("0"))
-		.one(&connection)
+		.one(&*cx.db)
 		.await?
 		.ok_or(anyhow!("KillSwitch not found"))?;
 
@@ -134,7 +124,7 @@ async fn kill_switch_command(self_: KillSwitchCommand) -> Result<EmbedsContents<
 
 	let active_model: ActiveModel = row.into_active_model();
 
-	active_model.update(&connection).await?;
+	active_model.update(&*cx.db).await?;
 
 	let desc = if state {
 		USABLE_LOCALES.lookup(&lang_id, "management_kill_switch-on")

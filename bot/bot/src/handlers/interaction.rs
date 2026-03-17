@@ -9,17 +9,17 @@ use serenity::prelude::Context as SerenityContext;
 use tracing::{error, trace, warn};
 
 impl Handler {
-	pub(crate) async fn interaction_create(&self, ctx: SerenityContext, interaction: Interaction) {
+	pub(crate) async fn interaction_create(&self, ctx: &SerenityContext, interaction: Interaction) {
 		let mut user = None;
 		let bot_data = ctx.data::<BotData>().clone();
 		trace!("Interaction received: {:?}", interaction.kind());
 
-		match interaction.clone() {
+		match interaction {
 			Interaction::Command(command_interaction) => {
 				let mut message = String::from("");
 				match command_interaction.data.kind {
 					CommandType::ChatInput => {
-						if let Err(e) = dispatch_command(&ctx, &command_interaction).await {
+						if let Err(e) = dispatch_command(ctx, &command_interaction).await {
 							error!(error = ?e, "Error executing command");
 							message = e.to_string();
 						} else {
@@ -27,7 +27,7 @@ impl Handler {
 						}
 					},
 					CommandType::User => {
-						if let Err(e) = dispatch_user_command(&ctx, &command_interaction).await {
+						if let Err(e) = dispatch_user_command(ctx, &command_interaction).await {
 							error!(error = ?e, "Error executing user command");
 							message = e.to_string();
 						} else {
@@ -37,21 +37,21 @@ impl Handler {
 					CommandType::Message => trace!("{:?}", command_interaction),
 					_ => {},
 				}
-				error_dispatch::command_dispatching(message, &command_interaction, &ctx).await;
-				user = Some(command_interaction.user.clone());
+				error_dispatch::command_dispatching(message, &command_interaction, ctx).await;
+				user = Some(command_interaction.user);
 			},
 			Interaction::Autocomplete(autocomplete_interaction) => {
 				user = Some(autocomplete_interaction.user.clone());
 				autocomplete_dispatching(ctx, autocomplete_interaction).await;
 			},
 			Interaction::Component(component_interaction) => {
-				user = Some(component_interaction.user.clone());
 				let db_connection = bot_data.db_connection.clone();
 				if let Err(e) =
-					components_dispatching(ctx, component_interaction, db_connection).await
+					components_dispatching(ctx, &component_interaction, db_connection).await
 				{
 					warn!(error = ?e, "Failed to dispatch component interaction");
 				}
+				user = Some(component_interaction.user);
 			},
 			_ => {},
 		}

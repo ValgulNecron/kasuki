@@ -59,13 +59,12 @@
 //!
 //! clear_command.get_contents().await;
 //! ```
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 
 #[slash_command(
 	name = "clear", desc = "Clear the current queue.",
@@ -74,24 +73,17 @@ use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
 	install_contexts = [Guild],
 )]
 async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-
-	// Retrieve the guild ID from the command interaction
-	let guild_id_str = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
 	// Load the localized strings
-	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
-	let lava_client = bot_data.lavalink.clone();
-	let lava_client = lava_client.read().await.clone();
+	let lava_client = cx.bot_data.lavalink.read().await.clone();
 	if lava_client.is_none() {
 		return Err(anyhow::anyhow!("Lavalink is disabled"));
 	}

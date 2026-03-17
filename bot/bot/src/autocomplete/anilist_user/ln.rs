@@ -1,13 +1,16 @@
+use serenity::all::{
+	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
+	CreateInteractionResponse,
+};
+use small_fixed_array::FixedString;
+
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::autocomplete::anilist::media::{
-	send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
-};
-use serenity::all::{CommandInteraction, Context};
-use small_fixed_array::FixedString;
+use shared::anilist::autocomplete::media::{MediaFormat, MediaType};
+use shared::anilist::autocomplete::search_media;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -16,17 +19,32 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
-	let var = MediaAutocompleteVariables {
-		search: Some(ln_search),
-		in_media_format: Some(vec![Some(MediaFormat::Novel)]),
-		media_type: Some(MediaType::Manga),
-	};
-
-	send_auto_complete(
-		&ctx,
-		autocomplete_interaction,
-		var,
+	let results = match search_media(
+		ln_search,
+		Some(MediaType::Manga),
+		Some(vec![Some(MediaFormat::Novel)]),
 		bot_data.anilist_cache.clone(),
 	)
-	.await;
+	.await
+	{
+		Ok(results) => results,
+		Err(e) => {
+			tracing::debug!(?e);
+
+			return;
+		},
+	};
+
+	let choices: Vec<AutocompleteChoice> = results
+		.into_iter()
+		.map(|(name, id)| AutocompleteChoice::new(name, id))
+		.collect();
+
+	let data = CreateAutocompleteResponse::new().set_choices(choices);
+
+	let builder = CreateInteractionResponse::Autocomplete(data);
+
+	let _ = autocomplete_interaction
+		.create_response(&ctx.http, builder)
+		.await;
 }

@@ -6,6 +6,7 @@ use shared::config::{Config, DbConfig};
 use shared::image_saver::storage::{create_image_store, ImageStore};
 
 use serenity::all::GatewayIntents;
+use serenity::cache::Settings as CacheSettings;
 use serenity::secrets::Token;
 use serenity::Client;
 use songbird::driver::DecodeMode;
@@ -35,18 +36,19 @@ mod structure;
 
 #[tokio::main]
 async fn main() {
+	if let Err(e) = run().await {
+		error!("Fatal error: {:#}", e);
+		process::exit(1);
+	}
+}
+
+async fn run() -> anyhow::Result<()> {
 	rustls::crypto::aws_lc_rs::default_provider()
 		.install_default()
 		.expect("Failed to install default CryptoProvider");
 
 	println!("Preparing bot environment please wait...");
-	let config: Config = match Config::new() {
-		Ok(conf) => conf,
-		Err(e) => {
-			eprintln!("Error while reading config.toml: {:?}", e);
-			process::exit(2);
-		},
-	};
+	let config: Config = Config::new().context("Failed to read config.toml")?;
 	println!("Config loaded successfully");
 
 	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
@@ -63,28 +65,14 @@ async fn main() {
 
 	let log = config.logging.log_level.clone();
 	let max_log_retention_days = config.logging.max_log_retention;
-	if let Err(e) = create_log_directory() {
-		eprintln!("{:?}", e);
-
-		process::exit(2);
-	}
-	let _guard = match init_logger(log.as_str(), max_log_retention_days) {
-		Ok(guard) => {
-			info!("Logger initialized successfully with level: {}", log);
-			guard
-		},
-		Err(e) => {
-			eprintln!("{:?}", e);
-			process::exit(2);
-		},
-	};
+	create_log_directory().context("Failed to create log directory")?;
+	let _guard = init_logger(log.as_str(), max_log_retention_days)
+		.context("Failed to initialize logger")?;
+	info!("Logger initialized successfully with level: {}", log);
 	info!("Log retention days: {}", max_log_retention_days);
 
 	info!("Loading locales");
-	if let Err(e) = shared::localization::load_locales() {
-		error!("Failed to load locales: {}", e);
-		process::exit(8);
-	}
+	shared::localization::load_locales().context("Failed to load locales")?;
 	info!("Locales loaded successfully");
 
 	let discord_token = config.bot.discord_token.clone();
@@ -92,11 +80,9 @@ async fn main() {
 
 	info!("Initializing database");
 	let db_config = config.db.clone();
-	if let Err(e) = init_db(db_config).await {
-		let e = e.to_string().replace("\\\\n", "\n");
-		error!("Database initialization failed: {}", e);
-		process::exit(4);
-	}
+	init_db(db_config)
+		.await
+		.context("Database initialization failed")?;
 	info!("Database initialized successfully");
 
 	let cache_config = config.cache.clone();
@@ -134,36 +120,11 @@ async fn main() {
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
-	let db_url = get_url(config.db.clone());
-	let mut connect_options = sea_orm::ConnectOptions::new(db_url);
-
-	let max_connections = config.db.max_connections.unwrap_or(100);
-	let min_connections = config.db.min_connections.unwrap_or(5);
-	let connect_timeout = config.db.connect_timeout.unwrap_or(30);
-	let idle_timeout = config.db.idle_timeout.unwrap_or(600);
-
-	connect_options
-		.max_connections(max_connections)
-		.min_connections(min_connections)
-		.connect_timeout(Duration::from_secs(connect_timeout))
-		.idle_timeout(Duration::from_secs(idle_timeout))
-		.sqlx_logging(false);
-
-	info!(
-		"Database pool config: max={}, min={}, connect_timeout={}s, idle_timeout={}s",
-		max_connections, min_connections, connect_timeout, idle_timeout
-	);
-
-	let connection = match sea_orm::Database::connect(connect_options).await {
-		Ok(connection) => {
-			info!("Successfully connected to database");
-			connection
-		},
-		Err(e) => {
-			error!("Failed to connect to the database: {}", e);
-			return;
-		},
-	};
+	let connection = config
+		.db
+		.connect()
+		.await
+		.context("Failed to connect to the database")?;
 	info!("Database connection established successfully");
 
 	info!("Configuring Discord gateway intents");
@@ -188,16 +149,9 @@ async fn main() {
 	info!("Finished preparing the environment. Starting the bot.");
 
 	info!("Parsing Discord token");
-	let discord_token = match Token::from_str(discord_token.as_str()) {
-		Ok(token) => {
-			info!("Discord token parsed successfully");
-			token
-		},
-		Err(e) => {
-			error!("Failed to parse Discord token: {}", e);
-			return;
-		},
-	};
+	let discord_token =
+		Token::from_str(discord_token.as_str()).context("Failed to parse Discord token")?;
+	info!("Discord token parsed successfully");
 
 	info!("Initializing Songbird voice client");
 	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
@@ -213,16 +167,10 @@ async fn main() {
 	info!("Created shutdown signal channel");
 
 	info!("Initializing image store (type: {})", config.image.storage.storage_type);
-	let image_store: Arc<dyn ImageStore> = match create_image_store(&config.image.storage) {
-		Ok(store) => {
-			info!("Image store initialized successfully");
-			Arc::from(store)
-		},
-		Err(e) => {
-			error!("Failed to create image store: {}", e);
-			process::exit(9);
-		},
-	};
+	let image_store: Arc<dyn ImageStore> = Arc::from(
+		create_image_store(&config.image.storage).context("Failed to create image store")?,
+	);
+	info!("Image store initialized successfully");
 
 	let (user_color_tx, user_color_rx) =
 		tokio::sync::mpsc::unbounded_channel::<shared::queue::tasks::ImageTask>();
@@ -262,7 +210,7 @@ async fn main() {
 
 	info!("Initializing bot data structure");
 	let bot_data: Arc<BotData> = Arc::new(BotData {
-		config: Arc::from(config.clone()),
+		config: Arc::new(config),
 		bot_info: Arc::new(RwLock::new(None)),
 		anilist_cache,
 		vndb_cache,
@@ -296,22 +244,27 @@ async fn main() {
 	info!("Queue publisher tasks spawned");
 
 	info!("Creating Discord client");
+	let mut cache_settings = CacheSettings::default();
+	cache_settings.max_messages = 0;
+	cache_settings.cache_guilds = true;
+	cache_settings.cache_channels = true;
+	cache_settings.cache_users = true;
+
 	let mut client = Client::builder(discord_token, gateway_intent)
+		.cache_settings(cache_settings)
 		.data(bot_data.clone())
 		.voice_manager(manager)
 		.event_handler(Arc::new(Handler))
 		.await
-		.unwrap_or_else(|e| {
-			error!("Error while creating Discord client: {}", e);
-			process::exit(5);
-		});
+		.context("Failed to create Discord client")?;
 	info!("Discord client created successfully");
 
+	let shutdown_signal = bot_data.shutdown_signal.clone();
 	info!("Starting Discord client with auto-sharding");
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
 			error!("Discord client error: {:?}", why);
-			process::exit(6);
+			let _ = shutdown_signal.send(());
 		}
 
 		info!("Discord client shutdown gracefully");
@@ -348,12 +301,15 @@ async fn main() {
 
 		info!("All Unix signal handlers registered successfully, waiting for signals");
 
+		let mut shutdown_rx = bot_data.shutdown_signal.subscribe();
+
 		tokio::select! {
 			_ = sigint.recv() => { info!("Received SIGINT signal"); },
 			_ = sigterm.recv() => { info!("Received SIGTERM signal"); },
 			_ = sigquit.recv() => { info!("Received SIGQUIT signal"); },
 			_ = sigusr1.recv() => { info!("Received SIGUSR1 signal"); },
 			_ = sigusr2.recv() => { info!("Received SIGUSR2 signal"); },
+			_ = shutdown_rx.recv() => { info!("Received internal shutdown signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
@@ -395,12 +351,15 @@ async fn main() {
 
 		info!("All Windows signal handlers registered successfully, waiting for signals");
 
+		let mut shutdown_rx = bot_data.shutdown_signal.subscribe();
+
 		tokio::select! {
 			_ = ctrl_break.recv() => { info!("Received CTRL+BREAK signal"); },
 			_ = ctrl_c.recv() => { info!("Received CTRL+C signal"); },
 			_ = ctrl_close.recv() => { info!("Received CTRL+CLOSE signal"); },
 			_ = ctrl_logoff.recv() => { info!("Received CTRL+LOGOFF signal"); },
 			_ = ctrl_shutdown.recv() => { info!("Received CTRL+SHUTDOWN signal"); },
+			_ = shutdown_rx.recv() => { info!("Received internal shutdown signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
@@ -416,103 +375,32 @@ async fn main() {
 		tokio::time::sleep(Duration::from_secs(2)).await;
 		info!("Proceeding with bot shutdown");
 	}
-}
-
-async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
-	let url = get_url(db_config);
-	unsafe {
-		std::env::set_var("DATABASE_URL", url);
-	}
-	match std::env::var("DATABASE_URL") {
-		Ok(_) => {},
-		Err(e) => {
-			println!("DATABASE_URL is not set: {}", e);
-			std::process::exit(1);
-		},
-	}
-
-	#[cfg(windows)]
-	{
-		let mut cmd = process::Command::new("./migration.exe");
-
-		let child = cmd.spawn().context("Failed to run Migration")?;
-
-		child
-			.wait_with_output()
-			.context("Failed to wait for Migration")?;
-	}
-
-	#[cfg(unix)]
-	{
-		let binary_name = if cfg!(debug_assertions) {
-			"./migration"
-		} else {
-			"migration"
-		};
-		let mut cmd = process::Command::new(binary_name);
-
-		let child = cmd.spawn().context("Failed to run Migration")?;
-
-		child
-			.wait_with_output()
-			.context("Failed to wait for Migration")?;
-	}
 
 	Ok(())
 }
 
-pub fn get_url(db_config: DbConfig) -> String {
-	match db_config.db_type.as_str() {
-		"postgresql" => {
-			let host = match db_config.host.clone() {
-				Some(host) => host,
-				None => {
-					error!("No host provided");
+async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
+	let url = db_config.get_url()?;
 
-					process::exit(7)
-				},
-			};
+	#[cfg(windows)]
+	let binary_name = "./migration.exe";
 
-			let port = match db_config.port {
-				Some(port) => port,
-				None => {
-					error!("No port provided");
+	#[cfg(unix)]
+	let binary_name = if cfg!(debug_assertions) {
+		"./migration"
+	} else {
+		"migration"
+	};
 
-					process::exit(7)
-				},
-			};
+	let child = process::Command::new(binary_name)
+		.env("DATABASE_URL", &url)
+		.spawn()
+		.context("Failed to run Migration")?;
 
-			let user = match db_config.user.clone() {
-				Some(user) => user,
-				None => {
-					error!("No user provided");
+	child
+		.wait_with_output()
+		.context("Failed to wait for Migration")?;
 
-					process::exit(7)
-				},
-			};
-
-			let password = match db_config.password.clone() {
-				Some(password) => password,
-				None => {
-					error!("No password provided");
-
-					process::exit(7)
-				},
-			};
-
-			let db_name = db_config.database.unwrap_or(String::from("kasuki"));
-
-			let param = vec![("user", user.as_str()), ("password", password.as_str())];
-
-			let param = serde_urlencoded::to_string(&param)
-				.expect("failed to encode database connection params");
-
-			let url = format!("postgresql://{}:{}/{}?{}", host, port, db_name, param);
-
-			url
-		},
-		_ => {
-			panic!("Unsupported database type");
-		},
-	}
+	Ok(())
 }
+

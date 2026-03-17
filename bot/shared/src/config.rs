@@ -396,13 +396,105 @@ impl Config {
 	pub fn new() -> Result<Self> {
 		let config = std::fs::read_to_string("config.toml")?;
 		let config: Config = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
 	}
 
 	pub fn load_from_path(path: &str) -> Result<Self> {
 		let config = std::fs::read_to_string(path)?;
 		let config: Config = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
+	}
+
+	fn validate(&self) -> Result<()> {
+		// Bot config
+		if self.bot.discord_token.is_empty() {
+			bail!("bot.discord_token must not be empty");
+		}
+
+		// Database config
+		if let Some(max) = self.db.max_connections {
+			if max == 0 {
+				bail!("db.max_connections must be > 0");
+			}
+		}
+		if let Some(min) = self.db.min_connections {
+			if min == 0 {
+				bail!("db.min_connections must be > 0");
+			}
+		}
+		if let (Some(max), Some(min)) = (self.db.max_connections, self.db.min_connections) {
+			if min > max {
+				bail!(
+					"db.min_connections ({}) must not exceed db.max_connections ({})",
+					min,
+					max
+				);
+			}
+		}
+
+		// Task intervals — zero would cause busy-loop or panic in Duration::from_secs
+		let intervals = &self.task_intervals;
+		for (name, val) in [
+			("ping_update", intervals.ping_update),
+			("before_server_image", intervals.before_server_image),
+			("server_image_update", intervals.server_image_update),
+			("game_update", intervals.game_update),
+			("bot_info", intervals.bot_info),
+			("blacklisted_user_update", intervals.blacklisted_user_update),
+			("activity_check", intervals.activity_check),
+			("random_stats_update", intervals.random_stats_update),
+			("anisong_update", intervals.anisong_update),
+			("bot_info_update", intervals.bot_info_update),
+		] {
+			if val == 0 {
+				bail!("task_intervals.{} must be > 0", name);
+			}
+		}
+
+		// Cache config
+		if self.cache.max_capacity == 0 {
+			bail!("cache.max_capacity must be > 0");
+		}
+
+		// Queue config
+		if self.queue.host.is_empty() {
+			bail!("queue.host must not be empty");
+		}
+
+		// Storage config — S3 requires its fields
+		if self.image.storage.storage_type == "s3" {
+			if self.image.storage.s3_bucket.as_ref().is_none_or(|s| s.is_empty()) {
+				bail!("image.storage.s3_bucket is required when storage_type = \"s3\"");
+			}
+			if self.image.storage.s3_access_key.as_ref().is_none_or(|s| s.is_empty()) {
+				bail!("image.storage.s3_access_key is required when storage_type = \"s3\"");
+			}
+			if self.image.storage.s3_secret_key.as_ref().is_none_or(|s| s.is_empty()) {
+				bail!("image.storage.s3_secret_key is required when storage_type = \"s3\"");
+			}
+		}
+
+		// API rate limit
+		if self.api.rate_limit_per_minute == 0 {
+			bail!("api.rate_limit_per_minute must be > 0");
+		}
+
+		// AI rate limits — zero multiplier would give premium users 0 requests
+		let ai_limits = &self.ai.rate_limits;
+		for (name, val) in [
+			("paid_image_multiplier", ai_limits.paid_image_multiplier),
+			("paid_question_multiplier", ai_limits.paid_question_multiplier),
+			("paid_translation_multiplier", ai_limits.paid_translation_multiplier),
+			("paid_transcript_multiplier", ai_limits.paid_transcript_multiplier),
+		] {
+			if val <= 0.0 {
+				bail!("ai.rate_limits.{} must be > 0", name);
+			}
+		}
+
+		Ok(())
 	}
 }
 
@@ -420,6 +512,33 @@ impl WorkerConfig {
 	pub fn new() -> Result<Self> {
 		let config = std::fs::read_to_string("config.toml")?;
 		let config: WorkerConfig = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
+	}
+
+	fn validate(&self) -> Result<()> {
+		if self.bot.discord_token.is_empty() {
+			bail!("bot.discord_token must not be empty");
+		}
+		if let Some(max) = self.db.max_connections {
+			if max == 0 {
+				bail!("db.max_connections must be > 0");
+			}
+		}
+		if let Some(min) = self.db.min_connections {
+			if min == 0 {
+				bail!("db.min_connections must be > 0");
+			}
+		}
+		if let (Some(max), Some(min)) = (self.db.max_connections, self.db.min_connections) {
+			if min > max {
+				bail!(
+					"db.min_connections ({}) must not exceed db.max_connections ({})",
+					min,
+					max
+				);
+			}
+		}
+		Ok(())
 	}
 }

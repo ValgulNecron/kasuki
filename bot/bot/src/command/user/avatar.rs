@@ -2,15 +2,14 @@
 //!
 //! It takes a Serenity context and a command interaction as input and processes
 //! the command to provide appropriate responses based on the user's avatar.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use anyhow::Result;
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, User};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -22,29 +21,25 @@ use std::collections::HashMap;
 	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let db_connection = bot_data.db_connection.clone();
-	let user = match command_interaction.data.kind.0 {
-		1 => get_user_command(ctx, command_interaction).await?,
-		2 => get_user_command_user(ctx, command_interaction).await,
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
+	let user = match cx.command_interaction.data.kind.0 {
+		1 => get_user_command(&cx.ctx, &cx.command_interaction).await?,
+		2 => get_user_command_user(&cx.ctx, &cx.command_interaction).await,
 		_ => {
 			return Err(anyhow::anyhow!("Invalid command type"));
 		},
 	};
 
-	let guild_id = command_interaction
-		.guild_id
-		.map(|id| id.to_string())
-		.unwrap_or_default();
 	let avatar_url = user.face();
 	let username = user.name;
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
-	let server_avatar = match command_interaction.guild_id {
+	let lang_id = cx.lang_id().await;
+	let server_avatar = match cx.command_interaction.guild_id {
 		Some(guild_id) => {
 			let member = guild_id
-				.member(&ctx.http, command_interaction.user.id)
+				.member(&cx.ctx.http, cx.command_interaction.user.id)
 				.await;
 
 			match member {
@@ -138,7 +133,7 @@ pub async fn get_user_command(
 ) -> Result<User> {
 	let user = get_option_map_user_subcommand(command_interaction);
 
-	let user = user.get(&String::from("username"));
+	let user = user.get("username");
 
 	let user = match user {
 		Some(user) => user.to_user(&ctx.http).await?,

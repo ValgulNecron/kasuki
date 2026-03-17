@@ -13,9 +13,8 @@
 //!   and the guild-related state.
 //!
 //! This struct implements the `Command
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::music::join::join;
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::{anyhow, Context};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -23,7 +22,7 @@ use kasuki_macros::slash_command;
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::trace;
@@ -36,22 +35,17 @@ use tracing::trace;
 	args = [(name = "search", desc = "Search for a song.", arg_type = String, required = true, autocomplete = false)],
 )]
 async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-
-	// Retrieve the guild ID from the command interaction
-	let guild_id_str = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	// Load the localized strings
-	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
-	let lava_client = bot_data.lavalink.read().await.clone();
-	let (_, mut embed_content) = join(ctx, bot_data, command_interaction).await?;
+	let lava_client = cx.bot_data.lavalink.read().await.clone();
+	let (_, mut embed_content) =
+		join(cx.ctx.clone(), cx.bot_data.clone(), cx.command_interaction.clone()).await?;
 
 	match lava_client {
 		Some(_) => {},
@@ -62,8 +56,8 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 		},
 	}
 	let lava_client = lava_client.unwrap();
-	let command_interaction = self_.get_command_interaction();
-	let guild_id = command_interaction
+	let guild_id = cx
+		.command_interaction
 		.guild_id
 		.ok_or(anyhow!("no guild id"))
 		.with_context(|| {
@@ -79,10 +73,10 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 		return Ok(embed_content);
 	};
 
-	let map = get_option_map_string_subcommand(command_interaction);
+	let map = get_option_map_string_subcommand(&cx.command_interaction);
 	trace!("{:#?}", map);
 	let term = map
-		.get(&String::from("search"))
+		.get("search")
 		.cloned()
 		.unwrap_or_default();
 	trace!(term);
@@ -154,7 +148,7 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 				));
 	}
 
-	let author_id = command_interaction.user.id;
+	let author_id = cx.command_interaction.user.id;
 	for i in &mut tracks {
 		i.track.user_data = Some(serde_json::json!({"requester_id": author_id}));
 	}

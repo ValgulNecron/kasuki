@@ -1,17 +1,15 @@
-use crate::constant::DEFAULT_STRING;
-use crate::event_handler::BotData;
-use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::user::{UserAutocomplete, UserAutocompleteVariables};
-use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::trace;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
+use crate::helper::get_option::command::get_option_map_string;
+use shared::anilist::autocomplete::search_users;
+
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -20,48 +18,19 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
-	trace!("user_search: {}", user_search);
-
-	let var = UserAutocompleteVariables {
-		search: Some(user_search),
-	};
-
-	let operation = UserAutocomplete::build(var);
-
-	let data: GraphQlResponse<UserAutocomplete> =
-		match make_request_anilist(operation, true, bot_data.anilist_cache.clone()).await {
-			Ok(data) => data,
-			Err(e) => {
-				tracing::error!(?e);
-
-				return;
-			},
-		};
-
-	let users = match data.data {
-		Some(data) => match data.page {
-			Some(page) => match page.users {
-				Some(users) => users,
-				None => return,
-			},
-			None => return,
-		},
-		None => {
-			tracing::debug!(?data.errors);
+	let results = match search_users(user_search, bot_data.anilist_cache.clone()).await {
+		Ok(results) => results,
+		Err(e) => {
+			tracing::error!(?e);
 
 			return;
 		},
 	};
 
-	let mut choices = Vec::new();
-
-	for user in users {
-		let data = user.unwrap();
-
-		let user = data.name;
-
-		choices.push(AutocompleteChoice::new(user, data.id.to_string()))
-	}
+	let choices: Vec<AutocompleteChoice> = results
+		.into_iter()
+		.map(|(name, id)| AutocompleteChoice::new(name, id))
+		.collect();
 
 	let data = CreateAutocompleteResponse::new().set_choices(choices);
 

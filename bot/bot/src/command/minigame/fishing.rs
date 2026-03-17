@@ -1,6 +1,5 @@
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
@@ -10,7 +9,7 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, Qu
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::{debug, info};
@@ -22,20 +21,17 @@ use tracing::{debug, info};
 	install_contexts = [Guild],
 )]
 async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let user_id = command_interaction.user.id.to_string();
-	let server_id = command_interaction.guild_id.unwrap().to_string();
-
-	// Get all fish items from the database
-	let db_connection = bot_data.db_connection.clone();
+	let user_id = cx.command_interaction.user.id.to_string();
 
 	// Load localization data
-	let lang_id = get_language_identifier(server_id.clone(), db_connection.clone()).await;
+	let lang_id = cx.lang_id().await;
 
-	let fish_items = get_fish_items(&db_connection).await?;
+	let fish_items = get_fish_items(&cx.db).await?;
 
 	if fish_items.is_empty() {
 		return Err(anyhow::anyhow!("No fish items found in the database"));
@@ -53,9 +49,9 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 
 	// Add the fish to the user's inventory
 	add_fish_to_inventory(
-		&db_connection,
+		&cx.db,
 		user_id,
-		server_id,
+		cx.guild_id.clone(),
 		caught_fish.item_id.clone(),
 		fish_size,
 		fish_rarity,

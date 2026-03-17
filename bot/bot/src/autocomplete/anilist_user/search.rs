@@ -4,7 +4,7 @@ use crate::helper::get_option::command::get_option_map_string;
 use serenity::all::{CommandInteraction, Context};
 use small_fixed_array::FixedString;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 
 	let search_type = map

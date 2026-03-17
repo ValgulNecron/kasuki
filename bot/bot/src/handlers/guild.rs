@@ -8,13 +8,13 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{Guild, GuildMembersChunkEvent, Member};
 use serenity::prelude::Context as SerenityContext;
-use shared::database::prelude::{GuildData, ServerUserRelation};
+use shared::database::prelude::{GuildData, ServerUserRelation, UserData};
 use std::sync::atomic::Ordering;
 use tracing::{info, trace, warn};
 
 impl Handler {
 	pub(crate) async fn guild_create(
-		&self, ctx: SerenityContext, guild: Guild, is_new: Option<bool>,
+		&self, ctx: &SerenityContext, guild: Guild, is_new: Option<bool>,
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let image_config = bot_data.config.image.clone();
@@ -35,11 +35,11 @@ impl Handler {
 			info!(guild_id = %guild.id, "Joined a new guild");
 
 			// Enqueue color calculation for this guild's members only
-			let members = get_member(ctx.clone(), guild.id).await;
-			for member in members {
+			let users = get_member(ctx, guild.id).await;
+			for user in users {
 				enqueue_user_color(
 					user_blacklist_server_image.clone(),
-					member.user,
+					user,
 					bot_data.clone(),
 				)
 				.await;
@@ -47,13 +47,13 @@ impl Handler {
 
 			// Generate server images for this guild only
 			if let Err(e) =
-				enqueue_local_server_image(&ctx, guild.id, &image_config, db_connection.clone())
+				enqueue_local_server_image(ctx, guild.id, &image_config, db_connection.clone())
 					.await
 			{
 				warn!(guild_id = %guild.id, error = %e, "Failed to enqueue local server image");
 			}
 			if let Err(e) =
-				enqueue_global_server_image(&ctx, guild.id, &image_config, db_connection.clone())
+				enqueue_global_server_image(ctx, guild.id, &image_config, db_connection.clone())
 					.await
 			{
 				warn!(guild_id = %guild.id, error = %e, "Failed to enqueue global server image");
@@ -88,7 +88,7 @@ impl Handler {
 		}
 	}
 
-	pub(crate) async fn guild_member_addition(&self, ctx: SerenityContext, member: Member) {
+	pub(crate) async fn guild_member_addition(&self, ctx: &SerenityContext, member: Member) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let user_blacklist_server_image = bot_data.user_blacklist.clone();
 		let guild_id = member.guild_id.to_string();
@@ -138,7 +138,7 @@ impl Handler {
 	}
 
 	pub(crate) async fn guild_members_chunk(
-		&self, ctx: SerenityContext, chunk: GuildMembersChunkEvent,
+		&self, ctx: &SerenityContext, chunk: GuildMembersChunkEvent,
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let members = &chunk.members;
@@ -148,28 +148,55 @@ impl Handler {
 		}
 		trace!(
 			guild_id = %chunk.guild_id,
+			member_count = members.len(),
 			"Received a chunk of guild members"
 		);
 
 		let db_connection = bot_data.db_connection.clone();
+		let guild_id_str = chunk.guild_id.to_string();
 
-		for member in members {
-			let user = member.user.clone();
+		let members_vec: Vec<&Member> = members.iter().collect();
+		for batch in members_vec.chunks(250) {
+			let user_models: Vec<shared::database::user_data::ActiveModel> = batch
+				.iter()
+				.map(|member| shared::database::user_data::ActiveModel {
+					user_id: Set(member.user.id.to_string()),
+					username: Set(member.user.name.to_string()),
+					added_at: Set(chrono::Utc::now().naive_utc()),
+					is_bot: Set(member.user.bot()),
+				})
+				.collect();
 
-			if let Err(e) = add_user_data_to_db(user.clone(), db_connection.clone()).await {
+			if let Err(e) = UserData::insert_many(user_models)
+				.on_conflict(
+					sea_orm::sea_query::OnConflict::column(
+						shared::database::user_data::Column::UserId,
+					)
+					.update_columns([
+						shared::database::user_data::Column::Username,
+						shared::database::user_data::Column::IsBot,
+					])
+					.to_owned(),
+				)
+				.exec(&*db_connection)
+				.await
+			{
 				warn!(
-					user_id = %user.id,
-					error = ?e,
-					"Failed to insert user data from chunk into database"
+					guild_id = %chunk.guild_id,
+					error = %e,
+					"Failed to batch insert user data from chunk"
 				);
 			}
 
-			let active_relation = shared::database::server_user_relation::ActiveModel {
-				guild_id: Set(chunk.guild_id.to_string()),
-				user_id: Set(user.id.to_string()),
-			};
+			let relation_models: Vec<shared::database::server_user_relation::ActiveModel> = batch
+				.iter()
+				.map(|member| shared::database::server_user_relation::ActiveModel {
+					guild_id: Set(guild_id_str.clone()),
+					user_id: Set(member.user.id.to_string()),
+				})
+				.collect();
 
-			if let Err(e) = ServerUserRelation::insert(active_relation)
+			if let Err(e) = ServerUserRelation::insert_many(relation_models)
 				.on_conflict(
 					sea_orm::sea_query::OnConflict::columns([
 						shared::database::server_user_relation::Column::GuildId,
@@ -178,17 +205,16 @@ impl Handler {
 					.do_nothing()
 					.to_owned(),
 				)
-				.exec(&*db_connection.clone())
+				.exec(&*db_connection)
 				.await
 			{
 				match e {
 					sea_orm::DbErr::RecordNotInserted => {},
 					_ => {
 						warn!(
-							user_id = %user.id,
 							guild_id = %chunk.guild_id,
 							error = %e,
-							"Failed to insert server-user relation from chunk into database"
+							"Failed to batch insert server-user relations from chunk"
 						);
 					},
 				}

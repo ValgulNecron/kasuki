@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
+use serenity::all::{Context as SerenityContext, GuildId, User, UserId};
 use serenity::nonmax::NonMaxU16;
 use shared::queue::tasks::ImageTask;
 use tokio::sync::RwLock;
@@ -9,19 +9,18 @@ use tracing::{debug, error};
 
 use crate::event_handler::BotData;
 
-pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
+pub async fn get_member(ctx_clone: &SerenityContext, guild: GuildId) -> Vec<User> {
 	if let Some(guild_cache) = guild.to_guild_cached(&ctx_clone.cache) {
 		debug!("Using cached members for guild {}", guild);
-		let members = guild_cache.members.clone();
-		return members.into_iter().map(|m| m.into()).collect();
+		return guild_cache.members.iter().map(|m| m.user.clone()).collect();
 	}
 
 	debug!("Cache miss for guild {}, fetching from API", guild);
 	let mut i = 0;
-	let mut members_temp_out: Vec<Member> = Vec::new();
+	let mut members_temp_out: Vec<User> = Vec::new();
 
 	while members_temp_out.len() == (1000 * i) {
-		let mut members_temp_in = if i == 0 {
+		let members_temp_in = if i == 0 {
 			match guild
 				.members(
 					&ctx_clone.http,
@@ -38,7 +37,7 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 			}
 		} else {
 			let user: UserId = match members_temp_out.last() {
-				Some(member) => member.user.id,
+				Some(u) => u.id,
 				None => break,
 			};
 
@@ -59,7 +58,7 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 		};
 
 		i += 1;
-		members_temp_out.append(&mut members_temp_in);
+		members_temp_out.extend(members_temp_in.into_iter().map(|m| m.user));
 	}
 
 	members_temp_out

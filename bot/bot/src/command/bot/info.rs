@@ -1,12 +1,12 @@
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{CreateFooter, EmbedContent, EmbedsContents};
 use crate::constant::{APP_VERSION, LIBRARY};
-use crate::event_handler::BotData;
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use sea_orm::{EntityTrait, PaginatorTrait};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::UserColor;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use tracing::{debug, info};
 
 #[slash_command(
@@ -17,41 +17,29 @@ use tracing::{debug, info};
 )]
 async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing info command");
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	debug!("Retrieving bot data and configuration");
 
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => {
-			debug!("Command executed in guild: {}", id);
-			id.to_string()
-		},
-		None => {
-			debug!("Command executed in DM");
-			String::from("0")
-		},
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for the guild
-	let lang_id = get_language_identifier(guild_id, db_connection.clone()).await;
+	let lang_id = cx.lang_id().await;
 
 	// Retrieve various details about the bot and the server
 	debug!("Retrieving bot and server details");
-	let shard_count = ctx.cache.shard_count();
+	let shard_count = cx.ctx.cache.shard_count();
 	debug!("Shard count: {}", shard_count);
 
-	let shard = ctx.shard_id.to_string();
+	let shard = cx.ctx.shard_id.to_string();
 	debug!("Current shard: {}", shard);
 
 	debug!("Retrieving user count");
-	let user_count = UserColor::find().count(&*db_connection).await?;
+	let user_count = UserColor::find().count(&*cx.db).await?;
 	debug!("User count: {}", user_count);
 
 	debug!("Retrieving application info");
-	let bot = ctx.http.get_current_application_info().await?;
+	let bot = cx.ctx.http.get_current_application_info().await?;
 	debug!("Application info retrieved");
 
 	let bot_name = bot.name.to_string();
@@ -61,7 +49,7 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 	let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
 	debug!("Bot creation date: {}", creation_date);
 
-	let server_count = ctx.cache.guild_count();
+	let server_count = cx.ctx.cache.guild_count();
 	let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
 	debug!(
 		"Server count from cache: {}, from API: {}",

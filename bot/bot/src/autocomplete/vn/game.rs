@@ -7,11 +7,11 @@ use serenity::all::{
 use shared::vndb::game::{get_vn, VN};
 use tracing::trace;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
-	let game = map.get(&String::from("title")).unwrap();
+	let game = map.get("title").unwrap();
 
 	let vn = get_vn(game.clone(), bot_data.vndb_cache.clone(), &bot_data.http_client)
 		.await

@@ -1,130 +1,20 @@
+pub use shared::anilist::character::*;
+
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
-use sea_orm::DatabaseConnection;
-use serenity::all::CommandInteraction;
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
-use std::fmt::Write;
-use std::sync::Arc;
-use tracing::log::trace;
+use shared::localization::USABLE_LOCALES;
+use unic_langid::LanguageIdentifier;
 
-#[cynic::schema("anilist")]
-
-mod schema {}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-
-pub struct CharacterQuerryIdVariables {
-	pub id: Option<i32>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "CharacterQuerryIdVariables")]
-
-pub struct CharacterQuerryId {
-	#[arguments(id: $ id)]
-	#[cynic(rename = "Character")]
-	pub character: Option<Character>,
-}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-
-pub struct CharacterQuerrySearchVariables<'a> {
-	pub search: Option<&'a str>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "CharacterQuerrySearchVariables")]
-
-pub struct CharacterQuerrySearch {
-	#[arguments(search: $ search)]
-	#[cynic(rename = "Character")]
-	pub character: Option<Character>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct Character {
-	pub age: Option<String>,
-	pub blood_type: Option<String>,
-	pub date_of_birth: Option<FuzzyDate>,
-	pub description: Option<String>,
-	pub favourites: Option<i32>,
-	pub gender: Option<String>,
-	pub image: Option<CharacterImage>,
-	pub name: Option<CharacterName>,
-	pub site_url: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct CharacterName {
-	pub user_preferred: Option<String>,
-	pub native: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct CharacterImage {
-	pub large: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct FuzzyDate {
-	pub month: Option<i32>,
-	pub year: Option<i32>,
-	pub day: Option<i32>,
-}
 pub async fn character_content<'a>(
-	command_interaction: CommandInteraction, character: Character,
-	db_connection: Arc<DatabaseConnection>,
+	character: Character, lang_id: &LanguageIdentifier,
 ) -> Result<EmbedsContents<'a>> {
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	trace!("{:#?}", guild_id);
-
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
-
-	let date_of_birth_data = character.date_of_birth.clone();
-
 	let mut fields = Vec::new();
 
-	if let Some(date_of_birth_data) = date_of_birth_data {
-		let mut has_month: bool = false;
-
-		let mut has_day: bool = false;
-
-		let mut date_of_birth_string = String::new();
-
-		if let Some(m) = date_of_birth_data.month {
-			write!(date_of_birth_string, "{:02}", m).unwrap();
-
-			has_month = true
-		}
-
-		if let Some(d) = date_of_birth_data.day {
-			if has_month {
-				date_of_birth_string.push('/')
-			}
-
-			write!(date_of_birth_string, "{:02}", d).unwrap();
-
-			has_day = true
-		}
-
-		if let Some(y) = date_of_birth_data.year {
-			if has_day {
-				date_of_birth_string.push('/')
-			}
-
-			write!(date_of_birth_string, "{:04}", y).unwrap();
-		}
+	if let Some(date_of_birth_data) = &character.date_of_birth {
+		let date_of_birth_string = format_fuzzy_date(date_of_birth_data);
 
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-date_of_birth"),
@@ -133,9 +23,7 @@ pub async fn character_content<'a>(
 		));
 	}
 
-	let gender = character.gender.clone();
-
-	if let Some(gender) = gender {
+	if let Some(gender) = character.gender {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-gender"),
 			gender,
@@ -143,9 +31,7 @@ pub async fn character_content<'a>(
 		));
 	}
 
-	let age = character.age.clone();
-
-	if let Some(age) = age {
+	if let Some(age) = character.age {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-age"),
 			age,
@@ -163,9 +49,7 @@ pub async fn character_content<'a>(
 		));
 	}
 
-	let blood_type = character.blood_type.clone();
-
-	if let Some(blood_type) = blood_type {
+	if let Some(blood_type) = character.blood_type {
 		fields.push((
 			USABLE_LOCALES.lookup(&lang_id, "anilist_user_character-blood_type"),
 			blood_type,
@@ -183,16 +67,9 @@ pub async fn character_content<'a>(
 		desc = trim(desc, length_diff)
 	}
 
-	let name = match character.name.clone() {
-		Some(name) => name,
-		None => return Err(anyhow!("No name found".to_string())),
-	};
+	let name = character.name.as_ref().ok_or_else(|| anyhow!("No name found"))?;
 
-	let native = name.native.unwrap_or_default();
-
-	let user_pref = name.user_preferred.unwrap_or_default();
-
-	let character_name = format!("{}/{}", user_pref, native);
+	let character_name = format_character_name(name);
 
 	let mut embeds_content = EmbedContent::new(character_name)
 		.description(desc)
@@ -208,4 +85,309 @@ pub async fn character_content<'a>(
 	let embeds_contents = EmbedsContents::new(vec![embeds_content]);
 
 	Ok(embeds_contents)
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn make_character(
+		name: Option<CharacterName>, date_of_birth: Option<FuzzyDate>,
+		gender: Option<&str>, age: Option<&str>, favourites: Option<i32>,
+		blood_type: Option<&str>, description: Option<&str>,
+	) -> Character {
+		Character {
+			age: age.map(|s| s.to_string()),
+			blood_type: blood_type.map(|s| s.to_string()),
+			date_of_birth,
+			description: description.map(|s| s.to_string()),
+			favourites,
+			gender: gender.map(|s| s.to_string()),
+			image: None,
+			name,
+			site_url: Some("https://anilist.co/character/1".to_string()),
+		}
+	}
+
+	fn default_name() -> Option<CharacterName> {
+		Some(CharacterName {
+			user_preferred: Some("Test".to_string()),
+			native: Some("\u{30c6}\u{30b9}\u{30c8}".to_string()),
+		})
+	}
+
+	fn lang_id() -> LanguageIdentifier {
+		"en-US".parse::<LanguageIdentifier>().unwrap()
+	}
+
+	// --- format_fuzzy_date tests ---
+
+	#[test]
+	fn date_month_day_year() {
+		let date = FuzzyDate {
+			month: Some(3),
+			day: Some(25),
+			year: Some(1990),
+		};
+		assert_eq!(format_fuzzy_date(&date), "03/25/1990");
+	}
+
+	#[test]
+	fn date_month_only() {
+		let date = FuzzyDate {
+			month: Some(12),
+			day: None,
+			year: None,
+		};
+		assert_eq!(format_fuzzy_date(&date), "12");
+	}
+
+	#[test]
+	fn date_month_day() {
+		let date = FuzzyDate {
+			month: Some(7),
+			day: Some(4),
+			year: None,
+		};
+		assert_eq!(format_fuzzy_date(&date), "07/04");
+	}
+
+	#[test]
+	fn date_year_only() {
+		let date = FuzzyDate {
+			month: None,
+			day: None,
+			year: Some(2000),
+		};
+		assert_eq!(format_fuzzy_date(&date), "2000");
+	}
+
+	#[test]
+	fn date_all_none() {
+		let date = FuzzyDate {
+			month: None,
+			day: None,
+			year: None,
+		};
+		assert_eq!(format_fuzzy_date(&date), "");
+	}
+
+	// --- format_character_name tests ---
+
+	#[test]
+	fn name_both_present() {
+		let name = CharacterName {
+			user_preferred: Some("Saber".to_string()),
+			native: Some("\u{30bb}\u{30a4}\u{30d0}\u{30fc}".to_string()),
+		};
+		assert_eq!(
+			format_character_name(&name),
+			"Saber/\u{30bb}\u{30a4}\u{30d0}\u{30fc}"
+		);
+	}
+
+	#[test]
+	fn name_user_preferred_only() {
+		let name = CharacterName {
+			user_preferred: Some("Saber".to_string()),
+			native: None,
+		};
+		assert_eq!(format_character_name(&name), "Saber/");
+	}
+
+	#[test]
+	fn name_native_only() {
+		let name = CharacterName {
+			user_preferred: None,
+			native: Some("\u{30bb}\u{30a4}\u{30d0}\u{30fc}".to_string()),
+		};
+		assert_eq!(
+			format_character_name(&name),
+			"/\u{30bb}\u{30a4}\u{30d0}\u{30fc}"
+		);
+	}
+
+	#[test]
+	fn name_both_none() {
+		let name = CharacterName {
+			user_preferred: None,
+			native: None,
+		};
+		assert_eq!(format_character_name(&name), "/");
+	}
+
+	// --- character_content tests ---
+
+	#[tokio::test]
+	async fn content_name_none_returns_error() {
+		let character = make_character(None, None, None, None, None, None, None);
+		let result = character_content(character, &lang_id()).await;
+		assert!(result.is_err());
+	}
+
+	#[tokio::test]
+	async fn content_date_of_birth_field_present() {
+		let character = make_character(
+			default_name(),
+			Some(FuzzyDate {
+				month: Some(1),
+				day: Some(15),
+				year: Some(2001),
+			}),
+			None,
+			None,
+			None,
+			None,
+			None,
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let dob_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Date of Birth"))
+			.expect("Date of Birth field should exist");
+		assert_eq!(dob_field.1, "01/15/2001");
+	}
+
+	#[tokio::test]
+	async fn content_no_date_of_birth_no_field() {
+		let character =
+			make_character(default_name(), None, None, None, None, None, None);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let dob_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Date of Birth"));
+		assert!(dob_field.is_none());
+	}
+
+	#[tokio::test]
+	async fn content_gender_field_present() {
+		let character = make_character(
+			default_name(),
+			None,
+			Some("Female"),
+			None,
+			None,
+			None,
+			None,
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let gender_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Gender"))
+			.expect("Gender field should exist");
+		assert_eq!(gender_field.1, "Female");
+	}
+
+	#[tokio::test]
+	async fn content_age_field_present() {
+		let character = make_character(
+			default_name(),
+			None,
+			None,
+			Some("17"),
+			None,
+			None,
+			None,
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let age_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Age"))
+			.expect("Age field should exist");
+		assert_eq!(age_field.1, "17");
+	}
+
+	#[tokio::test]
+	async fn content_favourites_field_present() {
+		let character = make_character(
+			default_name(),
+			None,
+			None,
+			None,
+			Some(9001),
+			None,
+			None,
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let fav_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Favorites"))
+			.expect("Favorites field should exist");
+		assert_eq!(fav_field.1, "9001");
+	}
+
+	#[tokio::test]
+	async fn content_blood_type_field_present() {
+		let character = make_character(
+			default_name(),
+			None,
+			None,
+			None,
+			None,
+			Some("AB"),
+			None,
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let blood_field = embed
+			.fields
+			.iter()
+			.find(|(name, _, _)| name.contains("Blood Type"))
+			.expect("Blood Type field should exist");
+		assert_eq!(blood_field.1, "AB");
+	}
+
+	#[tokio::test]
+	async fn content_long_description_gets_trimmed() {
+		let long_desc = "a".repeat(5000);
+		let character = make_character(
+			default_name(),
+			None,
+			None,
+			None,
+			None,
+			None,
+			Some(&long_desc),
+		);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		let desc = embed.description.as_ref().unwrap();
+		assert!(
+			desc.len() <= 4096,
+			"Description should be trimmed to 4096 chars or fewer, got {}",
+			desc.len()
+		);
+		assert!(desc.ends_with("..."));
+	}
+
+	#[tokio::test]
+	async fn content_title_uses_formatted_name() {
+		let character =
+			make_character(default_name(), None, None, None, None, None, None);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		assert_eq!(
+			embed.title,
+			"Test/\u{30c6}\u{30b9}\u{30c8}"
+		);
+	}
+
+	#[tokio::test]
+	async fn content_no_optional_fields_produces_empty_fields() {
+		let character =
+			make_character(default_name(), None, None, None, None, None, None);
+		let result = character_content(character, &lang_id()).await.unwrap();
+		let embed = &result.embed_contents[0];
+		assert!(embed.fields.is_empty());
+	}
 }

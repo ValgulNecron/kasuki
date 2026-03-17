@@ -9,11 +9,10 @@ use anyhow::anyhow;
 use bytes::Bytes;
 use std::io::Cursor;
 
-use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::seiyuu_id::{
 	Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };

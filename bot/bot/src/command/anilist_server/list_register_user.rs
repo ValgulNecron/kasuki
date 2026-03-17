@@ -1,10 +1,6 @@
-//! `ListRegisterUser` is a struct that handles the functionality of listing registered users
-//! in a Discord guild. It implements the `Command` trait to define specific behaviors
-//! for interacting with Discord and retrieving necessary data.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
-use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
 use fluent_templates::Loader;
 use futures::pin_mut;
@@ -16,12 +12,9 @@ use sea_orm::{ColumnTrait, DatabaseConnection};
 use serenity::all::{CommandInteraction, Context as SerenityContext, PartialGuild, User, UserId};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::Column;
-use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
-use std::str::FromStr;
 use std::sync::Arc;
 use tracing::trace;
-use unic_langid::LanguageIdentifier;
 
 #[slash_command(
 	name = "list_user", desc = "Get the list of registered user.", command_type = ChatInput,
@@ -29,33 +22,25 @@ use unic_langid::LanguageIdentifier;
 	install_contexts = [Guild],
 )]
 async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-	let _config = bot_data.config.clone();
-	let connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("Failed to get the id of the guild"))?;
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id,
-		None => return Err(anyhow!("Failed to get the id of the guild")),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang = get_guild_language(guild_id.to_string(), db_connection).await;
-	let lang_code = match lang.as_str() {
-		"jp" => "ja",
-		"en" => "en-US",
-		other => other,
-	};
-	let lang_id = LanguageIdentifier::from_str(lang_code)
-		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let lang_id = cx.lang_id().await;
 	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-title");
 
-	let guild = guild_id.to_partial_guild_with_counts(&ctx.http).await?;
+	let guild = guild_id
+		.to_partial_guild_with_counts(&cx.ctx.http)
+		.await?;
 
 	let (desc, len, _last_id): (String, usize, Option<UserId>) =
-		get_the_list(guild, &ctx, None, connection).await?;
+		get_the_list(guild, &cx.ctx, None, cx.db.clone()).await?;
 	let embed_content = EmbedContent::new(title).description(desc);
 
 	let action_row;
@@ -73,50 +58,11 @@ async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsCon
 	Ok(embed_contents)
 }
 
-/// The `Data` struct serves as a container for user-related information and associated metadata.
-///
-/// # Fields
-///
-/// * `user` - Represents the user information stored as a `User` struct.
-/// This typically includes user-specific details such as username, email, or ID.
-///
-/// * `anilist` - A `String` field that holds the AniList-related data, such as profile URL or ID.
-/// This is useful to associate the user with their AniList account or data from the AniList API.
-///
-/// # Example
-///
-/// ```rust
-/// struct User {
-///     pub username: String,
-/// }
-///
-/// let user = User {
-///     username: String::from("example_user"),
-/// };
-///
-/// let data = Data {
-///     user,
-///     anilist: String::
 struct Data {
 	pub user: User,
 	pub anilist: String,
 }
 
-/// Asynchronously retrieves a formatted list of AniList user links for the members of a given Discord guild.
-///
-/// This function iterates through the members of the provided Discord guild, checks if they are registered
-/// in the application's database, and retrieves their AniList IDs if applicable. The collected information
-/// is formatted into a Markdown-compatible string of user links and returns additional metadata such as the
-/// number of processed users and the ID of the last processed member.
-///
-/// # Arguments
-///
-/// * `guild` - A partial representation of the Discord guild (server) to process.
-/// * `ctx` - A reference to the SerenityContext, used to interact with Discord's API.
-/// * `last_id` - An optional identifier of the last processed user to continue from (useful for paginated requests).
-/// * `connection` - A thread-safe reference to the application's database connection.
-///
-///
 pub async fn get_the_list(
 	guild: PartialGuild, ctx: &SerenityContext, last_id: Option<UserId>,
 	connection: Arc<DatabaseConnection>,

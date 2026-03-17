@@ -1,9 +1,9 @@
 //! Module implementing the `CreditCommand` structure and its functionality.
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use tracing::{debug, info};
 
 #[slash_command(
@@ -14,29 +14,16 @@ use tracing::{debug, info};
 )]
 async fn credit_command(self_: CreditCommand) -> Result<EmbedsContents<'_>> {
 	info!("Processing credit command");
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let _config = bot_data.config.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	debug!("Retrieving bot data and configuration");
 
-	// Retrieve the guild ID from the command interaction
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => {
-			debug!("Command executed in guild: {}", id);
-			id.to_string()
-		},
-		None => {
-			debug!("Command executed in DM");
-			String::from("0")
-		},
-	};
-	let db_connection = bot_data.db_connection.clone();
-
 	// Get the language identifier for the guild
-	debug!("Loading localization for guild: {}", guild_id);
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	debug!("Loading localization for guild: {}", cx.guild_id);
+	let lang_id = cx.lang_id().await;
 	debug!("Localization loaded successfully");
 
 	debug!("Creating embed content");

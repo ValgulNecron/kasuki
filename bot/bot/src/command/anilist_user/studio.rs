@@ -83,7 +83,7 @@ use anyhow::anyhow;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };

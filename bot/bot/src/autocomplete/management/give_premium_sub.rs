@@ -9,7 +9,7 @@ use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::command::get_option_map_string;
 
 pub async fn give_premium_sub_autocomplete(
-	ctx: Context, autocomplete_interaction: CommandInteraction,
+	ctx: &Context, autocomplete_interaction: CommandInteraction,
 ) {
 	let map = get_option_map_string(&autocomplete_interaction);
 

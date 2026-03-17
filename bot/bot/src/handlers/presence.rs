@@ -6,7 +6,7 @@ use tracing::{trace, warn};
 
 impl Handler {
 	pub(crate) async fn presence_update(
-		&self, ctx: SerenityContext, _old_data: Option<Presence>, new_data: Presence,
+		&self, ctx: &SerenityContext, _old_data: Option<Presence>, new_data: Presence,
 	) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let user_id = new_data.user.id;

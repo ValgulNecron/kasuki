@@ -1,199 +1,16 @@
+pub use shared::anilist::user::*;
+
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::constant::COLOR;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
-use sea_orm::DatabaseConnection;
-use serenity::all::CommandInteraction;
-use serenity::model::Colour;
-use shared::localization::{get_language_identifier, LanguageIdentifier, USABLE_LOCALES};
+use shared::localization::{LanguageIdentifier, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::fmt::Display;
-use std::sync::Arc;
-
-#[cynic::schema("anilist")]
-
-mod schema {}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-
-pub struct UserQueryIdVariables {
-	pub id: Option<i32>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "UserQueryIdVariables")]
-
-pub struct UserQueryId {
-	#[arguments(id: $ id)]
-	#[cynic(rename = "User")]
-	pub user: Option<User>,
-}
-
-#[derive(cynic::QueryVariables, Debug, Clone)]
-
-pub struct UserQuerySearchVariables<'a> {
-	pub search: Option<&'a str>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "Query", variables = "UserQuerySearchVariables")]
-
-pub struct UserQuerySearch {
-	#[arguments(search: $ search)]
-	#[cynic(rename = "User")]
-	pub user: Option<User>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct User {
-	pub id: i32,
-	pub name: String,
-	pub avatar: Option<UserAvatar>,
-	pub statistics: Option<UserStatisticTypes>,
-	pub options: Option<UserOptions>,
-	pub banner_image: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserOptions {
-	pub profile_color: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserStatisticTypes {
-	pub anime: Option<UserStatistics>,
-	pub manga: Option<UserStatistics2>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[cynic(graphql_type = "UserStatistics")]
-
-pub struct UserStatistics2 {
-	pub count: i32,
-	pub mean_score: f64,
-	pub standard_deviation: f64,
-	pub chapters_read: i32,
-	#[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
-	pub tags: Option<Vec<Option<UserTagStatistic>>>,
-	#[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
-	pub genres: Option<Vec<Option<UserGenreStatistic>>>,
-	#[arguments(sort: "COUNT_DESC")]
-	pub statuses: Option<Vec<Option<UserStatusStatistic>>>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserStatistics {
-	pub count: i32,
-	pub mean_score: f64,
-	pub standard_deviation: f64,
-	pub minutes_watched: i32,
-	#[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
-	pub tags: Option<Vec<Option<UserTagStatistic>>>,
-	#[arguments(limit: 5, sort: "MEAN_SCORE_DESC")]
-	pub genres: Option<Vec<Option<UserGenreStatistic>>>,
-	#[arguments(sort: "COUNT_DESC")]
-	pub statuses: Option<Vec<Option<UserStatusStatistic>>>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserStatusStatistic {
-	pub count: i32,
-	pub status: Option<MediaListStatus>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserGenreStatistic {
-	pub genre: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserTagStatistic {
-	pub tag: Option<MediaTag>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct UserAvatar {
-	pub large: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-
-pub struct MediaTag {
-	pub name: String,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-
-pub enum MediaListStatus {
-	Current,
-	Planning,
-	Completed,
-	Dropped,
-	Paused,
-	Repeating,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-#[allow(dead_code)]
-pub enum UserStatisticsSort {
-	Id,
-	IdDesc,
-	Count,
-	CountDesc,
-	Progress,
-	ProgressDesc,
-	MeanScore,
-	MeanScoreDesc,
-}
-
-impl Display for MediaListStatus {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			MediaListStatus::Current => write!(f, "CURRENT"),
-			MediaListStatus::Planning => write!(f, "PLANNING"),
-			MediaListStatus::Completed => write!(f, "COMPLETED"),
-			MediaListStatus::Dropped => write!(f, "DROPPED"),
-			MediaListStatus::Paused => write!(f, "PAUSED"),
-			MediaListStatus::Repeating => write!(f, "REPEATING"),
-		}
-	}
-}
-
-impl Display for UserStatisticsSort {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			UserStatisticsSort::Id => write!(f, "ID"),
-			UserStatisticsSort::IdDesc => write!(f, "ID_DESC"),
-			UserStatisticsSort::Count => write!(f, "COUNT"),
-			UserStatisticsSort::CountDesc => write!(f, "COUNT_DESC"),
-			UserStatisticsSort::Progress => write!(f, "PROGRESS"),
-			UserStatisticsSort::ProgressDesc => write!(f, "PROGRESS_DESC"),
-			UserStatisticsSort::MeanScore => write!(f, "MEAN_SCORE"),
-			UserStatisticsSort::MeanScoreDesc => write!(f, "MEAN_SCORE_DESC"),
-		}
-	}
-}
 
 pub async fn user_content<'a>(
-	command: CommandInteraction, user: User, db_connection: Arc<DatabaseConnection>,
+	user: User, lang_id: &LanguageIdentifier,
 ) -> Result<EmbedsContents<'a>> {
-	let guild_id = match command.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
-
 	let mut field = Vec::new();
 
 	let statistics = user
@@ -202,18 +19,17 @@ pub async fn user_content<'a>(
 		.ok_or(anyhow!("Could not get the statistics"))?;
 
 	let manga = statistics.manga.clone();
-
 	let anime = statistics.anime.clone();
 
 	if let Some(m) = &manga {
 		if m.count > 0 {
-			field.push(get_manga_field(user.id, &lang_id, m.clone()))
+			field.push(get_manga_field(user.id, lang_id, m.clone()))
 		}
 	}
 
 	if let Some(a) = &anime {
 		if a.count > 0 {
-			field.push(get_anime_field(user.id, &lang_id, a.clone()))
+			field.push(get_anime_field(user.id, lang_id, a.clone()))
 		}
 	}
 
@@ -232,14 +48,6 @@ pub async fn user_content<'a>(
 	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 	Ok(embed_contents)
-}
-
-pub fn get_user_url(user_id: &i32) -> String {
-	format!("https://anilist.co/user/{}", user_id)
-}
-
-pub fn get_banner(user_id: &i32) -> String {
-	format!("https://img.anili.st/user/{}", user_id)
 }
 
 fn get_user_manga_url(user_id: i32) -> String {
@@ -284,7 +92,7 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 	);
 	desc = desc.replace("\u{2069}", "");
 	desc = desc.replace("\u{2068}", "");
-	desc.push_str("\n");
+	desc.push('\n');
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
 	args.insert(
@@ -309,11 +117,11 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 	);
 	args.insert(
 		Cow::Borrowed("tag_list"),
-		FluentValue::from(get_tag_list(manga.tags.clone().unwrap())),
+		FluentValue::from(get_tag_list(manga.tags.as_deref().unwrap_or_default())),
 	);
 	args.insert(
 		Cow::Borrowed("genre_list"),
-		FluentValue::from(get_genre_list(manga.genres.clone().unwrap())),
+		FluentValue::from(get_genre_list(manga.genres.as_deref().unwrap_or_default())),
 	);
 
 	desc.push_str(
@@ -322,44 +130,6 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 			.as_str(),
 	);
 	desc
-}
-
-fn get_tag_list(vec: Vec<Option<UserTagStatistic>>) -> String {
-	let vec = vec
-		.iter()
-		.map(|tag| tag.clone().unwrap().tag.clone().unwrap().name.clone())
-		.collect::<Vec<_>>();
-
-	let vec = vec.into_iter().take(5).collect::<Vec<_>>();
-
-	vec.join("/")
-}
-
-fn get_genre_list(vec: Vec<Option<UserGenreStatistic>>) -> String {
-	let vec = vec
-		.iter()
-		.map(|genre| genre.clone().unwrap().genre.as_ref().unwrap().clone())
-		.collect::<Vec<_>>();
-
-	let vec = vec.into_iter().take(5).collect::<Vec<_>>();
-
-	vec.join("/")
-}
-
-pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
-	let anime_statuses = statuses;
-
-	let mut anime_completed = 0;
-
-	for i in anime_statuses {
-		let i = i.unwrap();
-
-		if i.status.unwrap().to_string() == *"COMPLETED" {
-			anime_completed = i.count;
-		}
-	}
-
-	anime_completed
 }
 
 fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: i32) -> String {
@@ -377,7 +147,7 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 	);
 	desc = desc.replace("\u{2069}", "");
 	desc = desc.replace("\u{2068}", "");
-	desc.push_str("\n");
+	desc.push('\n');
 
 	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
 	args.insert(
@@ -402,11 +172,11 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 	);
 	args.insert(
 		Cow::Borrowed("tag_list"),
-		FluentValue::from(get_tag_list(anime.tags.clone().unwrap())),
+		FluentValue::from(get_tag_list(anime.tags.as_deref().unwrap_or_default())),
 	);
 	args.insert(
 		Cow::Borrowed("genre_list"),
-		FluentValue::from(get_genre_list(anime.genres.clone().unwrap())),
+		FluentValue::from(get_genre_list(anime.genres.as_deref().unwrap_or_default())),
 	);
 	desc.push_str(
 		USABLE_LOCALES
@@ -418,28 +188,22 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 
 fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 	let mut min = i;
-
 	let mut hour = 0;
-
 	let mut days = 0;
-
 	let mut week = 0;
 
 	if min >= 60 {
 		hour = min / 60;
-
 		min %= 60;
 	}
 
 	if hour >= 24 {
 		days = hour / 24;
-
 		hour %= 24;
 	}
 
 	if days >= 7 {
 		week = days / 7;
-
 		days %= 7;
 	}
 
@@ -479,22 +243,215 @@ fn get_anime_time_watch(i: i32, lang_id: &LanguageIdentifier) -> String {
 	tw
 }
 
-pub fn get_color(user: User) -> Colour {
-	match user
-		.options
-		.unwrap()
-		.profile_color
-		.clone()
-		.unwrap_or_else(|| "#FF00FF".to_string())
-		.as_str()
-	{
-		"blue" => Colour::BLUE,
-		"purple" => Colour::PURPLE,
-		"pink" => Colour::MEIBE_PINK,
-		"orange" => Colour::ORANGE,
-		"red" => Colour::RED,
-		"green" => Colour::DARK_GREEN,
-		"gray" => Colour::LIGHT_GREY,
-		_ => COLOR,
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn make_user(profile_color: Option<&str>) -> User {
+		User {
+			id: 1,
+			name: "TestUser".to_string(),
+			avatar: None,
+			statistics: None,
+			options: Some(UserOptions {
+				profile_color: profile_color.map(|s| s.to_string()),
+			}),
+			banner_image: None,
+		}
+	}
+
+	fn make_statuses(statuses: Vec<(&str, i32)>) -> Vec<Option<UserStatusStatistic>> {
+		statuses
+			.into_iter()
+			.map(|(status, count)| {
+				let s = match status {
+					"COMPLETED" => MediaListStatus::Completed,
+					"CURRENT" => MediaListStatus::Current,
+					"PLANNING" => MediaListStatus::Planning,
+					"DROPPED" => MediaListStatus::Dropped,
+					"PAUSED" => MediaListStatus::Paused,
+					_ => MediaListStatus::Repeating,
+				};
+				Some(UserStatusStatistic {
+					count,
+					status: Some(s),
+				})
+			})
+			.collect()
+	}
+
+	#[test]
+	fn get_color_blue() {
+		let user = make_user(Some("blue"));
+		assert_eq!(get_color(user), 0x3498DB);
+	}
+
+	#[test]
+	fn get_color_purple() {
+		let user = make_user(Some("purple"));
+		assert_eq!(get_color(user), 0x9B59B6);
+	}
+
+	#[test]
+	fn get_color_pink() {
+		let user = make_user(Some("pink"));
+		assert_eq!(get_color(user), 0xE68397);
+	}
+
+	#[test]
+	fn get_color_orange() {
+		let user = make_user(Some("orange"));
+		assert_eq!(get_color(user), 0xE67E22);
+	}
+
+	#[test]
+	fn get_color_red() {
+		let user = make_user(Some("red"));
+		assert_eq!(get_color(user), 0xE74C3C);
+	}
+
+	#[test]
+	fn get_color_green() {
+		let user = make_user(Some("green"));
+		assert_eq!(get_color(user), 0x1F8B4C);
+	}
+
+	#[test]
+	fn get_color_gray() {
+		let user = make_user(Some("gray"));
+		assert_eq!(get_color(user), 0x979C9F);
+	}
+
+	#[test]
+	fn get_color_unknown_defaults_to_fabled_pink() {
+		let user = make_user(Some("cyan"));
+		assert_eq!(get_color(user), 0xFAB1ED);
+	}
+
+	#[test]
+	fn get_color_none_defaults_to_fabled_pink() {
+		let user = make_user(None);
+		assert_eq!(get_color(user), 0xFAB1ED);
+	}
+
+	#[test]
+	fn get_completed_finds_count() {
+		let statuses = make_statuses(vec![
+			("CURRENT", 5),
+			("COMPLETED", 42),
+			("DROPPED", 3),
+		]);
+		assert_eq!(get_completed(statuses), 42);
+	}
+
+	#[test]
+	fn get_completed_zero_when_no_completed() {
+		let statuses = make_statuses(vec![("CURRENT", 5), ("DROPPED", 3)]);
+		assert_eq!(get_completed(statuses), 0);
+	}
+
+	#[test]
+	fn get_completed_with_single_completed() {
+		let statuses = make_statuses(vec![("COMPLETED", 100)]);
+		assert_eq!(get_completed(statuses), 100);
+	}
+
+	#[test]
+	fn get_tag_list_formats_correctly() {
+		let tags = vec![
+			Some(UserTagStatistic {
+				tag: Some(MediaTag {
+					name: "Action".to_string(),
+				}),
+			}),
+			Some(UserTagStatistic {
+				tag: Some(MediaTag {
+					name: "Comedy".to_string(),
+				}),
+			}),
+			Some(UserTagStatistic {
+				tag: Some(MediaTag {
+					name: "Drama".to_string(),
+				}),
+			}),
+		];
+		assert_eq!(get_tag_list(&tags),"Action/Comedy/Drama");
+	}
+
+	#[test]
+	fn get_tag_list_caps_at_5() {
+		let tags: Vec<Option<UserTagStatistic>> = (0..10)
+			.map(|i| {
+				Some(UserTagStatistic {
+					tag: Some(MediaTag {
+						name: format!("Tag{}", i),
+					}),
+				})
+			})
+			.collect();
+		let result = get_tag_list(&tags);
+		assert_eq!(result.split('/').count(), 5);
+	}
+
+	#[test]
+	fn get_genre_list_formats_correctly() {
+		let genres = vec![
+			Some(UserGenreStatistic {
+				genre: Some("Action".to_string()),
+			}),
+			Some(UserGenreStatistic {
+				genre: Some("Romance".to_string()),
+			}),
+		];
+		assert_eq!(get_genre_list(&genres),"Action/Romance");
+	}
+
+	#[test]
+	fn get_genre_list_caps_at_5() {
+		let genres: Vec<Option<UserGenreStatistic>> = (0..8)
+			.map(|i| {
+				Some(UserGenreStatistic {
+					genre: Some(format!("Genre{}", i)),
+				})
+			})
+			.collect();
+		let result = get_genre_list(&genres);
+		assert_eq!(result.split('/').count(), 5);
+	}
+
+	#[test]
+	fn get_user_url_formats_correctly() {
+		assert_eq!(get_user_url(&12345), "https://anilist.co/user/12345");
+	}
+
+	#[test]
+	fn get_banner_formats_correctly() {
+		assert_eq!(get_banner(&12345), "https://img.anili.st/user/12345");
+	}
+
+	#[test]
+	fn get_user_manga_url_formats_correctly() {
+		assert_eq!(
+			get_user_manga_url(12345),
+			"https://anilist.co/user/12345/mangalist"
+		);
+	}
+
+	#[test]
+	fn get_user_anime_url_formats_correctly() {
+		assert_eq!(
+			get_user_anime_url(12345),
+			"https://anilist.co/user/12345/animelist"
+		);
+	}
+
+	#[test]
+	fn media_list_status_display() {
+		assert_eq!(MediaListStatus::Current.to_string(), "CURRENT");
+		assert_eq!(MediaListStatus::Planning.to_string(), "PLANNING");
+		assert_eq!(MediaListStatus::Completed.to_string(), "COMPLETED");
+		assert_eq!(MediaListStatus::Dropped.to_string(), "DROPPED");
+		assert_eq!(MediaListStatus::Paused.to_string(), "PAUSED");
+		assert_eq!(MediaListStatus::Repeating.to_string(), "REPEATING");
 	}
 }

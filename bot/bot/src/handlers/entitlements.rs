@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tracing::{info, warn};
 
 impl Handler {
-	pub(crate) async fn entitlement_create(&self, ctx: SerenityContext, entitlement: Entitlement) {
+	pub(crate) async fn entitlement_create(&self, ctx: &SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let connection = bot_data.db_connection.clone();
 		info!(
@@ -19,7 +19,7 @@ impl Handler {
 		insert_subscription(entitlement, connection).await;
 	}
 
-	pub(crate) async fn entitlement_update(&self, ctx: SerenityContext, entitlement: Entitlement) {
+	pub(crate) async fn entitlement_update(&self, ctx: &SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let connection = bot_data.db_connection.clone();
 		info!(
@@ -29,7 +29,7 @@ impl Handler {
 		insert_subscription(entitlement, connection).await;
 	}
 
-	pub(crate) async fn entitlement_delete(&self, ctx: SerenityContext, entitlement: Entitlement) {
+	pub(crate) async fn entitlement_delete(&self, ctx: &SerenityContext, entitlement: Entitlement) {
 		let bot_data = ctx.data::<BotData>().clone();
 		let connection = bot_data.db_connection.clone();
 		info!(

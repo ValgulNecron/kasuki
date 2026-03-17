@@ -217,12 +217,12 @@ async fn register_parent_commands(http: &Arc<Http>) {
 			.description(parent.desc);
 
 		// Set contexts
-		let contexts: Vec<InteractionContext> =
+		let contexts: Cow<[InteractionContext]> =
 			parent.contexts.iter().map(|c| (*c).into()).collect();
 		command_build = command_build.contexts(contexts);
 
 		// Set install contexts
-		let install_types: Vec<InstallationContext> = parent
+		let install_types: Cow<[InstallationContext]> = parent
 			.install_contexts
 			.iter()
 			.map(|c| (*c).into())
@@ -278,7 +278,7 @@ async fn register_user_commands(http: &Arc<Http>) {
 		if let DiscordCommandType::User = meta.command_type {
 			let mut command_build = CreateCommand::new(meta.name).kind(CommandType::User);
 
-			let install_types: Vec<InstallationContext> =
+			let install_types: Cow<[InstallationContext]> =
 				meta.install_contexts.iter().map(|c| (*c).into()).collect();
 			command_build = command_build.integration_types(install_types);
 
@@ -305,7 +305,7 @@ async fn register_message_commands(http: &Arc<Http>) {
 		if let DiscordCommandType::Message = meta.command_type {
 			let mut command_build = CreateCommand::new(meta.name).kind(CommandType::Message);
 
-			let install_types: Vec<InstallationContext> =
+			let install_types: Cow<[InstallationContext]> =
 				meta.install_contexts.iter().map(|c| (*c).into()).collect();
 			command_build = command_build.integration_types(install_types);
 
@@ -350,10 +350,10 @@ fn build_chat_input_command(meta: &CommandMeta) -> CreateCommand<'_> {
 		.nsfw(meta.nsfw)
 		.description(meta.desc);
 
-	let contexts: Vec<InteractionContext> = meta.contexts.iter().map(|c| (*c).into()).collect();
+	let contexts: Cow<[InteractionContext]> = meta.contexts.iter().map(|c| (*c).into()).collect();
 	command_build = command_build.contexts(contexts);
 
-	let install_types: Vec<InstallationContext> =
+	let install_types:  Cow<[InstallationContext]> =
 		meta.install_contexts.iter().map(|c| (*c).into()).collect();
 	command_build = command_build.integration_types(install_types);
 

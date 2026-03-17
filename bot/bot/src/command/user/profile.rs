@@ -1,14 +1,13 @@
 //! The `ProfileCommand` struct represents a command for handling and displaying user profile
 //! information in a Discord bot. It contains the Serenity context and the interaction data for
 //! processing and responding to the user command.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::event_handler::BotData;
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use unic_langid::LanguageIdentifier;
@@ -21,33 +20,28 @@ use unic_langid::LanguageIdentifier;
 	args = [(name = "username", desc = "Username of the user you want the avatar of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let user = match command_interaction.data.kind.0 {
-		1 => get_user_command(ctx, command_interaction).await?,
-		2 => get_user_command_user(ctx, command_interaction).await,
+	let user = match cx.command_interaction.data.kind.0 {
+		1 => get_user_command(&cx.ctx, &cx.command_interaction).await?,
+		2 => get_user_command_user(&cx.ctx, &cx.command_interaction).await,
 		_ => {
 			return Err(anyhow::anyhow!("Invalid command type"));
 		},
 	};
 
-	let guild_id = command_interaction
-		.guild_id
-		.map(|id| id.to_string())
-		.unwrap_or("0".to_string());
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let mut fields = get_fields(&lang_id, user.clone());
 
 	let avatar_url = user.face();
 
 	let member: Option<Member> = {
-		match command_interaction.guild_id {
-			Some(guild_id) => (guild_id.member(&ctx.http, user.id).await).ok(),
+		match cx.command_interaction.guild_id {
+			Some(guild_id) => (guild_id.member(&cx.ctx.http, user.id).await).ok(),
 			None => None,
 		}
 	};
@@ -62,9 +56,10 @@ async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
 		}
 	}
 
-	let skus = ctx.http.get_skus().await;
+	let skus = cx.ctx.http.get_skus().await;
 
-	let user_premium = ctx
+	let user_premium = cx
+		.ctx
 		.http
 		.get_entitlements(Some(user.id), None, None, None, None, None, Some(true))
 		.await;

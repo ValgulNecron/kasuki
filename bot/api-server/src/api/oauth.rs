@@ -14,6 +14,9 @@ use uuid::Uuid;
 use crate::api::error::AppError;
 use crate::api::state::{AppState, AuthCodeEntry};
 
+const DISCORD_API_BASE: &str = "https://discord.com/api/v10";
+const DISCORD_OAUTH_AUTHORIZE: &str = "https://discord.com/api/oauth2/authorize";
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
 	pub sub: String,
@@ -52,29 +55,14 @@ pub struct TokenResponse {
 pub struct UserInfo {
 	pub id: String,
 	pub username: String,
-	#[serde(skip_serializing)]
-	#[allow(dead_code)]
-	pub discriminator: String,
 	pub avatar: Option<String>,
-	#[serde(skip_serializing)]
-	#[allow(dead_code)]
-	pub email: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Guild {
 	pub id: String,
 	pub name: String,
-	#[serde(skip_serializing)]
-	#[allow(dead_code)]
-	pub icon_hash: Option<String>,
 	pub icon_url: Option<String>,
-	#[serde(skip_serializing)]
-	#[allow(dead_code)]
-	pub owner: bool,
-	#[serde(skip_serializing)]
-	#[allow(dead_code)]
-	pub permissions: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -82,8 +70,6 @@ struct RawDiscordGuild {
 	id: String,
 	name: String,
 	icon: Option<String>,
-	owner: bool,
-	permissions: String,
 }
 
 pub async fn oauth_login(State(state): State<AppState>) -> impl IntoResponse {
@@ -102,7 +88,7 @@ pub async fn oauth_login(State(state): State<AppState>) -> impl IntoResponse {
 
 	let query_string = serde_urlencoded::to_string(&params)
 		.expect("failed to encode OAuth query params");
-	let discord_auth_url = format!("https://discord.com/api/oauth2/authorize?{}", query_string);
+	let discord_auth_url = format!("{}?{}", DISCORD_OAUTH_AUTHORIZE, query_string);
 
 	debug!("redirecting to discord oauth");
 	Redirect::temporary(&discord_auth_url)
@@ -197,6 +183,11 @@ pub async fn oauth_callback(
 
 	if let Err(e) = store_oauth_tokens(&state, &user_info.id, &token_response).await {
 		error!(error = %e.message, user = %user_info.id, "failed to persist oauth tokens");
+		return Redirect::temporary(&format!(
+			"{}/?error=token_storage_failed",
+			state.config.api.oauth.frontend_url
+		))
+		.into_response();
 	}
 
 	state
@@ -265,7 +256,7 @@ async fn exchange_code_for_token(state: &AppState, code: &str) -> Result<TokenRe
 
 	let response = state
 		.http_client
-		.post("https://discord.com/api/v10/oauth2/token")
+		.post(&format!("{}/oauth2/token", DISCORD_API_BASE))
 		.form(&params)
 		.send()
 		.await
@@ -301,7 +292,7 @@ pub async fn refresh_discord_token(
 
 	let response = state
 		.http_client
-		.post("https://discord.com/api/v10/oauth2/token")
+		.post(&format!("{}/oauth2/token", DISCORD_API_BASE))
 		.form(&params)
 		.send()
 		.await
@@ -327,7 +318,7 @@ pub async fn get_user_info(
 	client: &reqwest::Client, access_token: &str,
 ) -> Result<UserInfo, AppError> {
 	let response = client
-		.get("https://discord.com/api/v10/users/@me")
+		.get(&format!("{}/users/@me", DISCORD_API_BASE))
 		.header("Authorization", format!("Bearer {}", access_token))
 		.send()
 		.await
@@ -353,7 +344,7 @@ pub async fn get_user_guilds(
 	client: &reqwest::Client, access_token: &str,
 ) -> Result<Vec<Guild>, AppError> {
 	let response = client
-		.get("https://discord.com/api/v10/users/@me/guilds")
+		.get(&format!("{}/users/@me/guilds", DISCORD_API_BASE))
 		.header("Authorization", format!("Bearer {}", access_token))
 		.send()
 		.await
@@ -386,10 +377,7 @@ pub async fn get_user_guilds(
 			Guild {
 				id: raw_guild.id,
 				name: raw_guild.name,
-				icon_hash: raw_guild.icon,
 				icon_url,
-				owner: raw_guild.owner,
-				permissions: raw_guild.permissions,
 			}
 		})
 		.collect())

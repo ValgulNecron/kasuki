@@ -1,7 +1,7 @@
 use crate::api::auth::{auth_middleware, Claims};
 use crate::api::error::AppError;
 use crate::api::oauth::{get_user_guilds, get_user_info, refresh_discord_token, Guild, UserInfo};
-use crate::api::rate_limit::{create_rate_limiter, rate_limit_middleware};
+use crate::api::rate_limit::{create_rate_limiter, rate_limit_middleware, spawn_rate_limiter_cleanup};
 use crate::api::state::AppState;
 use crate::api::{health, oauth as oauth_handlers};
 use axum::{
@@ -135,6 +135,7 @@ pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 	let cors = build_cors_layer(&state.config);
 
 	let rate_limiter = create_rate_limiter(state.config.api.rate_limit_per_minute);
+	spawn_rate_limiter_cleanup(&rate_limiter);
 
 	let oauth_router = Router::new()
 		.route("/login", get(oauth_handlers::oauth_login))

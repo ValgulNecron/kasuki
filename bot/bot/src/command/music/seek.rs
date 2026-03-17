@@ -63,15 +63,14 @@
 //! # Notes
 //! - This command only functions within a guild context where Lavalink is properly configured.
 //! - If no track is currently playing in the guild, the command will notify the user accordingly.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
 use anyhow::anyhow;
 use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -84,25 +83,17 @@ use std::time::Duration;
 	args = [(name = "time", desc = "Time to seek to in seconds.", arg_type = Integer, required = true, autocomplete = false)],
 )]
 async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-
-	// Retrieve the guild ID from the command interaction
-	let guild_id_str = match self_.command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	// Load the localized strings
-	let lang_id = get_language_identifier(guild_id_str, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
-	let command_interaction = self_.get_command_interaction();
+	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
 
-	let guild_id = command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
-
-	let lava_client = bot_data.lavalink.clone();
-	let lava_client = lava_client.read().await.clone();
+	let lava_client = cx.bot_data.lavalink.read().await.clone();
 	if lava_client.is_none() {
 		return Err(anyhow::anyhow!("Lavalink is disabled"));
 	}
@@ -118,9 +109,9 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 		return Ok(embed_contents);
 	};
 
-	let map = get_option_map_number_subcommand(command_interaction);
+	let map = get_option_map_number_subcommand(&cx.command_interaction);
 
-	let time = map.get(&String::from("time")).cloned().unwrap_or_default() as u64;
+	let time = map.get("time").cloned().unwrap_or_default() as u64;
 
 	let now_playing = player.get_player().await?.track;
 

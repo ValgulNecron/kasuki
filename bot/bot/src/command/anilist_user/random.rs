@@ -61,12 +61,11 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::trace;
 
-use crate::command::command::CommandRun;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use shared::anilist::make_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,

@@ -1,7 +1,6 @@
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
-use crate::event_handler::BotData;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
 use anyhow::{anyhow, Result};
 use fluent_templates::fluent_bundle::FluentValue;
@@ -13,7 +12,7 @@ use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
 use serenity::model::Colour;
 use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
 use shared::database::{message, vocal};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::{debug, info};
@@ -29,20 +28,22 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 	info!("Processing levels stats command");
 	debug!("Command deferred");
 
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	debug!("Retrieved bot data and command interaction");
 
 	debug!("Fetching channels for guild");
-	let channels_id = command_interaction
+	let channels_id = cx
+		.command_interaction
 		.guild_id
 		.unwrap()
-		.channels(&ctx.http)
+		.channels(&cx.ctx.http)
 		.await?;
 	let vec_channel_id: Vec<ChannelId> = channels_id.iter().map(|a| a.id).collect();
 	let vec_string: Vec<String> = vec_channel_id.iter().map(|id| id.to_string()).collect();
-	let user_id = command_interaction.user.id.to_string();
+	let user_id = cx.command_interaction.user.id.to_string();
 	debug!(
 		"User ID: {}, Channel count: {}",
 		user_id,
@@ -54,12 +55,10 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 		.add(message::Column::UserId.eq(user_id.clone()))
 		.add(message::Column::ChannelId.is_in(vec_string.clone()));
 
-	let db_connection = bot_data.db_connection.clone();
-
 	debug!("Querying database for user messages");
 	let messages = DatabaseMessage::find()
 		.filter(condition)
-		.all(&*db_connection)
+		.all(&*cx.db)
 		.await?;
 
 	let total_message = messages.len() as i128;
@@ -73,7 +72,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 	debug!("Querying database for user vocal sessions");
 	let vocals = DatabaseVocal::find()
 		.filter(condition)
-		.all(&*db_connection)
+		.all(&*cx.db)
 		.await?;
 
 	let total_vocal = vocals.len() as i128;
@@ -111,7 +110,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 	debug!("XP progress: {}/{} for next level", xp_progress, xp_needed);
 
 	debug!("Creating progress bar with user color");
-	let user_color = command_interaction.user.accent_colour;
+	let user_color = cx.command_interaction.user.accent_colour;
 	let (progress_file, percent) = create_progress_bar(xp_progress, xp_needed, user_color).await?;
 	let progress_filename = format!("attachment://{}", progress_file.filename.clone());
 	debug!(
@@ -120,11 +119,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 	);
 
 	debug!("Loading localization for levels stats");
-	let lang_id = get_language_identifier(
-		command_interaction.guild_id.unwrap().to_string(),
-		db_connection,
-	)
-	.await;
+	let lang_id = cx.lang_id().await;
 	debug!("Localization loaded successfully");
 
 	let next_level = level + 1;

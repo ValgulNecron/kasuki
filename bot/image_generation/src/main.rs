@@ -8,7 +8,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use redis::AsyncCommands;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use shared::config::Config;
 use shared::image_saver::storage::{create_image_store, ImageStore};
 use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
@@ -19,11 +19,15 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::calculate::{calculate_user_color_from_url, get_image_from_url};
-use crate::color::create_color_vector;
+use crate::color::ColorWithTile;
 
 use shared::database::guild_data::ActiveModel as GuildActiveModel;
 use shared::database::prelude::{GuildData, ServerImage};
 use shared::database::server_image::{ActiveModel, Column};
+
+const TILE_SIZE: u32 = 32;
+const DB_PAGE_SIZE: u64 = 500;
+const TASK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(600);
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -138,8 +142,16 @@ async fn main() -> Result<()> {
 		let store = store.clone();
 		tokio::spawn(async move {
 			let _permit = permit;
-			if let Err(e) = handle_task(task, &db, &store).await {
-				error!("Failed to process task: {:#}", e);
+			let result = tokio::time::timeout(TASK_TIMEOUT, handle_task(task, &db, &store)).await;
+			match result {
+				Ok(Ok(())) => {},
+				Ok(Err(e)) => error!("Failed to process task: {:#}", e),
+				Err(_) => error!("Task timed out after {}s", TASK_TIMEOUT.as_secs()),
+			}
+
+			#[cfg(target_os = "linux")]
+			unsafe {
+				libc::malloc_trim(0);
 			}
 		});
 	}
@@ -195,69 +207,72 @@ async fn handle_task(
 	}
 }
 
-async fn handle_generate_server_image(
-	guild_id: String, guild_name: String, guild_icon_url: String, image_type: String,
-	members: Vec<MemberColorData>, blacklist: HashSet<String>, db: &Arc<DatabaseConnection>,
-	store: &Arc<dyn ImageStore>,
-) -> Result<()> {
-	let is_global = members.is_empty();
+async fn build_global_tiles(
+	blacklist: &HashSet<String>, db: &DatabaseConnection, store: &Arc<dyn ImageStore>,
+) -> Result<Vec<ColorWithTile>> {
+	use shared::database::prelude::UserColor;
 
+	let paginator = UserColor::find().paginate(db, DB_PAGE_SIZE);
+	let num_pages = paginator.num_pages().await.unwrap_or(0);
+
+	let mut color_tiles: Vec<ColorWithTile> = Vec::new();
+
+	for page_num in 0..num_pages {
+		let page = paginator.fetch_page(page_num).await.unwrap_or_default();
+
+		for uc in page {
+			if blacklist.contains(&uc.user_id) || uc.images.starts_with("data:") {
+				continue;
+			}
+
+			match store.load(&uc.images).await {
+				Ok(png_bytes) => {
+					if let Some(tile) =
+						color::create_color_tile(&uc.color, &png_bytes, TILE_SIZE)
+					{
+						color_tiles.push(tile);
+					}
+				},
+				Err(e) => {
+					debug!(
+						"Skipping user {} – failed to load image: {:#}",
+						uc.user_id, e
+					);
+				},
+			}
+		}
+	}
+
+	Ok(color_tiles)
+}
+
+async fn build_local_tiles(
+	members: &[MemberColorData], blacklist: &HashSet<String>, db: &Arc<DatabaseConnection>,
+	store: &Arc<dyn ImageStore>,
+) -> Result<Vec<ColorWithTile>> {
 	use shared::database::prelude::UserColor;
 	use shared::database::user_color::Column as UserColorColumn;
 
-	let (effective_members, color_map) = if is_global {
-		let all_colors = UserColor::find().all(&**db).await.unwrap_or_default();
-		info!(
-			"Generating global server image for guild {} ({} users from DB)",
-			guild_id,
-			all_colors.len()
-		);
+	let member_user_ids: Vec<String> = members
+		.iter()
+		.filter(|m| !blacklist.contains(&m.user_id))
+		.map(|m| m.user_id.clone())
+		.collect();
 
-		let mut members_out = Vec::with_capacity(all_colors.len());
-		let mut map = std::collections::HashMap::with_capacity(all_colors.len());
+	let color_records = UserColor::find()
+		.filter(UserColorColumn::UserId.is_in(member_user_ids))
+		.all(&**db)
+		.await
+		.unwrap_or_default();
 
-		for uc in all_colors {
-			if blacklist.contains(&uc.user_id) {
-				continue;
-			}
-			members_out.push(MemberColorData {
-				user_id: uc.user_id.clone(),
-				profile_picture_url: uc.profile_picture_url.clone(),
-			});
-			map.insert(uc.user_id.clone(), uc);
-		}
+	let color_map: std::collections::HashMap<String, _> = color_records
+		.into_iter()
+		.map(|r| (r.user_id.clone(), r))
+		.collect();
 
-		(members_out, map)
-	} else {
-		info!(
-			"Generating local server image for guild {} ({} members)",
-			guild_id,
-			members.len()
-		);
+	let mut color_tiles: Vec<ColorWithTile> = Vec::new();
 
-		let member_user_ids: Vec<String> = members
-			.iter()
-			.filter(|m| !blacklist.contains(&m.user_id))
-			.map(|m| m.user_id.clone())
-			.collect();
-
-		let color_records = UserColor::find()
-			.filter(UserColorColumn::UserId.is_in(member_user_ids))
-			.all(&**db)
-			.await
-			.unwrap_or_default();
-
-		let map = color_records
-			.into_iter()
-			.map(|r| (r.user_id.clone(), r))
-			.collect();
-
-		(members, map)
-	};
-
-	let mut color_tuples: Vec<(String, Vec<u8>)> = Vec::with_capacity(effective_members.len());
-
-	for member in &effective_members {
+	for member in members {
 		if blacklist.contains(&member.user_id) {
 			continue;
 		}
@@ -326,10 +341,37 @@ async fn handle_generate_server_image(
 			},
 		};
 
-		color_tuples.push((hex_color, png_bytes));
+		if let Some(tile) = color::create_color_tile(&hex_color, &png_bytes, TILE_SIZE) {
+			color_tiles.push(tile);
+		}
 	}
 
-	if color_tuples.is_empty() {
+	Ok(color_tiles)
+}
+
+async fn handle_generate_server_image(
+	guild_id: String, guild_name: String, guild_icon_url: String, image_type: String,
+	members: Vec<MemberColorData>, blacklist: HashSet<String>, db: &Arc<DatabaseConnection>,
+	store: &Arc<dyn ImageStore>,
+) -> Result<()> {
+	let is_global = members.is_empty();
+
+	let color_tiles = if is_global {
+		info!(
+			"Generating global server image for guild {} (paginated, page_size={})",
+			guild_id, DB_PAGE_SIZE
+		);
+		build_global_tiles(&blacklist, db, store).await?
+	} else {
+		info!(
+			"Generating local server image for guild {} ({} members)",
+			guild_id,
+			members.len()
+		);
+		build_local_tiles(&members, &blacklist, db, store).await?
+	};
+
+	if color_tiles.is_empty() {
 		warn!(
 			"No color data for guild {}, skipping image generation",
 			guild_id
@@ -337,15 +379,17 @@ async fn handle_generate_server_image(
 		return Ok(());
 	}
 
-	let color_vec = tokio::task::spawn_blocking(move || create_color_vector(color_tuples))
-		.await
-		.context("spawn_blocking panicked")?;
+	info!(
+		"Built {} color tiles for guild {}, generating mosaic...",
+		color_tiles.len(),
+		guild_id
+	);
 
 	let guild_icon_download_url = calculate::change_to_x128_url(&guild_icon_url);
 	let guild_icon = get_image_from_url(&guild_icon_download_url).await?;
 
 	let image_data =
-		tokio::task::spawn_blocking(move || mosaic::generate_mosaic(&guild_icon, &color_vec))
+		tokio::task::spawn_blocking(move || mosaic::generate_mosaic(&guild_icon, &color_tiles))
 			.await
 			.context("spawn_blocking panicked")??;
 

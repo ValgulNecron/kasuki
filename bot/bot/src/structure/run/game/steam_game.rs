@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use rust_fuzzy_search::fuzzy_search_sorted;
 use sea_orm::DatabaseConnection;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_with::serde_as;
 use shared::helper::get_guild_lang::get_guild_language;
 use tokio::sync::RwLock;
@@ -63,29 +63,6 @@ pub struct Platforms {
 
 pub struct Category {
 	pub description: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-#[allow(dead_code)]
-pub struct Webm {
-	#[serde(rename = "480°")]
-	pub _480: Option<String>,
-}
-
-#[serde_as]
-#[derive(Deserialize, Clone, Debug)]
-#[allow(dead_code)]
-pub struct Mp4 {
-	#[serde(rename = "480°")]
-	pub _480: Option<String>,
-}
-
-#[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(dead_code)]
-pub struct Recommendations {
-	pub total: Option<u32>,
 }
 
 #[serde_as]

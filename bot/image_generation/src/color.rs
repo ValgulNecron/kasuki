@@ -1,4 +1,5 @@
-use image::DynamicImage;
+use image::imageops::FilterType;
+use image::RgbaImage;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
 
@@ -8,9 +9,9 @@ pub struct Color {
 }
 
 #[derive(Clone, Debug)]
-pub struct ColorWithUrl {
+pub struct ColorWithTile {
 	pub cielab: Lab,
-	pub image: DynamicImage,
+	pub tile: RgbaImage,
 }
 
 fn convert_hex_to_rgb(hex: &str) -> (u8, u8, u8) {
@@ -21,23 +22,22 @@ fn convert_hex_to_rgb(hex: &str) -> (u8, u8, u8) {
 	)
 }
 
-/// Create color vector from tuples of `(hex_color, png_bytes)`.
-pub fn create_color_vector(tuples: Vec<(String, Vec<u8>)>) -> Vec<ColorWithUrl> {
-	tuples
-		.into_iter()
-		.filter_map(|(hex, png_bytes)| {
-			let img = match image::load_from_memory(&png_bytes) {
-				Ok(img) => img,
-				Err(_) => return None,
-			};
+pub fn create_color_tile(hex: &str, png_bytes: &[u8], tile_size: u32) -> Option<ColorWithTile> {
+	let img = image::load_from_memory(png_bytes).ok()?;
 
-			let (r, g, b) = convert_hex_to_rgb(&hex);
-			Some(get_color_with_url(img, r, g, b))
-		})
-		.collect()
+	let (r, g, b) = convert_hex_to_rgb(hex);
+	let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+	let lab_color: Lab = rgb_color.into_color();
+
+	let tile = image::imageops::resize(&img, tile_size, tile_size, FilterType::Triangle);
+
+	Some(ColorWithTile {
+		cielab: lab_color,
+		tile,
+	})
 }
 
-pub fn find_closest_color_index(colors: &[ColorWithUrl], target: &Color) -> Option<usize> {
+pub fn find_closest_color_index(colors: &[ColorWithTile], target: &Color) -> Option<usize> {
 	colors
 		.iter()
 		.enumerate()
@@ -49,14 +49,4 @@ pub fn find_closest_color_index(colors: &[ColorWithUrl], target: &Color) -> Opti
 				.unwrap_or(std::cmp::Ordering::Equal)
 		})
 		.map(|(i, _)| i)
-}
-
-pub fn get_color_with_url(img: DynamicImage, r: u8, g: u8, b: u8) -> ColorWithUrl {
-	let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-	let lab_color: Lab = rgb_color.into_color();
-
-	ColorWithUrl {
-		cielab: lab_color,
-		image: img,
-	}
 }

@@ -16,14 +16,14 @@ use shared::localization::{LanguageIdentifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tracing::trace;
 
-use crate::command::anilist_user::user::get_user;
 use crate::command::context::CommandContext;
-use crate::command::embed_content::ComponentVersion::V2;
-use crate::command::embed_content::{ComponentVersion2, EmbedsContents};
+use crate::command::component_version::ComponentVersion::V2;
+use crate::command::component_version::ComponentVersion2;
+use crate::command::embed_content::EmbedsContents;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{
-	User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
-	UserStatusStatistic, UserTagStatistic,
+	MediaListStatus, User, UserGenreStatistic, UserStatisticTypes, UserStatistics,
+	UserStatistics2, UserStatusStatistic, UserTagStatistic, get_user,
 };
 
 #[slash_command(
@@ -812,14 +812,13 @@ fn get_number_by_status(s: Vec<Option<UserStatusStatistic>>) -> (i32, i32, i32, 
 
 		let status = statuses.status.unwrap();
 
-		match status.to_string().as_str() {
-			"CURRENT" => current = statuses.count,
-			"PLANNING" => planning = statuses.count,
-			"COMPLETED" => completed = statuses.count,
-			"DROPPED" => dropped = statuses.count,
-			"PAUSED" => paused = statuses.count,
-			"REPEATING" => repeating = statuses.count,
-			_ => {},
+		match status {
+			MediaListStatus::Current => current = statuses.count,
+			MediaListStatus::Planning => planning = statuses.count,
+			MediaListStatus::Completed => completed = statuses.count,
+			MediaListStatus::Dropped => dropped = statuses.count,
+			MediaListStatus::Paused => paused = statuses.count,
+			MediaListStatus::Repeating => repeating = statuses.count,
 		}
 	}
 
@@ -913,11 +912,7 @@ fn tag_string(vec: &[Option<UserTagStatistic>]) -> Vec<String> {
 /// ```
 fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 	vec.iter()
-		.map(|genre| {
-			let genre = genre.clone().unwrap();
-
-			genre.genre.unwrap().clone()
-		})
+		.filter_map(|genre| genre.as_ref()?.genre.clone())
 		.collect()
 }
 
@@ -951,7 +946,10 @@ fn genre_string(vec: &[Option<UserGenreStatistic>]) -> Vec<String> {
 /// ```
 fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 	if tags.len() > 1 {
-		tags[0].clone().unwrap().tag.unwrap().name.clone()
+		tags[0]
+			.as_ref()
+			.and_then(|t| Some(t.tag.as_ref()?.name.clone()))
+			.unwrap_or_default()
 	} else {
 		String::new()
 	}
@@ -1005,7 +1003,10 @@ fn get_tag(tags: &[Option<UserTagStatistic>]) -> String {
 /// ```
 fn get_genre(genres: &[Option<UserGenreStatistic>]) -> String {
 	if genres.len() > 1 {
-		genres[0].clone().unwrap().genre.clone().unwrap_or_default()
+		genres[0]
+			.as_ref()
+			.and_then(|g| g.genre.clone())
+			.unwrap_or_default()
 	} else {
 		String::new()
 	}

@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -21,14 +21,13 @@ use uuid::Uuid;
 	install_contexts = [Guild],
 )]
 async fn generate_image_pfp_command(self_: GenerateImagePfPCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx().clone();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction().clone();
-	let db_connection = bot_data.db_connection.clone();
-	let image_store = bot_data.image_store.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
 	let embed_contents =
-		get_content(ctx, command_interaction, "local", db_connection, &image_store).await?;
+		get_content(cx.ctx.clone(), cx.command_interaction.clone(), "local", cx.db.clone(), &cx.image_store).await?;
 
 	Ok(embed_contents)
 }

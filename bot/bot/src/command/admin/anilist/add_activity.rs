@@ -76,11 +76,10 @@ use anyhow::{anyhow, Result};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use crate::helper::make_graphql_cached::make_request_anilist;
+use shared::anilist::make_request::make_request_anilist;
 use crate::helper::trimer::trim_webhook;
 use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
@@ -111,7 +110,7 @@ use shared::cache::CacheInterface;
 use shared::database::activity_data;
 use shared::database::activity_data::Column;
 use shared::database::prelude::ActivityData;
-use shared::localization::{get_language_identifier, USABLE_LOCALES};
+use shared::localization::USABLE_LOCALES;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::trace;
@@ -125,32 +124,24 @@ use tracing::trace;
 	],
 )]
 async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContents<'_>> {
-	let command_interaction = self_.get_command_interaction();
-	let ctx = self_.get_ctx();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let bot_data = ctx.data::<BotData>().clone();
-
-	let map = get_option_map_string_subcommand_group(&command_interaction);
+	let map = get_option_map_string_subcommand_group(&cx.command_interaction);
 	let anime = map
-		.get(&String::from("anime_name"))
+		.get("anime_name")
 		.cloned()
 		.unwrap_or(String::new());
 
-	let anilist_cache = bot_data.anilist_cache.clone();
-	let media = get_minimal_anime_media(anime.to_string(), anilist_cache).await?;
+	let media = get_minimal_anime_media(anime.to_string(), cx.anilist_cache.clone()).await?;
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("1"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang_id = get_language_identifier(guild_id.clone(), db_connection.clone()).await;
-
+	let lang_id = cx.lang_id().await;
 
 	let anime_id = media.id;
 	let url = format!("https://anilist.co/anime/{}", anime_id);
-	let exist = check_if_activity_exist(anime_id, guild_id.clone(), db_connection).await;
+	let exist = check_if_activity_exist(anime_id, cx.guild_id.clone(), cx.db.clone()).await;
 
 	let title = media
 		.title
@@ -178,10 +169,10 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 		return Ok(embed_contents);
 	}
 
-	let channel_id = command_interaction.channel_id;
+	let channel_id = cx.command_interaction.channel_id;
 
 	let delay = map
-		.get(&String::from("delay"))
+		.get("delay")
 		.unwrap_or(&String::from("0"))
 		.parse()
 		.unwrap_or(0);
@@ -214,7 +205,7 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 		.naive_utc();
 
 	let webhook = get_webhook(
-		&ctx,
+		&cx.ctx,
 		channel_id,
 		image.clone(),
 		base64.clone(),
@@ -222,18 +213,17 @@ async fn add_activity_command(self_: AddActivityCommand) -> Result<EmbedsContent
 	)
 	.await?;
 
-	let connection = bot_data.db_connection.clone();
 	ActivityData::insert(activity_data::ActiveModel {
 		anime_id: Set(media.id),
 		timestamp: Set(chrono),
-		server_id: Set(guild_id),
+		server_id: Set(cx.guild_id.clone()),
 		webhook: Set(webhook),
 		episode: Set(next_airing.episode),
 		name: Set(trimmed_anime_name),
 		delay: Set(delay),
 		image: Set(image.clone()),
 	})
-	.exec(&*connection)
+	.exec(&*cx.db)
 	.await?;
 
 	let embed_content =

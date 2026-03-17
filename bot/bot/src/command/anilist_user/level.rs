@@ -11,12 +11,10 @@ use shared::localization::USABLE_LOCALES;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use crate::command::anilist_user::user::get_user;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::get_url;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::run::anilist::user::{get_color, get_completed, get_user_url};
+use crate::structure::run::anilist::user::{get_color, get_completed, get_user, get_user_url};
 use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
@@ -37,7 +35,6 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		self_.get_command_interaction().clone(),
 	);
 	let anilist_cache = cx.anilist_cache.clone();
-	let config = cx.bot_data.config.clone();
 	let map = get_option_map_string(&cx.command_interaction);
 
 	let user = map.get(&FixedString::from_str_trunc("username"));
@@ -47,18 +44,16 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		None => {
 			let user_id = &cx.command_interaction.user.id.to_string();
 
-			let connection = sea_orm::Database::connect(get_url(config.db.clone())).await?;
-
 			let row = RegisteredUser::find()
 				.filter(Column::UserId.eq(user_id))
-				.one(&connection)
+				.one(&*cx.db)
 				.await?;
 
 			let user = row.ok_or(anyhow!(
 				"No user specified or linked to this discord account",
 			))?;
 
-			get_user(user.anilist_id.to_string().as_str(), anilist_cache).await?
+			get_user(&user.anilist_id.to_string(), anilist_cache).await?
 		},
 	};
 

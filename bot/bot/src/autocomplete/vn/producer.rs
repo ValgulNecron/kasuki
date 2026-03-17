@@ -7,11 +7,11 @@ use serenity::all::{
 use shared::vndb::producer::{get_producer, Producer};
 use tracing::trace;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
-	let game = map.get(&String::from("name")).unwrap();
+	let game = map.get("name").unwrap();
 
 	let producer = get_producer(game.clone(), bot_data.vndb_cache.clone(), &bot_data.http_client)
 		.await

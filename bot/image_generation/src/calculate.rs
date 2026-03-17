@@ -38,10 +38,6 @@ fn change_to_full_size_url(url: &str) -> String {
 	format!("{}?size=4096&quality=lossless", base_url)
 }
 
-/// Calculate the average color and produce PNG bytes for a user's profile picture.
-/// Returns `(hex_color, thumbnail_png_bytes, full_png_bytes)`.
-/// - `thumbnail_png_bytes`: 128x128 image for mosaic tile usage
-/// - `full_png_bytes`: full-size (4096) image for display/storage
 pub async fn calculate_user_color_from_url(
 	profile_picture_url: &str,
 ) -> Result<(String, Vec<u8>, Vec<u8>)> {
@@ -66,7 +62,6 @@ pub async fn calculate_user_color_from_url(
 
 		debug!("Calculated color: {}", average_color);
 
-		// Full-size PNG for display
 		let mut full_png_bytes: Vec<u8> = Vec::new();
 		PngEncoder::new(&mut full_png_bytes).write_image(
 			img.as_raw(),
@@ -75,7 +70,6 @@ pub async fn calculate_user_color_from_url(
 			ExtendedColorType::Rgba8,
 		)?;
 
-		// 128x128 thumbnail for mosaic tiles
 		let thumb = image::imageops::resize(&img, 128, 128, image::imageops::FilterType::Lanczos3);
 		let mut thumb_png_bytes: Vec<u8> = Vec::new();
 		PngEncoder::new(&mut thumb_png_bytes).write_image(

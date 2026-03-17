@@ -1,30 +1,24 @@
 use anyhow::Result;
 use image::codecs::png;
 use image::codecs::png::PngEncoder;
-use image::imageops::FilterType;
-use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
+use image::{ExtendedColorType, GenericImageView, ImageEncoder, RgbaImage};
 use palette::{IntoColor, Lab, Srgb};
 use rayon::prelude::*;
 
-use crate::color::{find_closest_color_index, Color, ColorWithUrl};
+use crate::color::{find_closest_color_index, Color, ColorWithTile};
 
-/// Generate a mosaic image from a guild icon and member color data.
-/// Returns raw PNG bytes.
 pub fn generate_mosaic(
-	guild_icon: &DynamicImage, average_colors: &[ColorWithUrl],
+	guild_icon: &image::DynamicImage, average_colors: &[ColorWithTile],
 ) -> Result<Vec<u8>> {
 	let tile_size: u32 = 32;
 	let canvas_dim = 128 * tile_size;
 
-	let mut combined_image = DynamicImage::new_rgba8(canvas_dim, canvas_dim);
+	let mut combined_image = RgbaImage::new(canvas_dim, canvas_dim);
 
-	let pixels: Vec<(u32, u32)> = (0..guild_icon.height())
+	let indices: Vec<(u32, u32, usize)> = (0..guild_icon.height())
 		.flat_map(|y| (0..guild_icon.width()).map(move |x| (x, y)))
-		.collect();
-
-	let indices: Vec<(u32, u32, usize)> = pixels
-		.par_iter()
-		.filter_map(|&(x, y)| {
+		.par_bridge()
+		.filter_map(|(x, y)| {
 			let pixel = guild_icon.get_pixel(x, y);
 
 			let r = pixel[0] as f32 / 255.0;
@@ -40,19 +34,12 @@ pub fn generate_mosaic(
 		.collect();
 
 	for (x, y, idx) in indices {
-		let tile = image::imageops::resize(
-			&average_colors[idx].image,
-			tile_size,
-			tile_size,
-			FilterType::Triangle,
+		image::imageops::replace(
+			&mut combined_image,
+			&average_colors[idx].tile,
+			(x * tile_size) as i64,
+			(y * tile_size) as i64,
 		);
-		let tile_img = DynamicImage::ImageRgba8(tile);
-		if combined_image
-			.copy_from(&tile_img, x * tile_size, y * tile_size)
-			.is_err()
-		{
-			continue;
-		}
 	}
 
 	let mut image_data: Vec<u8> = Vec::new();
@@ -62,7 +49,7 @@ pub fn generate_mosaic(
 		png::FilterType::Adaptive,
 	)
 	.write_image(
-		combined_image.as_bytes(),
+		combined_image.as_raw(),
 		combined_image.width(),
 		combined_image.height(),
 		ExtendedColorType::Rgba8,

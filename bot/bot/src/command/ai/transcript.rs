@@ -1,22 +1,16 @@
-//! Documentation for `TranscriptCommand` implementation and associated functionality.
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
-use crate::event_handler::BotData;
 use crate::helper::get_option::subcommand::{
 	get_option_map_attachment_subcommand, get_option_map_string_subcommand,
 };
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
-use reqwest::{multipart, Url};
-use serde_json::Value;
+use reqwest::Url;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::helper::get_guild_lang::get_guild_language;
 use shared::localization::USABLE_LOCALES;
-use std::str::FromStr;
-use unic_langid::LanguageIdentifier;
+use shared::service::ai;
 use uuid::Uuid;
 
 #[slash_command(
@@ -32,15 +26,16 @@ use uuid::Uuid;
 	],
 )]
 async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let command_interaction = self_.get_command_interaction();
-	let bot_data = ctx.data::<BotData>().clone();
-	let config = bot_data.config.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
+	let config = &cx.config;
 
 	if self_
 		.check_hourly_limit(
 			self_.command_name.clone(),
-			&bot_data,
+			&cx.bot_data,
 			PremiumCommandType::AITranscript,
 		)
 		.await?
@@ -50,19 +45,18 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		));
 	}
 
-
-	let map = get_option_map_string_subcommand(command_interaction);
-	let attachment_map = get_option_map_attachment_subcommand(command_interaction);
+	let map = get_option_map_string_subcommand(&cx.command_interaction);
+	let attachment_map = get_option_map_attachment_subcommand(&cx.command_interaction);
 	let prompt = map
-		.get(&String::from("lang"))
+		.get("lang")
 		.cloned()
 		.unwrap_or_default();
 	let lang = map
-		.get(&String::from("prompt"))
+		.get("prompt")
 		.cloned()
 		.unwrap_or_default();
 	let attachment = attachment_map
-		.get(&String::from("video"))
+		.get("video")
 		.ok_or(anyhow!("No option for video"))?;
 
 	let content_type = attachment
@@ -89,12 +83,7 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		return Err(anyhow!("Unsupported file extension"));
 	}
 
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-	let db_connection = bot_data.db_connection.clone();
-	let client = bot_data.http_client.clone();
+	let client = &cx.http_client;
 
 	let response = client.get(content.to_string()).send().await?;
 	let buffer = response.bytes().await?;
@@ -118,53 +107,24 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 		.ai_transcription_base_url
 		.clone()
 		.unwrap_or_default();
-	let url = if api_base_url.ends_with("v1/") {
-		format!("{}audio/transcriptions/", api_base_url)
-	} else if api_base_url.ends_with("v1") {
-		format!("{}/audio/transcriptions/", api_base_url)
-	} else {
-		format!("{}/v1/audio/transcriptions/", api_base_url)
-	};
 
-	let mut headers = HeaderMap::new();
-	headers.insert(
-		AUTHORIZATION,
-		HeaderValue::from_str(&format!("Bearer {}", token))?,
-	);
+	let text = ai::transcribe(
+		buffer.to_vec(),
+		&content_type,
+		&uuid_name,
+		&prompt,
+		&lang,
+		&token,
+		&model,
+		&api_base_url,
+		&client,
+	)
+	.await?;
 
-	let part = multipart::Part::bytes(buffer.to_vec())
-		.file_name(uuid_name)
-		.mime_str(content_type.as_str())?;
-	let form = multipart::Form::new()
-		.part("file", part)
-		.text("model", model)
-		.text("prompt", prompt)
-		.text("language", lang)
-		.text("response_format", "json");
-
-	let response_result = client
-		.post(url)
-		.headers(headers)
-		.multipart(form)
-		.send()
-		.await;
-	let response = response_result?;
-
-	let res_result: Result<Value, reqwest::Error> = response.json().await;
-	let res = res_result?;
-	let text = res["text"].as_str().unwrap_or("");
-
-	let lang = get_guild_language(guild_id, db_connection).await;
-	let lang_code = match lang.as_str() {
-		"jp" => "ja",
-		"en" => "en-US",
-		other => other,
-	};
-	let lang_id = LanguageIdentifier::from_str(lang_code)
-		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
+	let lang_id = cx.lang_id().await;
 	let title = USABLE_LOCALES.lookup(&lang_id, "ai_transcript-title");
 
-	let embed_content = EmbedContent::new(title).description(text.to_string());
+	let embed_content = EmbedContent::new(title).description(text);
 
 	let embed_contents = EmbedsContents::new(vec![embed_content]);
 

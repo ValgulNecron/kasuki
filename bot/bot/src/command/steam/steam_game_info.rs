@@ -91,9 +91,8 @@
 //!     // Process and use the retrieved SteamGameWrapper.
 //! }
 //! ```
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
@@ -101,7 +100,7 @@ use anyhow::{anyhow, Result};
 use kasuki_macros::slash_command;
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -114,24 +113,18 @@ use tokio::sync::RwLock;
 	args = [(name = "game_name", desc = "Name of the steam game you want info of.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let db_connection = bot_data.db_connection.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 	let data = get_steam_game(
-		bot_data.apps.clone(),
-		self_.command_interaction.clone(),
-		db_connection,
+		cx.bot_data.apps.clone(),
+		cx.command_interaction.clone(),
+		cx.db.clone(),
 	)
 	.await?;
-	let command_interaction = self_.get_command_interaction();
 
-	let guild_id = command_interaction
-		.guild_id
-		.unwrap_or(GuildId::from(0))
-		.to_string();
-	let db_connection = bot_data.db_connection.clone();
-
-	let lang_id = get_language_identifier(guild_id.clone(), db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let game = data.data;
 
@@ -360,7 +353,7 @@ async fn get_steam_game(
 	let map = get_option_map_string_subcommand(&command_interaction);
 
 	let value = map
-		.get(&String::from("game_name"))
+		.get("game_name")
 		.ok_or(anyhow!("No option for game_name"))?;
 
 	let data: SteamGameWrapper = if value.parse::<u32>().is_ok() {

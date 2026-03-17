@@ -1,4 +1,5 @@
-use crate::command::embed_content::{ComponentVersion, EmbedsContents};
+use crate::command::component_version::ComponentVersion;
+use crate::command::embed_content::EmbedsContents;
 use crate::helper::create_default_embed::get_default_embed;
 use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
