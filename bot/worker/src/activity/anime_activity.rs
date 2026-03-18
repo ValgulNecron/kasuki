@@ -23,8 +23,7 @@ use tracing::{error, info, trace};
 /// Manages activity notifications. Tracks the last check time internally
 /// so it can find all activities that should have fired since the last poll.
 pub async fn manage_activity(
-	http: Arc<Http>, anilist_cache: Arc<CacheInterface>,
-	db_connection: Arc<DatabaseConnection>,
+	http: Arc<Http>, anilist_cache: Arc<CacheInterface>, db_connection: Arc<DatabaseConnection>,
 ) {
 	use std::sync::OnceLock;
 	static LAST_CHECK: OnceLock<tokio::sync::Mutex<NaiveDateTime>> = OnceLock::new();
@@ -89,16 +88,54 @@ async fn send_specific_activity(
 		Cow::Borrowed("ep"),
 		FluentValue::from(row.episode.to_string()),
 	);
-	args.insert(
-		Cow::Borrowed("anime"),
-		FluentValue::from(row.name.clone()),
-	);
+	args.insert(Cow::Borrowed("anime"), FluentValue::from(row.name.clone()));
 
 	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_user_send_activity-title");
-	let desc =
-		USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_send_activity-desc", &args);
+	let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_send_activity-desc", &args);
 
-	let mut webhook = Webhook::from_url(http, &row.webhook).await?;
+	// If webhook is None but channel_id is set, create a webhook in that channel
+	let webhook_url = match &row.webhook {
+		Some(url) => url.clone(),
+		None => {
+			let channel_id_str = row
+				.channel_id
+				.as_ref()
+				.ok_or_else(|| anyhow!("Activity has no webhook and no channel_id"))?;
+			let channel_id: u64 = channel_id_str.parse().context("Invalid channel_id")?;
+
+			let trimmed_name = row.name.chars().take(100).collect::<String>();
+			let new_webhook = http
+				.create_webhook(
+					serenity::model::id::ChannelId::new(channel_id),
+					&serde_json::json!({ "name": trimmed_name }),
+					None,
+				)
+				.await
+				.context("Failed to create webhook in channel")?;
+
+			let url = new_webhook.url().context("Created webhook has no URL")?;
+
+			// Update DB with the new webhook URL
+			use sea_orm::ActiveModelTrait;
+			let mut active = activity_data::ActiveModel {
+				anime_id: Set(row.anime_id),
+				server_id: Set(row.server_id.clone()),
+				..Default::default()
+			};
+			active.webhook = Set(Some(url.clone()));
+			active.update(&*db_connection).await?;
+
+			info!(
+				anime_id = row.anime_id,
+				server = %row.server_id,
+				"created webhook for API-created activity"
+			);
+
+			url
+		},
+	};
+
+	let mut webhook = Webhook::from_url(http, &webhook_url).await?;
 
 	let decoded_bytes = decode_image(&row.image)?;
 	let trimmed_name = row.name.chars().take(100).collect::<String>();
@@ -178,7 +215,7 @@ async fn update_info(
 		name: Set(name),
 		delay: Set(row.delay),
 		image: Set(row.image.clone()),
-		..Default::default()
+		channel_id: Set(row.channel_id.clone()),
 	};
 
 	ActivityData::insert(new_activity)
@@ -194,6 +231,7 @@ async fn update_info(
 				activity_data::Column::Webhook,
 				activity_data::Column::Delay,
 				activity_data::Column::Image,
+				activity_data::Column::ChannelId,
 			])
 			.to_owned(),
 		)

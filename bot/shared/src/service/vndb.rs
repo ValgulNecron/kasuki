@@ -237,11 +237,7 @@ fn build_game_fields(vn: &game::VN, lang_id: &LanguageIdentifier) -> Vec<Display
 		.collect::<Vec<String>>()
 		.join(", ");
 	if !tags.is_empty() {
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_game-tags"),
-			tags,
-			true,
-		));
+		fields.push((USABLE_LOCALES.lookup(lang_id, "vn_game-tags"), tags, true));
 	}
 
 	let developers = vn
@@ -433,9 +429,7 @@ fn build_staff_result(s: &staff::Staff, lang_id: &LanguageIdentifier) -> StaffRe
 }
 
 /// Build a ProducerResult from a VNDB producer (pure transformation).
-fn build_producer_result(
-	p: &producer::Producer, lang_id: &LanguageIdentifier,
-) -> ProducerResult {
+fn build_producer_result(p: &producer::Producer, lang_id: &LanguageIdentifier) -> ProducerResult {
 	let mut fields = vec![];
 
 	if let Some(lang) = &p.lang {
@@ -491,10 +485,7 @@ pub async fn lookup_character(
 ) -> anyhow::Result<CharacterResult> {
 	let result = get_character(name.clone(), vndb_cache, http_client)
 		.await
-		.context(format!(
-			"Failed to get character information for: {}",
-			name
-		))?;
+		.context(format!("Failed to get character information for: {}", name))?;
 
 	let character = result.results.first().context("No character found")?;
 
@@ -514,8 +505,7 @@ pub async fn lookup_game(
 
 /// Fetch VNDB statistics and format for display.
 pub async fn lookup_stats(
-	lang_id: &LanguageIdentifier, vndb_cache: Arc<CacheInterface>,
-	http_client: &reqwest::Client,
+	lang_id: &LanguageIdentifier, vndb_cache: Arc<CacheInterface>, http_client: &reqwest::Client,
 ) -> anyhow::Result<StatsResult> {
 	let stats = get_stats(vndb_cache, http_client).await?;
 
@@ -716,7 +706,9 @@ mod tests {
 
 		// Without height, weight, age: blood_type, bust, waist, hips, cup, sex, birthday, vns, traits = 9
 		assert_eq!(fields.len(), 9);
-		assert!(!fields.iter().any(|(_, v, _)| v.contains("cm") && v.contains("154")));
+		assert!(!fields
+			.iter()
+			.any(|(_, v, _)| v.contains("cm") && v.contains("154")));
 	}
 
 	#[test]
@@ -781,10 +773,7 @@ mod tests {
 			})
 			.collect();
 		let fields = build_character_fields(&character, &en_us());
-		let traits_field = fields
-			.iter()
-			.find(|(_, v, _)| v.contains("Trait"))
-			.unwrap();
+		let traits_field = fields.iter().find(|(_, v, _)| v.contains("Trait")).unwrap();
 		assert_eq!(traits_field.1.matches(", ").count(), 9);
 	}
 
@@ -1038,11 +1027,7 @@ mod tests {
 		};
 		let result = build_staff_result(&s, &en_us());
 
-		let gender_field = result
-			.fields
-			.iter()
-			.find(|(_, v, _)| v.is_empty())
-			.unwrap();
+		let gender_field = result.fields.iter().find(|(_, v, _)| v.is_empty()).unwrap();
 		assert_eq!(gender_field.1, "");
 	}
 

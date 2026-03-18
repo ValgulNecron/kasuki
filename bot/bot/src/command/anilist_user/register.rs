@@ -48,7 +48,6 @@ async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> 
 
 	let map = get_option_map_string(&cx.command_interaction);
 
-
 	let value = map
 		.get(&FixedString::from_str_trunc("username"))
 		.ok_or(anyhow!("No username provided"))?;

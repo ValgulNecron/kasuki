@@ -118,6 +118,7 @@ mod tests {
 			id: "789".into(),
 			name: "Test Server".into(),
 			icon_url: Some("https://cdn.discordapp.com/icons/789/hash123.png".into()),
+			permissions: None,
 		};
 
 		let json = serde_json::to_string(&guild).unwrap();

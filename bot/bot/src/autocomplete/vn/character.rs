@@ -13,9 +13,13 @@ pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandIntera
 
 	let game = map.get("name").unwrap();
 
-	let char = get_character(game.clone(), bot_data.vndb_cache.clone(), &bot_data.http_client)
-		.await
-		.unwrap();
+	let char = get_character(
+		game.clone(),
+		bot_data.vndb_cache.clone(),
+		&bot_data.http_client,
+	)
+	.await
+	.unwrap();
 
 	let vn_result = char.results;
 

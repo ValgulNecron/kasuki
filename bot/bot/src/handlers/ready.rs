@@ -30,8 +30,7 @@ impl Handler {
 					..Default::default()
 				};
 
-				let user_id =
-					lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
 
 				let node_local = NodeBuilder {
 					hostname: music_config.lavalink_hostname.clone(),

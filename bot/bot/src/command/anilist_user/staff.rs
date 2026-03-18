@@ -1,9 +1,3 @@
-//! # StaffCommand Module
-//!
-//! This module defines the `StaffCommand` struct and implements the required functionality
-//! to retrieve and format staff information from the AniList GraphQL API. It includes
-//! methods for extracting staff details such as roles, media appearances, and other metadata
-//! to be formatted into Discord Embed responses.
 use std::fmt::Write;
 use std::sync::Arc;
 
@@ -11,7 +5,6 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
-use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::staff::{
 	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
 	StaffQuerrySearchVariables,
@@ -21,6 +14,7 @@ use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::anilist::make_request::make_request_anilist;
 use shared::cache::CacheInterface;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
@@ -135,7 +129,7 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 	let name = staff.name.unwrap();
 	if staff.date_of_birth.is_some() {
 		let date_of_birth = get_date(staff.date_of_birth.clone());
-		if date_of_birth != String::new() {
+		if !date_of_birth.is_empty() {
 			fields.push((
 				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_birth"),
 				date_of_birth,
@@ -146,7 +140,7 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 
 	if staff.date_of_death.is_some() {
 		let date_of_death = get_date(staff.date_of_death.clone());
-		if date_of_death != String::new() {
+		if !date_of_death.is_empty() {
 			fields.push((
 				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_death"),
 				date_of_death,
@@ -173,67 +167,6 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 	Ok(embed_contents)
 }
 
-/// Retrieves staff details from the AniList API based on the provided command interaction.
-///
-/// This function uses either the staff ID or staff search query provided in the command
-/// interaction to fetch the corresponding staff information from AniList.
-///
-/// # Arguments
-///
-/// * `command_interaction` - A reference to the [`CommandInteraction`] object that contains
-///   details about the command executed, including options or parameters.
-///
-/// * `anilist_cache` - A thread-safe reference to an AniList cache of type [`Cache`],
-///   used to store and retrieve previously retrieved data to minimize unnecessary API calls.
-///
-/// # Returns
-///
-/// On success, this returns a [`Result`] wrapping the [`Staff`] object containing the
-/// details of the staff queried.
-///
-/// On failure, this returns an [`Err`] with a context-specific error.
-///
-/// # How It Works
-///
-/// 1. Options from the `command_interaction` are parsed into a map.
-/// 2. The function checks for the presence of the `staff_name` option. If not found,
-///    it returns an error.
-/// 3. If the provided staff name can be parsed into an integer (`i32`), it treats the input
-///    as a staff ID and fetches the data using the `StaffQuerryId` query.
-/// 4. If the input cannot be parsed into an integer, it assumes the input is a name and
-///    fetches the relevant staff data using the `StaffQuerrySearch` query.
-/// 5. Makes use of the `make_request_anilist` function to send GraphQL requests for data fetching.
-/// 6. Extracts and returns the staff information upon successful query execution.
-///
-/// # Errors
-///
-/// This function returns an error in the following scenarios:
-///
-/// * No `staff_name` is specified in the command interaction.
-/// * The provided `staff_name` cannot be successfully parsed or matched in the AniList API.
-/// * Any network, parsing, or GraphQL execution failure occurs during the data retrieval process.
-///
-/// # Examples
-///
-/// ```rust
-/// use std::sync::Arc;
-/// use tokio::sync::RwLock;
-/// use my_project::{get_staff, CommandInteraction, Cache};
-///
-/// let command_interaction = CommandInteraction::new(); // Example setup
-/// let anilist_cache: Arc<RwLock<Cache<String, String>>> = Arc::new(RwLock::new(Cache::new()));
-///
-/// let result = get_staff(&command_interaction, anilist_cache).await;
-///
-/// match result {
-///     Ok(staff) => println!("Staff: {:?}", staff),
-///     Err(err) => println!("Error: {:?}", err),
-/// }
-/// ```
-///
-/// [`CommandInteraction`]: crate::CommandInteraction
-/// [`Cache`]: crate::Cache
-/// [`Staff`]: crate::Staff
 async fn get_staff(
 	command_interaction: &CommandInteraction, anilist_cache: Arc<CacheInterface>,
 ) -> Result<Staff> {
@@ -270,46 +203,6 @@ async fn get_staff(
 	Ok(staff)
 }
 
-/// Generates a formatted string representation of a date, given an optional `FuzzyDate` object.
-///
-/// This function takes an `Option<FuzzyDate>` as input and converts it into a string representation.
-/// If the `Option` is `None`, it returns an empty string. Otherwise, the components of the `FuzzyDate`
-/// (day, month, and year) are combined into a string in the format `MM/DD/YYYY`, with optional components
-/// included as available. For example:
-///
-/// - If only the month is provided, the output is `MM`.
-/// - If both the month and day are provided, the output is `MM/DD`.
-/// - If all three components (month, day, year) are provided, the output is `MM/DD/YYYY`.
-///
-/// # Parameters
-/// - `option`: An optional `FuzzyDate` object containing the components of the date. Each component (`month`, `day`, `year`) is an `Option<u32>`.
-///
-/// # Returns
-/// A `String` representing the formatted date. If `option` is `None`, returns an empty string. If components are missing, the format dynamically adjusts to exclude the missing parts.
-///
-/// # Examples
-/// ```rust
-/// let date = Some(FuzzyDate { month: Some(12), day: Some(25), year: Some(2023) });
-/// assert_eq!(get_date(date), "12/25/2023");
-///
-/// let date = Some(FuzzyDate { month: Some(12), day: None, year: Some(2023) });
-/// assert_eq!(get_date(date), "12/2023");
-///
-/// let date = Some(FuzzyDate { month: Some(12), day: None, year: None });
-/// assert_eq!(get_date(date), "12");
-///
-/// let date = None;
-/// assert_eq!(get_date(date), "");
-/// ```
-///
-/// # Behavior
-/// - If `month` is present, it is added to the string first.
-/// - If `day` is present, it is appended to the string, separated from the previous part by a `/` if `month` exists.
-/// - If `year` is present, it is appended to the string, separated from the previous part by a `/` if `day` exists.
-///
-/// # Edge Cases
-/// - Returns an empty string if the input `option` is `None`.
-/// - Handles combinations of missing date parts gracefully, providing the appropriate format based on the available components.
 fn get_date(option: Option<FuzzyDate>) -> String {
 	if option.is_none() {
 		return String::new();
@@ -349,40 +242,6 @@ fn get_date(option: Option<FuzzyDate>) -> String {
 	date_string
 }
 
-/// Returns a full name constructed by combining two optional string components.
-///
-/// This function takes two `Option<&str>` inputs, `a` and `b`. It produces an `Option<String>`
-/// based on the following rules:
-///
-/// - If both `a` and `b` are `Some`, it concatenates them with a `/` separator and returns as `Some(String)`.
-/// - If only `a` is `Some`, it returns `a` as `Some(String)`.
-/// - If only `b` is `Some`, it returns `b` as `Some(String)`.
-/// - If both `a` and `b` are `None`, it returns `None`.
-///
-/// # Arguments
-///
-/// * `a` - An optional string slice representing the first component of the name.
-/// * `b` - An optional string slice representing the second component of the name.
-///
-/// # Returns
-///
-/// An `Option<String>` representing the combined full name or `None` if both inputs are `None`.
-///
-/// # Examples
-///
-/// ```
-/// let full_name = get_full_name(Some("Alice"), Some("Smith"));
-/// assert_eq!(full_name, Some("Alice/Smith".to_string()));
-///
-/// let first_name_only = get_full_name(Some("Alice"), None);
-/// assert_eq!(first_name_only, Some("Alice".to_string()));
-///
-/// let last_name_only = get_full_name(None, Some("Smith"));
-/// assert_eq!(last_name_only, Some("Smith".to_string()));
-///
-/// let no_name = get_full_name(None, None);
-/// assert_eq!(no_name, None);
-/// ```
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {
 	match (a, b) {
 		(Some(a), Some(b)) => Some(format!("{}/{}", a, b)),

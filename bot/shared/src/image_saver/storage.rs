@@ -61,14 +61,9 @@ impl S3ImageStore {
 			endpoint: endpoint.into(),
 		};
 
-		let credentials = s3::creds::Credentials::new(
-			Some(access_key),
-			Some(secret_key),
-			None,
-			None,
-			None,
-		)
-		.context("Failed to create S3 credentials")?;
+		let credentials =
+			s3::creds::Credentials::new(Some(access_key), Some(secret_key), None, None, None)
+				.context("Failed to create S3 credentials")?;
 
 		let bucket = s3::Bucket::new(bucket_name, region, credentials)
 			.context("Failed to create S3 bucket handle")?
@@ -103,10 +98,7 @@ impl ImageStore for S3ImageStore {
 pub fn create_image_store(config: &StorageConfig) -> Result<Box<dyn ImageStore>> {
 	match config.storage_type.as_str() {
 		"local" => {
-			let path = config
-				.local_path
-				.as_deref()
-				.unwrap_or("./images");
+			let path = config.local_path.as_deref().unwrap_or("./images");
 			Ok(Box::new(LocalImageStore::new(path)))
 		},
 		"s3" => {

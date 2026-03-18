@@ -42,9 +42,7 @@ pub async fn server_image_queue_publisher(
 				continue;
 			},
 		};
-		if let Err(e) =
-			publish_task(guard.as_mut().unwrap(), SERVER_IMAGE_QUEUE_KEY, &task).await
-		{
+		if let Err(e) = publish_task(guard.as_mut().unwrap(), SERVER_IMAGE_QUEUE_KEY, &task).await {
 			error!("Failed to publish server image task: {:#}", e);
 		}
 		drop(task);

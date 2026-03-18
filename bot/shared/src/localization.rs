@@ -1,7 +1,7 @@
 use crate::helper::get_guild_lang::get_guild_language;
 use anyhow::Result;
-use fluent_templates::static_loader;
 pub use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::static_loader;
 pub use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use std::str::FromStr;
@@ -280,4 +280,3 @@ mod tests {
 		}
 	}
 }
-

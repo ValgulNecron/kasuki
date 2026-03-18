@@ -78,7 +78,10 @@ async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
 		self_.get_command_interaction().clone(),
 	);
 
-	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("no guild id"))?;
 
 	// Load the localized strings
 	let lang_id = cx.lang_id().await;

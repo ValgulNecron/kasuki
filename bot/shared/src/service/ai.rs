@@ -137,8 +137,7 @@ pub fn build_image_payload(
 ///
 /// Returns the raw image bytes for each image.
 pub async fn download_images_from_response(
-	json: Value, user_id: &str, guild_id: &str, image_store: &Arc<dyn ImageStore>,
-	client: &Client,
+	json: Value, user_id: &str, guild_id: &str, image_store: &Arc<dyn ImageStore>, client: &Client,
 ) -> Result<Vec<Bytes>> {
 	let mut bytes = Vec::new();
 
@@ -346,8 +345,14 @@ mod tests {
 
 	#[test]
 	fn test_build_image_payload_all_options() {
-		let payload =
-			build_image_payload("a cat", 2, "dall-e-3", Some("hd"), Some("vivid"), "1024x1024");
+		let payload = build_image_payload(
+			"a cat",
+			2,
+			"dall-e-3",
+			Some("hd"),
+			Some("vivid"),
+			"1024x1024",
+		);
 		assert_eq!(payload["prompt"], "a cat");
 		assert_eq!(payload["n"], 2);
 		assert_eq!(payload["model"], "dall-e-3");
@@ -370,14 +375,16 @@ mod tests {
 
 	#[test]
 	fn test_build_image_payload_quality_only() {
-		let payload = build_image_payload("test", 1, "dall-e-3", Some("standard"), None, "1024x1024");
+		let payload =
+			build_image_payload("test", 1, "dall-e-3", Some("standard"), None, "1024x1024");
 		assert_eq!(payload["quality"], "standard");
 		assert!(payload.get("style").map_or(true, |v| v.is_null()));
 	}
 
 	#[test]
 	fn test_build_image_payload_style_only() {
-		let payload = build_image_payload("test", 1, "dall-e-3", None, Some("natural"), "1024x1024");
+		let payload =
+			build_image_payload("test", 1, "dall-e-3", None, Some("natural"), "1024x1024");
 		assert!(payload.get("quality").map_or(true, |v| v.is_null()));
 		assert_eq!(payload["style"], "natural");
 	}

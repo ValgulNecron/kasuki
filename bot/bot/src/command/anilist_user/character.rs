@@ -34,4 +34,3 @@ async fn character_command(self_: CharacterCommand) -> Result<EmbedsContents<'_>
 
 	Ok(embed_contents)
 }
-

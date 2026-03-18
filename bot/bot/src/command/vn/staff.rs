@@ -18,10 +18,7 @@ async fn vn_staff_command(self_: VnStaffCommand) -> Result<EmbedsContents<'_>> {
 	);
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
-	let name = map
-		.get("name")
-		.cloned()
-		.unwrap_or_default();
+	let name = map.get("name").cloned().unwrap_or_default();
 
 	let lang_id = cx.lang_id().await;
 

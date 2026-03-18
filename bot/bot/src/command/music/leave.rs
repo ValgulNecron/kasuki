@@ -29,7 +29,10 @@ async fn leave_command(self_: LeaveCommand) -> Result<EmbedsContents<'_>> {
 	if lava_client.is_none() {
 		return Err(anyhow::anyhow!("Lavalink is disabled"));
 	}
-	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("no guild id"))?;
 
 	let lava_client = lava_client.unwrap();
 

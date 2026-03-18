@@ -83,7 +83,6 @@ use anyhow::anyhow;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
@@ -92,6 +91,7 @@ use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::anilist::make_request::make_request_anilist;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use std::borrow::Cow;
@@ -160,12 +160,7 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 		let en = title.user_preferred.unwrap_or_default();
 
 		// Format the text for the response
-		let text = format!(
-			"[{}/{}]({})",
-			rj,
-			en,
-			m.site_url.unwrap_or_default()
-		);
+		let text = format!("[{}/{}]({})", rj, en, m.site_url.unwrap_or_default());
 
 		// Append the text to the content string
 		content.push_str(text.as_str());

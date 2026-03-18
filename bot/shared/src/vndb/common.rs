@@ -4,8 +4,7 @@ use std::sync::Arc;
 use crate::cache::CacheInterface;
 
 pub async fn do_request_cached(
-	path: String, vndb_cache: Arc<CacheInterface>,
-	client: &reqwest::Client,
+	path: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<String> {
 	let cache = vndb_cache.read(&path).await?;
 
@@ -36,8 +35,7 @@ pub async fn do_request(
 }
 
 pub async fn do_request_cached_with_json(
-	path: String, json: String, vndb_cache: Arc<CacheInterface>,
-	client: &reqwest::Client,
+	path: String, json: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
 
@@ -51,8 +49,7 @@ pub async fn do_request_cached_with_json(
 }
 
 pub async fn do_request_with_json(
-	path: String, json: String, vndb_cache: Arc<CacheInterface>,
-	client: &reqwest::Client,
+	path: String, json: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<String> {
 	let key = format!("{}_{}", path, json);
 

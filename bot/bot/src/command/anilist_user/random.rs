@@ -65,13 +65,13 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
-use shared::anilist::make_request::make_request_anilist;
 use crate::helper::trimer::trim;
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
 use anyhow::{anyhow, Result};
 use kasuki_macros::slash_command;
+use shared::anilist::make_request::make_request_anilist;
 
 #[slash_command(
 	name = "random", desc = "Get a random anime or manga.", command_type = ChatInput,
@@ -96,7 +96,6 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 	let random_type = map
 		.get(&FixedString::from_str_trunc("type"))
 		.ok_or(anyhow!("No type specified"))?;
-
 
 	let stats = shared::database::random_stats::Entity::find_by_id(1)
 		.one(&*cx.db)

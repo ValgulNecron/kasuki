@@ -5,8 +5,7 @@ use anyhow::Result;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{CommandInteraction, MessageFlags};
 use serenity::builder::{
-	CreateAttachment, CreateEmbedAuthor, CreateEmbedFooter,
-	CreateInteractionResponseFollowup,
+	CreateAttachment, CreateEmbedAuthor, CreateEmbedFooter, CreateInteractionResponseFollowup,
 };
 use serenity::prelude::Context as SerenityContext;
 

@@ -25,9 +25,7 @@ pub struct Stats {
 use crate::cache::CacheInterface;
 use anyhow::Result;
 
-pub async fn get_stats(
-	vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
-) -> Result<Stats> {
+pub async fn get_stats(vndb_cache: Arc<CacheInterface>, client: &reqwest::Client) -> Result<Stats> {
 	let path = "/stats".to_string();
 
 	let response = do_request_cached(path.clone(), vndb_cache, client).await?;

@@ -47,14 +47,8 @@ async fn transcript_command(self_: TranscriptCommand) -> Result<EmbedsContents<'
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
 	let attachment_map = get_option_map_attachment_subcommand(&cx.command_interaction);
-	let prompt = map
-		.get("lang")
-		.cloned()
-		.unwrap_or_default();
-	let lang = map
-		.get("prompt")
-		.cloned()
-		.unwrap_or_default();
+	let prompt = map.get("lang").cloned().unwrap_or_default();
+	let lang = map.get("prompt").cloned().unwrap_or_default();
 	let attachment = attachment_map
 		.get("video")
 		.ok_or(anyhow!("No option for video"))?;

@@ -40,14 +40,10 @@ async fn module_command(self_: ModuleCommand) -> Result<EmbedsContents<'_>> {
 	);
 
 	let map = get_option_map_string_subcommand_group(&cx.command_interaction);
-	let module = map
-		.get("name")
-		.ok_or(anyhow!("No option for name"))?;
+	let module = map.get("name").ok_or(anyhow!("No option for name"))?;
 
 	let map = get_option_map_boolean_subcommand_group(&cx.command_interaction);
-	let state = *map
-		.get("state")
-		.ok_or(anyhow!("No option for state"))?;
+	let state = *map.get("state").ok_or(anyhow!("No option for state"))?;
 
 	let lang_id = cx.lang_id().await;
 

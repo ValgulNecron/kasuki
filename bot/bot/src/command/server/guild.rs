@@ -104,13 +104,21 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 	let lang_id = cx.lang_id().await;
 
 	// Retrieve the guild ID from the command interaction or return an error if it does not exist
-	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("No guild ID"))?;
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("No guild ID"))?;
 
 	// Retrieve the guild's information or return an error if it could not be retrieved
 	let guild = guild_id.to_partial_guild_with_counts(&cx.ctx.http).await?;
 
 	// Retrieve various details about the guild
-	let channels = guild.id.channels(&cx.ctx.http).await.unwrap_or_default().len();
+	let channels = guild
+		.id
+		.channels(&cx.ctx.http)
+		.await
+		.unwrap_or_default()
+		.len();
 
 	let guild_id = guild.id;
 

@@ -181,7 +181,9 @@ pub struct ImageConfig {
 }
 
 fn default_max_workers() -> usize {
-	let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+	let cpus = std::thread::available_parallelism()
+		.map(|n| n.get())
+		.unwrap_or(1);
 	(cpus / 10).max(1)
 }
 
@@ -316,6 +318,18 @@ pub struct TaskIntervalConfig {
 	pub random_stats_update: u64,
 	pub anisong_update: u64,
 	pub bot_info_update: u64,
+	#[serde(default = "default_db_cleanup_interval_hours")]
+	pub db_cleanup_interval_hours: u64,
+	#[serde(default = "default_db_retention_days")]
+	pub db_retention_days: u64,
+}
+
+fn default_db_cleanup_interval_hours() -> u64 {
+	24
+}
+
+fn default_db_retention_days() -> u64 {
+	90
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -330,6 +344,7 @@ pub struct ApiConfig {
 	pub rate_limit_per_minute: u32,
 	#[serde(default)]
 	pub cache: ApiCacheConfig,
+	pub blacklist_webhook_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -465,13 +480,31 @@ impl Config {
 
 		// Storage config — S3 requires its fields
 		if self.image.storage.storage_type == "s3" {
-			if self.image.storage.s3_bucket.as_ref().is_none_or(|s| s.is_empty()) {
+			if self
+				.image
+				.storage
+				.s3_bucket
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
 				bail!("image.storage.s3_bucket is required when storage_type = \"s3\"");
 			}
-			if self.image.storage.s3_access_key.as_ref().is_none_or(|s| s.is_empty()) {
+			if self
+				.image
+				.storage
+				.s3_access_key
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
 				bail!("image.storage.s3_access_key is required when storage_type = \"s3\"");
 			}
-			if self.image.storage.s3_secret_key.as_ref().is_none_or(|s| s.is_empty()) {
+			if self
+				.image
+				.storage
+				.s3_secret_key
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
 				bail!("image.storage.s3_secret_key is required when storage_type = \"s3\"");
 			}
 		}
@@ -485,9 +518,18 @@ impl Config {
 		let ai_limits = &self.ai.rate_limits;
 		for (name, val) in [
 			("paid_image_multiplier", ai_limits.paid_image_multiplier),
-			("paid_question_multiplier", ai_limits.paid_question_multiplier),
-			("paid_translation_multiplier", ai_limits.paid_translation_multiplier),
-			("paid_transcript_multiplier", ai_limits.paid_transcript_multiplier),
+			(
+				"paid_question_multiplier",
+				ai_limits.paid_question_multiplier,
+			),
+			(
+				"paid_translation_multiplier",
+				ai_limits.paid_translation_multiplier,
+			),
+			(
+				"paid_transcript_multiplier",
+				ai_limits.paid_transcript_multiplier,
+			),
 		] {
 			if val <= 0.0 {
 				bail!("ai.rate_limits.{} must be > 0", name);

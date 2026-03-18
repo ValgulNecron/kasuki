@@ -52,4 +52,3 @@ async fn user_command(self_: UserCommand) -> Result<EmbedsContents<'_>> {
 
 	Ok(embed_content)
 }
-

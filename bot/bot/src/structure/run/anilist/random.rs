@@ -90,4 +90,3 @@ impl Display for MediaFormat {
 		}
 	}
 }
-

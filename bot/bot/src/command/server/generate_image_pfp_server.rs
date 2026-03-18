@@ -26,8 +26,14 @@ async fn generate_image_pfp_command(self_: GenerateImagePfPCommand) -> Result<Em
 		self_.get_command_interaction().clone(),
 	);
 
-	let embed_contents =
-		get_content(cx.ctx.clone(), cx.command_interaction.clone(), "local", cx.db.clone(), &cx.image_store).await?;
+	let embed_contents = get_content(
+		cx.ctx.clone(),
+		cx.command_interaction.clone(),
+		"local",
+		cx.db.clone(),
+		&cx.image_store,
+	)
+	.await?;
 
 	Ok(embed_contents)
 }
@@ -48,10 +54,7 @@ pub async fn get_content<'a>(
 		.filter(Column::ImageType.eq(image_type.to_string()))
 		.one(&*db_connection)
 		.await?
-		.ok_or(anyhow!(format!(
-			"Server image with type {} not found",
-			image_type
-		)))?
+		.ok_or(anyhow!("Server image with type {} not found", image_type))?
 		.image;
 
 	let image_data = image_store
@@ -67,8 +70,7 @@ pub async fn get_content<'a>(
 	)
 	.images_url(format!("attachment://{}", image_path.clone()));
 	let file = CommandFiles::new(image_path, image_data);
-	let embed_contents = EmbedsContents::new(vec![embed_content])
-		.add_files(vec![file]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]).add_files(vec![file]);
 
 	Ok(embed_contents)
 }

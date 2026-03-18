@@ -19,9 +19,7 @@ async fn vn_user_command(self_: VnUserCommand) -> Result<EmbedsContents<'_>> {
 	);
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
-	let username = map
-		.get("username")
-		.ok_or(anyhow!("No username provided"))?;
+	let username = map.get("username").ok_or(anyhow!("No username provided"))?;
 
 	let lang_id = cx.lang_id().await;
 

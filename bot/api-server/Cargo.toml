@@ -24,3 +24,4 @@ governor.workspace = true
 uuid.workspace = true
 sea-orm.workspace = true
 sentry.workspace = true
+image.workspace = true

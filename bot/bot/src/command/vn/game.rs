@@ -18,10 +18,7 @@ async fn vn_game_command(self_: VnGameCommand) -> Result<EmbedsContents<'_>> {
 	);
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
-	let title = map
-		.get("title")
-		.cloned()
-		.unwrap_or_default();
+	let title = map.get("title").cloned().unwrap_or_default();
 
 	let lang_id = cx.lang_id().await;
 

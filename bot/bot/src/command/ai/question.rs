@@ -1,6 +1,6 @@
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::prenium_command::{PremiumCommand, PremiumCommandType};
-use crate::command::context::CommandContext;
 use crate::constant::DEFAULT_STRING;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::anyhow;
@@ -40,7 +40,10 @@ async fn question_command(self_: QuestionCommand) -> Result<EmbedsContents<'_>> 
 	}
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
-	let prompt = map.get("prompt").map(String::as_str).unwrap_or(DEFAULT_STRING);
+	let prompt = map
+		.get("prompt")
+		.map(String::as_str)
+		.unwrap_or(DEFAULT_STRING);
 
 	let api_key = config
 		.ai

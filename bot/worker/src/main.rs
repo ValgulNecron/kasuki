@@ -37,7 +37,9 @@ async fn main() -> Result<()> {
 
 	let sentry_layer = sentry::integrations::tracing::layer();
 	tracing_subscriber::registry()
-		.with(tracing_subscriber::filter::LevelFilter::from_level(Level::INFO))
+		.with(tracing_subscriber::filter::LevelFilter::from_level(
+			Level::INFO,
+		))
 		.with(sentry_layer)
 		.with(tracing_subscriber::fmt::layer())
 		.init();
@@ -55,21 +57,22 @@ async fn main() -> Result<()> {
 	);
 	info!("Database connected");
 
-	let anilist_cache = Arc::new(
-		match CacheInterface::from_config(&config.cache).await {
-			Ok(c) => {
-				info!("AniList cache initialized with {} backend", config.cache.cache_type);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init cache with {} backend, falling back to memory: {}",
-					config.cache.cache_type, e
-				);
-				CacheInterface::new()
-			},
+	let anilist_cache = Arc::new(match CacheInterface::from_config(&config.cache).await {
+		Ok(c) => {
+			info!(
+				"AniList cache initialized with {} backend",
+				config.cache.cache_type
+			);
+			c
 		},
-	);
+		Err(e) => {
+			warn!(
+				"Failed to init cache with {} backend, falling back to memory: {}",
+				config.cache.cache_type, e
+			);
+			CacheInterface::new()
+		},
+	});
 
 	let token = Token::from_str(&config.bot.discord_token).context("Invalid Discord token")?;
 	let http = Arc::new(Http::new(token));

@@ -12,9 +12,13 @@ pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandIntera
 
 	let name = map.get("name").unwrap();
 
-	let staff_root = get_staff(name.clone(), bot_data.vndb_cache.clone(), &bot_data.http_client)
-		.await
-		.unwrap();
+	let staff_root = get_staff(
+		name.clone(),
+		bot_data.vndb_cache.clone(),
+		&bot_data.http_client,
+	)
+	.await
+	.unwrap();
 
 	let choices: Vec<AutocompleteChoice> = staff_root
 		.results

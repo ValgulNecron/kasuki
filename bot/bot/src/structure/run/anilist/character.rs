@@ -67,7 +67,10 @@ pub async fn character_content<'a>(
 		desc = trim(desc, length_diff)
 	}
 
-	let name = character.name.as_ref().ok_or_else(|| anyhow!("No name found"))?;
+	let name = character
+		.name
+		.as_ref()
+		.ok_or_else(|| anyhow!("No name found"))?;
 
 	let character_name = format_character_name(name);
 
@@ -92,9 +95,9 @@ mod tests {
 	use super::*;
 
 	fn make_character(
-		name: Option<CharacterName>, date_of_birth: Option<FuzzyDate>,
-		gender: Option<&str>, age: Option<&str>, favourites: Option<i32>,
-		blood_type: Option<&str>, description: Option<&str>,
+		name: Option<CharacterName>, date_of_birth: Option<FuzzyDate>, gender: Option<&str>,
+		age: Option<&str>, favourites: Option<i32>, blood_type: Option<&str>,
+		description: Option<&str>,
 	) -> Character {
 		Character {
 			age: age.map(|s| s.to_string()),
@@ -252,8 +255,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_no_date_of_birth_no_field() {
-		let character =
-			make_character(default_name(), None, None, None, None, None, None);
+		let character = make_character(default_name(), None, None, None, None, None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		let dob_field = embed
@@ -265,15 +267,8 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_gender_field_present() {
-		let character = make_character(
-			default_name(),
-			None,
-			Some("Female"),
-			None,
-			None,
-			None,
-			None,
-		);
+		let character =
+			make_character(default_name(), None, Some("Female"), None, None, None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		let gender_field = embed
@@ -286,15 +281,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_age_field_present() {
-		let character = make_character(
-			default_name(),
-			None,
-			None,
-			Some("17"),
-			None,
-			None,
-			None,
-		);
+		let character = make_character(default_name(), None, None, Some("17"), None, None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		let age_field = embed
@@ -307,15 +294,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_favourites_field_present() {
-		let character = make_character(
-			default_name(),
-			None,
-			None,
-			None,
-			Some(9001),
-			None,
-			None,
-		);
+		let character = make_character(default_name(), None, None, None, Some(9001), None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		let fav_field = embed
@@ -328,15 +307,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_blood_type_field_present() {
-		let character = make_character(
-			default_name(),
-			None,
-			None,
-			None,
-			None,
-			Some("AB"),
-			None,
-		);
+		let character = make_character(default_name(), None, None, None, None, Some("AB"), None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		let blood_field = embed
@@ -372,20 +343,15 @@ mod tests {
 
 	#[tokio::test]
 	async fn content_title_uses_formatted_name() {
-		let character =
-			make_character(default_name(), None, None, None, None, None, None);
+		let character = make_character(default_name(), None, None, None, None, None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
-		assert_eq!(
-			embed.title,
-			"Test/\u{30c6}\u{30b9}\u{30c8}"
-		);
+		assert_eq!(embed.title, "Test/\u{30c6}\u{30b9}\u{30c8}");
 	}
 
 	#[tokio::test]
 	async fn content_no_optional_fields_produces_empty_fields() {
-		let character =
-			make_character(default_name(), None, None, None, None, None, None);
+		let character = make_character(default_name(), None, None, None, None, None, None);
 		let result = character_content(character, &lang_id()).await.unwrap();
 		let embed = &result.embed_contents[0];
 		assert!(embed.fields.is_empty());

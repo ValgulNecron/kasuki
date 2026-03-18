@@ -31,8 +31,7 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 
 	let lang_id = cx.lang_id().await;
 
-	let inventory_items =
-		get_user_inventory(&cx.db, user_id.clone(), cx.guild_id.clone()).await?;
+	let inventory_items = get_user_inventory(&cx.db, user_id.clone(), cx.guild_id.clone()).await?;
 
 	if inventory_items.is_empty() {
 		let embed_content =
@@ -259,7 +258,6 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 			false,
 		)]);
 	}
-
 
 	let embeds_contents = EmbedsContents::new(vec![embed_content]);
 

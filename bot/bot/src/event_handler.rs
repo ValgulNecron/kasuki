@@ -44,8 +44,7 @@ impl EventHandler for Handler {
 				self.new_message(ctx, new_message.clone()).await;
 			},
 			FullEvent::VoiceStateUpdate { old, new } => {
-				self.voice_state_update(ctx, old.clone(), new.clone())
-					.await;
+				self.voice_state_update(ctx, old.clone(), new.clone()).await;
 			},
 			_ => {
 				trace!("this event is not handled nothing to worry {:?}", event)

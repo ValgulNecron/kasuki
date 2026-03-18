@@ -108,7 +108,12 @@ fn censor_url_and_token(error_message: String, ctx: &Context) -> String {
 
 	let db_host = config.db.host.as_deref().unwrap_or_default();
 
-	let image_token = config.ai.image.ai_image_token.as_deref().unwrap_or_default();
+	let image_token = config
+		.ai
+		.image
+		.ai_image_token
+		.as_deref()
+		.unwrap_or_default();
 
 	let transcript_token = config
 		.ai

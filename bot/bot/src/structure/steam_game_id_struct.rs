@@ -43,10 +43,8 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u32>>>) -> Result<us
 	let apps = response.applist.apps;
 	debug!("Deserialized {} Steam apps from API", apps.len());
 
-	let app_map: HashMap<String, u32> = apps
-		.into_iter()
-		.map(|app| (app.name, app.app_id))
-		.collect();
+	let app_map: HashMap<String, u32> =
+		apps.into_iter().map(|app| (app.name, app.app_id)).collect();
 
 	let new_size = app_map.len();
 

@@ -44,8 +44,12 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	let lang_id = cx.lang_id().await;
 
 	let lava_client = cx.bot_data.lavalink.read().await.clone();
-	let (_, mut embed_content) =
-		join(cx.ctx.clone(), cx.bot_data.clone(), cx.command_interaction.clone()).await?;
+	let (_, mut embed_content) = join(
+		cx.ctx.clone(),
+		cx.bot_data.clone(),
+		cx.command_interaction.clone(),
+	)
+	.await?;
 
 	match lava_client {
 		Some(_) => {},
@@ -75,10 +79,7 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
 	trace!("{:#?}", map);
-	let term = map
-		.get("search")
-		.cloned()
-		.unwrap_or_default();
+	let term = map.get("search").cloned().unwrap_or_default();
 	trace!(term);
 
 	let query = if term.starts_with("http") {

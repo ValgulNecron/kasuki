@@ -71,8 +71,8 @@ impl CacheInterface {
 					_ => format!("redis://{}:{}", host, port),
 				};
 
-				let client =
-					redis::Client::open(redis_url.as_str()).context("Invalid Redis URL for cache")?;
+				let client = redis::Client::open(redis_url.as_str())
+					.context("Invalid Redis URL for cache")?;
 				let conn = client
 					.get_multiplexed_async_connection()
 					.await

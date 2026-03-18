@@ -70,10 +70,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 		.add(vocal::Column::ChannelId.is_in(vec_string));
 
 	debug!("Querying database for user vocal sessions");
-	let vocals = DatabaseVocal::find()
-		.filter(condition)
-		.all(&*cx.db)
-		.await?;
+	let vocals = DatabaseVocal::find().filter(condition).all(&*cx.db).await?;
 
 	let total_vocal = vocals.len() as i128;
 	debug!("Found {} vocal sessions for user", total_vocal);
@@ -263,8 +260,7 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 		]);
 	debug!("Embed content created with title: {}", title);
 
-	let embed_contents = EmbedsContents::new(vec![embed_content])
-		.add_files(vec![progress_file]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]).add_files(vec![progress_file]);
 	debug!("Added progress bar file to embed contents");
 
 	info!("Levels stats command processed successfully");

@@ -57,17 +57,37 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 		.get("description")
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
-	let model = config.ai.image.ai_image_model.as_deref().unwrap_or_default();
+	let model = config
+		.ai
+		.image
+		.ai_image_model
+		.as_deref()
+		.unwrap_or_default();
 	let quality = config.ai.image.ai_image_quality.as_deref();
 	let style = config.ai.image.ai_image_style.as_deref();
-	let size = config.ai.image.ai_image_size.as_deref().unwrap_or("1024x1024");
+	let size = config
+		.ai
+		.image
+		.ai_image_size
+		.as_deref()
+		.unwrap_or("1024x1024");
 
 	let data = ai::build_image_payload(prompt, n, model, quality, style, size);
 
 	let uuid_name = Uuid::new_v4();
 	let filename = format!("{}.png", uuid_name);
-	let token = config.ai.image.ai_image_token.as_deref().unwrap_or_default();
-	let url = config.ai.image.ai_image_base_url.as_deref().unwrap_or_default();
+	let token = config
+		.ai
+		.image
+		.ai_image_token
+		.as_deref()
+		.unwrap_or_default();
+	let url = config
+		.ai
+		.image
+		.ai_image_base_url
+		.as_deref()
+		.unwrap_or_default();
 	let url = ai::normalize_api_url(url, "images/generations");
 
 	let mut headers = reqwest::header::HeaderMap::new();
@@ -80,19 +100,18 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 		reqwest::header::HeaderValue::from_static("application/json"),
 	);
 
-	let res = client.post(&url).headers(headers).json(&data).send().await?;
+	let res = client
+		.post(&url)
+		.headers(headers)
+		.json(&data)
+		.send()
+		.await?;
 	let res = res.json().await?;
 
 	let user_id = cx.command_interaction.user.id.to_string();
 
-	let bytes = ai::download_images_from_response(
-		res,
-		&user_id,
-		&cx.guild_id,
-		image_store,
-		client,
-	)
-	.await?;
+	let bytes =
+		ai::download_images_from_response(res, &user_id, &cx.guild_id, image_store, client).await?;
 
 	let lang_id = cx.lang_id().await;
 	let title = USABLE_LOCALES.lookup(&lang_id, "ai_image-title");
@@ -106,12 +125,12 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 		let attachment = bytes[0].as_bytes().to_vec();
 		let name = filename;
 
-		command_files.push(CommandFiles::new(name.clone(), attachment));
 		embed_contents.push(
 			embed_content
 				.clone()
-				.images_url(format!("attachment://{}", name.clone())),
+				.images_url(format!("attachment://{}", name)),
 		);
+		command_files.push(CommandFiles::new(name, attachment));
 	} else {
 		let attachments: Vec<(Vec<u8>, String)> = bytes
 			.iter()
@@ -123,22 +142,19 @@ async fn image_command(self_: ImageCommand) -> Result<EmbedsContents<'_>> {
 			})
 			.collect();
 
-		for attachement in attachments {
-			let name = attachement.1;
-			let bytes = attachement.0;
-			command_files.push(CommandFiles::new(name.clone(), bytes.clone()));
-			embed_contents.push(
-				embed_content
-					.clone()
-					.images_url(format!("attachment://{}", name.clone())),
-			);
-
+		for (bytes, name) in attachments {
 			let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-			let storage_key =
-				format!("ai_images/ai_{}_{}_{}.png", user_id, cx.guild_id, timestamp);
+			let storage_key = format!("ai_images/ai_{}_{}_{}.png", user_id, cx.guild_id, timestamp);
 			if let Err(e) = image_store.save(&storage_key, &bytes).await {
 				error!("Error saving AI image: {}", e);
 			}
+
+			embed_contents.push(
+				embed_content
+					.clone()
+					.images_url(format!("attachment://{}", name)),
+			);
+			command_files.push(CommandFiles::new(name, bytes));
 		}
 	};
 

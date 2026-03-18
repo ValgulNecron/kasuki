@@ -30,6 +30,7 @@ mod m20251116_190300_add_use_time_to_command_usage;
 mod m20260210_000000_remove_user_banner;
 mod m20260225_000000_create_oauth_token;
 mod m20260307_000000_drop_bad_unique_constraints;
+mod m20260317_000000_add_channel_id_to_activity;
 
 pub struct Migrator;
 
@@ -67,6 +68,7 @@ impl MigratorTrait for Migrator {
 			Box::new(m20260210_000000_remove_user_banner::Migration),
 			Box::new(m20260225_000000_create_oauth_token::Migration),
 			Box::new(m20260307_000000_drop_bad_unique_constraints::Migration),
+			Box::new(m20260317_000000_add_channel_id_to_activity::Migration),
 		]
 	}
 }

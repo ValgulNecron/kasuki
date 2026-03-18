@@ -98,7 +98,13 @@ pub async fn media_content<'a>(
 	let tags: Vec<&str> = data
 		.tags
 		.as_ref()
-		.map(|t| t.iter().flatten().take(5).map(|t| t.name.as_str()).collect())
+		.map(|t| {
+			t.iter()
+				.flatten()
+				.take(5)
+				.map(|t| t.name.as_str())
+				.collect()
+		})
 		.unwrap_or_default();
 
 	if !tags.is_empty() {
@@ -253,10 +259,7 @@ mod tests {
 	#[test]
 	fn embed_title_both_present() {
 		let title = make_title(Some("Attack on Titan"), Some("Shingeki no Kyojin"));
-		assert_eq!(
-			embed_title(&title),
-			"Attack on Titan / Shingeki no Kyojin"
-		);
+		assert_eq!(embed_title(&title), "Attack on Titan / Shingeki no Kyojin");
 	}
 
 	#[test]

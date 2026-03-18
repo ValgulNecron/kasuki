@@ -1,4 +1,5 @@
 pub mod bot_info_update;
+pub mod db_cleanup;
 pub mod game_management;
 pub mod ping_manager;
 pub mod queue_publisher;
@@ -12,6 +13,7 @@ use tokio::time::sleep;
 use tracing::{debug, info};
 
 use self::bot_info_update::update_bot_info;
+use self::db_cleanup::db_cleanup_task;
 use self::game_management::launch_game_management_thread;
 use self::ping_manager::ping_manager_thread;
 use self::user_blacklist::update_user_blacklist;
@@ -127,6 +129,28 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 		}
 	});
 	shutdown_receivers.push(blacklist_task);
+
+	// === DATABASE MAINTENANCE TASKS ===
+	info!("Launching database maintenance background tasks");
+
+	debug!(
+		"Spawning DB cleanup task (interval: {}h, retention: {}d)",
+		task_intervals.db_cleanup_interval_hours, task_intervals.db_retention_days
+	);
+	let task_intervals_c = task_intervals.clone();
+	let db_connection_c = db_connection.clone();
+	let mut db_cleanup_shutdown_rx = shutdown_signal.subscribe();
+	let db_cleanup = tokio::spawn(async move {
+		tokio::select! {
+			_ = db_cleanup_task(db_connection_c, task_intervals_c) => {
+				info!("DB cleanup task completed");
+			},
+			_ = db_cleanup_shutdown_rx.recv() => {
+				info!("Received shutdown signal, terminating DB cleanup task gracefully");
+			}
+		}
+	});
+	shutdown_receivers.push(db_cleanup);
 
 	// === VISUAL TASKS (with delay) ===
 	info!(

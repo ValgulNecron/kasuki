@@ -116,4 +116,3 @@ pub struct CharacterName {
 	pub full: Option<String>,
 	pub native: Option<String>,
 }
-

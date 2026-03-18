@@ -78,9 +78,7 @@ pub async fn get_minimal_anime_by_id(id: i32, cache: Arc<CacheInterface>) -> Res
 	Ok(media)
 }
 
-pub async fn get_minimal_anime_by_search(
-	query: &str, cache: Arc<CacheInterface>,
-) -> Result<Media> {
+pub async fn get_minimal_anime_by_search(query: &str, cache: Arc<CacheInterface>) -> Result<Media> {
 	trace!(?query);
 
 	let search_query = MinimalAnimeSearchVariables {
@@ -101,9 +99,7 @@ pub async fn get_minimal_anime_by_search(
 	Ok(media)
 }
 
-pub async fn get_minimal_anime_media(
-	anime: String, cache: Arc<CacheInterface>,
-) -> Result<Media> {
+pub async fn get_minimal_anime_media(anime: String, cache: Arc<CacheInterface>) -> Result<Media> {
 	let media = if let Ok(id) = anime.parse::<i32>() {
 		get_minimal_anime_by_id(id, cache).await?
 	} else {

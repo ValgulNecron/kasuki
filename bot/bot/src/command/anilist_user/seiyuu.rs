@@ -12,7 +12,6 @@ use std::io::Cursor;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use shared::anilist::make_request::make_request_anilist;
 use crate::structure::run::anilist::seiyuu_id::{
 	Character, CharacterConnection, SeiyuuId, SeiyuuIdVariables, Staff, StaffImage,
 };
@@ -23,6 +22,7 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::anilist::make_request::make_request_anilist;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
 use uuid::Uuid;
@@ -95,7 +95,6 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 	};
 
 	let lang_id = cx.lang_id().await;
-
 
 	let mut buffers: Vec<Bytes> = Vec::new();
 
@@ -222,8 +221,7 @@ async fn seiyuu_command(self_: SeiyuuCommand) -> Result<EmbedsContents<'_>> {
 		EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "anilist_user_seiyuu-title"))
 			.images_url(image_url);
 
-	let embed_contents = EmbedsContents::new(vec![embed_content])
-		.add_files(vec![image]);
+	let embed_contents = EmbedsContents::new(vec![embed_content]).add_files(vec![image]);
 
 	Ok(embed_contents)
 }

@@ -32,8 +32,12 @@ async fn join_command(self_: JoinCommand) -> Result<EmbedsContents<'_>> {
 		self_.get_command_interaction().clone(),
 	);
 
-	let (_, embed_content) =
-		join(cx.ctx.clone(), cx.bot_data.clone(), cx.command_interaction.clone()).await?;
+	let (_, embed_content) = join(
+		cx.ctx.clone(),
+		cx.bot_data.clone(),
+		cx.command_interaction.clone(),
+	)
+	.await?;
 	let embed = embed_content.clone();
 
 	Ok(embed)
@@ -116,7 +120,10 @@ pub async fn join<'a>(
 	let lava_client = lava_client.unwrap();
 	let manager = cx.bot_data.manager.clone();
 
-	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("no guild id"))?;
 
 	// Get the channel information BEFORE creating any futures
 	let channel_id = cx.command_interaction.channel_id;
@@ -141,8 +148,7 @@ pub async fn join<'a>(
 				let embed_content =
 					EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_join-title"))
 						.description(USABLE_LOCALES.lookup(&lang_id, "music_join-error_no_voice"));
-				let embed_contents =
-					EmbedsContents::new(vec![embed_content]);
+				let embed_contents = EmbedsContents::new(vec![embed_content]);
 				return Ok((false, embed_contents));
 			},
 		}
@@ -183,8 +189,7 @@ pub async fn join<'a>(
 					"music_join-success",
 					&args,
 				));
-				let embed_contents =
-					EmbedsContents::new(vec![embed_content]);
+				let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 				(true, embed_contents)
 			},
@@ -197,8 +202,7 @@ pub async fn join<'a>(
 					"music_join-error_joining",
 					&args,
 				));
-				let embed_contents =
-					EmbedsContents::new(vec![embed_content]);
+				let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 				(false, embed_contents)
 			},

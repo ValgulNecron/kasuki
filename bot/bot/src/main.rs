@@ -66,8 +66,8 @@ async fn run() -> anyhow::Result<()> {
 	let log = config.logging.log_level.clone();
 	let max_log_retention_days = config.logging.max_log_retention;
 	create_log_directory().context("Failed to create log directory")?;
-	let _guard = init_logger(log.as_str(), max_log_retention_days)
-		.context("Failed to initialize logger")?;
+	let _guard =
+		init_logger(log.as_str(), max_log_retention_days).context("Failed to initialize logger")?;
 	info!("Logger initialized successfully with level: {}", log);
 	info!("Log retention days: {}", max_log_retention_days);
 
@@ -87,10 +87,13 @@ async fn run() -> anyhow::Result<()> {
 
 	let cache_config = config.cache.clone();
 	info!("Initializing caches (backend: {})", cache_config.cache_type);
-	let anilist_cache: Arc<CacheInterface> = Arc::new(
-		match CacheInterface::from_config(&cache_config).await {
+	let anilist_cache: Arc<CacheInterface> =
+		Arc::new(match CacheInterface::from_config(&cache_config).await {
 			Ok(c) => {
-				info!("AniList cache initialized with {} backend", cache_config.cache_type);
+				info!(
+					"AniList cache initialized with {} backend",
+					cache_config.cache_type
+				);
 				c
 			},
 			Err(e) => {
@@ -100,12 +103,14 @@ async fn run() -> anyhow::Result<()> {
 				);
 				CacheInterface::new()
 			},
-		},
-	);
-	let vndb_cache: Arc<CacheInterface> = Arc::new(
-		match CacheInterface::from_config(&cache_config).await {
+		});
+	let vndb_cache: Arc<CacheInterface> =
+		Arc::new(match CacheInterface::from_config(&cache_config).await {
 			Ok(c) => {
-				info!("VNDB cache initialized with {} backend", cache_config.cache_type);
+				info!(
+					"VNDB cache initialized with {} backend",
+					cache_config.cache_type
+				);
 				c
 			},
 			Err(e) => {
@@ -115,8 +120,7 @@ async fn run() -> anyhow::Result<()> {
 				);
 				CacheInterface::new()
 			},
-		},
-	);
+		});
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
@@ -166,7 +170,10 @@ async fn run() -> anyhow::Result<()> {
 	let (shutdown_tx, _) = broadcast::channel(1);
 	info!("Created shutdown signal channel");
 
-	info!("Initializing image store (type: {})", config.image.storage.storage_type);
+	info!(
+		"Initializing image store (type: {})",
+		config.image.storage.storage_type
+	);
 	let image_store: Arc<dyn ImageStore> = Arc::from(
 		create_image_store(&config.image.storage).context("Failed to create image store")?,
 	);
@@ -274,19 +281,16 @@ async fn run() -> anyhow::Result<()> {
 	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");
-		let mut sigint =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
-				.expect("failed to register SIGINT handler");
+		let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+			.expect("failed to register SIGINT handler");
 		info!("Registered SIGINT handler");
 
-		let mut sigterm =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-				.expect("failed to register SIGTERM handler");
+		let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+			.expect("failed to register SIGTERM handler");
 		info!("Registered SIGTERM handler");
 
-		let mut sigquit =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
-				.expect("failed to register SIGQUIT handler");
+		let mut sigquit = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
+			.expect("failed to register SIGQUIT handler");
 		info!("Registered SIGQUIT handler");
 
 		let mut sigusr1 =
@@ -329,20 +333,20 @@ async fn run() -> anyhow::Result<()> {
 	#[cfg(windows)]
 	{
 		info!("Setting up signal handlers for Windows environment");
-		let mut ctrl_break = tokio::signal::windows::ctrl_break()
-			.expect("failed to register CTRL+BREAK handler");
+		let mut ctrl_break =
+			tokio::signal::windows::ctrl_break().expect("failed to register CTRL+BREAK handler");
 		info!("Registered CTRL+BREAK handler");
 
-		let mut ctrl_c = tokio::signal::windows::ctrl_c()
-			.expect("failed to register CTRL+C handler");
+		let mut ctrl_c =
+			tokio::signal::windows::ctrl_c().expect("failed to register CTRL+C handler");
 		info!("Registered CTRL+C handler");
 
-		let mut ctrl_close = tokio::signal::windows::ctrl_close()
-			.expect("failed to register CTRL+CLOSE handler");
+		let mut ctrl_close =
+			tokio::signal::windows::ctrl_close().expect("failed to register CTRL+CLOSE handler");
 		info!("Registered CTRL+CLOSE handler");
 
-		let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff()
-			.expect("failed to register CTRL+LOGOFF handler");
+		let mut ctrl_logoff =
+			tokio::signal::windows::ctrl_logoff().expect("failed to register CTRL+LOGOFF handler");
 		info!("Registered CTRL+LOGOFF handler");
 
 		let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown()
@@ -403,4 +407,3 @@ async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
 
 	Ok(())
 }
-

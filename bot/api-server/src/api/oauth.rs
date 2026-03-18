@@ -63,6 +63,7 @@ pub struct Guild {
 	pub id: String,
 	pub name: String,
 	pub icon_url: Option<String>,
+	pub permissions: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -70,6 +71,7 @@ struct RawDiscordGuild {
 	id: String,
 	name: String,
 	icon: Option<String>,
+	permissions: Option<String>,
 }
 
 pub async fn oauth_login(State(state): State<AppState>) -> impl IntoResponse {
@@ -86,8 +88,8 @@ pub async fn oauth_login(State(state): State<AppState>) -> impl IntoResponse {
 		("state", csrf_state.as_str()),
 	];
 
-	let query_string = serde_urlencoded::to_string(&params)
-		.expect("failed to encode OAuth query params");
+	let query_string =
+		serde_urlencoded::to_string(&params).expect("failed to encode OAuth query params");
 	let discord_auth_url = format!("{}?{}", DISCORD_OAUTH_AUTHORIZE, query_string);
 
 	debug!("redirecting to discord oauth");
@@ -378,6 +380,7 @@ pub async fn get_user_guilds(
 				id: raw_guild.id,
 				name: raw_guild.name,
 				icon_url,
+				permissions: raw_guild.permissions,
 			}
 		})
 		.collect())

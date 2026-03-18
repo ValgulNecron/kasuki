@@ -353,7 +353,7 @@ fn build_chat_input_command(meta: &CommandMeta) -> CreateCommand<'_> {
 	let contexts: Cow<[InteractionContext]> = meta.contexts.iter().map(|c| (*c).into()).collect();
 	command_build = command_build.contexts(contexts);
 
-	let install_types:  Cow<[InstallationContext]> =
+	let install_types: Cow<[InstallationContext]> =
 		meta.install_contexts.iter().map(|c| (*c).into()).collect();
 	command_build = command_build.integration_types(install_types);
 

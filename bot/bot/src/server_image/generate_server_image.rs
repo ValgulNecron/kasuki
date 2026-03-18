@@ -15,9 +15,7 @@ fn get_guild_icon_url(guild_icon_url: Option<String>) -> String {
 		.unwrap_or_else(|| String::from("https://cdn.discordapp.com/icons/1117152661620408531/541e10cc07361e99b7b1012861cd518a.webp?size=128&quality=lossless"))
 }
 
-async fn get_guild_info(
-	ctx: &SerenityContext, guild_id: GuildId,
-) -> Result<(String, String)> {
+async fn get_guild_info(ctx: &SerenityContext, guild_id: GuildId) -> Result<(String, String)> {
 	if let Some(guild_cache) = guild_id.to_guild_cached(&ctx.cache) {
 		let name = guild_cache.name.to_string();
 		let icon_url = get_guild_icon_url(guild_cache.icon_url());
@@ -55,7 +53,7 @@ pub async fn enqueue_local_server_image(
 		guild_id: guild_id.to_string(),
 		guild_name,
 		guild_icon_url,
-		image_type: String::from("local"),
+		image_type: "local".to_owned(),
 		members: member_data,
 		blacklist: user_blacklist,
 	};
@@ -82,7 +80,7 @@ pub async fn enqueue_global_server_image(
 		guild_id: guild_id.to_string(),
 		guild_name,
 		guild_icon_url,
-		image_type: String::from("global"),
+		image_type: "global".to_owned(),
 		members: Vec::new(),
 		blacklist: user_blacklist,
 	};
@@ -111,7 +109,7 @@ pub async fn server_image_management(
 		let users = get_member(ctx, *guild).await;
 
 		for user in &users {
-			enqueue_user_color(user_blacklist.clone(), user.clone(), bot_data.clone()).await;
+			enqueue_user_color(user_blacklist.clone(), user, &bot_data).await;
 		}
 
 		let (guild_name, guild_icon_url) = match get_guild_info(ctx, *guild).await {
@@ -136,12 +134,12 @@ pub async fn server_image_management(
 			guild_id: guild.to_string(),
 			guild_name: guild_name.clone(),
 			guild_icon_url: guild_icon_url.clone(),
-			image_type: String::from("local"),
+			image_type: "local".to_owned(),
 			members: member_data,
 			blacklist: user_blacklist_snapshot.clone(),
 		};
 
-		if let Err(_) = bot_data.server_image_task_tx.send(local_task) {
+		if bot_data.server_image_task_tx.send(local_task).is_err() {
 			warn!("Server image queue publisher stopped");
 			return;
 		}
@@ -150,12 +148,12 @@ pub async fn server_image_management(
 			guild_id: guild.to_string(),
 			guild_name,
 			guild_icon_url,
-			image_type: String::from("global"),
+			image_type: "global".to_owned(),
 			members: Vec::new(),
 			blacklist: user_blacklist_snapshot,
 		};
 
-		if let Err(_) = bot_data.server_image_task_tx.send(global_task) {
+		if bot_data.server_image_task_tx.send(global_task).is_err() {
 			warn!("Server image queue publisher stopped");
 			return;
 		}

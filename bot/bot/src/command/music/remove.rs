@@ -25,7 +25,10 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 	// Load the localized strings
 	let lang_id = cx.lang_id().await;
 
-	let guild_id = cx.command_interaction.guild_id.ok_or(anyhow!("no guild id"))?;
+	let guild_id = cx
+		.command_interaction
+		.guild_id
+		.ok_or(anyhow!("no guild id"))?;
 	let lava_client = cx.bot_data.lavalink.read().await.clone();
 	if lava_client.is_none() {
 		return Err(anyhow::anyhow!("Lavalink is disabled"));

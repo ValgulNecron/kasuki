@@ -17,8 +17,14 @@ async fn generate_global_image_pfp_command(
 		self_.get_command_interaction().clone(),
 	);
 
-	let embed_contents =
-		get_content(cx.ctx.clone(), cx.command_interaction.clone(), "global", cx.db.clone(), &cx.image_store).await?;
+	let embed_contents = get_content(
+		cx.ctx.clone(),
+		cx.command_interaction.clone(),
+		"global",
+		cx.db.clone(),
+		&cx.image_store,
+	)
+	.await?;
 
 	Ok(embed_contents)
 }

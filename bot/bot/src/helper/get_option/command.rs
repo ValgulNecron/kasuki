@@ -53,4 +53,3 @@ pub fn get_option_map_user(interaction: &CommandInteraction) -> HashMap<FixedStr
 
 	map
 }
-

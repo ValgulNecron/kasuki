@@ -336,11 +336,7 @@ mod tests {
 
 	#[test]
 	fn get_completed_finds_count() {
-		let statuses = make_statuses(vec![
-			("CURRENT", 5),
-			("COMPLETED", 42),
-			("DROPPED", 3),
-		]);
+		let statuses = make_statuses(vec![("CURRENT", 5), ("COMPLETED", 42), ("DROPPED", 3)]);
 		assert_eq!(get_completed(statuses), 42);
 	}
 
@@ -375,7 +371,7 @@ mod tests {
 				}),
 			}),
 		];
-		assert_eq!(get_tag_list(&tags),"Action/Comedy/Drama");
+		assert_eq!(get_tag_list(&tags), "Action/Comedy/Drama");
 	}
 
 	#[test]
@@ -403,7 +399,7 @@ mod tests {
 				genre: Some("Romance".to_string()),
 			}),
 		];
-		assert_eq!(get_genre_list(&genres),"Action/Romance");
+		assert_eq!(get_genre_list(&genres), "Action/Romance");
 	}
 
 	#[test]

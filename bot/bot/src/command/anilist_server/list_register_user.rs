@@ -35,9 +35,7 @@ async fn list_register_user_command(self_: ListRegisterUser) -> Result<EmbedsCon
 	let lang_id = cx.lang_id().await;
 	let title = USABLE_LOCALES.lookup(&lang_id, "anilist_server_list_register_user-title");
 
-	let guild = guild_id
-		.to_partial_guild_with_counts(&cx.ctx.http)
-		.await?;
+	let guild = guild_id.to_partial_guild_with_counts(&cx.ctx.http).await?;
 
 	let (desc, len, _last_id): (String, usize, Option<UserId>) =
 		get_the_list(guild, &cx.ctx, None, cx.db.clone()).await?;

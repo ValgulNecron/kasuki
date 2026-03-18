@@ -65,7 +65,7 @@ pub async fn get_member(ctx_clone: &SerenityContext, guild: GuildId) -> Vec<User
 }
 
 pub async fn enqueue_user_color(
-	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: User, bot_data: Arc<BotData>,
+	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: &User, bot_data: &BotData,
 ) {
 	if user_blacklist_server_image
 		.read()
@@ -84,7 +84,10 @@ pub async fn enqueue_user_color(
 		profile_picture_url: user.face(),
 	};
 
-	if let Err(_) = bot_data.user_color_task_tx.send(task) {
-		error!("User color queue publisher stopped, dropping task for user {}", user.id);
+	if bot_data.user_color_task_tx.send(task).is_err() {
+		error!(
+			"User color queue publisher stopped, dropping task for user {}",
+			user.id
+		);
 	}
 }

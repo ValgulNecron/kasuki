@@ -47,10 +47,7 @@ async fn translation_command(self_: TranslationCommand) -> Result<EmbedsContents
 	let map = get_option_map_string_subcommand(&cx.command_interaction);
 	let attachment_map = get_option_map_attachment_subcommand(&cx.command_interaction);
 
-	let lang = map
-		.get("lang")
-		.cloned()
-		.unwrap_or_default();
+	let lang = map.get("lang").cloned().unwrap_or_default();
 	let attachment = attachment_map
 		.get("video")
 		.ok_or(anyhow!("No option for video"))?;

@@ -34,18 +34,11 @@ impl Handler {
 		if is_new.unwrap_or_default() {
 			info!(guild_id = %guild.id, "Joined a new guild");
 
-			// Enqueue color calculation for this guild's members only
 			let users = get_member(ctx, guild.id).await;
-			for user in users {
-				enqueue_user_color(
-					user_blacklist_server_image.clone(),
-					user,
-					bot_data.clone(),
-				)
-				.await;
+			for user in &users {
+				enqueue_user_color(user_blacklist_server_image.clone(), user, &bot_data).await;
 			}
 
-			// Generate server images for this guild only
 			if let Err(e) =
 				enqueue_local_server_image(ctx, guild.id, &image_config, db_connection.clone())
 					.await
@@ -100,12 +93,9 @@ impl Handler {
 			"New member joined guild"
 		);
 
-		enqueue_user_color(
-			user_blacklist_server_image,
-			member.user.clone(),
-			bot_data.clone(),
-		)
-		.await;
+		let user_id = member.user.id;
+
+		enqueue_user_color(user_blacklist_server_image, &member.user, &bot_data).await;
 
 		let count = bot_data
 			.user_color_update_count
@@ -126,11 +116,9 @@ impl Handler {
 			}
 		}
 
-		let user = member.user.clone();
-
-		if let Err(e) = add_user_data_to_db(user, bot_data.db_connection.clone()).await {
+		if let Err(e) = add_user_data_to_db(member.user, bot_data.db_connection.clone()).await {
 			warn!(
-				user_id = %member.user.id,
+				user_id = %user_id,
 				error = ?e,
 				"Failed to insert user data into database"
 			);
@@ -152,7 +140,6 @@ impl Handler {
 			"Received a chunk of guild members"
 		);
 
-		let db_connection = bot_data.db_connection.clone();
 		let guild_id_str = chunk.guild_id.to_string();
 
 		let members_vec: Vec<&Member> = members.iter().collect();
@@ -178,7 +165,7 @@ impl Handler {
 					])
 					.to_owned(),
 				)
-				.exec(&*db_connection)
+				.exec(&*bot_data.db_connection)
 				.await
 			{
 				warn!(
@@ -190,10 +177,12 @@ impl Handler {
 
 			let relation_models: Vec<shared::database::server_user_relation::ActiveModel> = batch
 				.iter()
-				.map(|member| shared::database::server_user_relation::ActiveModel {
-					guild_id: Set(guild_id_str.clone()),
-					user_id: Set(member.user.id.to_string()),
-				})
+				.map(
+					|member| shared::database::server_user_relation::ActiveModel {
+						guild_id: Set(guild_id_str.clone()),
+						user_id: Set(member.user.id.to_string()),
+					},
+				)
 				.collect();
 
 			if let Err(e) = ServerUserRelation::insert_many(relation_models)
@@ -205,7 +194,7 @@ impl Handler {
 					.do_nothing()
 					.to_owned(),
 				)
-				.exec(&*db_connection)
+				.exec(&*bot_data.db_connection)
 				.await
 			{
 				match e {

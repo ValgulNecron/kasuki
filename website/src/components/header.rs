@@ -19,8 +19,11 @@ pub fn Header(
 
     let handle_logout = move |_| {
         set_user_session_data.set(None);
-        // Navigate to home
         if let Some(window) = web_sys::window() {
+            // Clear JWT from localStorage
+            if let Ok(Some(storage)) = window.local_storage() {
+                let _ = storage.remove_item("jwt");
+            }
             let _ = window.location().set_hash("");
         }
     };

@@ -52,7 +52,9 @@ async fn main() -> Result<()> {
 		.unwrap_or(tracing::Level::INFO);
 	let sentry_layer = sentry::integrations::tracing::layer();
 	tracing_subscriber::registry()
-		.with(tracing_subscriber::filter::LevelFilter::from_level(log_level))
+		.with(tracing_subscriber::filter::LevelFilter::from_level(
+			log_level,
+		))
 		.with(sentry_layer)
 		.with(tracing_subscriber::fmt::layer())
 		.init();
@@ -69,8 +71,7 @@ async fn main() -> Result<()> {
 	info!("Connected to database");
 
 	let store: Arc<dyn ImageStore> = Arc::from(
-		create_image_store(&config.image.storage)
-			.context("Failed to create image store")?,
+		create_image_store(&config.image.storage).context("Failed to create image store")?,
 	);
 	info!(
 		"Image store initialized (type: {})",
@@ -227,9 +228,7 @@ async fn build_global_tiles(
 
 			match store.load(&uc.images).await {
 				Ok(png_bytes) => {
-					if let Some(tile) =
-						color::create_color_tile(&uc.color, &png_bytes, TILE_SIZE)
-					{
+					if let Some(tile) = color::create_color_tile(&uc.color, &png_bytes, TILE_SIZE) {
 						color_tiles.push(tile);
 					}
 				},
