@@ -2,10 +2,8 @@
 # Build locally with: trunk build --release
 FROM nginx:1.27-alpine
 
-# Remove default nginx config and html
 RUN rm -rf /etc/nginx/conf.d/default.conf /usr/share/nginx/html/*
 
-# Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy pre-built dist files (run `trunk build --release` locally first)
@@ -35,7 +33,6 @@ USER appuser
 
 EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
 

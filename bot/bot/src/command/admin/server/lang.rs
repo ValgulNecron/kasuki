@@ -13,7 +13,7 @@ use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::guild_lang;
 use shared::database::prelude::GuildLang;
-use shared::localization::USABLE_LOCALES;
+use shared::localization::{available_locales, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -22,16 +22,7 @@ use unic_langid::LanguageIdentifier;
 #[slash_command(
 	name = "lang", desc = "Change the language of the bot's response.",
 	command_type = SubCommandGroup(parent = "admin", group = "general"),
-	args = [(name = "lang_choice", desc = "The language you want to set the response to.", arg_type = String, required = true, autocomplete = false,
-		choices = [
-			(name = "en"),
-			(name = "jp"),
-			(name = "de"),
-			(name = "fr"),
-			(name = "es-ES"),
-			(name = "zh-CN"),
-			(name = "ru")
-		])],
+	args = [(name = "lang_choice", desc = "The language you want to set the response to.", arg_type = String, required = true, autocomplete = true)],
 )]
 async fn lang_command(self_: LangCommand) -> Result<EmbedsContents<'_>> {
 	let cx = CommandContext::new(
@@ -43,6 +34,11 @@ async fn lang_command(self_: LangCommand) -> Result<EmbedsContents<'_>> {
 	let lang = map
 		.get("lang_choice")
 		.ok_or(anyhow!("No option for lang_choice"))?;
+
+	let locales = available_locales();
+	if !locales.contains(lang) {
+		return Err(anyhow!("Unknown language: {}", lang));
+	}
 
 	GuildLang::insert(guild_lang::ActiveModel {
 		guild_id: Set(cx.guild_id.clone()),
@@ -57,13 +53,7 @@ async fn lang_command(self_: LangCommand) -> Result<EmbedsContents<'_>> {
 	.exec(&*cx.db)
 	.await?;
 
-	let lang_code = match lang.as_str() {
-		"jp" => "ja",
-		"en" => "en-US",
-		other => other,
-	};
-
-	let lang_id = LanguageIdentifier::from_str(lang_code)
+	let lang_id = LanguageIdentifier::from_str(lang)
 		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap());
 
 	let mut args = HashMap::new();

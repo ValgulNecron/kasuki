@@ -13,6 +13,7 @@ use unic_langid::LanguageIdentifier;
 
 pub async fn media_content<'a>(
 	data: Media, lang_id: &LanguageIdentifier, db: Arc<DatabaseConnection>,
+	guild_scores: Option<Vec<MediaListEntry>>,
 ) -> Result<EmbedsContents<'a>> {
 	let anime_song = AnimeSong::find()
 		.filter(AnilistId.eq(data.id.to_string()))
@@ -207,6 +208,33 @@ pub async fn media_content<'a>(
 		));
 	}
 
+	let streaming = get_streaming_links(&data.external_links);
+	if !streaming.is_empty() {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-streaming"),
+			streaming,
+			false,
+		));
+	}
+
+	if let Some(trailer_url) = get_trailer_url(&data.trailer) {
+		fields.push((
+			USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-trailer"),
+			format!("[Watch Trailer]({})", trailer_url),
+			false,
+		));
+	}
+
+	if let Some(scores) = guild_scores {
+		if let Some(summary) = format_guild_scores(&scores) {
+			fields.push((
+				USABLE_LOCALES.lookup(&lang_id, "anilist_user_media-server_members"),
+				summary,
+				false,
+			));
+		}
+	}
+
 	let title = data.title.as_ref().ok_or_else(|| anyhow!("No title"))?;
 
 	let mut embed_content = EmbedContent::new(embed_title(title))
@@ -253,6 +281,8 @@ mod tests {
 			chapters: None,
 			characters: None,
 			tags: None,
+			external_links: None,
+			trailer: None,
 		}
 	}
 
@@ -443,5 +473,239 @@ mod tests {
 	fn media_type_display() {
 		assert_eq!(MediaType::Anime.to_string(), "Anime");
 		assert_eq!(MediaType::Manga.to_string(), "Manga");
+	}
+
+	#[test]
+	fn streaming_links_multiple() {
+		let links = Some(vec![
+			Some(MediaExternalLink {
+				url: Some("https://crunchyroll.com/show".to_string()),
+				site: "Crunchyroll".to_string(),
+				link_type: Some(ExternalLinkType::Streaming),
+			}),
+			Some(MediaExternalLink {
+				url: Some("https://netflix.com/show".to_string()),
+				site: "Netflix".to_string(),
+				link_type: Some(ExternalLinkType::Streaming),
+			}),
+		]);
+		let result = get_streaming_links(&links);
+		assert_eq!(
+			result,
+			"[Crunchyroll](https://crunchyroll.com/show) | [Netflix](https://netflix.com/show)"
+		);
+	}
+
+	#[test]
+	fn streaming_links_filters_non_streaming() {
+		let links = Some(vec![
+			Some(MediaExternalLink {
+				url: Some("https://crunchyroll.com/show".to_string()),
+				site: "Crunchyroll".to_string(),
+				link_type: Some(ExternalLinkType::Streaming),
+			}),
+			Some(MediaExternalLink {
+				url: Some("https://anilist.co".to_string()),
+				site: "AniList".to_string(),
+				link_type: Some(ExternalLinkType::Info),
+			}),
+			Some(MediaExternalLink {
+				url: Some("https://twitter.com/show".to_string()),
+				site: "Twitter".to_string(),
+				link_type: Some(ExternalLinkType::Social),
+			}),
+		]);
+		let result = get_streaming_links(&links);
+		assert_eq!(result, "[Crunchyroll](https://crunchyroll.com/show)");
+	}
+
+	#[test]
+	fn streaming_links_none() {
+		assert_eq!(get_streaming_links(&None), "");
+	}
+
+	#[test]
+	fn streaming_links_empty_vec() {
+		assert_eq!(get_streaming_links(&Some(vec![])), "");
+	}
+
+	#[test]
+	fn streaming_links_skips_no_url() {
+		let links = Some(vec![Some(MediaExternalLink {
+			url: None,
+			site: "Crunchyroll".to_string(),
+			link_type: Some(ExternalLinkType::Streaming),
+		})]);
+		assert_eq!(get_streaming_links(&links), "");
+	}
+
+	#[test]
+	fn streaming_links_skips_none_type() {
+		let links = Some(vec![Some(MediaExternalLink {
+			url: Some("https://example.com".to_string()),
+			site: "Example".to_string(),
+			link_type: None,
+		})]);
+		assert_eq!(get_streaming_links(&links), "");
+	}
+
+	#[test]
+	fn trailer_youtube() {
+		let trailer = Some(MediaTrailer {
+			id: Some("abc123".to_string()),
+			site: Some("youtube".to_string()),
+		});
+		assert_eq!(
+			get_trailer_url(&trailer),
+			Some("https://www.youtube.com/watch?v=abc123".to_string())
+		);
+	}
+
+	#[test]
+	fn trailer_dailymotion() {
+		let trailer = Some(MediaTrailer {
+			id: Some("xyz789".to_string()),
+			site: Some("dailymotion".to_string()),
+		});
+		assert_eq!(
+			get_trailer_url(&trailer),
+			Some("https://www.dailymotion.com/video/xyz789".to_string())
+		);
+	}
+
+	#[test]
+	fn trailer_none() {
+		assert_eq!(get_trailer_url(&None), None);
+	}
+
+	#[test]
+	fn trailer_missing_id() {
+		let trailer = Some(MediaTrailer {
+			id: None,
+			site: Some("youtube".to_string()),
+		});
+		assert_eq!(get_trailer_url(&trailer), None);
+	}
+
+	#[test]
+	fn trailer_empty_id() {
+		let trailer = Some(MediaTrailer {
+			id: Some("".to_string()),
+			site: Some("youtube".to_string()),
+		});
+		assert_eq!(get_trailer_url(&trailer), None);
+	}
+
+	#[test]
+	fn trailer_missing_site() {
+		let trailer = Some(MediaTrailer {
+			id: Some("abc123".to_string()),
+			site: None,
+		});
+		assert_eq!(get_trailer_url(&trailer), None);
+	}
+
+	#[test]
+	fn trailer_empty_site() {
+		let trailer = Some(MediaTrailer {
+			id: Some("abc123".to_string()),
+			site: Some("".to_string()),
+		});
+		assert_eq!(get_trailer_url(&trailer), None);
+	}
+
+	#[test]
+	fn trailer_unknown_site() {
+		let trailer = Some(MediaTrailer {
+			id: Some("abc123".to_string()),
+			site: Some("vimeo".to_string()),
+		});
+		assert_eq!(get_trailer_url(&trailer), None);
+	}
+
+	#[test]
+	fn format_scores_multiple_users() {
+		let scores = vec![
+			MediaListEntry {
+				score: Some(8.0),
+				status: Some(MediaListStatus::Completed),
+			},
+			MediaListEntry {
+				score: Some(7.0),
+				status: Some(MediaListStatus::Completed),
+			},
+			MediaListEntry {
+				score: Some(9.0),
+				status: Some(MediaListStatus::Completed),
+			},
+		];
+		assert_eq!(
+			format_guild_scores(&scores),
+			Some("3 scored | Avg: 8.0/10".to_string())
+		);
+	}
+
+	#[test]
+	fn format_scores_excludes_zero() {
+		let scores = vec![
+			MediaListEntry {
+				score: Some(8.0),
+				status: Some(MediaListStatus::Completed),
+			},
+			MediaListEntry {
+				score: Some(0.0),
+				status: Some(MediaListStatus::Current),
+			},
+			MediaListEntry {
+				score: Some(6.0),
+				status: Some(MediaListStatus::Completed),
+			},
+		];
+		assert_eq!(
+			format_guild_scores(&scores),
+			Some("2 scored | Avg: 7.0/10".to_string())
+		);
+	}
+
+	#[test]
+	fn format_scores_empty() {
+		let scores: Vec<MediaListEntry> = vec![];
+		assert_eq!(format_guild_scores(&scores), None);
+	}
+
+	#[test]
+	fn format_scores_all_zero() {
+		let scores = vec![
+			MediaListEntry {
+				score: Some(0.0),
+				status: Some(MediaListStatus::Current),
+			},
+			MediaListEntry {
+				score: Some(0.0),
+				status: Some(MediaListStatus::Planning),
+			},
+		];
+		assert_eq!(format_guild_scores(&scores), None);
+	}
+
+	#[test]
+	fn format_scores_none_scores() {
+		let scores = vec![MediaListEntry {
+			score: None,
+			status: Some(MediaListStatus::Current),
+		}];
+		assert_eq!(format_guild_scores(&scores), None);
+	}
+
+	#[test]
+	fn format_scores_single_user() {
+		let scores = vec![MediaListEntry {
+			score: Some(9.5),
+			status: Some(MediaListStatus::Completed),
+		}];
+		assert_eq!(
+			format_guild_scores(&scores),
+			Some("1 scored | Avg: 9.5/10".to_string())
+		);
 	}
 }

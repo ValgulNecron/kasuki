@@ -7,7 +7,6 @@ use sea_orm::{EntityTrait, PaginatorTrait};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::UserColor;
 use shared::localization::{Loader, USABLE_LOCALES};
-use tracing::{debug, info};
 
 #[slash_command(
 	name = "info", desc = "Get information on the bot.",
@@ -16,60 +15,34 @@ use tracing::{debug, info};
 	install_contexts = [Guild, User],
 )]
 async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
-	info!("Processing info command");
 	let cx = CommandContext::new(
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
 	);
-	debug!("Retrieving bot data and configuration");
 
-	// Get the language identifier for the guild
 	let lang_id = cx.lang_id().await;
 
-	// Retrieve various details about the bot and the server
-	debug!("Retrieving bot and server details");
 	let shard_count = cx.ctx.cache.shard_count();
-	debug!("Shard count: {}", shard_count);
-
 	let shard = cx.ctx.shard_id.to_string();
-	debug!("Current shard: {}", shard);
-
-	debug!("Retrieving user count");
 	let user_count = UserColor::find().count(&*cx.db).await?;
-	debug!("User count: {}", user_count);
-
-	debug!("Retrieving application info");
 	let bot = cx.ctx.http.get_current_application_info().await?;
-	debug!("Application info retrieved");
 
 	let bot_name = bot.name.to_string();
 	let bot_id = bot.id.to_string();
-	debug!("Bot name: {}, Bot ID: {}", bot_name, bot_id);
-
 	let creation_date = format!("<t:{}:F>", bot.id.created_at().unix_timestamp());
-	debug!("Bot creation date: {}", creation_date);
 
 	let server_count = cx.ctx.cache.guild_count();
 	let app_guild_count = bot.approximate_guild_count.unwrap_or_default() as usize;
-	debug!(
-		"Server count from cache: {}, from API: {}",
-		server_count, app_guild_count
-	);
 
 	let guild_count = if server_count > app_guild_count {
 		app_guild_count
 	} else {
 		server_count
 	};
-	debug!("Final guild count: {}", guild_count);
 
 	let app_installation_count = bot.approximate_user_install_count.unwrap_or_default() as usize;
-	debug!("App installation count: {}", app_installation_count);
 
-	// Retrieve the bot's avatar
-	debug!("Retrieving bot icon");
 	let bot_icon = bot.icon.ok_or(anyhow!("No bot icon"))?;
-	debug!("Bot icon retrieved");
 
 	let avatar = if bot_icon.is_animated() {
 		format!(
@@ -82,14 +55,11 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 			bot_id, bot_icon
 		)
 	};
-	debug!("Avatar URL: {}", avatar);
 
 	let lib = LIBRARY.to_string();
-	debug!("Library: {}", lib);
 
-	debug!("Creating embed content");
 	let title = USABLE_LOCALES.lookup(&lang_id, "bot_info-title");
-	let embed_content = EmbedContent::new(title.clone())
+	let embed_content = EmbedContent::new(title)
 		.description(USABLE_LOCALES.lookup(&lang_id, "bot_info-desc"))
 		.thumbnail(avatar)
 		.fields(vec![
@@ -147,11 +117,8 @@ async fn info_command(self_: InfoCommand) -> Result<EmbedsContents<'_>> {
 		.footer(CreateFooter::new(
 			USABLE_LOCALES.lookup(&lang_id, "bot_info-footer"),
 		));
-	debug!("Embed content created with title: {}", title);
 
-	debug!("Creating final embed contents with buttons");
 	let embed_contents = EmbedsContents::new(vec![embed_content]);
 
-	info!("Info command processed successfully");
 	Ok(embed_contents)
 }

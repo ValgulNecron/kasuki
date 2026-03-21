@@ -87,40 +87,9 @@ async fn run() -> anyhow::Result<()> {
 
 	let cache_config = config.cache.clone();
 	info!("Initializing caches (backend: {})", cache_config.cache_type);
-	let anilist_cache: Arc<CacheInterface> =
-		Arc::new(match CacheInterface::from_config(&cache_config).await {
-			Ok(c) => {
-				info!(
-					"AniList cache initialized with {} backend",
-					cache_config.cache_type
-				);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init AniList cache with {} backend, falling back to memory: {}",
-					cache_config.cache_type, e
-				);
-				CacheInterface::new()
-			},
-		});
-	let vndb_cache: Arc<CacheInterface> =
-		Arc::new(match CacheInterface::from_config(&cache_config).await {
-			Ok(c) => {
-				info!(
-					"VNDB cache initialized with {} backend",
-					cache_config.cache_type
-				);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init VNDB cache with {} backend, falling back to memory: {}",
-					cache_config.cache_type, e
-				);
-				CacheInterface::new()
-			},
-		});
+	let anilist_cache = CacheInterface::from_config_or_default(&cache_config, "AniList").await;
+	let vndb_cache = CacheInterface::from_config_or_default(&cache_config, "VNDB").await;
+	let steam_cache = CacheInterface::from_config_or_default(&cache_config, "Steam").await;
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
@@ -221,6 +190,7 @@ async fn run() -> anyhow::Result<()> {
 		bot_info: Arc::new(RwLock::new(None)),
 		anilist_cache,
 		vndb_cache,
+		steam_cache,
 		already_launched: false.into(),
 		apps: Arc::new(Default::default()),
 		user_blacklist: Arc::new(Default::default()),

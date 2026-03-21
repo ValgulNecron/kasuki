@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use crate::cache::CacheInterface;
 use serde::{Deserialize, Serialize};
-use tracing::info;
 
 pub async fn get_staff(
 	value: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
@@ -12,11 +11,11 @@ pub async fn get_staff(
 
 	let value = value.trim();
 
-	let start_with_v = value.starts_with('v');
+	let starts_with_id_prefix = value.starts_with('s');
 
 	let is_number = value.chars().skip(1).all(|c| c.is_numeric());
 
-	let json = if start_with_v && is_number {
+	let json = if starts_with_id_prefix && is_number {
 		format!(
 			r#"{{"filters": ["id", "=", "{}"], "fields": "id,aid,ismain,name,lang,gender,description"}}"#,
 			value
@@ -38,8 +37,6 @@ pub async fn get_staff(
 	)
 	.await?;
 
-	info!("VNDB response: {}", response);
-
 	let response: StaffRoot = serde_json::from_str(&response)?;
 
 	Ok(response)
@@ -58,7 +55,7 @@ pub struct Staff {
 
 	pub lang: String,
 
-	pub description: String,
+	pub description: Option<String>,
 
 	pub id: String,
 }

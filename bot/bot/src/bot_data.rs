@@ -25,6 +25,7 @@ pub struct BotData {
 	pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
 	pub anilist_cache: Arc<CacheInterface>,
 	pub vndb_cache: Arc<CacheInterface>,
+	pub steam_cache: Arc<CacheInterface>,
 	pub already_launched: RwLock<bool>,
 	pub apps: Arc<RwLock<HashMap<String, u32>>>,
 	pub user_blacklist: Arc<RwLock<HashSet<String>>>,

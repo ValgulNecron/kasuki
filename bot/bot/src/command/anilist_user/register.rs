@@ -1,17 +1,3 @@
-//! The `RegisterCommand` struct is responsible for handling the "register" command interaction
-//! within a Discord bot. It is part of a bot infrastructure that integrates with the AniList API
-//! and a database for user registrations.
-//!
-//! This command allows users to register their AniList account with the bot, storing a mapping
-//! between their Discord ID and AniList ID in the database.
-//!
-//! # Fields
-//! - `ctx`: The `SerenityContext` that represents the current bot state and provides access to shared
-//!          data like the database connection, configuration, etc.
-//! - `command_interaction`: The command interaction event received from Discord, containing details
-//!                          about the invoked command (i.e., the user, arguments, and guild information).
-//!
-//! This struct implements the `Command` trait, defining the behavior and response of the "register" command.
 use anyhow::anyhow;
 
 use fluent_templates::fluent_bundle::FluentValue;
@@ -52,13 +38,10 @@ async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> 
 		.get(&FixedString::from_str_trunc("username"))
 		.ok_or(anyhow!("No username provided"))?;
 
-	// Fetch the user data from AniList
 	let user_data: User = get_user(value, anilist_cache).await?;
 
-	// Get the language identifier for localization
 	let lang_id = cx.lang_id().await;
 
-	// Retrieve the user's Discord ID and username
 	let user_id = &cx.command_interaction.user.id.to_string();
 
 	let username = &cx.command_interaction.user.name;
@@ -76,7 +59,6 @@ async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> 
 	.exec(&*connection)
 	.await?;
 
-	// Construct the description for the embed using Fluent
 	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
 	args.insert(Cow::Borrowed("user"), FluentValue::from(username.as_str()));
 	args.insert(Cow::Borrowed("id"), FluentValue::from(user_id.as_str()));

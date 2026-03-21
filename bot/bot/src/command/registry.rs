@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::OnceLock;
 
-// ─── Command metadata types ─────────────────────────────────────────────────
-
 #[derive(Debug, Clone, Copy)]
 pub enum DiscordCommandType {
 	ChatInput,
@@ -221,8 +219,6 @@ pub struct CommandMeta {
 	pub args: &'static [ArgDef],
 }
 
-// ─── SlashCommand trait ──────────────────────────────────────────────────────
-
 pub trait SlashCommand: Send + Sync + 'static {
 	fn meta(&self) -> &'static CommandMeta;
 	fn dispatch_key(&self) -> &'static str;
@@ -233,8 +229,6 @@ pub trait SlashCommand: Send + Sync + 'static {
 }
 
 inventory::collect!(&'static dyn SlashCommand);
-
-// ─── ParentCommand for grouping subcommands ──────────────────────────────────
 
 pub struct ParentCommand {
 	pub name: &'static str,
@@ -252,8 +246,6 @@ pub struct GroupDef {
 }
 
 inventory::collect!(&'static ParentCommand);
-
-// ─── Global registries ──────────────────────────────────────────────────────
 
 static SLASH_REGISTRY: OnceLock<HashMap<String, &'static dyn SlashCommand>> = OnceLock::new();
 static USER_REGISTRY: OnceLock<HashMap<String, &'static dyn SlashCommand>> = OnceLock::new();

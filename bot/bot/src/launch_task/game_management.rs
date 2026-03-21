@@ -1,5 +1,6 @@
 use crate::structure::steam_game_id_struct::get_game;
 use anyhow::Context as AnyhowContext;
+use shared::cache::CacheInterface;
 use shared::config::TaskIntervalConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -9,9 +10,10 @@ use tokio::time::interval;
 use tracing::{debug, error, info, trace, warn};
 
 /// Asynchronously launches the game management thread.
-#[tracing::instrument(skip(apps, task_intervals), level = "info")]
+#[tracing::instrument(skip(apps, task_intervals, steam_cache), level = "info")]
 pub async fn launch_game_management_thread(
 	apps: Arc<RwLock<HashMap<String, u32>>>, task_intervals: TaskIntervalConfig,
+	steam_cache: Arc<CacheInterface>,
 ) {
 	let mut interval = interval(Duration::from_secs(task_intervals.game_update));
 
@@ -49,7 +51,7 @@ pub async fn launch_game_management_thread(
 		};
 
 		trace!("Calling get_game function with apps cache");
-		match get_game(apps.clone())
+		match get_game(apps.clone(), steam_cache.clone())
 			.await
 			.context("Failed to update game data")
 		{

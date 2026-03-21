@@ -1,7 +1,3 @@
-//! A module for handling the `LevelCommand` and calculating user level
-//! progress based on anime and manga statistics. Additionally, this module
-//! supports fetching user data from AniList and database, processing and
-//! preparing data for the embed visualization.
 use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use once_cell::sync::Lazy;
@@ -59,17 +55,14 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 
 	let user = data;
 
-	// Get the language identifier for localization
 	let lang_id = cx.lang_id().await;
 
-	// Clone the manga and anime statistics
 	let statistics = user.statistics.clone().unwrap();
 
 	let manga = statistics.manga.clone();
 
 	let anime = statistics.anime.clone();
 
-	// Calculate the number of manga and anime completed
 	let manga_completed = if let Some(manga) = manga.clone() {
 		get_completed(manga.statuses.unwrap())
 	} else {
@@ -82,7 +75,6 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		0
 	};
 
-	// Get the number of chapters read and minutes watched
 	let chap_read = if let Some(manga) = manga.clone() {
 		manga.chapters_read
 	} else {
@@ -95,15 +87,12 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		0
 	};
 
-	// Calculate the experience points
 	let xp = (8.0 * (manga_completed + anime_completed) as f64)
 		+ (2.0 * chap_read as f64)
 		+ (tw as f64 * 0.5);
 
-	// Get the username
 	let username = user.name.clone();
 
-	// Calculate the level and progress
 	let (level, actual, next_xp): (u32, f64, f64) = get_level(xp);
 
 	let next_level_display = if next_xp <= 1.0 {
@@ -136,7 +125,6 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		.url(get_user_url(&user.id))
 		.colour(get_color(user.clone()));
 
-	// Add the user's banner image to the embed if it exists
 	if let Some(banner_image) = &user.banner_image {
 		embed_content = embed_content.images_url(banner_image.clone());
 	}

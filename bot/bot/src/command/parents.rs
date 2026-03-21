@@ -1,7 +1,5 @@
 use crate::command::registry::{ContextType, GroupDef, InstallType, ParentCommand, PermissionType};
 
-// ─── Subcommand parents (no handler, just grouping metadata) ─────────────────
-
 inventory::submit!(&ParentCommand {
 	name: "user",
 	desc: "General purpose commands for user.",
@@ -139,8 +137,6 @@ inventory::submit!(&ParentCommand {
 	install_contexts: &[InstallType::Guild],
 	groups: &[],
 });
-
-// ─── Subcommand group parent (admin with nested groups) ─────────────────────
 
 inventory::submit!(&ParentCommand {
 	name: "admin",

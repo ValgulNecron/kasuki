@@ -2,6 +2,7 @@ mod api;
 
 use api::state::AppState;
 use base64::{engine::general_purpose::STANDARD, Engine as _};
+use shared::cache::CacheInterface;
 use shared::config::Config;
 use std::sync::Arc;
 use tracing::{error, info};
@@ -48,7 +49,9 @@ async fn main() -> anyhow::Result<()> {
 	})?;
 	info!("database connected");
 
-	let state = AppState::new(config, db, jwt_secret_bytes);
+	let user_cache = CacheInterface::from_config_or_default(&config.cache, "user").await;
+
+	let state = AppState::new(config, db, jwt_secret_bytes, user_cache);
 
 	api::start_api_server(state).await;
 

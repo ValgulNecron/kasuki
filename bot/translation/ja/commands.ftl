@@ -120,7 +120,7 @@ cmd-anilist_user-name = anilist_user
 cmd-anilist_user-desc = AniListのユーザー情報。
 
 cmd-waifu-name = waifu
-cmd-waifu-desc = ランダムなワイフを取得する。
+cmd-waifu-desc = 最高のワイフを取得する。
 
 # anime
 cmd-random_image-name = ランダム画像

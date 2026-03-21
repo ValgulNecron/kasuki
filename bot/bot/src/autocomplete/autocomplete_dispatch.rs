@@ -1,6 +1,7 @@
+use crate::autocomplete::admin::lang as admin_lang;
 use crate::autocomplete::anilist_server::{add_anime_activity, delete_activity};
 use crate::autocomplete::anilist_user::{
-	anime, character, compare, ln, manga, search, staff, studio, user,
+	anime, character, compare, level, ln, manga, search, staff, studio, user,
 };
 use crate::autocomplete::game::steam_game_info;
 use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
@@ -17,10 +18,11 @@ pub async fn autocomplete_dispatching(ctx: &Context, autocomplete_interaction: C
 		"anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
 		"ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
 		"manga" => manga::autocomplete(ctx, autocomplete_interaction).await,
-		"user" => user::autocomplete(ctx, autocomplete_interaction).await,
+		"user" | "anilist_user" => user::autocomplete(ctx, autocomplete_interaction).await,
 		"character" => character::autocomplete(ctx, autocomplete_interaction).await,
 		"compare" => compare::autocomplete(ctx, autocomplete_interaction).await,
 		"register" => user::autocomplete(ctx, autocomplete_interaction).await,
+		"level" => level::autocomplete(ctx, autocomplete_interaction).await,
 		"staff" => staff::autocomplete(ctx, autocomplete_interaction).await,
 		"studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
 		"search" => search::autocomplete(ctx, autocomplete_interaction).await,
@@ -33,16 +35,27 @@ pub async fn autocomplete_dispatching(ctx: &Context, autocomplete_interaction: C
 }
 
 async fn admin_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
-	if autocomplete_interaction
+	match autocomplete_interaction
 		.data
 		.options
 		.first()
 		.unwrap()
 		.name
 		.as_str()
-		== "anilist"
 	{
-		anilist_admin_autocomplete(ctx, autocomplete_interaction).await
+		"anilist" => anilist_admin_autocomplete(ctx, autocomplete_interaction).await,
+		"general" => general_admin_autocomplete(ctx, autocomplete_interaction).await,
+		_ => {},
+	}
+}
+
+async fn general_admin_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
+	let interaction = autocomplete_interaction.clone();
+	let subcommand = get_subcommand(&interaction).unwrap();
+
+	match subcommand.name {
+		"lang" => admin_lang::autocomplete(ctx, autocomplete_interaction).await,
+		_ => {},
 	}
 }
 

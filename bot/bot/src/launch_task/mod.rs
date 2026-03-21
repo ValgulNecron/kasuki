@@ -24,6 +24,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	debug!("Preparing shared resources for background tasks");
 
 	let apps = bot_data.apps.clone();
+	let steam_cache = bot_data.steam_cache.clone();
 	let user_blacklist_server_image = bot_data.user_blacklist.clone();
 	let db_connection = bot_data.db_connection.clone();
 	let task_intervals = bot_data.config.task_intervals.clone();
@@ -42,7 +43,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 		task_intervals.before_server_image
 	);
 
-	// === USER INTERACTION TASKS ===
 	info!("Launching user interaction background tasks");
 
 	debug!(
@@ -53,7 +53,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	let mut game_shutdown_rx = shutdown_signal.subscribe();
 	let game_task = tokio::spawn(async move {
 		tokio::select! {
-			_ = launch_game_management_thread(apps, task_intervals_c) => {
+			_ = launch_game_management_thread(apps, task_intervals_c, steam_cache) => {
 				info!("Game management task completed");
 			},
 			_ = game_shutdown_rx.recv() => {
@@ -63,7 +63,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(game_task);
 
-	// === BOT STATUS TASKS ===
 	info!("Launching bot status monitoring background tasks");
 
 	debug!(
@@ -109,7 +108,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(bot_info_task);
 
-	// === SECURITY TASKS ===
 	info!("Launching security background tasks");
 
 	debug!(
@@ -130,7 +128,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(blacklist_task);
 
-	// === DATABASE MAINTENANCE TASKS ===
 	info!("Launching database maintenance background tasks");
 
 	debug!(
@@ -152,7 +149,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(db_cleanup);
 
-	// === VISUAL TASKS (with delay) ===
 	info!(
 		"Scheduling visual tasks with delay of {}s",
 		task_intervals.before_server_image

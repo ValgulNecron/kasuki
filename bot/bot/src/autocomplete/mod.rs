@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod anilist_server;
 pub mod anilist_user;
 pub mod autocomplete_dispatch;

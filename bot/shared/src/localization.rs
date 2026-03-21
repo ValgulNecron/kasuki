@@ -19,6 +19,13 @@ pub fn load_locales() -> Result<()> {
 	Ok(())
 }
 
+/// Returns the list of available locales baked in at compile time by `static_loader!`.
+pub fn available_locales() -> Vec<String> {
+	let mut locales: Vec<String> = USABLE_LOCALES.locales().map(|l| l.to_string()).collect();
+	locales.sort();
+	locales
+}
+
 pub async fn get_language_identifier(
 	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> LanguageIdentifier {

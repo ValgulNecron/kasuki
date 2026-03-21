@@ -13,7 +13,6 @@ use shared::database::user_inventory::{Entity as UserInventory, Model as UserInv
 use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use tracing::debug;
 
 #[slash_command(
 	name = "inventory", desc = "Check your inventory.",
@@ -264,15 +263,9 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 	Ok(embeds_contents)
 }
 
-/// Get a user's inventory with item details
 async fn get_user_inventory(
 	db: &DatabaseConnection, user_id: String, server_id: String,
 ) -> Result<Vec<(UserInventoryModel, ItemModel)>> {
-	debug!(
-		"Getting inventory for user_id={}, server_id={}",
-		user_id, server_id
-	);
-
 	let inventory_items = UserInventory::find()
 		.filter(
 			shared::database::user_inventory::Column::UserId
@@ -286,8 +279,6 @@ async fn get_user_inventory(
 		.all(db)
 		.await
 		.context("Failed to get user inventory from database")?;
-
-	debug!("Found {} inventory items", inventory_items.len());
 
 	let mut result = Vec::new();
 

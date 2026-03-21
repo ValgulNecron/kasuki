@@ -28,7 +28,6 @@ fn lookup_locale(locale_code: &str, key: &str) -> Option<String> {
 /// by trying `cmd-{name}` first, then `cmd-{parent}_{name}` for subcommands.
 fn cmd_ftl_prefix(meta: &CommandMeta) -> String {
 	let simple_key = format!("cmd-{}-name", meta.name);
-	// Check if the simple key exists in en-US
 	if lookup_locale("en-US", &simple_key).is_some() {
 		format!("cmd-{}", meta.name)
 	} else {
@@ -98,22 +97,11 @@ pub async fn command_registration(http: &Arc<Http>, is_ok: bool) {
 
 	let start = std::time::Instant::now();
 
-	// Initialize the registries
 	init_registries();
-
-	// Register top-level commands (no parent)
 	register_top_level_commands(http).await;
-
-	// Register subcommand parents (which contain their subcommands)
 	register_parent_commands(http).await;
-
-	// Register user context menu commands
 	register_user_commands(http).await;
-
-	// Register message context menu commands
 	register_message_commands(http).await;
-
-	// Register guild-specific commands
 	register_guild_commands(http).await;
 
 	let duration = start.elapsed();
@@ -140,7 +128,6 @@ async fn delete_commands(http: &Arc<Http>) {
 		}
 	}
 
-	// Collect guild IDs from guild-specific commands
 	let mut guild_ids: Vec<u64> = Vec::new();
 	for cmd in all_slash_commands() {
 		if let DiscordCommandType::GuildChatInput { guild_id } = cmd.meta().command_type {
@@ -172,7 +159,6 @@ async fn delete_commands(http: &Arc<Http>) {
 	info!("Done deleting commands");
 }
 
-/// Register top-level ChatInput commands (those with DiscordCommandType::ChatInput)
 async fn register_top_level_commands(http: &Arc<Http>) {
 	for cmd in all_slash_commands() {
 		let meta = cmd.meta();
@@ -185,11 +171,8 @@ async fn register_top_level_commands(http: &Arc<Http>) {
 	}
 }
 
-/// Register parent commands that group subcommands (and subcommand groups)
 async fn register_parent_commands(http: &Arc<Http>) {
-	// Collect all subcommands grouped by parent name
 	let mut subcommands_by_parent: HashMap<&str, Vec<&CommandMeta>> = HashMap::new();
-	// Collect subcommand group commands: parent -> group -> commands
 	let mut group_commands: HashMap<&str, HashMap<&str, Vec<&CommandMeta>>> = HashMap::new();
 
 	for cmd in all_slash_commands() {
@@ -216,12 +199,10 @@ async fn register_parent_commands(http: &Arc<Http>) {
 			.nsfw(parent.nsfw)
 			.description(parent.desc);
 
-		// Set contexts
 		let contexts: Cow<[InteractionContext]> =
 			parent.contexts.iter().map(|c| (*c).into()).collect();
 		command_build = command_build.contexts(contexts);
 
-		// Set install contexts
 		let install_types: Cow<[InstallationContext]> = parent
 			.install_contexts
 			.iter()
@@ -229,10 +210,8 @@ async fn register_parent_commands(http: &Arc<Http>) {
 			.collect();
 		command_build = command_build.integration_types(install_types);
 
-		// Set permissions
 		command_build = apply_permissions(parent.permissions, command_build);
 
-		// Set locales from FTL
 		for locale_code in DISCORD_LOCALES {
 			if let Some(name) = lookup_locale(locale_code, &format!("parent-{}-name", parent.name))
 			{
@@ -246,7 +225,6 @@ async fn register_parent_commands(http: &Arc<Http>) {
 
 		let mut options: Vec<CreateCommandOption<'_>> = Vec::new();
 
-		// Add subcommand group options
 		if !parent.groups.is_empty() {
 			for group_def in parent.groups {
 				let group_option =
@@ -255,7 +233,6 @@ async fn register_parent_commands(http: &Arc<Http>) {
 			}
 		}
 
-		// Add direct subcommand options
 		if let Some(subs) = subcommands_by_parent.get(parent.name) {
 			for meta in subs {
 				let sub_option = build_subcommand_option(meta);
@@ -271,7 +248,6 @@ async fn register_parent_commands(http: &Arc<Http>) {
 	}
 }
 
-/// Register user context menu commands
 async fn register_user_commands(http: &Arc<Http>) {
 	for cmd in all_slash_commands() {
 		let meta = cmd.meta();
@@ -298,7 +274,6 @@ async fn register_user_commands(http: &Arc<Http>) {
 	}
 }
 
-/// Register message context menu commands
 async fn register_message_commands(http: &Arc<Http>) {
 	for cmd in all_slash_commands() {
 		let meta = cmd.meta();
@@ -325,7 +300,6 @@ async fn register_message_commands(http: &Arc<Http>) {
 	}
 }
 
-/// Register guild-specific commands
 async fn register_guild_commands(http: &Arc<Http>) {
 	for cmd in all_slash_commands() {
 		let meta = cmd.meta();
@@ -341,8 +315,6 @@ async fn register_guild_commands(http: &Arc<Http>) {
 		}
 	}
 }
-
-// ─── Builder helpers ─────────────────────────────────────────────────────────
 
 fn build_chat_input_command(meta: &CommandMeta) -> CreateCommand<'_> {
 	let mut command_build = CreateCommand::new(meta.name)
@@ -434,7 +406,6 @@ fn build_subcommand_group_option<'a>(
 		group_def.desc,
 	);
 
-	// Set locales from FTL
 	for locale_code in DISCORD_LOCALES {
 		if let Some(name) = lookup_locale(
 			locale_code,
@@ -450,7 +421,6 @@ fn build_subcommand_group_option<'a>(
 		}
 	}
 
-	// Add subcommands within this group
 	if let Some(parent_groups) = group_commands.get(parent_name) {
 		if let Some(cmds) = parent_groups.get(group_def.name) {
 			let mut sub_options = Vec::new();
@@ -473,7 +443,6 @@ fn build_arg_options<'a>(meta: &'a CommandMeta) -> Vec<CreateCommandOption<'a>> 
 			.required(arg.required)
 			.set_autocomplete(arg.autocomplete);
 
-		// Add choices with locale lookups
 		for choice in arg.choices {
 			let choice_prefix = choice_ftl_prefix(meta.name, arg.name, choice.name, meta);
 			let mut choice_locales: HashMap<Cow<'_, str>, Cow<'_, str>> = HashMap::new();
@@ -490,7 +459,6 @@ fn build_arg_options<'a>(meta: &'a CommandMeta) -> Vec<CreateCommandOption<'a>> 
 			}
 		}
 
-		// Add arg locales from FTL
 		let arg_prefix = arg_ftl_prefix(meta.name, arg.name, meta);
 		for locale_code in DISCORD_LOCALES {
 			if let Some(name) = lookup_locale(locale_code, &format!("{}-name", arg_prefix)) {

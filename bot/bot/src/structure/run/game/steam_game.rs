@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use crate::constant::LANG_MAP;
 use anyhow::{anyhow, Context, Result};
@@ -8,9 +8,20 @@ use rust_fuzzy_search::fuzzy_search_sorted;
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use serde_with::serde_as;
+use shared::cache::CacheInterface;
 use shared::helper::get_guild_lang::get_guild_language;
 use tokio::sync::RwLock;
 use tracing::trace;
+
+static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
+	reqwest::Client::builder()
+		.user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
+		.build()
+		.expect("Failed to build static reqwest client")
+});
+
+static REQUIRED_AGE_RE: LazyLock<Regex> =
+	LazyLock::new(|| Regex::new(r#""required_age":"(\d+)""#).expect("Failed to create regex"));
 
 #[serde_as]
 #[derive(Deserialize, Clone, Debug)]
@@ -76,19 +87,23 @@ pub struct ReleaseDate {
 impl SteamGameWrapper {
 	pub async fn new_steam_game_by_id(
 		appid: u32, guild_id: String, db_connection: Arc<DatabaseConnection>,
+		steam_cache: Arc<CacheInterface>,
 	) -> Result<SteamGameWrapper> {
-		let client = reqwest::Client::builder()
-			.user_agent("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0")
-			.build()
-			.context("Failed to build reqwest client")?;
-
 		let lang = get_guild_language(guild_id, db_connection).await;
 
-		let local_lang = LANG_MAP.clone();
-
-		let full_lang = *local_lang
+		let full_lang = *LANG_MAP
 			.get(lang.to_lowercase().as_str())
 			.unwrap_or(&"english");
+
+		let cache_key = format!("steam_game_{}_{}", appid, lang);
+
+		if let Some(cached) = steam_cache.read(&cache_key).await? {
+			let game_wrapper: HashMap<String, SteamGameWrapper> =
+				serde_json::from_str(&cached).context("Failed to parse cached response")?;
+			if let Some(game) = game_wrapper.get(&appid.to_string()) {
+				return Ok(game.clone());
+			}
+		}
 
 		let url = format!(
 			"https://store.steampowered.com/api/appdetails/?cc={}&l={}&appids={}",
@@ -97,7 +112,7 @@ impl SteamGameWrapper {
 
 		trace!("{}", url);
 
-		let response = client
+		let response = HTTP_CLIENT
 			.get(&url)
 			.send()
 			.await
@@ -108,23 +123,22 @@ impl SteamGameWrapper {
 			.await
 			.context("Failed to get response text")?;
 
-		let re = Regex::new(r#""required_age":"(\d+)""#).expect("Failed to create regex");
-
-		if let Some(cap) = re.captures(&text) {
+		if let Some(cap) = REQUIRED_AGE_RE.captures(&text) {
 			if let Some(number) = cap.get(1) {
 				let number_str = number.as_str();
 
-				let number: u32 = number_str.parse().expect("Not a number!");
-
-				let base = format!("\"required_age\":\"{}\"", number);
-
-				let new = format!("\"required_age\":{}", number);
-
-				text = text.replace(&base, &new);
-
-				trace!("{}", number)
+				if let Ok(number) = number_str.parse::<u32>() {
+					let base = format!("\"required_age\":\"{}\"", number);
+					let new = format!("\"required_age\":{}", number);
+					text = text.replace(&base, &new);
+				}
 			}
 		}
+
+		steam_cache
+			.write(cache_key, text.clone())
+			.await
+			.context("Failed to write to steam cache")?;
 
 		let game_wrapper: HashMap<String, SteamGameWrapper> =
 			serde_json::from_str(text.as_str()).context("Failed to parse response text")?;
@@ -138,9 +152,15 @@ impl SteamGameWrapper {
 
 	pub async fn new_steam_game_by_search(
 		search: &str, guild_id: String, apps: Arc<RwLock<HashMap<String, u32>>>,
-		db_connection: Arc<DatabaseConnection>,
+		db_connection: Arc<DatabaseConnection>, steam_cache: Arc<CacheInterface>,
 	) -> Result<SteamGameWrapper> {
 		let guard = apps.read().await;
+
+		if guard.is_empty() {
+			return Err(anyhow!(
+				"Steam game database is still loading, please try again shortly"
+			));
+		}
 
 		let choices: Vec<&str> = guard.keys().map(|s| s.as_str()).collect();
 
@@ -149,7 +169,7 @@ impl SteamGameWrapper {
 		let mut appid = &0u32;
 
 		if results.is_empty() {
-			return Err(anyhow!("No game found"));
+			return Err(anyhow!("No game found matching '{}'", search));
 		}
 
 		for (name, _) in results {
@@ -174,6 +194,6 @@ impl SteamGameWrapper {
 			}
 		}
 
-		SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_connection).await
+		SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_connection, steam_cache).await
 	}
 }

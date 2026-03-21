@@ -27,6 +27,29 @@ pub async fn dispatch_command(
 		kind, name, full_command_name
 	);
 
+	let hashed_user =
+		shared::cache::hash_key(&command_interaction.user.id.to_string())[..16].to_string();
+	let hashed_guild = command_interaction
+		.guild_id
+		.map(|g| shared::cache::hash_key(&g.to_string())[..16].to_string())
+		.unwrap_or_else(|| "dm".to_string());
+
+	sentry::configure_scope(|scope| {
+		scope.set_user(Some(sentry::User {
+			id: Some(hashed_user.into()),
+			..Default::default()
+		}));
+		scope.set_tag("command", &full_command_name);
+		scope.set_tag("guild_id", &hashed_guild);
+	});
+
+	sentry::add_breadcrumb(sentry::Breadcrumb {
+		category: Some("command".into()),
+		message: Some(format!("Starting command: {}", full_command_name)),
+		level: sentry::Level::Info,
+		..Default::default()
+	});
+
 	let start_time = Instant::now();
 	info!("Executing command: {}", full_command_name);
 
@@ -52,6 +75,16 @@ pub async fn dispatch_command(
 			full_command_name, execution_time
 		);
 	}
+
+	sentry::add_breadcrumb(sentry::Breadcrumb {
+		category: Some("command".into()),
+		message: Some(format!(
+			"Command {} completed in {:?}",
+			full_command_name, execution_time
+		)),
+		level: sentry::Level::Info,
+		..Default::default()
+	});
 
 	bot_data
 		.increment_command_use_per_command(

@@ -84,7 +84,30 @@ impl CacheInterface {
 		}
 	}
 
-	pub async fn read(&self, key: &String) -> Result<Option<String>> {
+	/// Create from config with a fallback to in-memory on failure.
+	pub async fn from_config_or_default(config: &CacheConfig, label: &str) -> std::sync::Arc<Self> {
+		std::sync::Arc::new(match Self::from_config(config).await {
+			Ok(c) => {
+				tracing::info!(
+					"{} cache initialized with {} backend",
+					label,
+					config.cache_type
+				);
+				c
+			},
+			Err(e) => {
+				tracing::warn!(
+					"Failed to init {} cache with {} backend, falling back to memory: {}",
+					label,
+					config.cache_type,
+					e
+				);
+				Self::new()
+			},
+		})
+	}
+
+	pub async fn read(&self, key: &str) -> Result<Option<String>> {
 		let hashed = hash_key(key);
 		match &self.backend {
 			CacheBackend::Memory(cache) => Ok(cache.get(&hashed).await),
@@ -115,9 +138,9 @@ impl CacheInterface {
 	}
 }
 
-/// Hash a cache key to a fixed 32-char hex string (128-bit, two independent SipHash passes).
+/// Hash a string to a fixed 32-char hex string (128-bit, two independent SipHash passes).
 /// Collision probability for 10K entries: ~2.9×10⁻³¹.
-fn hash_key(key: &str) -> String {
+pub fn hash_key(key: &str) -> String {
 	let mut h1 = DefaultHasher::new();
 	key.hash(&mut h1);
 	let a = h1.finish();

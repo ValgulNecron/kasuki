@@ -36,8 +36,7 @@ pub async fn get_user_profile(
 	let user_id = claims.sub;
 
 	let (user_info, guilds) = state
-		.user_cache
-		.get(&user_id)
+		.get_cached_user(&user_id)
 		.await
 		.ok_or_else(|| AppError::not_found("User not found"))?;
 
@@ -79,10 +78,7 @@ pub async fn update_user_data(
 	let user_info = get_user_info(&state.http_client, &access_token).await?;
 	let guilds = get_user_guilds(&state.http_client, &access_token).await?;
 
-	state
-		.user_cache
-		.insert(user_id.clone(), (user_info.clone(), guilds.clone()))
-		.await;
+	state.cache_user(user_id, &user_info, &guilds).await;
 
 	info!(user = %user_id, "refreshed user data from discord");
 
@@ -244,6 +240,10 @@ pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 
 	let app = Router::new()
 		.route("/api/health", get(health::health_check))
+		.route(
+			"/api/health/ready",
+			get(health::readiness_check).with_state(state.clone()),
+		)
 		.nest("/api/oauth", oauth_router)
 		.nest("/api/user", user_router)
 		.nest("/api/guild", guild_router)

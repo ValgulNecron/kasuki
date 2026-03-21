@@ -73,7 +73,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev libsqlite3-dev \
     libpng-dev libjpeg-dev \
     ca-certificates libopus-dev \
-    ffmpeg \
+    ffmpeg curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy binaries
@@ -85,7 +85,6 @@ COPY --from=builder /kasuki/target/release/image_generation /usr/local/bin/image
 COPY translation ./translation
 
 COPY json /kasuki/json
-#COPY server_image /kasuki/server_image
 
 # Entrypoint
 COPY entrypoint.sh /kasuki/entrypoint.sh

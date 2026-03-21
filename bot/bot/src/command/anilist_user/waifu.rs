@@ -28,7 +28,7 @@ use crate::structure::run::anilist::character::{character_content, get_character
 use kasuki_macros::slash_command;
 
 #[slash_command(
-	name = "waifu", desc = "Get a random waifu.", command_type = ChatInput,
+	name = "waifu", desc = "Get the best waifu.", command_type = ChatInput,
 	contexts = [Guild, BotDm, PrivateChannel],
 	install_contexts = [Guild, User],
 )]

@@ -57,8 +57,6 @@ impl VndbImage for game::Image {
 	}
 }
 
-// ── Pure transformation functions (testable without network) ──
-
 /// Build display fields from a VNDB character.
 fn build_character_fields(
 	character: &character::Character, lang_id: &LanguageIdentifier,
@@ -417,7 +415,7 @@ fn build_staff_result(s: &staff::Staff, lang_id: &LanguageIdentifier) -> StaffRe
 		),
 	];
 
-	let description = Some(convert_vndb_markdown(&s.description).to_string());
+	let description = s.description.as_deref().map(|d| convert_vndb_markdown(d).to_string());
 
 	StaffResult {
 		name: s.name.clone(),
@@ -475,8 +473,6 @@ fn build_producer_result(p: &producer::Producer, lang_id: &LanguageIdentifier) -
 		url: format!("https://vndb.org/{}", p.id),
 	}
 }
-
-// ── Public lookup functions (fetch + transform) ──
 
 /// Fetch a VNDB character and format it for display.
 pub async fn lookup_character(
@@ -554,8 +550,6 @@ mod tests {
 		LanguageIdentifier::from_str("en-US").unwrap()
 	}
 
-	// ── filter_safe_image_url tests ──
-
 	#[test]
 	fn safe_character_image_is_returned() {
 		let image = Some(character::Image {
@@ -630,8 +624,6 @@ mod tests {
 		});
 		assert_eq!(filter_safe_image_url(&image), None);
 	}
-
-	// ── build_character_fields / build_character_result tests ──
 
 	fn make_character(
 		height: Option<i64>, weight: Option<i64>, age: Option<i64>,
@@ -777,8 +769,6 @@ mod tests {
 		assert_eq!(traits_field.1.matches(", ").count(), 9);
 	}
 
-	// ── build_game_result tests ──
-
 	fn make_vn() -> game::VN {
 		game::VN {
 			olang: "ja".to_string(),
@@ -900,8 +890,6 @@ mod tests {
 		assert_eq!(result.description, None);
 	}
 
-	// ── build_stats_result tests ──
-
 	#[test]
 	fn stats_result_has_8_fields() {
 		let stats = stats::Stats {
@@ -956,8 +944,6 @@ mod tests {
 		assert!(result.fields.iter().all(|(_, _, inline)| *inline));
 	}
 
-	// ── build_user_result tests ──
-
 	#[test]
 	fn user_result_has_4_fields() {
 		let user = VnUser {
@@ -987,8 +973,6 @@ mod tests {
 		assert!(result.title.contains("MyUser"));
 	}
 
-	// ── build_staff_result tests ──
-
 	#[test]
 	fn staff_result_has_correct_structure() {
 		let s = staff::Staff {
@@ -997,7 +981,7 @@ mod tests {
 			name: "Nasu Kinoko".to_string(),
 			gender: Some("m".to_string()),
 			lang: "ja".to_string(),
-			description: "A famous scenario writer.".to_string(),
+			description: Some("A famous scenario writer.".to_string()),
 			id: "s1".to_string(),
 		};
 		let result = build_staff_result(&s, &en_us());
@@ -1022,7 +1006,7 @@ mod tests {
 			name: "Unknown".to_string(),
 			gender: None,
 			lang: "en".to_string(),
-			description: "".to_string(),
+			description: None,
 			id: "s99".to_string(),
 		};
 		let result = build_staff_result(&s, &en_us());
@@ -1030,8 +1014,6 @@ mod tests {
 		let gender_field = result.fields.iter().find(|(_, v, _)| v.is_empty()).unwrap();
 		assert_eq!(gender_field.1, "");
 	}
-
-	// ── build_producer_result tests ──
 
 	#[test]
 	fn producer_result_all_fields_present() {

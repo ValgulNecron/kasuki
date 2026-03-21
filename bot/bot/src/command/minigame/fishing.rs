@@ -12,7 +12,7 @@ use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
 use shared::localization::{Loader, USABLE_LOCALES};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use tracing::{debug, info};
+use tracing::info;
 
 #[slash_command(
 	name = "fishing", desc = "Go fishing!",
@@ -28,7 +28,6 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 
 	let user_id = cx.command_interaction.user.id.to_string();
 
-	// Load localization data
 	let lang_id = cx.lang_id().await;
 
 	let fish_items = get_fish_items(&cx.db).await?;
@@ -37,17 +36,13 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 		return Err(anyhow::anyhow!("No fish items found in the database"));
 	}
 
-	// Generate a random fish based on weights
 	let caught_fish = catch_random_fish(&fish_items)?;
 
-	// Generate a random size for the fish (between 1 and 100)
 	let fish_size = rand::rng().random_range(1..=100);
 
-	// Generate a random rarity for the fish (between minimum_rarity and maximum_rarity)
 	let fish_rarity =
 		rand::rng().random_range(caught_fish.minimum_rarity..=caught_fish.maximum_rarity);
 
-	// Add the fish to the user's inventory
 	add_fish_to_inventory(
 		&cx.db,
 		user_id,
@@ -59,7 +54,6 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 	)
 	.await?;
 
-	// Create a message to display the caught fish
 	let rarity_text = match fish_rarity {
 		1 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-common"),
 		2 => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-uncommon"),
@@ -79,7 +73,6 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 		_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-unknown_size"),
 	};
 
-	// Format the fish details using the localized format string
 	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 	args.insert(
 		Cow::Borrowed("fish_name"),
@@ -130,49 +123,31 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 	Ok(embeds_contents)
 }
 
-/// Get all fish items from the database
 async fn get_fish_items(db: &DatabaseConnection) -> Result<Vec<ItemModel>> {
-	debug!("Getting all fish items from the database");
-
 	let fish_items = Item::find()
 		.filter(shared::database::item::Column::Type.eq("fish"))
 		.all(db)
 		.await
 		.context("Failed to get fish items from database")?;
 
-	debug!("Found {} fish items", fish_items.len());
-
 	Ok(fish_items)
 }
 
-/// Catch a random fish based on weights
 fn catch_random_fish(fish_items: &[ItemModel]) -> Result<&ItemModel> {
-	debug!("Generating random fish based on weights");
-
-	// Create a weighted distribution based on the weights of the fish
 	let weights: Vec<i32> = fish_items.iter().map(|item| item.weight).collect();
 	let dist = WeightedIndex::new(&weights).context("Failed to create weighted distribution")?;
 
-	// Generate a random index based on the weights
 	let mut rng = rand::rng();
 	let index = dist.sample(&mut rng);
-
-	debug!("Selected fish: {}", fish_items[index].name);
 
 	Ok(&fish_items[index])
 }
 
-/// Add a fish to the user's inventory
 async fn add_fish_to_inventory(
 	db: &DatabaseConnection, user_id: String, server_id: String, item_id: String, size: i32,
 	rarity: i32, item_xp_boost: f32,
 ) -> Result<()> {
-	debug!(
-		"Adding fish to user's inventory: user_id={}, server_id={}, item_id={}",
-		user_id, server_id, item_id
-	);
 	let unique_id = uuid::Uuid::new_v4().to_string();
-	// Create a new inventory item
 	let inventory_item = UserInventoryActiveModel {
 		id: Set(unique_id),
 		item_id: Set(item_id),
@@ -183,7 +158,6 @@ async fn add_fish_to_inventory(
 		item_xp_boost: Set(item_xp_boost),
 	};
 
-	// Insert the item into the database
 	inventory_item
 		.insert(db)
 		.await

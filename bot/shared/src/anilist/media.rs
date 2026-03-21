@@ -6,6 +6,8 @@ use cynic::{GraphQlResponse, QueryBuilder};
 
 use crate::anilist::make_request::make_request_anilist;
 use crate::cache::CacheInterface;
+use crate::database::prelude::RegisteredUser;
+use sea_orm::{DatabaseConnection, EntityTrait};
 
 #[cynic::schema("anilist")]
 mod schema {}
@@ -57,6 +59,8 @@ pub struct Media {
 	pub chapters: Option<i32>,
 	pub characters: Option<CharacterConnection>,
 	pub tags: Option<Vec<Option<MediaTag>>>,
+	pub external_links: Option<Vec<Option<MediaExternalLink>>>,
+	pub trailer: Option<MediaTrailer>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -123,6 +127,83 @@ pub struct CharacterName {
 #[derive(cynic::QueryFragment, Debug, Clone)]
 pub struct MediaTag {
 	pub name: String,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaExternalLink {
+	pub url: Option<String>,
+	pub site: String,
+	#[cynic(rename = "type")]
+	pub link_type: Option<ExternalLinkType>,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug, PartialEq)]
+pub enum ExternalLinkType {
+	Info,
+	Streaming,
+	Social,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+pub struct MediaTrailer {
+	pub id: Option<String>,
+	pub site: Option<String>,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug, PartialEq)]
+#[allow(dead_code)]
+pub enum MediaListStatus {
+	Current,
+	Planning,
+	Completed,
+	Dropped,
+	Paused,
+	Repeating,
+}
+
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(dead_code)]
+pub enum ScoreFormat {
+	#[cynic(rename = "POINT_100")]
+	Point100,
+	#[cynic(rename = "POINT_10_DECIMAL")]
+	Point10Decimal,
+	#[cynic(rename = "POINT_10")]
+	Point10,
+	#[cynic(rename = "POINT_5")]
+	Point5,
+	#[cynic(rename = "POINT_3")]
+	Point3,
+}
+
+#[derive(cynic::QueryVariables, Debug, Clone)]
+pub struct MediaListScoreVariables {
+	pub user_id_in: Option<Vec<Option<i32>>>,
+	pub media_id: Option<i32>,
+	pub per_page: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Query", variables = "MediaListScoreVariables")]
+pub struct MediaListScoreQuery {
+	#[arguments(perPage: $per_page)]
+	#[cynic(rename = "Page")]
+	pub page: Option<MediaListScorePage>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "Page", variables = "MediaListScoreVariables")]
+pub struct MediaListScorePage {
+	#[arguments(userId_in: $user_id_in, mediaId: $media_id)]
+	pub media_list: Option<Vec<Option<MediaListEntry>>>,
+}
+
+#[derive(cynic::QueryFragment, Debug, Clone)]
+#[cynic(graphql_type = "MediaList")]
+pub struct MediaListEntry {
+	#[arguments(format: POINT_10_DECIMAL)]
+	pub score: Option<f64>,
+	pub status: Option<MediaListStatus>,
 }
 
 #[derive(cynic::Enum, Clone, Copy, Debug)]
@@ -394,6 +475,86 @@ pub fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
 	}
 
 	characters_text
+}
+
+/// Extract streaming platform links from external links.
+pub fn get_streaming_links(external_links: &Option<Vec<Option<MediaExternalLink>>>) -> String {
+	let links = match external_links {
+		Some(links) => links,
+		None => return String::new(),
+	};
+
+	let streaming: Vec<String> = links
+		.iter()
+		.flatten()
+		.filter(|link| link.link_type == Some(ExternalLinkType::Streaming) && link.url.is_some())
+		.map(|link| format!("[{}]({})", link.site, link.url.as_ref().unwrap()))
+		.collect();
+
+	streaming.join(" | ")
+}
+
+/// Build a trailer URL from a MediaTrailer.
+pub fn get_trailer_url(trailer: &Option<MediaTrailer>) -> Option<String> {
+	let trailer = trailer.as_ref()?;
+	let id = trailer.id.as_ref().filter(|id| !id.is_empty())?;
+	let site = trailer.site.as_ref().filter(|s| !s.is_empty())?;
+
+	match site.as_str() {
+		"youtube" => Some(format!("https://www.youtube.com/watch?v={}", id)),
+		"dailymotion" => Some(format!("https://www.dailymotion.com/video/{}", id)),
+		_ => None,
+	}
+}
+
+/// Format guild member scores into a summary string.
+pub fn format_guild_scores(scores: &[MediaListEntry]) -> Option<String> {
+	let with_score: Vec<f64> = scores
+		.iter()
+		.filter_map(|e| e.score)
+		.filter(|&s| s > 0.0)
+		.collect();
+
+	if with_score.is_empty() {
+		return None;
+	}
+
+	let count = with_score.len();
+	let avg = with_score.iter().sum::<f64>() / count as f64;
+
+	Some(format!("{} scored | Avg: {:.1}/10", count, avg))
+}
+
+/// Fetch guild media scores from AniList for a list of user IDs.
+pub async fn get_guild_media_scores(
+	media_id: i32, anilist_ids: Vec<i32>, anilist_cache: Arc<CacheInterface>,
+) -> Result<Vec<MediaListEntry>> {
+	if anilist_ids.is_empty() {
+		return Ok(Vec::new());
+	}
+
+	let var = MediaListScoreVariables {
+		user_id_in: Some(anilist_ids.into_iter().map(Some).collect()),
+		media_id: Some(media_id),
+		per_page: Some(50),
+	};
+
+	let operation = MediaListScoreQuery::build(var);
+	let data: GraphQlResponse<MediaListScoreQuery> =
+		make_request_anilist(operation, false, anilist_cache).await?;
+
+	Ok(data
+		.data
+		.and_then(|d| d.page)
+		.and_then(|p| p.media_list)
+		.map(|list| list.into_iter().flatten().collect())
+		.unwrap_or_default())
+}
+
+/// Get all registered AniList user IDs from the database.
+pub async fn get_registered_anilist_ids(db: &DatabaseConnection) -> Result<Vec<i32>> {
+	let users = RegisteredUser::find().all(db).await?;
+	Ok(users.into_iter().map(|u| u.anilist_id).collect())
 }
 
 /// Fetch AniList media by ID or name.

@@ -1,77 +1,3 @@
-//! The `SwapCommand` struct and its implementation define the functionality to swap two tracks
-//! in a music player's queue in response to a command interaction.
-//!
-//! # Fields
-//! - `ctx`: The context from Serenity, used to interact with the Discord bot.
-//! - `command_interaction`: An interaction object representing the executed command.
-//!
-//! # Implementation
-//! The `SwapCommand` struct implements the `Command` trait, which provides the following functionality:
-//!
-//! ## Methods
-//!
-//! ### `get_ctx`
-//! Returns a reference to the Serenity context.
-//!
-//! ```rust
-//! fn get_ctx(&self) -> &SerenityContext
-//! ```
-//!
-//! ### `get_command_interaction`
-//! Returns a reference to the command interaction object.
-//!
-//! ```rust
-//! fn get_command_interaction(&self) -> &CommandInteraction
-//! ```
-//!
-//! ### `get_contents`
-//! Handles the core logic for processing the "swap" command. It performs the following:
-//! - Retrieves the necessary bot data from the context.
-//! - Defers the interaction response to indicate processing time.
-//! - Loads localization strings for the swap command based on the guild ID.
-//! - Validates if the Lavalink music player client is enabled.
-//! - Checks if the indices (`index1`, `index2`) provided by the user are valid for the queue.
-//! - Swaps the tracks at the specified indices in the player's music queue.
-//! - Builds an embed response to indicate success or errors (e.g., invalid indices, Lavalink not running).
-//!
-//! #### Parameters
-//! None directly (uses `self`).
-//!
-//! #### Returns
-//! An `anyhow::Result` containing `EmbedsContents` on success, or an error if something went wrong.
-//!
-//! #### Example Workflow
-//! 1. Determines if the command interaction has a valid guild ID.
-//! 2. Loads localized strings for success or error messages.
-//! 3. Retrieves the Lavalink player's queue for the current guild.
-//! 4. Validates and processes the `index1` and `index2` options from the command interaction.
-//! 5. Swaps the tracks in the queue and constructs an embed message with the result.
-//!
-//! #### Important Details
-//! - If no valid guild ID is found, an error is returned.
-//! - If the indices are greater than the queue length or the same, appropriate error messages are shown using embed content.
-//! - If Lavalink is disabled or unavailable, the command fails.
-//!
-//! ```rust
-//! async fn get_contents(&self) -> anyhow::Result<EmbedsContents>
-//! ```
-//!
-//! # Dependencies
-//! This implementation uses several modules and crates:
-//! - `serenity::all`: Handles Discord API interactions.
-//! - Local modules such as:
-//!   - `command`: Defines command-related structs and enums (e.g., `Command`, `EmbedContent`).
-//!   - `event_handler`: Provides bot data configurations.
-//!   - `helper`: Includes utility functions (e.g., retrieving command options).
-//! - `anyhow`: For error handling.
-//! - `lavalink_rs`: Manages interactions with the Lavalink music streaming server.
-//!
-//! # Errors
-//! The `get_contents` method may return errors in the following scenarios:
-//! - Missing guild ID (`no guild id`).
-//! - Lavalink is not enabled or available.
-//! - Invalid or missing indices to swap in the queue.
-//!
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_number_subcommand;
@@ -99,7 +25,6 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 		self_.get_command_interaction().clone(),
 	);
 
-	// Load the localized strings
 	let lang_id = cx.lang_id().await;
 
 	let guild_id = cx

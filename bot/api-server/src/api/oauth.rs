@@ -192,10 +192,7 @@ pub async fn oauth_callback(
 		.into_response();
 	}
 
-	state
-		.user_cache
-		.insert(user_info.id.clone(), (user_info.clone(), guilds))
-		.await;
+	state.cache_user(&user_info.id, &user_info, &guilds).await;
 
 	let auth_code = Uuid::new_v4().to_string();
 	state
@@ -225,8 +222,7 @@ pub async fn exchange_auth_code(
 		.ok_or_else(|| AppError::bad_request("Invalid or expired authorization code"))?;
 
 	let (user_info, _) = state
-		.user_cache
-		.get(&entry.user_id)
+		.get_cached_user(&entry.user_id)
 		.await
 		.ok_or_else(|| AppError::not_found("User data not found"))?;
 

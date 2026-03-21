@@ -120,7 +120,7 @@ cmd-anilist_user-name = anilist_user
 cmd-anilist_user-desc = Informations sur un utilisateur sur AniList.
 
 cmd-waifu-name = waifu
-cmd-waifu-desc = Obtenir une waifu aléatoire.
+cmd-waifu-desc = Obtenir la meilleure waifu.
 
 # anime
 cmd-random_image-name = image_aleatoire

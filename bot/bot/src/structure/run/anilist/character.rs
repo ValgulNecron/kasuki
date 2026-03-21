@@ -123,8 +123,6 @@ mod tests {
 		"en-US".parse::<LanguageIdentifier>().unwrap()
 	}
 
-	// --- format_fuzzy_date tests ---
-
 	#[test]
 	fn date_month_day_year() {
 		let date = FuzzyDate {
@@ -175,8 +173,6 @@ mod tests {
 		assert_eq!(format_fuzzy_date(&date), "");
 	}
 
-	// --- format_character_name tests ---
-
 	#[test]
 	fn name_both_present() {
 		let name = CharacterName {
@@ -218,8 +214,6 @@ mod tests {
 		};
 		assert_eq!(format_character_name(&name), "/");
 	}
-
-	// --- character_content tests ---
 
 	#[tokio::test]
 	async fn content_name_none_returns_error() {

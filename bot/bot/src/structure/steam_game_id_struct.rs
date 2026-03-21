@@ -4,10 +4,13 @@ use std::sync::{Arc, LazyLock};
 use anyhow::{Context as AnyhowContext, Result};
 use reqwest::Client;
 use serde::Deserialize;
+use shared::cache::CacheInterface;
 use tokio::sync::RwLock;
-use tracing::{debug, trace};
+use tracing::{debug, info, trace, warn};
 
 static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
+
+const STEAM_CACHE_KEY: &str = "steam_app_list";
 
 #[derive(Debug, Deserialize)]
 struct AppListResponse {
@@ -26,8 +29,29 @@ pub struct App {
 	pub name: String,
 }
 
-pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u32>>>) -> Result<usize> {
+pub async fn get_game(
+	apps_data: Arc<RwLock<HashMap<String, u32>>>, steam_cache: Arc<CacheInterface>,
+) -> Result<usize> {
 	debug!("Started Steam game data update process");
+
+	// On cold start (empty in-memory map), try loading from cache to avoid the HTTP call
+	let is_cold_start = apps_data.read().await.is_empty();
+	if is_cold_start {
+		if let Ok(Some(cached_json)) = steam_cache.read(STEAM_CACHE_KEY).await {
+			let app_map: HashMap<String, u32> = serde_json::from_str(&cached_json)
+				.context("Failed to deserialize cached Steam app list")?;
+			let size = app_map.len();
+
+			let mut write_guard = apps_data.write().await;
+			info!(
+				"Loaded {} Steam apps from cache (skipping HTTP fetch)",
+				size
+			);
+			*write_guard = app_map;
+			write_guard.shrink_to_fit();
+			return Ok(size);
+		}
+	}
 
 	let url = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json";
 
@@ -47,6 +71,13 @@ pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u32>>>) -> Result<us
 		apps.into_iter().map(|app| (app.name, app.app_id)).collect();
 
 	let new_size = app_map.len();
+
+	// Persist to cache for faster startup next time
+	if let Ok(json) = serde_json::to_string(&app_map) {
+		if let Err(e) = steam_cache.write(STEAM_CACHE_KEY.to_string(), json).await {
+			warn!("Failed to persist Steam app list to cache: {}", e);
+		}
+	}
 
 	let mut write_guard = apps_data.write().await;
 	trace!("Acquired write lock on apps cache");

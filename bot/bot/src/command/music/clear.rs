@@ -1,64 +1,3 @@
-//! ClearCommand is a struct that represents the clear command in a bot application.
-//!
-//! The command is triggered by users to clear the music queue in a voice channel. It processes
-//! the command interaction, interacts with Lavalink for music management, and responds
-//! to the user with appropriate messages.
-//!
-//! # Fields
-//! - `ctx` - The Serenity context, containing information about the bot's connection and state.
-//! - `command_interaction` - The interaction representing the command invocation.
-//!
-//! ## Implementations
-//!
-//! ### `impl Command for ClearCommand`
-//!
-//! Implements the `Command` trait, which defines the behavior for commands in the bot.
-//!
-//! #### Methods
-//!
-//! ##### `get_ctx(&self) -> &SerenityContext`
-//! Returns a reference to the Serenity context associated with the command.
-//!
-//! ##### `get_command_interaction(&self) -> &CommandInteraction`
-//! Returns a reference to the command interaction that triggered this command.
-//!
-//! ##### `async fn get_contents(&self) -> anyhow::Result<Vec<EmbedContent<'_, '_>>>`
-//! Handles the execution of the clear command and constructs a response for the user.
-//!
-//! - Fetches the bot's data store, command interaction, and other necessary resources.
-//! - Ensures that the command is executed in a guild (server) by retrieving the `guild_id`.
-//! - Loads localized clear command messages based on the guild's data.
-//! - Checks for an active Lavalink client, which is required for music-related operations.
-//! - If no active music player is found for the guild, returns an error response to the user.
-//! - If an active player exists, clears the music queue and sends a success message.
-//!
-//! #### Behavior & Steps:
-//! 1. Retrieves the Lavalink client and checks if it is operational.
-//! 2. Ensures the command is executed in a valid voice channel context by checking the player context.
-//! 3. Clears the player's music queue.
-//! 4. Constructs and returns a success or error message based on the operation's result.
-//!
-//! #### Possible Errors
-//! - Returns an error if the command is triggered outside a guild.
-//! - Returns an error if the bot's Lavalink integration is unavailable or disabled.
-//! - Returns an error if there is no active player in the voice channel or if queue clearing fails.
-//!
-//! # Dependencies
-//! - `crate::command::command_trait::{Command, CommandRun, EmbedContent, EmbedType}`:
-//!   Traits and types for handling commands and constructing embed responses.
-//! - `crate::event_handler::BotData`: Bot-specific data storage for configuration and Lavalink.
-//! - `serenity::all::{CommandInteraction, Context as SerenityContext}`: Serenity-related types
-//!   for handling Discord interactions.
-//!
-//! # Example
-//! ```rust
-//! let clear_command = ClearCommand {
-//!     ctx,
-//!     command_interaction
-//! };
-//!
-//! clear_command.get_contents().await;
-//! ```
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use anyhow::anyhow;
@@ -83,7 +22,6 @@ async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
 		.guild_id
 		.ok_or(anyhow!("no guild id"))?;
 
-	// Load the localized strings
 	let lang_id = cx.lang_id().await;
 
 	let lava_client = cx.bot_data.lavalink.read().await.clone();

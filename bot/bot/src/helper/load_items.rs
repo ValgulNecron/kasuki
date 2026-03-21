@@ -36,21 +36,17 @@ struct ItemJson {
 pub async fn load_items_from_json(db: &DatabaseConnection) -> Result<()> {
 	info!("Loading items from JSON file");
 
-	// Read the JSON file
 	let json_content =
 		read_file_as_string("./json/items/items.json").context("Failed to read items JSON file")?;
 
-	// Parse the JSON
 	let items_json: ItemsJson =
 		serde_json::from_str(&json_content).context("Failed to parse items JSON")?;
 
 	debug!("Found {} items in JSON file", items_json.items.len());
 
-	// Insert each item into the database
 	for item_json in items_json.items {
 		debug!("Processing item: {}", item_json.item_id);
 
-		// Check if the item already exists
 		let existing_item = Item::find_by_id(item_json.item_id.clone())
 			.one(db)
 			.await
@@ -61,7 +57,6 @@ pub async fn load_items_from_json(db: &DatabaseConnection) -> Result<()> {
 			continue;
 		}
 
-		// Create a new item
 		let item = ItemActiveModel {
 			item_id: Set(item_json.item_id.clone()),
 			name: Set(item_json.name),
@@ -74,7 +69,6 @@ pub async fn load_items_from_json(db: &DatabaseConnection) -> Result<()> {
 			weight: Set(item_json.weight),
 		};
 
-		// Insert the item into the database
 		item.insert(db)
 			.await
 			.context(format!("Failed to insert item: {}", item_json.item_id))?;
