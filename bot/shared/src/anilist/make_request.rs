@@ -44,6 +44,7 @@ async fn check_cache<
 >(
 	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
+	// Key = query text + serialized variables so identical queries with different params get separate cache entries
 	let key = format!(
 		"{}{}",
 		operation.query,
@@ -92,6 +93,7 @@ async fn do_request<
 		},
 	};
 
+	// Cache raw JSON text instead of deserialized types so the cache is type-agnostic
 	let response_text = match resp.text().await {
 		Ok(text) => text,
 		Err(e) => {
@@ -101,6 +103,7 @@ async fn do_request<
 		},
 	};
 
+	// Reconstruct the same key used in check_cache so reads and writes stay consistent
 	let key = format!(
 		"{}{}",
 		operation.query,
@@ -116,9 +119,11 @@ async fn do_request<
 	})
 }
 
+// Deserializes raw JSON into the caller's expected response type (deferred from cache/network layer)
 fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlResponse<U>> {
 	let data = match serde_json::from_str::<GraphQlResponse<U>>(&value) {
 		Ok(parsed) => {
+			// GraphQL can return partial data alongside errors; log them but don't fail
 			if let Some(errors) = &parsed.errors {
 				if !errors.is_empty() {
 					warn!("GraphQL response contains {} errors", errors.len());

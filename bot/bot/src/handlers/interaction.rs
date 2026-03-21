@@ -10,6 +10,7 @@ use tracing::{error, trace, warn};
 
 impl Handler {
 	pub(crate) async fn interaction_create(&self, ctx: &SerenityContext, interaction: Interaction) {
+		// Track the user across all interaction types so we can upsert them in the DB at the end
 		let mut user = None;
 		let bot_data = ctx.data::<BotData>().clone();
 		trace!("Interaction received: {:?}", interaction.kind());
@@ -23,6 +24,7 @@ impl Handler {
 							error!(error = ?e, "Error executing command");
 							message = e.to_string();
 						} else {
+							// Early return on success skips error_dispatch below
 							return;
 						}
 					},
@@ -37,6 +39,7 @@ impl Handler {
 					CommandType::Message => trace!("{:?}", command_interaction),
 					_ => {},
 				}
+				// Only reached on error — send a user-facing error response
 				error_dispatch::command_dispatching(message, &command_interaction, ctx).await;
 				user = Some(command_interaction.user);
 			},

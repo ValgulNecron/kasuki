@@ -13,6 +13,8 @@ use crate::image_saver::storage::ImageStore;
 ///
 /// Handles trailing `v1/`, `v1`, or no version prefix.
 pub fn normalize_api_url(base_url: &str, endpoint: &str) -> String {
+	// Users configure base URLs inconsistently (with/without trailing slash or /v1 path).
+	// Handle all variants so config errors don't cause broken URLs.
 	if base_url.ends_with("v1/") {
 		format!("{}{}", base_url, endpoint)
 	} else if base_url.ends_with("v1") {
@@ -62,8 +64,9 @@ pub async fn question(
 	trace!("{:?}", res);
 
 	let content = res["choices"][0]["message"]["content"].to_string();
+	// to_string() on a JSON string value wraps it in quotes; strip them
 	let content = content[1..content.len() - 1].to_string();
-
+	// JSON-escaped newlines become literal "\n" after to_string; convert to real newlines with spacing
 	Ok(content.replace("\\n", " \n "))
 }
 
@@ -106,6 +109,7 @@ pub async fn translation(
 		.await?;
 
 	let content = res["choices"][0]["message"]["content"].to_string();
+	// Strip all quotes (JSON wrapping + any quotes the model put in the translation itself)
 	let no_quote = content.replace('"', "");
 
 	Ok(no_quote.replace("\\n", " \n "))
@@ -120,9 +124,11 @@ pub fn build_image_payload(
 		"n": n,
 		"size": size,
 		"model": model,
+		// "url" rather than "b64_json" to avoid large base64 payloads in memory
 		"response_format": "url"
 	});
 
+	// quality/style are DALL-E 3 only; omit for DALL-E 2 to avoid API errors
 	if let Some(quality) = quality {
 		data["quality"] = json!(quality);
 	}
@@ -141,6 +147,8 @@ pub async fn download_images_from_response(
 ) -> Result<Vec<Bytes>> {
 	let mut bytes = Vec::new();
 
+	// Try success schema first; on failure, try error schema to surface the API's error message.
+	// This two-pass approach avoids needing a tagged enum since success/error shapes differ entirely.
 	let root: ImageRoot = match serde_json::from_value(json.clone()) {
 		Ok(root) => root,
 		Err(e) => {
@@ -169,6 +177,7 @@ pub async fn download_images_from_response(
 		let body = res.bytes().await?;
 
 		let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+		// Key encodes user + guild + timestamp for audit trail and collision avoidance
 		let storage_key = format!("ai_images/ai_{}_{}_{}.png", user_id, guild_id, timestamp);
 
 		if let Err(e) = image_store.save(&storage_key, &body).await {

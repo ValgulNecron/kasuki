@@ -363,6 +363,8 @@ impl Display for CharacterRole {
 	}
 }
 
+// Builds "English / Romaji", falling back to whichever is available.
+// If both are present, show both so users can identify the title in either language.
 pub fn embed_title(title: &MediaTitle) -> String {
 	let en = title.english.clone().unwrap_or_default();
 	let rj = title.romaji.clone().unwrap_or_default();
@@ -382,9 +384,11 @@ pub fn embed_title(title: &MediaTitle) -> String {
 		"" => {},
 		_ => {
 			if has_en_title {
+				// Separator between English and Romaji titles
 				title.push_str(" / ");
 				title.push_str(rj.as_str())
 			} else {
+				// No English title available; use Romaji alone
 				title.push_str(rj.as_str())
 			}
 		},
@@ -394,6 +398,7 @@ pub fn embed_title(title: &MediaTitle) -> String {
 }
 
 pub fn get_media_url(media: &Media) -> String {
+	// Placeholder URL ensures embed links are never empty (Discord requires a valid URL)
 	media
 		.site_url
 		.clone()
@@ -401,6 +406,7 @@ pub fn get_media_url(media: &Media) -> String {
 }
 
 pub fn get_banner(media: &Media) -> String {
+	// AniList's image CDN auto-generates banner images from the media ID
 	format!("https://img.anili.st/media/{}", media.id)
 }
 
@@ -409,6 +415,7 @@ pub fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 	let mut i = 0;
 
 	for s in staff.into_iter() {
+		// Cap at 5 entries to keep Discord embeds compact and within field limits
 		if i > 4 {
 			break;
 		}
@@ -430,6 +437,7 @@ pub fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 
 		let full = name.full;
 		let user_pref = name.user_preferred;
+		// Prefer user_preferred (localized display name), fall back to full, then "Unknown"
 		let staff_name = user_pref.unwrap_or(full.unwrap_or("Unknown".to_string()));
 
 		let s_role = s.role.clone();
@@ -447,6 +455,7 @@ pub fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
 	let mut i = 0;
 
 	for c in characters.into_iter() {
+		// Cap at 5 entries to keep Discord embeds compact and within field limits
 		if i > 4 {
 			break;
 		}
@@ -484,6 +493,7 @@ pub fn get_streaming_links(external_links: &Option<Vec<Option<MediaExternalLink>
 		None => return String::new(),
 	};
 
+	// AniList returns Info, Social, and Streaming links; we only want Streaming platforms
 	let streaming: Vec<String> = links
 		.iter()
 		.flatten()
@@ -491,6 +501,7 @@ pub fn get_streaming_links(external_links: &Option<Vec<Option<MediaExternalLink>
 		.map(|link| format!("[{}]({})", link.site, link.url.as_ref().unwrap()))
 		.collect();
 
+	// Pipe-separated for inline display in Discord embeds (e.g., "Crunchyroll | Funimation")
 	streaming.join(" | ")
 }
 
@@ -509,6 +520,7 @@ pub fn get_trailer_url(trailer: &Option<MediaTrailer>) -> Option<String> {
 
 /// Format guild member scores into a summary string.
 pub fn format_guild_scores(scores: &[MediaListEntry]) -> Option<String> {
+	// AniList returns 0.0 for unscored entries; exclude them from the average
 	let with_score: Vec<f64> = scores
 		.iter()
 		.filter_map(|e| e.score)
@@ -536,10 +548,12 @@ pub async fn get_guild_media_scores(
 	let var = MediaListScoreVariables {
 		user_id_in: Some(anilist_ids.into_iter().map(Some).collect()),
 		media_id: Some(media_id),
+		// 50 is AniList's max page size for media list queries
 		per_page: Some(50),
 	};
 
 	let operation = MediaListScoreQuery::build(var);
+	// Bypass cache (false) because scores change frequently and we want live data
 	let data: GraphQlResponse<MediaListScoreQuery> =
 		make_request_anilist(operation, false, anilist_cache).await?;
 
@@ -558,6 +572,7 @@ pub async fn get_registered_anilist_ids(db: &DatabaseConnection) -> Result<Vec<i
 }
 
 /// Fetch AniList media by ID or name.
+// Accepts either a numeric ID or a search string; numeric IDs take priority for exact lookups
 pub async fn get_media(
 	value: &str, media_type: Option<MediaType>, format_in: Option<Vec<Option<MediaFormat>>>,
 	anilist_cache: Arc<CacheInterface>,

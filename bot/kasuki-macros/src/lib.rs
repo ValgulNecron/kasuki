@@ -58,6 +58,7 @@ impl Parse for SlashCommandAttr {
 		let mut name = None;
 		let mut desc = None;
 		let mut struct_name = None;
+		// ChatInput is the default — omitting `command_type` means a top-level slash command
 		let mut command_type = CommandTypeDef::ChatInput;
 		let mut nsfw = false;
 		let mut permissions = Vec::new();
@@ -203,6 +204,7 @@ fn parse_command_type(input: ParseStream) -> syn::Result<CommandTypeDef> {
 			}
 			Ok(CommandTypeDef::SubCommandGroup { parent, group })
 		},
+		// Braces instead of parens to visually distinguish from SubCommand/SubCommandGroup
 		"GuildChatInput" => {
 			let content;
 			braced!(content in input);
@@ -234,6 +236,7 @@ fn parse_arg(input: ParseStream) -> syn::Result<ArgDef> {
 
 	let mut name = String::new();
 	let mut desc = String::new();
+	// Default to String type and required=true — the most common arg pattern
 	let mut arg_type = format_ident!("String");
 	let mut required = true;
 	let mut autocomplete = false;
@@ -373,11 +376,11 @@ fn generate(
 	let fn_name = &input_fn.sig.ident;
 	let fn_body = &input_fn.block;
 
-	// Determine the struct name from the first parameter type annotation
+	// Infer struct name from the first param's type (e.g. `self_: PingCommand` -> PingCommand).
+	// Explicit `struct_name` attr wins, so commands can share a struct definition.
 	let struct_name = if let Some(sn) = &attrs.struct_name {
 		sn.clone()
 	} else {
-		// Extract from first param: `self_: FooCommand`
 		let first_param = input_fn.sig.inputs.first().ok_or_else(|| {
 			syn::Error::new_spanned(&input_fn.sig, "expected at least one parameter")
 		})?;
@@ -405,7 +408,7 @@ fn generate(
 		}
 	};
 
-	// Extract the self_ parameter name
+	// Capture the user-chosen param name so the closure signature matches the fn body's bindings
 	let self_param_name = {
 		let first_param = input_fn.sig.inputs.first().unwrap();
 		match first_param {
@@ -441,9 +444,9 @@ fn generate(
 		})
 		.collect();
 
-	// Generate struct definition (only if struct_name not reusing existing)
+	// Skip struct generation when `struct_name` is set — the struct already exists elsewhere
+	// (used when multiple commands share one struct, e.g. subcommand variants)
 	let struct_def = if attrs.struct_name.is_some() {
-		// Reusing an existing struct, don't re-define
 		quote! {}
 	} else {
 		quote! {
@@ -456,11 +459,12 @@ fn generate(
 		}
 	};
 
-	// Generate impl Command — only if we're NOT reusing an existing struct
-	// (when reusing, the original definition already has impl Command)
+	// Same guard: skip impl when reusing a struct that already has its own impl Command
 	let impl_command_block = if attrs.struct_name.is_some() {
 		quote! {}
 	} else {
+		// Wrap the fn body in a closure to move ownership — the trait method only gets &self,
+		// but the user's code expects an owned value (hence the clone() in the run() below)
 		let get_contents_closure = quote! { |#self_param_name: #struct_name| async move #fn_body };
 		quote! {
 			impl crate::command::command::Command for #struct_name {
@@ -477,7 +481,8 @@ fn generate(
 		}
 	};
 
-	// Build the dispatch key string
+	// Build the dispatch key — a flat string the registry uses for O(1) HashMap lookup.
+	// Subcommands encode hierarchy with underscores (e.g. "bot_ping") to avoid nested maps.
 	let cmd_name = &attrs.name;
 	let dispatch_key = match &attrs.command_type {
 		CommandTypeDef::ChatInput => cmd_name.clone(),
@@ -490,14 +495,17 @@ fn generate(
 		CommandTypeDef::GuildChatInput { .. } => cmd_name.clone(),
 	};
 
-	// Determine run method (use fully-qualified path so CommandRun doesn't need to be imported)
+	// User commands have a different execution path (no slash option parsing), so dispatch
+	// to run_user; everything else (including Message) goes through run_slash.
 	let run_method = match &attrs.command_type {
 		CommandTypeDef::User => format_ident!("run_user"),
 		_ => format_ident!("run_slash"),
 	};
 
-	// Generate the static CommandMeta
+	// Generate unique identifiers for the static metadata and the inventory entry.
+	// PING_COMMAND_META for the CommandMeta, PingCommandEntry for the entry struct.
 	let meta_ident = format_ident!("{}_META", fn_name.to_string().to_uppercase());
+	// Convert snake_case fn name to PascalCase for the entry struct (avoids name collisions)
 	let entry_struct_ident = {
 		let pascal = fn_name
 			.to_string()
@@ -616,6 +624,7 @@ fn generate(
 			args: &[#(#arg_tokens),*],
 		};
 
+		// Zero-sized type that exists solely to implement SlashCommand for inventory registration
 		struct #entry_struct_ident;
 
 		impl crate::command::registry::SlashCommand for #entry_struct_ident {
@@ -627,6 +636,7 @@ fn generate(
 				#dispatch_key_str
 			}
 
+			// Returns a boxed future because async trait methods need dynamic dispatch
 			fn run<'a>(
 				&'a self,
 				ctx: &'a SerenityContext,
@@ -634,6 +644,7 @@ fn generate(
 				full_command_name: &'a str,
 			) -> std::pin::Pin<Box<dyn std::future::Future<Output = anyhow::Result<()>> + Send + 'a>> {
 				Box::pin(async move {
+					// Clone ctx/interaction to give the command struct owned data it can move freely
 					let __cmd = #struct_name {
 						ctx: ctx.clone(),
 						command_interaction: interaction.clone(),
@@ -644,8 +655,10 @@ fn generate(
 			}
 		}
 
+		// Static so the reference lives for 'static — required by inventory's global collection
 		static #entry_static_ident: #entry_struct_ident = #entry_struct_ident;
 
+		// Auto-register into the global command registry; no manual dispatch table edits needed
 		inventory::submit!(&#entry_static_ident as &'static dyn crate::command::registry::SlashCommand);
 	};
 

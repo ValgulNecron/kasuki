@@ -20,12 +20,13 @@ pub fn Profile(
     let (blacklist_error, set_blacklist_error) = signal(None::<String>);
     let (admin_guild_ids, set_admin_guild_ids) = signal(Vec::<String>::new());
 
-    // Fetch admin guilds when user is logged in
+    // Pre-fetch admin guild IDs so we can partition guilds into manageable vs. view-only in the render
     Effect::new(move |_| {
         if user_session_data.get().is_some() {
             spawn_local(async move {
                 match fetch_admin_guilds(get_jwt()).await {
                     Ok(guilds) => {
+                        // Extract just the IDs — only needed for membership checks, not full guild data
                         let ids: Vec<String> = guilds.iter().map(|g| g.id.clone()).collect();
                         set_admin_guild_ids.set(ids);
                     }
@@ -63,7 +64,7 @@ pub fn Profile(
                     if let Some(data) = user_session_data.get() {
                         let admin_ids = admin_guild_ids.get();
 
-                        // Sort: admin guilds first
+                        // Partition guilds: admin-manageable ones get settings links, others are display-only
                         let mut manageable = Vec::new();
                         let mut other = Vec::new();
                         for guild in &data.guilds {

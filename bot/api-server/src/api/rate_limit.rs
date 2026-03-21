@@ -18,9 +18,11 @@ pub fn create_rate_limiter(requests_per_minute: u32) -> Arc<KeyedRateLimiter> {
 pub fn spawn_rate_limiter_cleanup(limiter: &Arc<KeyedRateLimiter>) {
 	let limiter = limiter.clone();
 	tokio::spawn(async move {
+		// 5 minutes — long enough to avoid churn, short enough to reclaim memory from expired keys
 		let mut interval = tokio::time::interval(std::time::Duration::from_secs(300));
 		loop {
 			interval.tick().await;
+			// Evict expired entries, then release the freed DashMap capacity
 			limiter.retain_recent();
 			limiter.shrink_to_fit();
 			debug!("Rate limiter cleanup: {} active entries", limiter.len());
@@ -33,6 +35,7 @@ pub async fn rate_limit_middleware(
 	axum::extract::State(limiter): axum::extract::State<Arc<KeyedRateLimiter>>,
 	req: Request<axum::body::Body>, next: Next,
 ) -> Result<Response, AppError> {
+	// Rate-limit by IP, not socket address — so all ports from the same client share a bucket
 	let key = addr.ip().to_string();
 
 	match limiter.check_key(&key) {

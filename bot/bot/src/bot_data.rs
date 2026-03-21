@@ -47,6 +47,7 @@ impl BotData {
 	pub async fn get_hourly_usage(&self, command_name: String, user_id: String) -> u128 {
 		let conn = self.db_connection.clone();
 		let now = chrono::Utc::now();
+		// Truncate to the current clock-hour to bucket usage per hour
 		let hour_start = now
 			.date_naive()
 			.and_hms_opt(now.hour(), 0, 0)
@@ -65,6 +66,7 @@ impl BotData {
 			Ok(count) => count as u128,
 			Err(e) => {
 				error!("DB error reading command usage: {}", e);
+				// Return 0 on DB errors so the command isn't blocked by a transient failure
 				0u128
 			},
 		}
@@ -78,6 +80,8 @@ impl BotData {
 			return Some(guard);
 		}
 
+		// Connection is None — either never established or previously dropped.
+		// Write lock is held so only one caller attempts reconnection at a time.
 		let redis_url = self.config.queue.redis_url();
 		match redis::Client::open(redis_url.as_str()) {
 			Ok(client) => match client.get_multiplexed_async_connection().await {
@@ -86,6 +90,7 @@ impl BotData {
 						"Reconnected to Redis at {}:{}",
 						self.config.queue.host, self.config.queue.port
 					);
+					// Store the new connection so future callers reuse it via the fast path above
 					*guard = Some(conn);
 					Some(guard)
 				},

@@ -27,6 +27,8 @@ pub async fn dispatch_command(
 		kind, name, full_command_name
 	);
 
+	// Hash IDs before sending to Sentry to avoid leaking raw Discord snowflakes (PII)
+	// Truncate to 16 chars — enough for unique identification without full hash overhead
 	let hashed_user =
 		shared::cache::hash_key(&command_interaction.user.id.to_string())[..16].to_string();
 	let hashed_guild = command_interaction
@@ -53,6 +55,7 @@ pub async fn dispatch_command(
 	let start_time = Instant::now();
 	info!("Executing command: {}", full_command_name);
 
+	// Lookup uses the dispatch key (e.g. "parent_sub" for subcommands) — built by guess_command_kind
 	let handler = get_slash_registry().get(name.as_str()).ok_or_else(|| {
 		error!("Unknown command requested: {}", full_command_name);
 		anyhow::anyhow!("Command not found: {}", full_command_name)
@@ -69,6 +72,7 @@ pub async fn dispatch_command(
 		full_command_name, execution_time
 	);
 
+	// 1000ms threshold: Discord shows "interaction failed" after 3s, so flag anything >1s
 	if execution_time.as_millis() > 1000 {
 		warn!(
 			"Command {} took over 1 second to execute: {:?}",

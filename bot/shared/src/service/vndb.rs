@@ -21,6 +21,8 @@ use crate::vndb::user::{get_user, VnUser};
 /// Returns `None` if the image is too sexual (> 1.5) or violent (> 1.0), or if there's no image.
 fn filter_safe_image_url<I: VndbImage>(image: &Option<I>) -> Option<String> {
 	match image {
+		// VNDB rates 0-2; 1.5 sexual / 1.0 violence are safe-for-Discord thresholds
+		// (violence has a stricter cap because graphic content is less tolerated)
 		Some(img) if img.sexual() <= 1.5 && img.violence() <= 1.0 => Some(img.url().to_string()),
 		_ => None,
 	}
@@ -127,6 +129,7 @@ fn build_character_fields(
 		));
 	}
 
+	// sex[0] = apparent gender, sex[1] = spoiler/true gender; wrap second in Discord spoiler tags
 	let sex = format!("{}, ||{}||", character.sex[0], character.sex[1]);
 	fields.push((
 		USABLE_LOCALES.lookup(lang_id, "vn_character-sex"),
@@ -142,6 +145,7 @@ fn build_character_fields(
 		));
 	}
 
+	// Cap at 10 to stay within Discord embed field value limits (1024 chars)
 	let vns = character
 		.vns
 		.iter()
@@ -155,6 +159,7 @@ fn build_character_fields(
 		true,
 	));
 
+	// Cap at 10 for the same embed field size reason as VNs above
 	let traits = character
 		.traits
 		.iter()
@@ -204,6 +209,7 @@ fn build_game_fields(vn: &game::VN, lang_id: &LanguageIdentifier) -> Vec<Display
 		));
 	}
 
+	// All collection fields capped at 10 to fit Discord embed field limits (1024 chars)
 	let platforms = vn
 		.platforms
 		.iter()
@@ -380,6 +386,7 @@ fn build_user_result(user: &VnUser, lang_id: &LanguageIdentifier) -> UserResult 
 		),
 	];
 
+	// Fluent i18n requires Cow keys + FluentValue wrappers for interpolating variables into templates
 	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
 	title_args.insert(
 		Cow::Borrowed("user"),

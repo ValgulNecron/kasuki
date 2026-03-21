@@ -31,6 +31,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	let shutdown_signal = bot_data.shutdown_signal.clone();
 
 	debug!("Setting up shutdown signal receivers for background tasks");
+	// Collect JoinHandles so we can await all tasks on shutdown if needed
 	let mut shutdown_receivers = Vec::new();
 
 	debug!(
@@ -52,6 +53,9 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	let task_intervals_c = task_intervals.clone();
 	let mut game_shutdown_rx = shutdown_signal.subscribe();
 	let game_task = tokio::spawn(async move {
+		// select! races the task against the shutdown signal — whichever completes
+		// first wins, and the other branch is cancelled. This ensures each infinite-loop
+		// task can be stopped without requiring cooperative cancellation points inside it.
 		tokio::select! {
 			_ = launch_game_management_thread(apps, task_intervals_c, steam_cache) => {
 				info!("Game management task completed");
@@ -158,6 +162,7 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 		"Waiting {}s before launching server image management task",
 		task_intervals.before_server_image
 	);
+	// Delay image tasks so other services (DB, API) are ready before heavy image work begins
 	sleep(Duration::from_secs(task_intervals.before_server_image)).await;
 
 	let _image_config = bot_data.config.image.clone();

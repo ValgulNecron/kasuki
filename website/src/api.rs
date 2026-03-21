@@ -30,6 +30,8 @@ async fn fetch_json<T: for<'de> Deserialize<'de>>(
     opts.set_mode(RequestMode::Cors);
 
     let headers = get_jwt_headers(jwt)?;
+    // Only set Content-Type when there's a body — GET/DELETE without a body
+    // should not declare a content type (some servers reject it).
     if body.is_some() {
         headers.set("Content-Type", "application/json")?;
     }
@@ -58,6 +60,8 @@ async fn fetch_json<T: for<'de> Deserialize<'de>>(
     serde_wasm_bindgen::from_value(json).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
+// Separate from fetch_json because some endpoints (e.g. DELETE) return
+// empty responses that would fail JSON deserialization.
 async fn fetch_json_no_body(
     method: &str, url: &str, jwt: Option<String>,
 ) -> Result<(), JsValue> {
@@ -84,6 +88,9 @@ async fn fetch_json_no_body(
     Ok(())
 }
 
+// Hand-rolled instead of using fetch_json because this endpoint returns a
+// raw JWT string (not the caller's expected type T), and no auth header is
+// needed — the OAuth code itself is the credential.
 pub async fn exchange_auth_code(code: &str) -> Result<String, JsValue> {
     let url = format!("{}/api/oauth/token", Config::api_url());
     let body = serde_json::json!({"code": code}).to_string();

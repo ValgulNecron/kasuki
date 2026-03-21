@@ -23,9 +23,11 @@ impl Handler {
 
 		let shard_info = ctx.runner_info.clone();
 		let shard_id = ctx.shard_id.clone();
+		// Read-then-write: avoid taking a write lock unless the shard is actually missing
 		let data = bot_data.shard_manager.read().await;
 		let shard_data = data.get(&shard_id);
 		if let None = shard_data {
+			// Must drop the read lock before acquiring write to avoid deadlock
 			drop(data);
 			let mut write = bot_data.shard_manager.write().await;
 			write.insert(shard_id, shard_info);
@@ -61,6 +63,7 @@ impl Handler {
 			updated_at: Set(guild.joined_at.naive_utc()),
 		};
 
+		// Upsert: insert new guild or update name/timestamp if it already exists
 		if let Err(e) = GuildData::insert(active_guild)
 			.on_conflict(
 				sea_orm::sea_query::OnConflict::column(
@@ -97,11 +100,13 @@ impl Handler {
 
 		enqueue_user_color(user_blacklist_server_image, &member.user, &bot_data).await;
 
+		// Batch server image regeneration: only trigger after every 100 member joins
 		let count = bot_data
 			.user_color_update_count
 			.fetch_add(1, Ordering::SeqCst);
 		if count >= 100 {
 			bot_data.user_color_update_count.store(0, Ordering::SeqCst);
+			// Atomic swap acts as a lock-free mutex: only one regen task runs at a time
 			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
 				let ctx_clone = ctx.clone();
 				let image_config_clone = image_config.clone();
@@ -109,6 +114,7 @@ impl Handler {
 				let flag = bot_data.server_image_running.clone();
 				tokio::spawn(async move {
 					server_image_management(&ctx_clone, image_config_clone, db_clone).await;
+					// Release the "lock" so future triggers can start a new run
 					flag.store(false, Ordering::SeqCst);
 				});
 			} else {
@@ -143,6 +149,7 @@ impl Handler {
 		let guild_id_str = chunk.guild_id.to_string();
 
 		let members_vec: Vec<&Member> = members.iter().collect();
+		// Process in batches of 250 to stay within DB insert limits
 		for batch in members_vec.chunks(250) {
 			let user_models: Vec<shared::database::user_data::ActiveModel> = batch
 				.iter()
@@ -154,6 +161,7 @@ impl Handler {
 				})
 				.collect();
 
+			// Upsert users: keep username/bot-flag current if user already exists
 			if let Err(e) = UserData::insert_many(user_models)
 				.on_conflict(
 					sea_orm::sea_query::OnConflict::column(
@@ -185,6 +193,7 @@ impl Handler {
 				)
 				.collect();
 
+			// Silently skip duplicate guild-user pairs (composite PK conflict)
 			if let Err(e) = ServerUserRelation::insert_many(relation_models)
 				.on_conflict(
 					sea_orm::sea_query::OnConflict::columns([
@@ -198,6 +207,7 @@ impl Handler {
 				.await
 			{
 				match e {
+					// RecordNotInserted is expected when do_nothing() skips duplicates
 					sea_orm::DbErr::RecordNotInserted => {},
 					_ => {
 						warn!(

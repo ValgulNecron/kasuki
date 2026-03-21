@@ -30,6 +30,8 @@ impl ServiceContext {
 	/// This performs a database lookup; call it only once per invocation.
 	pub async fn lang_id(&self) -> LanguageIdentifier {
 		let lang = get_guild_language(self.guild_id.clone(), self.db.clone()).await;
+		// Normalize DB language codes to BCP-47: "jp" is not valid BCP-47 (correct: "ja"),
+		// and bare "en" needs a region subtag to match our Fluent translation files
 		let lang_code = match lang.as_str() {
 			"jp" => "ja",
 			"en" => "en-US",
@@ -58,6 +60,7 @@ impl CommandContext {
 		let guild_id = command_interaction
 			.guild_id
 			.map(|id| id.to_string())
+			// "0" sentinel: DM interactions have no guild — use a safe non-null placeholder for DB queries
 			.unwrap_or_else(|| String::from("0"));
 
 		let service = ServiceContext {
@@ -79,6 +82,9 @@ impl CommandContext {
 	}
 }
 
+// Deref lets command handlers write `cx.db`, `cx.guild_id` etc. without `.service.`,
+// keeping service-layer fields easily accessible while Discord-specific fields (ctx,
+// command_interaction, bot_data) remain on CommandContext directly.
 impl std::ops::Deref for CommandContext {
 	type Target = ServiceContext;
 

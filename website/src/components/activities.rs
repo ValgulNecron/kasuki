@@ -42,6 +42,7 @@ pub fn Activities(
     let (error, set_error) = signal(None::<String>);
     let (success, set_success) = signal(None::<String>);
 
+    // Multi-step form state: search query -> search results -> selected anime -> fill channel/delay -> submit
     let (search_query, set_search_query) = signal(String::new());
     let (search_results, set_search_results) = signal(Vec::<AnilistSearchResult>::new());
     let (selected_anime_id, set_selected_anime_id) = signal(None::<i32>);
@@ -71,6 +72,7 @@ pub fn Activities(
         }
     });
 
+    // Each closure in the view moves its own clone — they can't share ownership
     let guild_id_for_back = guild_id.clone();
     let guild_id_for_add = guild_id.clone();
     let guild_id_for_delete = guild_id.clone();
@@ -117,6 +119,7 @@ pub fn Activities(
                                         }
                                     />
                                     <button class="settings-btn" on:click=move |_| {
+                                        // get_untracked: event handler only needs the current value, not a reactive subscription
                                         let q = search_query.get_untracked();
                                         if q.is_empty() { return; }
                                         spawn_local(async move {
@@ -137,9 +140,11 @@ pub fn Activities(
                                         <div class="activity-search-results">
                                             {results.iter().map(|r| {
                                                 let id = r.id;
+                                                // Prefer English title, fall back to romaji, then "Unknown"
                                                 let name = r.title.as_ref().map(|t| {
                                                     t.english.as_deref().or(t.romaji.as_deref()).unwrap_or("Unknown")
                                                 }).unwrap_or("Unknown").to_string();
+                                                // Clone for the on:click closure — `name` itself is moved into the view body
                                                 let name_clone = name.clone();
                                                 let is_selected = move || selected_anime_id.get() == Some(id);
                                                 view! {
@@ -197,6 +202,7 @@ pub fn Activities(
                                         on:click={
                                             let gid = gid_add;
                                             move |_| {
+                                                // get_untracked: snapshot form values at click time without reactive tracking
                                                 let anime_id = selected_anime_id.get_untracked();
                                                 let cid = channel_id.get_untracked();
                                                 if anime_id.is_none() || cid.is_empty() {
@@ -205,6 +211,7 @@ pub fn Activities(
                                                 }
                                                 let delay: i32 = delay_input.get_untracked().parse().unwrap_or(0);
                                                 let gid = gid.clone();
+                                                // gid2: separate clone for the post-add reload — gid is moved into add_activity
                                                 let gid2 = gid.clone();
                                                 set_adding.set(true);
                                                 set_error.set(None);
@@ -219,12 +226,14 @@ pub fn Activities(
                                                         Ok(_) => {
                                                             set_success.set(Some("Activity added.".to_string()));
                                                             set_adding.set(false);
+                                                            // Reset all form fields so the user starts fresh for the next entry
                                                             set_selected_anime_id.set(None);
                                                             set_selected_anime_name.set(String::new());
                                                             set_channel_id.set(String::new());
                                                             set_delay_input.set(String::new());
                                                             set_search_results.set(Vec::new());
                                                             set_search_query.set(String::new());
+                                                            // Re-fetch to show the newly added activity in the list
                                                             if let Ok(a) = fetch_guild_activities(get_jwt(), &gid2).await {
                                                                 set_activities.set(a);
                                                             }
@@ -259,6 +268,7 @@ pub fn Activities(
                                             let name = a.name.clone();
                                             let episode = a.episode;
                                             let delay = a.delay;
+                                            // Two clones: gid_inner moves into delete_activity, gid_reload moves into the re-fetch
                                             let gid_inner = gid.clone();
                                             let gid_reload = gid.clone();
                                             view! {

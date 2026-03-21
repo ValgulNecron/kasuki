@@ -14,6 +14,7 @@ pub struct ColorWithTile {
 	pub tile: RgbaImage,
 }
 
+// Assumes "#RRGGBB" format; index starts at 1 to skip the leading '#'
 fn convert_hex_to_rgb(hex: &str) -> (u8, u8, u8) {
 	(
 		u8::from_str_radix(&hex[1..3], 16).unwrap_or_default(),
@@ -29,6 +30,7 @@ pub fn create_color_tile(hex: &str, png_bytes: &[u8], tile_size: u32) -> Option<
 	let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
 	let lab_color: Lab = rgb_color.into_color();
 
+	// Triangle (bilinear) filter: fast and sufficient for small tile thumbnails
 	let tile = image::imageops::resize(&img, tile_size, tile_size, FilterType::Triangle);
 
 	Some(ColorWithTile {
@@ -37,13 +39,16 @@ pub fn create_color_tile(hex: &str, png_bytes: &[u8], tile_size: u32) -> Option<
 	})
 }
 
+// Finds the tile whose average color is perceptually closest to the target
 pub fn find_closest_color_index(colors: &[ColorWithTile], target: &Color) -> Option<usize> {
 	colors
 		.iter()
 		.enumerate()
 		.min_by(|(_, a), (_, b)| {
+			// CIEDE2000 ("improved delta E"): more accurate than Euclidean RGB distance
 			let delta_e_a = a.cielab.improved_delta_e(target.cielab);
 			let delta_e_b = b.cielab.improved_delta_e(target.cielab);
+			// partial_cmp because f32; fallback to Equal handles potential NaN from degenerate colors
 			delta_e_a
 				.partial_cmp(&delta_e_b)
 				.unwrap_or(std::cmp::Ordering::Equal)

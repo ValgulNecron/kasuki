@@ -26,6 +26,8 @@ pub async fn manage_activity(
 	http: Arc<Http>, anilist_cache: Arc<CacheInterface>, db_connection: Arc<DatabaseConnection>,
 ) {
 	use std::sync::OnceLock;
+	// OnceLock + Mutex: first call seeds "now" so the initial query returns no rows (no backfill).
+	// Subsequent calls query only the window since the previous poll.
 	static LAST_CHECK: OnceLock<tokio::sync::Mutex<NaiveDateTime>> = OnceLock::new();
 
 	let now = Utc::now().naive_utc();
@@ -49,7 +51,9 @@ pub async fn manage_activity(
 		info!("Found {} activities to process", rows.len());
 	}
 
+	// Advance checkpoint before processing so concurrent polls won't re-fetch the same rows
 	*last_check = now;
+	// Drop the lock early — processing is spawned as independent tasks below
 	drop(last_check);
 
 	for row in rows {
@@ -60,6 +64,7 @@ pub async fn manage_activity(
 		let delay = row.delay;
 
 		tokio::spawn(async move {
+			// User-configured delay to stagger notifications (e.g., avoid spoilers right at air time)
 			if delay > 0 {
 				tokio::time::sleep(Duration::from_secs(delay as u64)).await;
 			}
@@ -96,6 +101,7 @@ async fn send_specific_activity(
 	// If webhook is None but channel_id is set, create a webhook in that channel
 	let webhook_url = match &row.webhook {
 		Some(url) => url.clone(),
+		// Fallback: API-created activities may only have a channel_id — create a webhook on the fly
 		None => {
 			let channel_id_str = row
 				.channel_id
@@ -103,6 +109,7 @@ async fn send_specific_activity(
 				.ok_or_else(|| anyhow!("Activity has no webhook and no channel_id"))?;
 			let channel_id: u64 = channel_id_str.parse().context("Invalid channel_id")?;
 
+			// Discord webhook names are limited to 80 chars; cap at 100 for safety
 			let trimmed_name = row.name.chars().take(100).collect::<String>();
 			let new_webhook = http
 				.create_webhook(
@@ -168,6 +175,7 @@ async fn send_specific_activity(
 }
 
 fn decode_image(image: &str) -> Result<Vec<u8>> {
+	// Strip the optional data-URI prefix (e.g., "data:image/png;base64,") if present
 	let base64_str = match image.find(',') {
 		Some(idx) => &image[idx + 1..],
 		None => image,
@@ -184,6 +192,7 @@ async fn update_info(
 ) -> Result<()> {
 	let media = get_minimal_anime_media(row.anime_id.to_string(), anilist_cache).await?;
 
+	// No next episode means the series finished — clean up the subscription
 	let next_airing = match media.next_airing_episode {
 		Some(airing) => airing,
 		None => {
@@ -218,6 +227,7 @@ async fn update_info(
 		channel_id: Set(row.channel_id.clone()),
 	};
 
+	// Upsert: (anime_id, server_id) is the composite PK — update the next-episode timestamp and metadata
 	ActivityData::insert(new_activity)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::columns([

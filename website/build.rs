@@ -1,3 +1,4 @@
+// Bakes .env vars into the WASM binary at compile time (not readable at runtime in browser).
 fn main() {
     let mut api_url = None;
 
@@ -25,6 +26,7 @@ fn main() {
                             eprintln!("Found KASUKI_API_URL in .env: {}", value);
                         }
 
+                        // Injects each .env var as a compile-time env so env!() works in source
                         println!("cargo:rustc-env={}={}", key, value);
                     }
                 }
@@ -40,7 +42,7 @@ fn main() {
         "http://localhost:8080".to_string()
     });
 
-    // Always set the value (will use the one from .env or the default)
+    // Only set if not already injected from .env above, to avoid duplicate definition
     if std::env::var("KASUKI_API_URL").is_err() {
         println!("cargo:rustc-env=KASUKI_API_URL={}", final_url);
     }

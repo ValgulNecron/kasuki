@@ -78,7 +78,8 @@ pub fn App() -> impl IntoView {
         });
     };
 
-    // Handle auth: code exchange, JWT from URL, or JWT from localStorage
+    // Handle auth: prioritized — OAuth code beats URL JWT beats stored JWT,
+    // because a fresh code implies a new login that should override stale tokens.
     let handle_auth = move |params: &ParsedParams| {
         // 1. If we have an auth code from OAuth callback, exchange it for JWT
         if let Some(ref code) = params.code {
@@ -86,12 +87,13 @@ pub fn App() -> impl IntoView {
             spawn_local(async move {
                 match exchange_auth_code(&code).await {
                     Ok(jwt) => {
-                        // Store JWT in localStorage BEFORE changing hash
-                        // (hash change triggers hashchange event which re-runs handle_auth)
+                        // Store JWT BEFORE changing hash — the hash change re-triggers
+                        // handle_auth, which would otherwise fall through to the
+                        // localStorage path and find nothing.
                         let local_storage = window().expect("window").local_storage().unwrap().unwrap();
                         let _ = local_storage.set_item("jwt", &jwt);
                         use_jwt(jwt);
-                        // Clean the code from the URL
+                        // Remove the OAuth code from the URL to prevent re-exchange on reload
                         if let Some(w) = window() {
                             let _ = w.location().set_hash("#/profile");
                         }
@@ -102,16 +104,18 @@ pub fn App() -> impl IntoView {
                     }
                 }
             });
+            // Early return: code exchange is async, so skip lower-priority paths
             return;
         }
 
-        // 2. If we have a JWT directly in the URL
+        // 2. If we have a JWT directly in the URL (e.g. passed by external redirect)
         if let Some(ref jwt) = params.jwt {
             use_jwt(jwt.clone());
             return;
         }
 
-        // 3. Try JWT from localStorage — check if expired first
+        // 3. Try JWT from localStorage — check expiry client-side to avoid
+        //    unnecessary API calls with a token the server would reject anyway
         let local_storage = window().expect("window").local_storage().unwrap().unwrap();
         if let Ok(Some(jwt_from_storage)) = local_storage.get_item("jwt") {
             if is_jwt_expired(&jwt_from_storage) {
@@ -144,6 +148,8 @@ pub fn App() -> impl IntoView {
         }) as Box<dyn FnMut(_)>);
 
         let _ = window().expect("window").add_event_listener_with_callback("hashchange", closure.as_ref().unchecked_ref());
+        // Leak the closure so it lives for the page lifetime — dropping it would
+        // invalidate the JS callback reference since WASM has no GC integration.
         closure.forget();
     });
 
@@ -217,12 +223,15 @@ pub fn App() -> impl IntoView {
 }
 
 /// Decode the JWT payload (no signature verification) to check the `exp` claim.
+/// Skips signature verification because the client doesn't hold the signing key —
+/// the server re-validates on every API call anyway.
 fn is_jwt_expired(token: &str) -> bool {
+    // JWT structure: header.payload.signature
     let parts: Vec<&str> = token.split('.').collect();
     if parts.len() != 3 {
         return true;
     }
-    // base64url-decode the payload
+    // Only need the payload (index 1) — header and signature are irrelevant for expiry
     let payload = parts[1];
     let decoded = match base64_url_decode(payload) {
         Some(d) => d,
@@ -239,6 +248,7 @@ fn is_jwt_expired(token: &str) -> bool {
     };
     match parsed.exp {
         Some(exp) => {
+            // Date::now() returns milliseconds; JWT exp is in seconds (Unix epoch)
             let now = js_sys::Date::now() / 1000.0;
             now >= exp
         }
@@ -247,14 +257,16 @@ fn is_jwt_expired(token: &str) -> bool {
 }
 
 fn base64_url_decode(input: &str) -> Option<Vec<u8>> {
-    // base64url → standard base64
+    // base64url uses - and _ instead of + and / to be URL-safe (RFC 4648 sec 5)
     let mut s = input.replace('-', "+").replace('_', "/");
+    // JWTs strip padding, but atob() requires it — pad to a multiple of 4
     while s.len() % 4 != 0 {
         s.push('=');
     }
-    // Use the browser's atob
+    // Use the browser's built-in atob to avoid pulling in a base64 crate for WASM
     let window = web_sys::window()?;
     let decoded_str = window.atob(&s).ok()?;
+    // atob returns a "binary string" where each char is one byte
     Some(decoded_str.bytes().collect())
 }
 
@@ -291,6 +303,7 @@ fn parse_hash_and_params(full_hash: &str) -> ParsedParams {
 
     if parts.len() > 1 {
         let query_string = parts[1];
+        // Url::parse needs a full URL — use a dummy base so we can leverage its query parser
         if let Ok(url) = Url::parse(&format!("http://example.com?{}", query_string)) {
             for (key, value) in url.query_pairs() {
                 match key.as_ref() {

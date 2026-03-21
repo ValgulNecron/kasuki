@@ -18,8 +18,11 @@ pub async fn get_member(ctx_clone: &SerenityContext, guild: GuildId) -> Vec<User
 	debug!("Cache miss for guild {}, fetching from API", guild);
 	let mut i = 0;
 	let mut members_temp_out: Vec<User> = Vec::new();
+	// 1000 is Discord's max members per API request
 
+	// Paginate: a full page (1000) means more members may exist; fewer means we're done
 	while members_temp_out.len() == (1000 * i) {
+		// First page has no cursor; subsequent pages pass the last user ID as "after"
 		let members_temp_in = if i == 0 {
 			match guild
 				.members(
@@ -67,6 +70,7 @@ pub async fn get_member(ctx_clone: &SerenityContext, guild: GuildId) -> Vec<User
 pub async fn enqueue_user_color(
 	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: &User, bot_data: &BotData,
 ) {
+	// Skip users whose color was already computed this cycle to avoid redundant work
 	if user_blacklist_server_image
 		.read()
 		.await
@@ -84,6 +88,7 @@ pub async fn enqueue_user_color(
 		profile_picture_url: user.face(),
 	};
 
+	// Unbounded channel — send only fails if the receiver has been dropped (shutdown)
 	if bot_data.user_color_task_tx.send(task).is_err() {
 		error!(
 			"User color queue publisher stopped, dropping task for user {}",

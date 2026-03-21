@@ -67,6 +67,8 @@ pub struct FuzzyDate {
 	pub day: Option<i32>,
 }
 
+// Builds a date string in MM/DD/YYYY format, omitting missing parts.
+// AniList FuzzyDates can have any combination of fields (e.g., month+day but no year for birthdays).
 pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 	let mut has_month: bool = false;
 	let mut has_day: bool = false;
@@ -78,6 +80,7 @@ pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 	}
 
 	if let Some(d) = date.day {
+		// Only add separator if there's a preceding component
 		if has_month {
 			result.push('/')
 		}
@@ -95,6 +98,7 @@ pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 	result
 }
 
+// Shows both romanized and native (e.g., Japanese) names so users can identify the character in either script
 pub fn format_character_name(name: &CharacterName) -> String {
 	let native = name.native.clone().unwrap_or_default();
 	let user_pref = name.user_preferred.clone().unwrap_or_default();
@@ -102,6 +106,7 @@ pub fn format_character_name(name: &CharacterName) -> String {
 }
 
 /// Fetch an AniList character by ID or name.
+// Numeric strings are treated as IDs for exact lookup; everything else triggers a search query
 pub async fn get_character(value: &str, anilist_cache: Arc<CacheInterface>) -> Result<Character> {
 	if let Ok(id) = value.parse::<i32>() {
 		get_character_by_id(id, anilist_cache).await

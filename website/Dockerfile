@@ -9,15 +9,17 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy pre-built dist files (run `trunk build --release` locally first)
 COPY dist/ /usr/share/nginx/html
 
-# Remove Trunk hot-reload script from production HTML (if present)
-# The script starts with <script>"use strict"; and ends before </body>
+# Trunk injects a WebSocket-based hot-reload script during dev builds;
+# strip it from production HTML since it would fail and bloat the page.
 RUN if grep -q '__TRUNK_ADDRESS__' /usr/share/nginx/html/index.html; then \
+        # awk drops lines from the hot-reload <script> tag through its closing </script>
         awk '/<script>"use strict";/{found=1} !found; /<\/script><\/body>/{found=0; print "</body>"}' \
             /usr/share/nginx/html/index.html > /tmp/index.html && \
         mv /tmp/index.html /usr/share/nginx/html/index.html; \
     fi
 
-# Pre-compress static assets with gzip for nginx gzip_static
+# Pre-compress at build time so nginx gzip_static can serve .gz files directly,
+# avoiding per-request CPU cost of on-the-fly compression. -k keeps originals for non-gzip clients.
 RUN find /usr/share/nginx/html -type f \( -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.wasm" -o -name "*.svg" -o -name "*.json" -o -name "*.xml" -o -name "*.txt" \) \
     -exec gzip -9 -k {} \;
 

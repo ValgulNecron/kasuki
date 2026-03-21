@@ -47,13 +47,14 @@ pub fn ServerSettings(
     let (mini_game_module, set_mini_game_module) = signal(true);
     let (saving, set_saving) = signal(false);
 
+    // Clone needed because Effect closure takes ownership, but guild_id is used later in the view
     let guild_id_clone = guild_id.clone();
     Effect::new(move |_| {
         if user_session_data.get().is_some() {
             let gid = guild_id_clone.clone();
             set_loading.set(true);
             spawn_local(async move {
-                // Fetch langs and settings in parallel
+                // Start both fetches before awaiting either — they are independent and can resolve in any order
                 let langs_fut = fetch_langs(get_jwt());
                 let settings_fut = fetch_guild_settings(get_jwt(), &gid);
 
@@ -85,6 +86,7 @@ pub fn ServerSettings(
         }
     });
 
+    // Each closure in the view captures its own clone — they can't share because each moves its copy
     let guild_id_for_lang = guild_id.clone();
     let guild_id_for_modules = guild_id.clone();
     let guild_id_for_activities = guild_id.clone();
@@ -143,6 +145,7 @@ pub fn ServerSettings(
                                         let gid = gid_lang;
                                         move |_| {
                                             let gid = gid.clone();
+                                            // get_untracked: read the current value without subscribing this closure to lang changes
                                             let current_lang = lang.get_untracked();
                                             set_saving.set(true);
                                             set_error.set(None);
@@ -229,6 +232,8 @@ pub fn ServerSettings(
                                         set_saving.set(true);
                                         set_error.set(None);
                                         set_success.set(None);
+                                        // get_untracked: snapshot current toggle states without creating reactive subscriptions
+                                        // (this is an event handler, not a reactive derivation — tracking would be wasteful)
                                         let modules = serde_json::json!({
                                             "ai_module": ai_module.get_untracked(),
                                             "anilist_module": anilist_module.get_untracked(),

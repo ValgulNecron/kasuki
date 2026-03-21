@@ -37,6 +37,7 @@ struct PageState {
 
 impl Default for PageState {
 	fn default() -> Self {
+		// Start near AniList's current max page — we only need new/recent entries, not the full history
 		Self {
 			anime_last_page: 1796,
 			manga_last_page: 1796,
@@ -83,6 +84,7 @@ pub async fn update_random_stats_launcher(
 						error!("Cycle #{} failed: {:#}", cycle, err);
 
 						if consecutive_failures > MAX_CONSECUTIVE_FAILURES {
+							// Exponential backoff: 5s * 1.5^(n-3), grows gently to avoid hammering AniList
 							let delay = base_retry_delay
 								.mul_f32(1.5_f32.powi(consecutive_failures as i32 - 3));
 							warn!("Backing off for {:?} after {} failures", delay, consecutive_failures);
@@ -127,6 +129,7 @@ async fn update_random_stats(
 		last_manga_page: Set(state.manga_last_page),
 	};
 
+	// Upsert with fixed id=1 — only one row needed to track global pagination state
 	random_stats::Entity::insert(active_model)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::column(random_stats::Column::Id)
@@ -147,6 +150,7 @@ async fn update_random_stats(
 async fn update_category(
 	category: StatCategory, state: &mut PageState, anilist_cache: Arc<CacheInterface>,
 ) -> u32 {
+	// Cap per-category failures independently from the outer cycle failure counter
 	const MAX_FAILURES: u32 = 5;
 	let mut failures = 0;
 	let mut pages_processed = 0;
@@ -169,6 +173,7 @@ async fn update_category(
 		let page = get_page(state, category);
 		match fetch_page(category, page, anilist_cache.clone()).await {
 			Ok(has_next) => {
+				// Reset failures on success so transient errors don't accumulate across pages
 				failures = 0;
 				pages_processed += 1;
 
@@ -190,12 +195,14 @@ async fn update_category(
 					category, page, failures, MAX_FAILURES, e
 				);
 
+				// Linear backoff (2s, 4s, 6s...) — retry the same page, don't advance
 				let delay = Duration::from_secs((2 * failures).into());
 				sleep(delay).await;
 				continue;
 			},
 		}
 
+		// Pace requests to stay within AniList's rate limit (90 req/min)
 		sleep(Duration::from_secs(1)).await;
 	}
 
@@ -217,6 +224,7 @@ async fn fetch_page(
 		},
 	};
 
+	// Both anime and manga responses share the same GraphQL type; `.manga` field works for both
 	let has_next = data
 		.data
 		.and_then(|d| d.site_statistics)

@@ -25,10 +25,12 @@ pub async fn update_user_blacklist(
 	let blacklist_url = "https://raw.githubusercontent.com/ValgulNecron/kasuki/dev/blacklist.json";
 	debug!("Blacklist source URL: {}", blacklist_url);
 
+	// Build the client once outside the loop to reuse connections across cycles
 	let client = reqwest::Client::builder()
 		.timeout(Duration::from_secs(10))
 		.build()
 		.unwrap_or_else(|e| {
+			// Fallback to default client (no explicit timeout) rather than crashing
 			warn!("Failed to create custom HTTP client with timeout: {}", e);
 			warn!("Using default reqwest client instead");
 			reqwest::Client::new()
@@ -46,6 +48,7 @@ pub async fn update_user_blacklist(
 			update_count, current_time
 		);
 
+		// Scope the read lock so it drops before the HTTP request to avoid holding it during I/O
 		let current_size = {
 			let current_blacklist = blacklist_lock.read().await;
 			let size = current_blacklist.len();
@@ -86,6 +89,7 @@ pub async fn update_user_blacklist(
 						consecutive_failures
 					);
 
+					// Classify HTTP errors to give operators actionable diagnostics
 					match status.as_u16() {
 						404 => warn!(
 							"Blacklist file not found. The repository structure might have changed."
@@ -120,6 +124,7 @@ pub async fn update_user_blacklist(
 
 				debug!("Error type: {}", std::any::type_name_of_val(&e));
 
+				// Use reqwest's typed error checks instead of string matching for reliability
 				if e.is_timeout() {
 					warn!(
 						"Request timed out. GitHub might be slow or network connectivity issues."
@@ -179,6 +184,7 @@ pub async fn update_user_blacklist(
 		};
 
 		trace!("Extracting user_id array from JSON response");
+		// Expects JSON shape: { "user_id": ["id1", "id2", ...] }
 		let user_ids: HashSet<String> = match blacklist_json["user_id"].as_array() {
 			Some(arr) => {
 				debug!(
@@ -220,6 +226,7 @@ pub async fn update_user_blacklist(
 			},
 		}
 		.iter()
+		// Convert JSON values to strings, mapping non-string entries to "" then filtering them out
 		.map(|id| match id.as_str() {
 			Some(id) => id.to_string(),
 			None => {
@@ -241,6 +248,7 @@ pub async fn update_user_blacklist(
 			"Clearing existing blacklist with {} entries",
 			blacklist.len()
 		);
+		// Clear then shrink_to_fit before replacing to free the old allocation's memory
 		blacklist.clear();
 
 		trace!("Shrinking blacklist capacity");
@@ -262,6 +270,7 @@ pub async fn update_user_blacklist(
 				current_size, new_size, diff
 			);
 
+			// Threshold of 10 flags suspicious bulk changes that could indicate a bad push
 			if diff > 10 {
 				warn!(
 					"Large increase in blacklisted users (+{}). Verify this is intentional.",

@@ -49,27 +49,31 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		return Ok(Vec::new());
 	}
 
+	// Min-heap via Reverse: keeps the worst match on top so we can cheaply evict it when a better one arrives
 	let distances: Mutex<BinaryHeap<(Reverse<usize>, String)>> = Mutex::new(BinaryHeap::new());
 
 	vector.par_iter().try_for_each(|item| {
 		let distance = jaro_winkler::distance(search.chars(), item.chars());
+		// jaro_winkler::distance returns dissimilarity (0.0 = identical), so invert to get a similarity percentage
 		let score = ((1.0 - distance) * 100.0).round() as usize;
 
 		let item = (Reverse(score), item.to_string());
 
-		// Handle the mutex lock error explicitly instead of using ?
+		// Recover from poison to avoid deadlocking all rayon threads if one panicked
 		let mut distances = match distances.lock() {
 			Ok(guard) => guard,
-			Err(poison_error) => poison_error.into_inner(), // Recover from poison error
+			Err(poison_error) => poison_error.into_inner(),
 		};
 
 		if distances.len() < n {
+			// Haven't collected N candidates yet, accept unconditionally
 			distances.push(item.clone());
 		} else {
 			let min = distances
 				.peek()
 				.context("Failed to peek at the binary heap, which should not be empty")?;
 
+			// Only replace the worst candidate if this item has a higher similarity score
 			if item.0 .0 > min.0 .0 {
 				distances.pop();
 				distances.push(item);
@@ -83,6 +87,7 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 		.into_inner()
 		.context("Failed to release mutex lock for distances")?;
 
+	// Heap order is arbitrary after into_vec; re-sort descending by similarity for the caller
 	let mut results: Vec<(String, usize)> = heap
 		.into_vec()
 		.into_iter()
