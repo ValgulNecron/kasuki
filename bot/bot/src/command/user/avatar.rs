@@ -6,12 +6,10 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_user_subcommand;
 use anyhow::Result;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, User};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "avatar", desc = "Get the avatar.",
@@ -50,21 +48,13 @@ async fn avatar_command(self_: AvatarCommand) -> Result<EmbedsContents<'_>> {
 		None => None,
 	};
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let args = fluent_args!("user" => username.to_string());
 	let title = USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-title", &args);
 	let content1 = EmbedContent::new(title).images_url(avatar_url);
 
 	let content2: Option<EmbedContent> = match server_avatar {
 		Some(server_avatar) => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("user"),
-				FluentValue::from(username.to_string()),
-			);
+			let args = fluent_args!("user" => username.to_string());
 			let title =
 				USABLE_LOCALES.lookup_with_args(&lang_id, "user_avatar-server_title", &args);
 			let content2 = EmbedContent::new(title).images_url(server_avatar);

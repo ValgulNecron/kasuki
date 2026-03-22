@@ -1,12 +1,10 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "banner", desc = "Get the banner.",
@@ -42,11 +40,7 @@ async fn banner_command(self_: BannerCommand) -> Result<EmbedsContents<'_>> {
 
 	let username = user.name.as_str();
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let args = fluent_args!("user" => username.to_string());
 
 	let embed_content =
 		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_banner-title", &args))
@@ -68,11 +62,7 @@ async fn banner_user_command(self_: BannerCommand) -> Result<EmbedsContents<'_>>
 }
 
 pub fn no_banner(username: &str, lang_id: &unic_langid::LanguageIdentifier) -> Vec<EmbedContent> {
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let args = fluent_args!("user" => username.to_string());
 
 	let embed_content =
 		EmbedContent::new(USABLE_LOCALES.lookup(lang_id, "user_banner-no_banner_title"))

@@ -1,7 +1,6 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use anyhow::{Context as AnyhowContext, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
@@ -9,9 +8,8 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, Qu
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 use tracing::info;
 
 #[slash_command(
@@ -73,27 +71,13 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 		_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fishing-unknown_size"),
 	};
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("fish_name"),
-		FluentValue::from(caught_fish.name.clone()),
-	);
-	args.insert(
-		Cow::Borrowed("size_description"),
-		FluentValue::from(size_description),
-	);
-	args.insert(
-		Cow::Borrowed("size"),
-		FluentValue::from(fish_size.to_string()),
-	);
-	args.insert(Cow::Borrowed("rarity"), FluentValue::from(rarity_text));
-	args.insert(
-		Cow::Borrowed("xp_boost"),
-		FluentValue::from(((caught_fish.base_xp_boost * 100.0) as i32).to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("price"),
-		FluentValue::from(caught_fish.price.to_string()),
+	let args = fluent_args!(
+		"fish_name" => caught_fish.name.clone(),
+		"size_description" => size_description,
+		"size" => fish_size.to_string(),
+		"rarity" => rarity_text,
+		"xp_boost" => ((caught_fish.base_xp_boost * 100.0) as i32).to_string(),
+		"price" => caught_fish.price.to_string(),
 	);
 
 	let fish_details =

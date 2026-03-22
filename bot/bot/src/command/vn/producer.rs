@@ -1,5 +1,6 @@
 use crate::command::context::CommandContext;
-use crate::command::embed_content::{EmbedContent, EmbedsContents};
+use crate::command::embed_content::EmbedsContents;
+use crate::command::vn::build_vn_embed;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -30,10 +31,11 @@ async fn vn_producer_command(self_: VnProducerCommand) -> Result<EmbedsContents<
 	)
 	.await?;
 
-	let embed_content = EmbedContent::new(result.name)
-		.description(result.description.unwrap_or_default())
-		.fields(result.fields)
-		.url(result.url);
-
-	Ok(EmbedsContents::new(vec![embed_content]))
+	Ok(build_vn_embed(
+		result.name,
+		result.description,
+		result.fields,
+		result.url,
+		None,
+	))
 }

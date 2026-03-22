@@ -1,7 +1,6 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use anyhow::{Context as AnyhowContext, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use sea_orm::ExprTrait;
 use sea_orm::{
@@ -10,8 +9,8 @@ use sea_orm::{
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::{Entity as UserInventory, Model as UserInventoryModel};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
 use std::collections::HashMap;
 use tracing::debug;
 
@@ -73,16 +72,11 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 			_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-unknown"),
 		};
 
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("fish_name"),
-			FluentValue::from(fish_name.clone()),
-		);
-		args.insert(Cow::Borrowed("base_rarity"), FluentValue::from(base_rarity));
-		args.insert(Cow::Borrowed("count"), FluentValue::from(count.to_string()));
-		args.insert(
-			Cow::Borrowed("total_value"),
-			FluentValue::from(total_value.to_string()),
+		let args = fluent_args!(
+			"fish_name" => fish_name.clone(),
+			"base_rarity" => base_rarity,
+			"count" => count.to_string(),
+			"total_value" => total_value.to_string(),
 		);
 
 		fish_summary.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -130,23 +124,12 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 				_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-unknown_size"),
 			};
 
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("fish_name"),
-				FluentValue::from(fish_name.clone()),
-			);
-			args.insert(
-				Cow::Borrowed("size_description"),
-				FluentValue::from(size_description),
-			);
-			args.insert(
-				Cow::Borrowed("size"),
-				FluentValue::from(inventory_item.size.to_string()),
-			);
-			args.insert(Cow::Borrowed("rarity"), FluentValue::from(rarity_text));
-			args.insert(
-				Cow::Borrowed("xp_boost"),
-				FluentValue::from(((inventory_item.item_xp_boost * 100.0) as i32).to_string()),
+			let args = fluent_args!(
+				"fish_name" => fish_name.clone(),
+				"size_description" => size_description,
+				"size" => inventory_item.size.to_string(),
+				"rarity" => rarity_text,
+				"xp_boost" => ((inventory_item.item_xp_boost * 100.0) as i32).to_string(),
 			);
 
 			fish_details.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -182,9 +165,7 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 			_ => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-unknown"),
 		};
 
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("rarity_name"), FluentValue::from(rarity_name));
-		args.insert(Cow::Borrowed("count"), FluentValue::from(count.to_string()));
+		let args = fluent_args!("rarity_name" => rarity_name, "count" => count.to_string());
 
 		rarity_text.push_str(&USABLE_LOCALES.lookup_with_args(
 			&lang_id,
@@ -205,17 +186,9 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		.map(|(_, item)| item.price)
 		.sum::<i32>();
 
-	let mut count_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	count_args.insert(
-		Cow::Borrowed("count"),
-		FluentValue::from(total_fish_count.to_string()),
-	);
+	let count_args = fluent_args!("count" => total_fish_count.to_string());
 
-	let mut value_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	value_args.insert(
-		Cow::Borrowed("value"),
-		FluentValue::from(total_fish_value.to_string()),
-	);
+	let value_args = fluent_args!("value" => total_fish_value.to_string());
 
 	fields.push((
 		USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-summary"),

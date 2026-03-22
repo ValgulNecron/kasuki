@@ -1,11 +1,9 @@
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use once_cell::sync::Lazy;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::fluent_args;
 use shared::localization::USABLE_LOCALES;
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
@@ -104,18 +102,13 @@ async fn level_command(self_: LevelCommand) -> Result<EmbedsContents<'_>> {
 		next_xp.to_string()
 	};
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("username"),
-		FluentValue::from(username.as_str()),
+	let args = fluent_args!(
+		"username" => username.as_str(),
+		"level" => level.to_string(),
+		"xp" => format!("{:.2}", xp),
+		"actual" => format!("{:.2}", actual),
+		"next" => next_level_display,
 	);
-	args.insert(Cow::Borrowed("level"), FluentValue::from(level.to_string()));
-	args.insert(Cow::Borrowed("xp"), FluentValue::from(format!("{:.2}", xp)));
-	args.insert(
-		Cow::Borrowed("actual"),
-		FluentValue::from(format!("{:.2}", actual)),
-	);
-	args.insert(Cow::Borrowed("next"), FluentValue::from(next_level_display));
 
 	let description = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_level-desc", &args);
 

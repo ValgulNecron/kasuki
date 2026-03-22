@@ -1,7 +1,6 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use anyhow::{Context as AnyhowContext, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use sea_orm::ExprTrait;
 use sea_orm::{
@@ -10,8 +9,8 @@ use sea_orm::{
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
 use shared::database::user_inventory::{Entity as UserInventory, Model as UserInventoryModel};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
 use std::collections::HashMap;
 
 #[slash_command(
@@ -70,15 +69,10 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 			let count = fish_list.len();
 			let total_value = fish_list.iter().map(|(_, item)| item.price).sum::<i32>();
 
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("fish_name"),
-				FluentValue::from(fish_name.clone()),
-			);
-			args.insert(Cow::Borrowed("count"), FluentValue::from(count.to_string()));
-			args.insert(
-				Cow::Borrowed("total_value"),
-				FluentValue::from(total_value.to_string()),
+			let args = fluent_args!(
+				"fish_name" => fish_name.clone(),
+				"count" => count.to_string(),
+				"total_value" => total_value.to_string(),
 			);
 
 			fish_summary.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -131,27 +125,13 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 				_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown_size"),
 			};
 
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("count"),
-				FluentValue::from(fish_count.to_string()),
-			);
-			args.insert(
-				Cow::Borrowed("item_name"),
-				FluentValue::from(item.name.clone()),
-			);
-			args.insert(
-				Cow::Borrowed("size_description"),
-				FluentValue::from(size_description),
-			);
-			args.insert(
-				Cow::Borrowed("size"),
-				FluentValue::from(inventory_item.size.to_string()),
-			);
-			args.insert(Cow::Borrowed("rarity_text"), FluentValue::from(rarity_text));
-			args.insert(
-				Cow::Borrowed("xp_boost"),
-				FluentValue::from(((inventory_item.item_xp_boost * 100.0) as i32).to_string()),
+			let args = fluent_args!(
+				"count" => fish_count.to_string(),
+				"item_name" => item.name.clone(),
+				"size_description" => size_description,
+				"size" => inventory_item.size.to_string(),
+				"rarity_text" => rarity_text,
+				"xp_boost" => ((inventory_item.item_xp_boost * 100.0) as i32).to_string(),
 			);
 
 			fish_details.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -195,27 +175,13 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 				_ => USABLE_LOCALES.lookup(&lang_id, "minigame_inventory-unknown_size"),
 			};
 
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("fish_number"),
-				FluentValue::from(fish_number.to_string()),
-			);
-			args.insert(
-				Cow::Borrowed("item_name"),
-				FluentValue::from(item.name.clone()),
-			);
-			args.insert(
-				Cow::Borrowed("size_description"),
-				FluentValue::from(size_description),
-			);
-			args.insert(
-				Cow::Borrowed("size"),
-				FluentValue::from(inventory_item.size.to_string()),
-			);
-			args.insert(Cow::Borrowed("rarity_text"), FluentValue::from(rarity_text));
-			args.insert(
-				Cow::Borrowed("price"),
-				FluentValue::from(item.price.to_string()),
+			let args = fluent_args!(
+				"fish_number" => fish_number.to_string(),
+				"item_name" => item.name.clone(),
+				"size_description" => size_description,
+				"size" => inventory_item.size.to_string(),
+				"rarity_text" => rarity_text,
+				"price" => item.price.to_string(),
 			);
 
 			all_fish_list.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -237,14 +203,9 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 		let total_fish_count = fish_items.len();
 		let total_fish_value = fish_items.iter().map(|(_, item)| item.price).sum::<i32>();
 
-		let mut summary_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		summary_args.insert(
-			Cow::Borrowed("total_fish_count"),
-			FluentValue::from(total_fish_count.to_string()),
-		);
-		summary_args.insert(
-			Cow::Borrowed("total_fish_value"),
-			FluentValue::from(total_fish_value.to_string()),
+		let summary_args = fluent_args!(
+			"total_fish_count" => total_fish_count.to_string(),
+			"total_fish_value" => total_fish_value.to_string(),
 		);
 
 		embed_content = embed_content.fields(vec![(

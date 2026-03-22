@@ -1,5 +1,5 @@
 use crate::command::guess_kind::guess_command_kind;
-use crate::command::registry::{get_message_registry, get_slash_registry, get_user_registry};
+use crate::command::registry::{get_slash_registry, get_user_registry};
 use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -112,12 +112,3 @@ pub async fn dispatch_user_command(
 	handler.run(ctx, command_interaction, name).await
 }
 
-pub async fn dispatch_message_command(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction,
-) -> Result<()> {
-	let name = command_interaction.data.name.as_str();
-	let handler = get_message_registry()
-		.get(name)
-		.ok_or_else(|| anyhow::anyhow!("Unknown message command: {}", name))?;
-	handler.run(ctx, command_interaction, name).await
-}

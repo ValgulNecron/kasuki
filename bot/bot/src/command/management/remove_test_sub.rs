@@ -8,16 +8,14 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_user;
 use anyhow::anyhow;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
-use std::borrow::Cow;
-use std::collections::HashMap;
 use tracing::error;
 
 #[slash_command(
@@ -74,8 +72,7 @@ async fn remove_test_sub_command(self_: RemoveTestSubCommand) -> Result<EmbedsCo
 		));
 	}
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
+	let args = fluent_args!("user" => user.to_string());
 
 	let success_msg =
 		USABLE_LOCALES.lookup_with_args(&lang_id, "management_remove_test_sub-success", &args);

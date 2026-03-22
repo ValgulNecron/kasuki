@@ -2,11 +2,9 @@ pub use shared::anilist::user::*;
 
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use anyhow::{anyhow, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
+use shared::fluent_args;
 use shared::localization::{LanguageIdentifier, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 pub async fn user_content<'a>(
 	user: User, lang_id: &LanguageIdentifier,
@@ -80,10 +78,8 @@ fn get_anime_field(
 
 fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id: i32) -> String {
 	let mut desc = String::new();
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("url"),
-		FluentValue::from(get_user_manga_url(user_id)),
+	let args = fluent_args!(
+		"url" => get_user_manga_url(user_id),
 	);
 	desc.push_str(
 		USABLE_LOCALES
@@ -94,34 +90,14 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 	desc = desc.replace("\u{2068}", "");
 	desc.push('\n');
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("count"),
-		FluentValue::from(manga.count.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("complete"),
-		FluentValue::from(get_completed(manga.statuses.unwrap().clone()).to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("chap"),
-		FluentValue::from(manga.chapters_read.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("score"),
-		FluentValue::from(manga.mean_score.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("sd"),
-		FluentValue::from(manga.standard_deviation.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("tag_list"),
-		FluentValue::from(get_tag_list(manga.tags.as_deref().unwrap_or_default())),
-	);
-	args.insert(
-		Cow::Borrowed("genre_list"),
-		FluentValue::from(get_genre_list(manga.genres.as_deref().unwrap_or_default())),
+	let args = fluent_args!(
+		"count" => manga.count.to_string(),
+		"complete" => get_completed(manga.statuses.unwrap().clone()).to_string(),
+		"chap" => manga.chapters_read.to_string(),
+		"score" => manga.mean_score.to_string(),
+		"sd" => manga.standard_deviation.to_string(),
+		"tag_list" => get_tag_list(manga.tags.as_deref().unwrap_or_default()),
+		"genre_list" => get_genre_list(manga.genres.as_deref().unwrap_or_default()),
 	);
 
 	desc.push_str(
@@ -134,10 +110,8 @@ fn get_manga_desc(manga: UserStatistics2, lang_id: &LanguageIdentifier, user_id:
 
 fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: i32) -> String {
 	let mut desc = String::new();
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("url"),
-		FluentValue::from(get_user_anime_url(user_id)),
+	let args = fluent_args!(
+		"url" => get_user_anime_url(user_id),
 	);
 
 	desc.push_str(
@@ -149,34 +123,14 @@ fn get_anime_desc(anime: UserStatistics, lang_id: &LanguageIdentifier, user_id: 
 	desc = desc.replace("\u{2068}", "");
 	desc.push('\n');
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("count"),
-		FluentValue::from(anime.count.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("complete"),
-		FluentValue::from(get_completed(anime.statuses.clone().unwrap()).to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("duration"),
-		FluentValue::from(get_anime_time_watch(anime.minutes_watched, lang_id)),
-	);
-	args.insert(
-		Cow::Borrowed("score"),
-		FluentValue::from(anime.mean_score.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("sd"),
-		FluentValue::from(anime.standard_deviation.to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("tag_list"),
-		FluentValue::from(get_tag_list(anime.tags.as_deref().unwrap_or_default())),
-	);
-	args.insert(
-		Cow::Borrowed("genre_list"),
-		FluentValue::from(get_genre_list(anime.genres.as_deref().unwrap_or_default())),
+	let args = fluent_args!(
+		"count" => anime.count.to_string(),
+		"complete" => get_completed(anime.statuses.clone().unwrap()).to_string(),
+		"duration" => get_anime_time_watch(anime.minutes_watched, lang_id),
+		"score" => anime.mean_score.to_string(),
+		"sd" => anime.standard_deviation.to_string(),
+		"tag_list" => get_tag_list(anime.tags.as_deref().unwrap_or_default()),
+		"genre_list" => get_genre_list(anime.genres.as_deref().unwrap_or_default()),
 	);
 	desc.push_str(
 		USABLE_LOCALES

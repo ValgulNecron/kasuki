@@ -571,6 +571,43 @@ pub async fn get_registered_anilist_ids(db: &DatabaseConnection) -> Result<Vec<i
 	Ok(users.into_iter().map(|u| u.anilist_id).collect())
 }
 
+/// Fetch guild member scores for a media item, if in a guild context.
+///
+/// `member_user_ids` should contain the Discord user IDs of the current guild's members
+/// to ensure only server members' scores are included.
+/// Returns `None` when no registered guild members exist.
+pub async fn fetch_guild_scores(
+	member_user_ids: &[String], media_id: i32, db: &DatabaseConnection,
+	anilist_cache: Arc<CacheInterface>,
+) -> Option<Vec<MediaListEntry>> {
+	if member_user_ids.is_empty() {
+		return None;
+	}
+	let anilist_ids =
+		get_registered_anilist_ids_for_members(db, member_user_ids).await.unwrap_or_default();
+	if anilist_ids.is_empty() {
+		return None;
+	}
+	Some(
+		get_guild_media_scores(media_id, anilist_ids, anilist_cache)
+			.await
+			.unwrap_or_default(),
+	)
+}
+
+/// Get registered AniList IDs filtered to only the given Discord user IDs.
+pub async fn get_registered_anilist_ids_for_members(
+	db: &DatabaseConnection, member_user_ids: &[String],
+) -> Result<Vec<i32>> {
+	use crate::database::registered_user::Column;
+	use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+	let users: Vec<crate::database::registered_user::Model> = RegisteredUser::find()
+		.filter(Column::UserId.is_in(member_user_ids.to_vec()))
+		.all(db)
+		.await?;
+	Ok(users.into_iter().map(|u| u.anilist_id).collect())
+}
+
 /// Fetch AniList media by ID or name.
 // Accepts either a numeric ID or a search string; numeric IDs take priority for exact lookups
 pub async fn get_media(

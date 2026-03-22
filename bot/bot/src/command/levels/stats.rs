@@ -3,7 +3,6 @@ use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
 use anyhow::{anyhow, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -13,8 +12,6 @@ use serenity::model::Colour;
 use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
 use shared::database::{message, vocal};
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 #[slash_command(
@@ -80,65 +77,37 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 	let xp_needed = next_level_xp - current_level_xp;
 
 	let user_color = cx.command_interaction.user.accent_colour;
-	let (progress_file, percent) = create_progress_bar(xp_progress, xp_needed, user_color).await?;
+	let (progress_file, _) = create_progress_bar(xp_progress, xp_needed, user_color).await?;
 	let progress_filename = format!("attachment://{}", progress_file.filename.clone());
 
 	let lang_id = cx.lang_id().await;
 
 	let next_level = level + 1;
 
-	let mut level_progress_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	level_progress_args.insert(Cow::Borrowed("current_level"), FluentValue::from(level));
-	level_progress_args.insert(Cow::Borrowed("next_level"), FluentValue::from(next_level));
-	level_progress_args.insert(
-		Cow::Borrowed("current_xp"),
-		FluentValue::from(xp_progress.to_string()),
-	);
-	level_progress_args.insert(
-		Cow::Borrowed("next_level_xp"),
-		FluentValue::from(xp_needed.to_string()),
+	let level_progress_args = shared::fluent_args!(
+		"current_level" => level,
+		"next_level" => next_level,
+		"current_xp" => xp_progress.to_string(),
+		"next_level_xp" => xp_needed.to_string(),
 	);
 
-	let mut vocal_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	vocal_args.insert(
-		Cow::Borrowed("session"),
-		FluentValue::from(total_vocal.to_string()),
+	let vocal_args = shared::fluent_args!("session" => total_vocal.to_string());
+
+	let vocal_len_args = shared::fluent_args!(
+		"hours" => hours.to_string(),
+		"minutes" => minutes.to_string(),
+		"seconds" => seconds.to_string(),
 	);
 
-	let mut vocal_len_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	vocal_len_args.insert(Cow::Borrowed("hours"), FluentValue::from(hours.to_string()));
-	vocal_len_args.insert(
-		Cow::Borrowed("minutes"),
-		FluentValue::from(minutes.to_string()),
-	);
-	vocal_len_args.insert(
-		Cow::Borrowed("seconds"),
-		FluentValue::from(seconds.to_string()),
-	);
+	let message_args = shared::fluent_args!("message" => total_message.to_string());
 
-	let mut message_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	message_args.insert(
-		Cow::Borrowed("message"),
-		FluentValue::from(total_message.to_string()),
-	);
+	let xp_message_args = shared::fluent_args!("xp" => xp_message.to_string());
 
-	let mut xp_message_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	xp_message_args.insert(
-		Cow::Borrowed("xp"),
-		FluentValue::from(xp_message.to_string()),
-	);
+	let xp_vocal_args = shared::fluent_args!("xp" => xp_vocal.to_string());
 
-	let mut xp_vocal_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	xp_vocal_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp_vocal.to_string()));
+	let xp_vocal_len_args = shared::fluent_args!("xp" => xp_vocal_len.to_string());
 
-	let mut xp_vocal_len_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	xp_vocal_len_args.insert(
-		Cow::Borrowed("xp"),
-		FluentValue::from(xp_vocal_len.to_string()),
-	);
-
-	let mut xp_total_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	xp_total_args.insert(Cow::Borrowed("xp"), FluentValue::from(xp.to_string()));
+	let xp_total_args = shared::fluent_args!("xp" => xp.to_string());
 
 	let title = USABLE_LOCALES.lookup(&lang_id, "levels_stats-title");
 	let embed_content = EmbedContent::new(title.clone())

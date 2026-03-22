@@ -1,5 +1,4 @@
 use leptos::prelude::*;
-use leptos::*;
 
 #[component]
 pub fn Terms() -> impl IntoView {

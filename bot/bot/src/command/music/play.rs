@@ -17,14 +17,11 @@ use crate::command::context::CommandContext;
 use crate::command::music::join::join;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use anyhow::{anyhow, Context};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 use tracing::trace;
 
 #[slash_command(
@@ -111,8 +108,7 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	};
 
 	if let Some(info) = playlist_info {
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(Cow::Borrowed("var0"), FluentValue::from(info.name.clone()));
+		let args = shared::fluent_args!("var0" => info.name.clone());
 
 		embed_content.embed_contents[0] =
 			embed_content.embed_contents[0]
@@ -125,18 +121,10 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	} else {
 		let track = &tracks[0].track;
 
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("var0"),
-			FluentValue::from(track.info.author.clone()),
-		);
-		args.insert(
-			Cow::Borrowed("var1"),
-			FluentValue::from(track.info.title.clone()),
-		);
-		args.insert(
-			Cow::Borrowed("var2"),
-			FluentValue::from(track.info.uri.clone().unwrap_or_default()),
+		let args = shared::fluent_args!(
+			"var0" => track.info.author.clone(),
+			"var1" => track.info.title.clone(),
+			"var2" => track.info.uri.clone().unwrap_or_default(),
 		);
 
 		embed_content.embed_contents[0] =

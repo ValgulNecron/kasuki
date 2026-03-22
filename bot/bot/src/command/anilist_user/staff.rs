@@ -1,4 +1,3 @@
-use std::fmt::Write;
 use std::sync::Arc;
 
 use crate::command::context::CommandContext;
@@ -6,9 +5,9 @@ use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::staff::{
-	FuzzyDate, Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch,
-	StaffQuerrySearchVariables,
+	Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
+use shared::anilist::character::{format_fuzzy_date, FuzzyDate as SharedFuzzyDate};
 use anyhow::{anyhow, Result};
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::Loader;
@@ -127,8 +126,13 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 	}
 
 	let name = staff.name.unwrap();
-	if staff.date_of_birth.is_some() {
-		let date_of_birth = get_date(staff.date_of_birth.clone());
+	if let Some(ref dob) = staff.date_of_birth {
+		let shared_dob = SharedFuzzyDate {
+			month: dob.month,
+			year: dob.year,
+			day: dob.day,
+		};
+		let date_of_birth = format_fuzzy_date(&shared_dob);
 		if !date_of_birth.is_empty() {
 			fields.push((
 				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_birth"),
@@ -138,8 +142,13 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 		}
 	}
 
-	if staff.date_of_death.is_some() {
-		let date_of_death = get_date(staff.date_of_death.clone());
+	if let Some(ref dod) = staff.date_of_death {
+		let shared_dod = SharedFuzzyDate {
+			month: dod.month,
+			year: dod.year,
+			day: dod.day,
+		};
+		let date_of_death = format_fuzzy_date(&shared_dod);
 		if !date_of_death.is_empty() {
 			fields.push((
 				USABLE_LOCALES.lookup(&lang_id, "anilist_user_staff-date_of_death"),
@@ -201,45 +210,6 @@ async fn get_staff(
 	};
 
 	Ok(staff)
-}
-
-fn get_date(option: Option<FuzzyDate>) -> String {
-	if option.is_none() {
-		return String::new();
-	}
-	let date = option.unwrap();
-
-	let mut date_string = String::new();
-
-	let mut day = false;
-
-	let mut month = false;
-
-	if let Some(m) = date.month {
-		month = true;
-
-		write!(date_string, "{}", m).unwrap();
-	}
-
-	if let Some(d) = date.day {
-		day = true;
-
-		if month {
-			date_string.push('/')
-		}
-
-		write!(date_string, "{}", d).unwrap();
-	}
-
-	if let Some(y) = date.year {
-		if day {
-			date_string.push('/')
-		}
-
-		write!(date_string, "{}", y).unwrap();
-	}
-
-	date_string
 }
 
 fn get_full_name(a: Option<&str>, b: Option<&str>) -> Option<String> {

@@ -1,9 +1,0 @@
-anilist_user does not autocomplete
-autocomplete for compare work but the second user show a combination of both result
-autocomplete for level not working
-random command show only minimal data please show the sam data as the media serch
-description for /waifu is wrong it is not a random one but the best one
-show contributor inside the credit command as it should (only valgulnecron atm)
-steam game command not working 2026-03-19T22:17:59.546062Z ERROR kasuki::handlers::interaction: Error executing command error=Error executing command: Subcommand steam_game
-                               Caused by:
-                                   No game found

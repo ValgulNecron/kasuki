@@ -9,9 +9,7 @@ use tracing::trace;
 use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::media;
-use crate::structure::run::anilist::media::{
-	get_guild_media_scores, get_media, get_registered_anilist_ids,
-};
+use crate::structure::run::anilist::media::{fetch_guild_scores, get_media};
 use crate::structure::run::anilist::random::{
 	MediaType, RandomPageMedia, RandomPageMediaVariables,
 };
@@ -89,20 +87,9 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 	let media_data =
 		get_media(&id.to_string(), shared_media_type, None, anilist_cache.clone()).await?;
 
-	let guild_scores = if cx.guild_id != "0" {
-		let anilist_ids = get_registered_anilist_ids(&cx.db).await.unwrap_or_default();
-		if anilist_ids.is_empty() {
-			None
-		} else {
-			Some(
-				get_guild_media_scores(media_data.id, anilist_ids, anilist_cache)
-					.await
-					.unwrap_or_default(),
-			)
-		}
-	} else {
-		None
-	};
+	let member_ids = cx.guild_member_ids();
+	let guild_scores =
+		fetch_guild_scores(&member_ids, media_data.id, &cx.db, anilist_cache).await;
 
 	let lang_id = cx.lang_id().await;
 	let embed_contents =

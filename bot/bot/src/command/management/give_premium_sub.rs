@@ -3,13 +3,11 @@ use anyhow::anyhow;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "give_premium_sub", desc = "Give a premium subscription to a user.",
@@ -63,12 +61,7 @@ async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<Embeds
 
 	let lang_id = cx.lang_id().await;
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
-	args.insert(
-		Cow::Borrowed("subscription"),
-		FluentValue::from(subscription.clone()),
-	);
+	let args = fluent_args!("user" => user.to_string(), "subscription" => subscription.clone());
 
 	let success_msg =
 		USABLE_LOCALES.lookup_with_args(&lang_id, "management_give_premium_sub-success", &args);

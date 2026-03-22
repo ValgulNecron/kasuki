@@ -1,9 +1,8 @@
 //! Represents a command to compare two AniList user profiles based on their anime and manga statistics.
 
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -12,6 +11,7 @@ use serenity::builder::{
 	CreateSectionAccessory, CreateSectionComponent, CreateSeparator, CreateTextDisplay,
 	CreateThumbnail, CreateUnfurledMediaItem,
 };
+use shared::fluent_args;
 use shared::localization::{LanguageIdentifier, USABLE_LOCALES};
 use small_fixed_array::FixedString;
 use tracing::trace;
@@ -73,12 +73,10 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	let mut common_text = String::new();
 
 	{
-		let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-		args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
-		args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
-		args.insert(
-			Cow::Borrowed("var3"),
-			FluentValue::from(affinity.to_string()),
+		let args = fluent_args!(
+			"var1" => username.as_str(),
+			"var2" => username2.as_str(),
+			"var3" => affinity.to_string(),
 		);
 		common_text.push_str(&USABLE_LOCALES.lookup_with_args(
 			&lang_id,
@@ -102,14 +100,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	match count.cmp(&count2) {
 		std::cmp::Ordering::Greater => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username2.as_str()),
+			let args = fluent_args!(
+				"greater" => username.as_str(),
+				"lesser" => username2.as_str(),
 			);
 			u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -119,14 +112,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u1_text.push('\n');
 		},
 		std::cmp::Ordering::Less => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username2.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username.as_str()),
+			let args = fluent_args!(
+				"greater" => username2.as_str(),
+				"lesser" => username.as_str(),
 			);
 			u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -136,9 +124,10 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u2_text.push('\n');
 		},
 		std::cmp::Ordering::Equal => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
-			args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+			let args = fluent_args!(
+				"var1" => username.as_str(),
+				"var2" => username2.as_str(),
+			);
 			common_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
 				"anilist_user_compare-same_anime",
@@ -150,14 +139,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	match minutes_watched.cmp(&minutes_watched2) {
 		std::cmp::Ordering::Greater => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username2.as_str()),
+			let args = fluent_args!(
+				"greater" => username.as_str(),
+				"lesser" => username2.as_str(),
 			);
 			u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -167,14 +151,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u1_text.push('\n');
 		},
 		std::cmp::Ordering::Less => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username2.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username.as_str()),
+			let args = fluent_args!(
+				"greater" => username2.as_str(),
+				"lesser" => username.as_str(),
 			);
 			u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -184,9 +163,10 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u2_text.push('\n');
 		},
 		std::cmp::Ordering::Equal => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
-			args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+			let args = fluent_args!(
+				"var1" => username.as_str(),
+				"var2" => username2.as_str(),
+			);
 			common_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
 				"anilist_user_compare-same_watch_time",
@@ -240,14 +220,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	match count.cmp(&count2) {
 		std::cmp::Ordering::Greater => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username2.as_str()),
+			let args = fluent_args!(
+				"greater" => username.as_str(),
+				"lesser" => username2.as_str(),
 			);
 			u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -257,14 +232,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u1_text.push('\n');
 		},
 		std::cmp::Ordering::Less => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username2.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username.as_str()),
+			let args = fluent_args!(
+				"greater" => username2.as_str(),
+				"lesser" => username.as_str(),
 			);
 			u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -274,9 +244,10 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u2_text.push('\n');
 		},
 		std::cmp::Ordering::Equal => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
-			args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+			let args = fluent_args!(
+				"var1" => username.as_str(),
+				"var2" => username2.as_str(),
+			);
 			common_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
 				"anilist_user_compare-same_manga",
@@ -288,14 +259,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 
 	match chapters_read.cmp(&chapters_read2) {
 		std::cmp::Ordering::Greater => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username2.as_str()),
+			let args = fluent_args!(
+				"greater" => username.as_str(),
+				"lesser" => username2.as_str(),
 			);
 			u1_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -305,14 +271,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u1_text.push('\n');
 		},
 		std::cmp::Ordering::Less => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(
-				Cow::Borrowed("greater"),
-				FluentValue::from(username2.as_str()),
-			);
-			args.insert(
-				Cow::Borrowed("lesser"),
-				FluentValue::from(username.as_str()),
+			let args = fluent_args!(
+				"greater" => username2.as_str(),
+				"lesser" => username.as_str(),
 			);
 			u2_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
@@ -322,9 +283,10 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u2_text.push('\n');
 		},
 		std::cmp::Ordering::Equal => {
-			let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-			args.insert(Cow::Borrowed("var1"), FluentValue::from(username.as_str()));
-			args.insert(Cow::Borrowed("var2"), FluentValue::from(username2.as_str()));
+			let args = fluent_args!(
+				"var1" => username.as_str(),
+				"var2" => username2.as_str(),
+			);
 			common_text.push_str(&USABLE_LOCALES.lookup_with_args(
 				&lang_id,
 				"anilist_user_compare-same_manga_chapter",
@@ -604,11 +566,12 @@ fn diff(
 ) -> String {
 	let is_diff = a1 != a2;
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(Cow::Borrowed("var1"), FluentValue::from(username));
-	args.insert(Cow::Borrowed("var2"), FluentValue::from(username2));
-	args.insert(Cow::Borrowed("var1a"), FluentValue::from(a1));
-	args.insert(Cow::Borrowed("var2a"), FluentValue::from(a2));
+	let args = fluent_args!(
+		"var1" => username,
+		"var2" => username2,
+		"var1a" => a1,
+		"var2a" => a2,
+	);
 
 	let info = if is_diff {
 		USABLE_LOCALES.lookup_with_args(lang_id, diff_key, &args)

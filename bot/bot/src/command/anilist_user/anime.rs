@@ -1,9 +1,7 @@
 use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::media;
-use crate::structure::run::anilist::media::{
-	get_guild_media_scores, get_media, get_registered_anilist_ids, MediaFormat, MediaType,
-};
+use crate::structure::run::anilist::media::{fetch_guild_scores, get_media, MediaFormat, MediaType};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -46,20 +44,9 @@ async fn anime_command(self_: AnimeCommand) -> Result<EmbedsContents<'_>> {
 	)
 	.await?;
 
-	let guild_scores = if cx.guild_id != "0" {
-		let anilist_ids = get_registered_anilist_ids(&cx.db).await.unwrap_or_default();
-		if anilist_ids.is_empty() {
-			None
-		} else {
-			Some(
-				get_guild_media_scores(data.id, anilist_ids, anilist_cache)
-					.await
-					.unwrap_or_default(),
-			)
-		}
-	} else {
-		None
-	};
+	let member_ids = cx.guild_member_ids();
+	let guild_scores =
+		fetch_guild_scores(&member_ids, data.id, &cx.db, anilist_cache).await;
 
 	let lang_id = cx.lang_id().await;
 	let embed_contents = media::media_content(data, &lang_id, cx.db.clone(), guild_scores).await?;

@@ -9,15 +9,12 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
 use anyhow::{anyhow, Result};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};
 use serenity::http::Http;
 use serenity::prelude::Mentionable;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 #[slash_command(
@@ -178,11 +175,7 @@ pub async fn join<'a>(
 					)
 					.await?;
 
-				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-				args.insert(
-					Cow::Borrowed("var0"),
-					FluentValue::from(connect_to.mention().to_string()),
-				);
+				let args = shared::fluent_args!("var0" => connect_to.mention().to_string());
 
 				embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
 					&lang_id,
@@ -194,8 +187,7 @@ pub async fn join<'a>(
 				(true, embed_contents)
 			},
 			Err(why) => {
-				let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-				args.insert(Cow::Borrowed("var0"), FluentValue::from(why.to_string()));
+				let args = shared::fluent_args!("var0" => why.to_string());
 
 				embed_content = embed_content.description(USABLE_LOCALES.lookup_with_args(
 					&lang_id,

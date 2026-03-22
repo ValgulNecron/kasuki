@@ -1,15 +1,13 @@
 use anyhow::anyhow;
 
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::fluent_args;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
@@ -59,12 +57,10 @@ async fn register_command(self_: RegisterCommand) -> Result<EmbedsContents<'_>> 
 	.exec(&*connection)
 	.await?;
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(username.as_str()));
-	args.insert(Cow::Borrowed("id"), FluentValue::from(user_id.as_str()));
-	args.insert(
-		Cow::Borrowed("anilist"),
-		FluentValue::from(user_data.name.clone()),
+	let args = fluent_args!(
+		"user" => username.as_str(),
+		"id" => user_id.as_str(),
+		"anilist" => user_data.name.clone(),
 	);
 
 	let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_register-desc", &args);

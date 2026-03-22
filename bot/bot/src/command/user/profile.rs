@@ -4,12 +4,9 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Member, User};
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 use unic_langid::LanguageIdentifier;
 
 #[slash_command(
@@ -110,11 +107,7 @@ async fn profile_command(self_: ProfileCommand) -> Result<EmbedsContents<'_>> {
 		}
 	}
 
-	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(user.name.to_string()),
-	);
+	let title_args = shared::fluent_args!("user" => user.name.to_string());
 	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(
 		&lang_id,
 		"user_profile-title",

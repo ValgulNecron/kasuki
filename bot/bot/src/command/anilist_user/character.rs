@@ -2,7 +2,7 @@ use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::character;
 use crate::structure::run::anilist::character::get_character;
-use anyhow::{Context, Result};
+use anyhow::Context;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;

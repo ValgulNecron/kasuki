@@ -19,6 +19,29 @@ pub fn load_locales() -> Result<()> {
 	Ok(())
 }
 
+/// Build a Fluent argument map with less boilerplate.
+///
+/// ```ignore
+/// let args = fluent_args!("user" => username, "count" => 42);
+/// USABLE_LOCALES.lookup_with_args(&lang_id, "key", &args);
+/// ```
+#[macro_export]
+macro_rules! fluent_args {
+	($($key:expr => $val:expr),* $(,)?) => {{
+		let mut args = std::collections::HashMap::<
+			std::borrow::Cow<'static, str>,
+			$crate::localization::FluentValue,
+		>::new();
+		$(
+			args.insert(
+				std::borrow::Cow::Borrowed($key),
+				$crate::localization::FluentValue::from($val),
+			);
+		)*
+		args
+	}};
+}
+
 /// Returns the list of available locales baked in at compile time by `static_loader!`.
 pub fn available_locales() -> Vec<String> {
 	let mut locales: Vec<String> = USABLE_LOCALES.locales().map(|l| l.to_string()).collect();

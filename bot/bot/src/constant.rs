@@ -13,10 +13,6 @@ pub const COLOR: Colour = Colour::FABLED_PINK;
 
 pub const OTHER_CRATE_LEVEL: &str = "warn";
 
-/// Default string value.
-
-pub const UNKNOWN: &str = "Unknown";
-
 /// Map of language codes to language names.
 
 pub static LANG_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {

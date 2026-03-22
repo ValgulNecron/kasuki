@@ -310,20 +310,6 @@ pub fn get_user_registry() -> &'static HashMap<String, &'static dyn SlashCommand
 	})
 }
 
-pub fn get_message_registry() -> &'static HashMap<String, &'static dyn SlashCommand> {
-	MESSAGE_REGISTRY.get_or_init(|| {
-		build_registries();
-		MESSAGE_REGISTRY.get().cloned().unwrap_or_default()
-	})
-}
-
-pub fn get_guild_commands() -> &'static Vec<&'static dyn SlashCommand> {
-	GUILD_REGISTRY.get_or_init(|| {
-		build_registries();
-		GUILD_REGISTRY.get().cloned().unwrap_or_default()
-	})
-}
-
 /// Initialize all registries. Call once at startup.
 pub fn init_registries() {
 	build_registries();

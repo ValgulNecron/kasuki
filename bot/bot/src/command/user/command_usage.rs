@@ -21,12 +21,10 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
 use anyhow::Result;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "command_usage", desc = "Show the usage of each command for an user.",
@@ -52,11 +50,7 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 
 	let mut embed_contents = vec![];
 
-	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let title_args = fluent_args!("user" => username.to_string());
 	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(
 		&lang_id,
 		"user_command_usage-title",
@@ -64,11 +58,7 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 	));
 
 	if usage.is_empty() {
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("user"),
-			FluentValue::from(username.to_string()),
-		);
+		let args = fluent_args!("user" => username.to_string());
 		let inner_embed = embed_content.description(USABLE_LOCALES.lookup_with_args(
 			&lang_id,
 			"user_command_usage-no_usage",
@@ -81,12 +71,7 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 		let mut inner_embed = embed_content.clone();
 
 		for (command, usage_count) in &usage {
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
-			args.insert(
-				Cow::Borrowed("usage"),
-				FluentValue::from(usage_count.to_string()),
-			);
+			let args = fluent_args!("command" => command.clone(), "usage" => usage_count.to_string());
 			description.push_str(
 				USABLE_LOCALES
 					.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args)

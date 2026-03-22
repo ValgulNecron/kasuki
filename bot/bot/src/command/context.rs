@@ -82,6 +82,20 @@ impl CommandContext {
 	}
 }
 
+impl CommandContext {
+	/// Get Discord user IDs of all cached members in the current guild.
+	///
+	/// Returns an empty vec for DM contexts (guild_id == "0") or if the guild
+	/// is not in the cache.
+	pub fn guild_member_ids(&self) -> Vec<String> {
+		self.command_interaction
+			.guild_id
+			.and_then(|gid| gid.to_guild_cached(&self.ctx.cache))
+			.map(|guild| guild.members.iter().map(|m| m.user.id.to_string()).collect())
+			.unwrap_or_default()
+	}
+}
+
 // Deref lets command handlers write `cx.db`, `cx.guild_id` etc. without `.service.`,
 // keeping service-layer fields easily accessible while Discord-specific fields (ctx,
 // command_interaction, bot_data) remain on CommandContext directly.

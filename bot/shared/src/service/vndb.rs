@@ -1,9 +1,6 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::Context;
-use fluent_templates::fluent_bundle::FluentValue;
 use markdown_converter::vndb::convert_vndb_markdown;
 use unic_langid::LanguageIdentifier;
 
@@ -56,6 +53,17 @@ impl VndbImage for game::Image {
 	}
 	fn url(&self) -> &str {
 		&self.url
+	}
+}
+
+/// Collect up to 10 items into a comma-separated string, then push as a display field if non-empty.
+fn push_list_field(
+	fields: &mut Vec<DisplayField>, lang_id: &LanguageIdentifier, key: &str,
+	items: impl Iterator<Item = String>,
+) {
+	let joined = items.take(10).collect::<Vec<_>>().join(", ");
+	if !joined.is_empty() {
+		fields.push((USABLE_LOCALES.lookup(lang_id, key), joined, true));
 	}
 }
 
@@ -146,32 +154,19 @@ fn build_character_fields(
 	}
 
 	// Cap at 10 to stay within Discord embed field value limits (1024 chars)
-	let vns = character
-		.vns
-		.iter()
-		.map(|vn| vn.title.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	fields.push((
-		USABLE_LOCALES.lookup(lang_id, "vn_character-vns"),
-		vns,
-		true,
-	));
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_character-vns",
+		character.vns.iter().map(|vn| vn.title.clone()),
+	);
 
-	// Cap at 10 for the same embed field size reason as VNs above
-	let traits = character
-		.traits
-		.iter()
-		.map(|t| t.name.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	fields.push((
-		USABLE_LOCALES.lookup(lang_id, "vn_character-traits"),
-		traits,
-		true,
-	));
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_character-traits",
+		character.traits.iter().map(|t| t.name.clone()),
+	);
 
 	fields
 }
@@ -210,20 +205,12 @@ fn build_game_fields(vn: &game::VN, lang_id: &LanguageIdentifier) -> Vec<Display
 	}
 
 	// All collection fields capped at 10 to fit Discord embed field limits (1024 chars)
-	let platforms = vn
-		.platforms
-		.iter()
-		.take(10)
-		.cloned()
-		.collect::<Vec<String>>()
-		.join(", ");
-	if !platforms.is_empty() {
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_game-platforms"),
-			platforms,
-			true,
-		));
-	}
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_game-platforms",
+		vn.platforms.iter().cloned(),
+	);
 
 	if let Some(playtime) = vn.length_minutes {
 		fields.push((
@@ -233,61 +220,30 @@ fn build_game_fields(vn: &game::VN, lang_id: &LanguageIdentifier) -> Vec<Display
 		));
 	}
 
-	let tags = vn
-		.tags
-		.iter()
-		.map(|tag| tag.name.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	if !tags.is_empty() {
-		fields.push((USABLE_LOCALES.lookup(lang_id, "vn_game-tags"), tags, true));
-	}
-
-	let developers = vn
-		.developers
-		.iter()
-		.map(|dev| dev.name.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	if !developers.is_empty() {
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_game-developers"),
-			developers,
-			true,
-		));
-	}
-
-	let staff_names = vn
-		.staff
-		.iter()
-		.map(|s| s.name.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	if !staff_names.is_empty() {
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_game-staff"),
-			staff_names,
-			true,
-		));
-	}
-
-	let characters = vn
-		.va
-		.iter()
-		.map(|va| va.character.name.clone())
-		.take(10)
-		.collect::<Vec<String>>()
-		.join(", ");
-	if !characters.is_empty() {
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_game-characters"),
-			characters,
-			true,
-		));
-	}
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_game-tags",
+		vn.tags.iter().map(|tag| tag.name.clone()),
+	);
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_game-developers",
+		vn.developers.iter().map(|dev| dev.name.clone()),
+	);
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_game-staff",
+		vn.staff.iter().map(|s| s.name.clone()),
+	);
+	push_list_field(
+		&mut fields,
+		lang_id,
+		"vn_game-characters",
+		vn.va.iter().map(|va| va.character.name.clone()),
+	);
 
 	fields
 }
@@ -386,12 +342,7 @@ fn build_user_result(user: &VnUser, lang_id: &LanguageIdentifier) -> UserResult 
 		),
 	];
 
-	// Fluent i18n requires Cow keys + FluentValue wrappers for interpolating variables into templates
-	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(user.username.clone()),
-	);
+	let title_args = crate::fluent_args!("user" => user.username.clone());
 	let title = USABLE_LOCALES.lookup_with_args(lang_id, "vn_user-title", &title_args);
 
 	UserResult { title, fields }
@@ -446,17 +397,12 @@ fn build_producer_result(p: &producer::Producer, lang_id: &LanguageIdentifier) -
 	}
 
 	if let Some(aliases) = &p.aliases {
-		let aliases = aliases
-			.iter()
-			.take(10)
-			.cloned()
-			.collect::<Vec<String>>()
-			.join(", ");
-		fields.push((
-			USABLE_LOCALES.lookup(lang_id, "vn_producer-aliases"),
-			aliases,
-			true,
-		));
+		push_list_field(
+			&mut fields,
+			lang_id,
+			"vn_producer-aliases",
+			aliases.iter().cloned(),
+		);
 	}
 
 	if let Some(results_type) = &p.results_type {

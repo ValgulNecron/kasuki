@@ -7,15 +7,13 @@ use crate::structure::run::anilist::studio::{
 	StudioQuerryId, StudioQuerryIdVariables, StudioQuerrySearch, StudioQuerrySearchVariables,
 };
 use cynic::{GraphQlResponse, QueryBuilder};
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::anilist::make_request::make_request_anilist;
+use shared::fluent_args;
 use shared::localization::USABLE_LOCALES;
 use small_fixed_array::FixedString;
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "studio", desc = "Info of a studio.", command_type = ChatInput,
@@ -80,20 +78,12 @@ async fn studio_command(self_: StudioCommand) -> Result<EmbedsContents<'_>> {
 		content.push('\n')
 	}
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue<'_>> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("id"),
-		FluentValue::from(studio.id.to_string()),
+	let args = fluent_args!(
+		"id" => studio.id.to_string(),
+		"fav" => studio.favourites.unwrap_or_default().to_string(),
+		"animation" => studio.is_animation_studio.to_string(),
+		"list" => content.as_str(),
 	);
-	args.insert(
-		Cow::Borrowed("fav"),
-		FluentValue::from(studio.favourites.unwrap_or_default().to_string()),
-	);
-	args.insert(
-		Cow::Borrowed("animation"),
-		FluentValue::from(studio.is_animation_studio.to_string()),
-	);
-	args.insert(Cow::Borrowed("list"), FluentValue::from(content.as_str()));
 
 	let desc = USABLE_LOCALES.lookup_with_args(&lang_id, "anilist_user_studio-desc", &args);
 

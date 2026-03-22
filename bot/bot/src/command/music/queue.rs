@@ -1,15 +1,10 @@
-//! Documentation for QueueCommand and associated functionality
-use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use anyhow::anyhow;
-use fluent_templates::fluent_bundle::FluentValue;
+use crate::command::music::music_context::MusicCommandContext;
 use futures::future;
 use futures::StreamExt;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[slash_command(
 	name = "queue", desc = "Show the current queue.",
@@ -18,28 +13,15 @@ use std::collections::HashMap;
 	install_contexts = [Guild],
 )]
 async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
-	let cx = CommandContext::new(
+	let mcx = MusicCommandContext::new(
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
-	);
+	)
+	.await?;
 
-	// Load the localized strings
-	let lang_id = cx.lang_id().await;
-
-	let guild_id = cx
-		.command_interaction
-		.guild_id
-		.ok_or(anyhow!("no guild id"))?;
-	let lava_client = cx.bot_data.lavalink.read().await.clone();
-	if lava_client.is_none() {
-		return Err(anyhow::anyhow!("Lavalink is disabled"));
-	}
-	let lava_client = lava_client.unwrap();
-	let Some(player) =
-		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))
-	else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&lang_id, "music_queue-title"))
-			.description(USABLE_LOCALES.lookup(&lang_id, "music_queue-error_no_voice"));
+	let Some(player) = mcx.get_player() else {
+		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-title"))
+			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
@@ -50,7 +32,7 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 
 	let max = queue.get_count().await?.min(9);
 
-	let requested_by = USABLE_LOCALES.lookup(&lang_id, "music_queue-requested_by");
+	let requested_by = USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-requested_by");
 	let queue_message = queue
 		.enumerate()
 		.take_while(|(idx, _)| future::ready(*idx < max))
@@ -85,28 +67,17 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 		let time_m = player_data.state.position / 1000 / 60;
 		let time = format!("{:02}:{:02}", time_m, time_s);
 
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("var0"),
-			FluentValue::from(track.info.author.clone()),
-		);
-		args.insert(
-			Cow::Borrowed("var1"),
-			FluentValue::from(track.info.title.clone()),
-		);
-		args.insert(
-			Cow::Borrowed("var2"),
-			FluentValue::from(track.info.uri.clone().unwrap_or_default()),
-		);
-		args.insert(Cow::Borrowed("var3"), FluentValue::from(time));
-		args.insert(
-			Cow::Borrowed("var4"),
-			FluentValue::from(format!("<@!{}>", track.user_data.unwrap()["requester_id"])),
+		let args = shared::fluent_args!(
+			"var0" => track.info.author.clone(),
+			"var1" => track.info.title.clone(),
+			"var2" => track.info.uri.clone().unwrap_or_default(),
+			"var3" => time,
+			"var4" => format!("<@!{}>", track.user_data.unwrap()["requester_id"]),
 		);
 
-		USABLE_LOCALES.lookup_with_args(&lang_id, "music_queue-now_playing", &args)
+		USABLE_LOCALES.lookup_with_args(&mcx.lang_id, "music_queue-now_playing", &args)
 	} else {
-		USABLE_LOCALES.lookup(&lang_id, "music_queue-nothing_playing")
+		USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-nothing_playing")
 	};
 
 	let embed_content = EmbedContent::new(now_playing_message).description(queue_message);

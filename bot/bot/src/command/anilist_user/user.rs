@@ -2,7 +2,7 @@ use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user;
 use crate::structure::run::anilist::user::get_user;
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
