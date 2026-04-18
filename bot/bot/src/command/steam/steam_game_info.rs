@@ -3,15 +3,15 @@ use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_markdown;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
+use crate::structure::steam_game_index::SteamGameIndex;
 use anyhow::{anyhow, Result};
+use arc_swap::ArcSwap;
 use kasuki_macros::slash_command;
 use sea_orm::DatabaseConnection;
 use serenity::all::{CommandInteraction, Context as SerenityContext, GuildId};
 use shared::cache::CacheInterface;
 use shared::localization::{Loader, USABLE_LOCALES};
-use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[slash_command(
 	name = "game", desc = "Get info of a steam game.",
@@ -213,7 +213,7 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 }
 
 async fn get_steam_game(
-	apps: Arc<RwLock<HashMap<String, u32>>>, command_interaction: CommandInteraction,
+	apps: Arc<ArcSwap<SteamGameIndex>>, command_interaction: CommandInteraction,
 	db_connection: Arc<DatabaseConnection>, steam_cache: Arc<CacheInterface>,
 ) -> Result<SteamGameWrapper> {
 	let guild_id = command_interaction

@@ -2,11 +2,13 @@ use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
 use anyhow::{Context as AnyhowContext, Result};
+use arc_swap::ArcSwap;
 use reqwest::Client;
 use serde::Deserialize;
 use shared::cache::CacheInterface;
-use tokio::sync::RwLock;
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, info, warn};
+
+use crate::structure::steam_game_index::SteamGameIndex;
 
 static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
 
@@ -30,25 +32,22 @@ pub struct App {
 }
 
 pub async fn get_game(
-	apps_data: Arc<RwLock<HashMap<String, u32>>>, steam_cache: Arc<CacheInterface>,
+	apps_data: Arc<ArcSwap<SteamGameIndex>>, steam_cache: Arc<CacheInterface>,
 ) -> Result<usize> {
 	debug!("Started Steam game data update process");
 
-	// On cold start (empty in-memory map), try loading from cache to avoid the HTTP call
-	let is_cold_start = apps_data.read().await.is_empty();
+	let is_cold_start = apps_data.load().is_empty();
 	if is_cold_start {
 		if let Ok(Some(cached_json)) = steam_cache.read(STEAM_CACHE_KEY).await {
 			let app_map: HashMap<String, u32> = serde_json::from_str(&cached_json)
 				.context("Failed to deserialize cached Steam app list")?;
 			let size = app_map.len();
 
-			let mut write_guard = apps_data.write().await;
 			info!(
 				"Loaded {} Steam apps from cache (skipping HTTP fetch)",
 				size
 			);
-			*write_guard = app_map;
-			write_guard.shrink_to_fit();
+			apps_data.store(Arc::new(SteamGameIndex::from_map(app_map)));
 			return Ok(size);
 		}
 	}
@@ -72,18 +71,13 @@ pub async fn get_game(
 
 	let new_size = app_map.len();
 
-	// Persist to cache for faster startup next time
 	if let Ok(json) = serde_json::to_string(&app_map) {
 		if let Err(e) = steam_cache.write(STEAM_CACHE_KEY.to_string(), json).await {
 			warn!("Failed to persist Steam app list to cache: {}", e);
 		}
 	}
 
-	let mut write_guard = apps_data.write().await;
-	trace!("Acquired write lock on apps cache");
-	*write_guard = app_map;
-	write_guard.shrink_to_fit();
-	drop(write_guard);
+	apps_data.store(Arc::new(SteamGameIndex::from_map(app_map)));
 
 	debug!("Updated Steam game cache: {} entries", new_size);
 	Ok(new_size)

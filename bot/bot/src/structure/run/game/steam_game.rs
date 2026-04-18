@@ -2,15 +2,15 @@ use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
 use crate::constant::LANG_MAP;
+use crate::structure::steam_game_index::SteamGameIndex;
 use anyhow::{anyhow, Context, Result};
+use arc_swap::ArcSwap;
 use regex::Regex;
-use rust_fuzzy_search::fuzzy_search_sorted;
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use serde_with::serde_as;
 use shared::cache::CacheInterface;
 use shared::helper::get_guild_lang::get_guild_language;
-use tokio::sync::RwLock;
 use tracing::trace;
 
 static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
@@ -151,49 +151,26 @@ impl SteamGameWrapper {
 	}
 
 	pub async fn new_steam_game_by_search(
-		search: &str, guild_id: String, apps: Arc<RwLock<HashMap<String, u32>>>,
+		search: &str, guild_id: String, apps: Arc<ArcSwap<SteamGameIndex>>,
 		db_connection: Arc<DatabaseConnection>, steam_cache: Arc<CacheInterface>,
 	) -> Result<SteamGameWrapper> {
-		let guard = apps.read().await;
+		let index = apps.load();
 
-		if guard.is_empty() {
+		if index.is_empty() {
 			return Err(anyhow!(
 				"Steam game database is still loading, please try again shortly"
 			));
 		}
 
-		let choices: Vec<&str> = guard.keys().map(|s| s.as_str()).collect();
+		let results = index.search(search, 1);
 
-		let results: Vec<(&str, f32)> = fuzzy_search_sorted(search, &choices);
+		let (_, app_id) = results
+			.first()
+			.ok_or_else(|| anyhow!("No game found matching '{}'", search))?;
 
-		let mut appid = &0u32;
+		let app_id = *app_id;
+		drop(index);
 
-		if results.is_empty() {
-			return Err(anyhow!("No game found matching '{}'", search));
-		}
-
-		for (name, _) in results {
-			if appid == &0u32 {
-				appid = match guard.get(name) {
-					Some(appid) => appid,
-					None => {
-						return Err(anyhow!("No game found"));
-					},
-				}
-			}
-
-			if search.to_lowercase() == name.to_lowercase() {
-				appid = match guard.get(name) {
-					Some(appid) => appid,
-					None => {
-						return Err(anyhow!("No game found"));
-					},
-				};
-
-				break;
-			}
-		}
-
-		SteamGameWrapper::new_steam_game_by_id(*appid, guild_id, db_connection, steam_cache).await
+		SteamGameWrapper::new_steam_game_by_id(app_id, guild_id, db_connection, steam_cache).await
 	}
 }

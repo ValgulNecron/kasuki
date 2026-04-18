@@ -192,7 +192,7 @@ async fn run() -> anyhow::Result<()> {
 		vndb_cache,
 		steam_cache,
 		already_launched: false.into(),
-		apps: Arc::new(Default::default()),
+		apps: Arc::new(arc_swap::ArcSwap::from_pointee(Default::default())),
 		user_blacklist: Arc::new(Default::default()),
 		db_connection: Arc::new(connection),
 		manager: Arc::clone(&manager),
