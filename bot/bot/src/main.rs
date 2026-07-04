@@ -3,18 +3,18 @@ use crate::logger::{create_log_directory, init_logger};
 use anyhow::Context;
 use shared::cache::CacheInterface;
 use shared::config::{Config, DbConfig};
-use shared::image_saver::storage::{create_image_store, ImageStore};
+use shared::image_saver::storage::{ImageStore, create_image_store};
 
+use serenity::Client;
 use serenity::all::GatewayIntents;
 use serenity::cache::Settings as CacheSettings;
 use serenity::secrets::Token;
-use serenity::Client;
-use songbird::driver::DecodeMode;
+use songbird::driver::{DecodeConfig, DecodeMode};
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{RwLock, broadcast};
 use tracing::{error, info, warn};
 
 pub mod autocomplete;
@@ -127,11 +127,9 @@ async fn run() -> anyhow::Result<()> {
 	info!("Discord token parsed successfully");
 
 	info!("Initializing Songbird voice client");
-	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
-	info!(
-		"Songbird configured with decode mode: {:?}",
-		DecodeMode::Decode
-	);
+	let decode_mode = DecodeMode::Decode(DecodeConfig::default());
+	info!("Songbird configured with decode mode: {:?}", decode_mode);
+	let songbird_config = songbird::Config::default().decode_mode(decode_mode);
 
 	let manager = songbird::Songbird::serenity_from_config(songbird_config);
 	info!("Songbird voice client initialized successfully");

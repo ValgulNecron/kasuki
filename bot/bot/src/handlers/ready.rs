@@ -14,8 +14,8 @@ use serenity::all::Ready;
 use serenity::gateway::{ActivityData, ChunkGuildFilter};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::CommandList;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use tracing::{info, trace, warn};
 
 impl Handler {

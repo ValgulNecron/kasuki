@@ -16,7 +16,7 @@
 use crate::command::context::CommandContext;
 use crate::command::music::join::join;
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use kasuki_macros::slash_command;
 use lavalink_rs::player_context::TrackInQueue;
 use lavalink_rs::prelude::{SearchEngines, TrackLoadData};
@@ -51,9 +51,9 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 	match lava_client {
 		Some(_) => {},
 		None => {
-			return Err(anyhow::anyhow!("Lavalink is disabled")).with_context(|| {
-				"Cannot play music because Lavalink service is not configured or unavailable"
-			});
+			return Err(anyhow::anyhow!("Lavalink is disabled")).with_context(
+				|| "Cannot play music because Lavalink service is not configured or unavailable",
+			);
 		},
 	}
 	let lava_client = lava_client.unwrap();
@@ -61,9 +61,9 @@ async fn play_command(self_: PlayCommand) -> Result<EmbedsContents<'_>> {
 		.command_interaction
 		.guild_id
 		.ok_or(anyhow!("no guild id"))
-		.with_context(|| {
-			"Command must be used in a server, not in DMs or other non-guild contexts"
-		})?;
+		.with_context(
+			|| "Command must be used in a server, not in DMs or other non-guild contexts",
+		)?;
 
 	let Some(player) =
 		lava_client.get_player_context(lavalink_rs::model::GuildId::from(guild_id.get()))

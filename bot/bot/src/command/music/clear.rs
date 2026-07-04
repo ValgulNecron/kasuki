@@ -18,8 +18,9 @@ async fn clear_command(self_: ClearCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_clear-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_clear-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_clear-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_clear-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 

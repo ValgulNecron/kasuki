@@ -22,8 +22,8 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::EmbedsContents;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::user::{
-	get_user, MediaListStatus, User, UserGenreStatistic, UserStatisticTypes, UserStatistics,
-	UserStatistics2, UserStatusStatistic, UserTagStatistic,
+	MediaListStatus, User, UserGenreStatistic, UserStatisticTypes, UserStatistics, UserStatistics2,
+	UserStatusStatistic, UserTagStatistic, get_user,
 };
 
 #[slash_command(

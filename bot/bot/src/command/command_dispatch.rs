@@ -111,4 +111,3 @@ pub async fn dispatch_user_command(
 		.ok_or_else(|| anyhow::anyhow!("Unknown user command: {}", name))?;
 	handler.run(ctx, command_interaction, name).await
 }
-

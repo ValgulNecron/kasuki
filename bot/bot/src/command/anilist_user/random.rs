@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use cynic::{GraphQlResponse, QueryBuilder};
-use rand::{rng, RngExt};
+use rand::{RngExt, rng};
 use sea_orm::EntityTrait;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -84,12 +84,16 @@ async fn random_command(self_: RandomCommand) -> Result<EmbedsContents<'_>> {
 		.ok_or(anyhow!("No media found"))?
 		.id;
 
-	let media_data =
-		get_media(&id.to_string(), shared_media_type, None, anilist_cache.clone()).await?;
+	let media_data = get_media(
+		&id.to_string(),
+		shared_media_type,
+		None,
+		anilist_cache.clone(),
+	)
+	.await?;
 
 	let member_ids = cx.guild_member_ids();
-	let guild_scores =
-		fetch_guild_scores(&member_ids, media_data.id, &cx.db, anilist_cache).await;
+	let guild_scores = fetch_guild_scores(&member_ids, media_data.id, &cx.db, anilist_cache).await;
 
 	let lang_id = cx.lang_id().await;
 	let embed_contents =

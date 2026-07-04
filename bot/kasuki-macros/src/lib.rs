@@ -3,8 +3,8 @@ use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::{
-	braced, bracketed, parenthesized, parse_macro_input, Expr, Ident, LitBool, LitInt, LitStr,
-	Token, Type,
+	Expr, Ident, LitBool, LitInt, LitStr, Token, Type, braced, bracketed, parenthesized,
+	parse_macro_input,
 };
 
 // ─── Attribute parsing structures ────────────────────────────────────────────
@@ -403,7 +403,7 @@ fn generate(
 				return Err(syn::Error::new_spanned(
 					first_param,
 					"expected typed parameter",
-				))
+				));
 			},
 		}
 	};

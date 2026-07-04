@@ -1,20 +1,20 @@
-use crate::api::auth::{auth_middleware, Claims};
+use crate::api::auth::{Claims, auth_middleware};
 use crate::api::blacklist;
 use crate::api::error::AppError;
 use crate::api::guild;
-use crate::api::oauth::{get_user_guilds, get_user_info, refresh_discord_token, Guild, UserInfo};
+use crate::api::oauth::{Guild, UserInfo, get_user_guilds, get_user_info, refresh_discord_token};
 use crate::api::rate_limit::{
 	create_rate_limiter, rate_limit_middleware, spawn_rate_limiter_cleanup,
 };
 use crate::api::state::AppState;
 use crate::api::{health, oauth as oauth_handlers};
 use axum::{
+	Extension, Json, Router,
 	extract::State,
 	http::Method,
 	middleware,
 	response::IntoResponse,
 	routing::{get, post},
-	Extension, Json, Router,
 };
 use chrono::{Duration, Utc};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait};
@@ -186,10 +186,13 @@ async fn refresh_expiring_tokens(state: &AppState) -> Result<(), AppError> {
 				active.refresh_token = Set(new_tokens.refresh_token);
 				active.expires_at = Set(expires_at);
 				active.updated_at = Set(now);
-				if let Err(e) = active.update(&*state.db).await {
-					error!(user = %user_id, error = %e, "failed to save refreshed tokens");
-				} else {
-					debug!(user = %user_id, "refreshed discord token");
+				match active.update(&*state.db).await {
+					Err(e) => {
+						error!(user = %user_id, error = %e, "failed to save refreshed tokens");
+					},
+					_ => {
+						debug!(user = %user_id, "refreshed discord token");
+					},
 				}
 			},
 			Err(e) => {

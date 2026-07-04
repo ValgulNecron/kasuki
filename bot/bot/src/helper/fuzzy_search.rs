@@ -74,7 +74,7 @@ pub fn distance_top_n(search: &str, vector: Vec<&str>, n: usize) -> Result<Vec<(
 				.context("Failed to peek at the binary heap, which should not be empty")?;
 
 			// Only replace the worst candidate if this item has a higher similarity score
-			if item.0 .0 > min.0 .0 {
+			if item.0.0 > min.0.0 {
 				distances.pop();
 				distances.push(item);
 			}

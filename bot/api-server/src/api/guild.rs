@@ -1,18 +1,18 @@
 use axum::{
+	Extension, Json, Router,
 	extract::{Path, Query, State},
 	response::IntoResponse,
 	routing::{delete, get, post, put},
-	Extension, Json, Router,
 };
-use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use chrono::{DateTime, Utc};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
 
-use crate::api::auth::{auth_middleware, Claims};
+use crate::api::auth::{Claims, auth_middleware};
 use crate::api::error::AppError;
 use crate::api::oauth::Guild;
 use crate::api::state::AppState;

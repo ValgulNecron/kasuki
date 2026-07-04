@@ -12,7 +12,7 @@ use crate::vndb::game::{self, get_vn};
 use crate::vndb::producer::{self, get_producer};
 use crate::vndb::staff::{self, get_staff};
 use crate::vndb::stats::{self, get_stats};
-use crate::vndb::user::{get_user, VnUser};
+use crate::vndb::user::{VnUser, get_user};
 
 /// Filter an image URL based on content safety ratings.
 /// Returns `None` if the image is too sexual (> 1.5) or violent (> 1.0), or if there's no image.
@@ -373,7 +373,10 @@ fn build_staff_result(s: &staff::Staff, lang_id: &LanguageIdentifier) -> StaffRe
 		),
 	];
 
-	let description = s.description.as_deref().map(|d| convert_vndb_markdown(d).to_string());
+	let description = s
+		.description
+		.as_deref()
+		.map(|d| convert_vndb_markdown(d).to_string());
 
 	StaffResult {
 		name: s.name.clone(),
@@ -651,9 +654,11 @@ mod tests {
 
 		// Without height, weight, age: blood_type, bust, waist, hips, cup, sex, birthday, vns, traits = 9
 		assert_eq!(fields.len(), 9);
-		assert!(!fields
-			.iter()
-			.any(|(_, v, _)| v.contains("cm") && v.contains("154")));
+		assert!(
+			!fields
+				.iter()
+				.any(|(_, v, _)| v.contains("cm") && v.contains("154"))
+		);
 	}
 
 	#[test]

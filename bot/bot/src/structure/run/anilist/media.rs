@@ -1,9 +1,9 @@
 pub use shared::anilist::media::*;
 
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
-use sea_orm::{entity::*, query::*, DatabaseConnection};
+use sea_orm::{DatabaseConnection, entity::*, query::*};
 use shared::database::anime_song::Column::AnilistId;
 use shared::database::prelude::AnimeSong;
 use shared::localization::USABLE_LOCALES;

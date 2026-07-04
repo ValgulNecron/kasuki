@@ -3,7 +3,7 @@ use std::sync::{Arc, LazyLock};
 
 use crate::constant::LANG_MAP;
 use crate::structure::steam_game_index::SteamGameIndex;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use arc_swap::ArcSwap;
 use regex::Regex;
 use sea_orm::DatabaseConnection;

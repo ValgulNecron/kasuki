@@ -1,7 +1,7 @@
 pub use shared::anilist::user::*;
 
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
 use shared::fluent_args;
 use shared::localization::{LanguageIdentifier, USABLE_LOCALES};

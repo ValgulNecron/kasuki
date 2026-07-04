@@ -20,20 +20,26 @@ impl Handler {
 				let mut message = String::from("");
 				match command_interaction.data.kind {
 					CommandType::ChatInput => {
-						if let Err(e) = dispatch_command(ctx, &command_interaction).await {
-							error!(error = ?e, "Error executing command");
-							message = e.to_string();
-						} else {
-							// Early return on success skips error_dispatch below
-							return;
+						match dispatch_command(ctx, &command_interaction).await {
+							Err(e) => {
+								error!(error = ?e, "Error executing command");
+								message = e.to_string();
+							},
+							_ => {
+								// Early return on success skips error_dispatch below
+								return;
+							},
 						}
 					},
 					CommandType::User => {
-						if let Err(e) = dispatch_user_command(ctx, &command_interaction).await {
-							error!(error = ?e, "Error executing user command");
-							message = e.to_string();
-						} else {
-							return;
+						match dispatch_user_command(ctx, &command_interaction).await {
+							Err(e) => {
+								error!(error = ?e, "Error executing user command");
+								message = e.to_string();
+							},
+							_ => {
+								return;
+							},
 						}
 					},
 					CommandType::Message => trace!("{:?}", command_interaction),

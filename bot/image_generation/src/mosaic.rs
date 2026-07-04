@@ -5,7 +5,7 @@ use image::{ExtendedColorType, GenericImageView, ImageEncoder, RgbaImage};
 use palette::{IntoColor, Lab, Srgb};
 use rayon::prelude::*;
 
-use crate::color::{find_closest_color_index, Color, ColorWithTile};
+use crate::color::{Color, ColorWithTile, find_closest_color_index};
 
 pub fn generate_mosaic(
 	guild_icon: &image::DynamicImage, average_colors: &[ColorWithTile],

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use sea_orm::DatabaseConnection;
 use serenity::all::{Context as SerenityContext, GuildId, User};
 use shared::config::ImageConfig;

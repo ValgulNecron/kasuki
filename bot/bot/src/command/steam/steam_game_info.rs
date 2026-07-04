@@ -4,7 +4,7 @@ use crate::helper::convert_flavored_markdown::convert_steam_to_discord_flavored_
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
 use crate::structure::run::game::steam_game::{Platforms, SteamGameWrapper};
 use crate::structure::steam_game_index::SteamGameIndex;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use arc_swap::ArcSwap;
 use kasuki_macros::slash_command;
 use sea_orm::DatabaseConnection;

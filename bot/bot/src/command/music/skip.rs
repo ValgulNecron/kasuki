@@ -18,14 +18,16 @@ async fn skip_command(self_: SkipCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
 		return Ok(embed_contents);
 	};
-	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-title"));
+	let mut embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_skip-title"));
 
 	let now_playing = player.get_player().await?.track;
 

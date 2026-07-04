@@ -36,7 +36,12 @@ async fn credit_command(self_: CreditCommand) -> Result<EmbedsContents<'_>> {
 	if !contributors.is_empty() {
 		let contributor_list: String = contributors
 			.iter()
-			.map(|c| format!("[{}]({}) ({} contributions)", c.login, c.html_url, c.contributions))
+			.map(|c| {
+				format!(
+					"[{}]({}) ({} contributions)",
+					c.login, c.html_url, c.contributions
+				)
+			})
 			.collect::<Vec<_>>()
 			.join("\n");
 

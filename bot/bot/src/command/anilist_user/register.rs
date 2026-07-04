@@ -12,7 +12,7 @@ use small_fixed_array::FixedString;
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::run::anilist::user::{get_color, get_user, get_user_url, User};
+use crate::structure::run::anilist::user::{User, get_color, get_user, get_user_url};
 use shared::database::prelude::RegisteredUser;
 use shared::database::registered_user::{ActiveModel, Column};
 

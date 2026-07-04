@@ -1,10 +1,10 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::constant::MEMBER_LIST_LIMIT;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
-use futures::pin_mut;
 use futures::StreamExt;
+use futures::pin_mut;
 use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

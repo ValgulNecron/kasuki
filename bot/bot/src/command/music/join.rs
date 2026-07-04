@@ -8,7 +8,7 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::event_handler::BotData;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use kasuki_macros::slash_command;
 use lavalink_rs::model::ChannelId;
 use serenity::all::{CommandInteraction, Context as SerenityContext, Context};

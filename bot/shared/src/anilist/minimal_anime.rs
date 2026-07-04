@@ -54,7 +54,7 @@ pub struct AiringSchedule {
 
 use crate::anilist::make_request::make_request_anilist;
 use crate::cache::CacheInterface;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use std::sync::Arc;
 use tracing::trace;

@@ -1,5 +1,5 @@
 use axum::{extract::ConnectInfo, http::Request, middleware::Next, response::Response};
-use governor::{clock::DefaultClock, state::keyed::DashMapStateStore, Quota, RateLimiter};
+use governor::{Quota, RateLimiter, clock::DefaultClock, state::keyed::DashMapStateStore};
 use std::net::SocketAddr;
 use std::num::NonZeroU32;
 use std::sync::Arc;

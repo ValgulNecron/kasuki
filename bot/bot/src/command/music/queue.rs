@@ -1,7 +1,7 @@
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::music::music_context::MusicCommandContext;
-use futures::future;
 use futures::StreamExt;
+use futures::future;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::localization::{Loader, USABLE_LOCALES};
@@ -20,8 +20,9 @@ async fn queue_command(self_: QueueCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_queue-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 

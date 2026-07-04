@@ -1,7 +1,7 @@
 mod api;
 
 use api::state::AppState;
-use base64::{engine::general_purpose::STANDARD, Engine as _};
+use base64::{Engine as _, engine::general_purpose::STANDARD};
 use shared::cache::CacheInterface;
 use shared::config::Config;
 use std::sync::Arc;

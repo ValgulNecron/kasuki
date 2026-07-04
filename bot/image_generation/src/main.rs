@@ -10,7 +10,7 @@ use redis::AsyncCommands;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use shared::config::Config;
-use shared::image_saver::storage::{create_image_store, ImageStore};
+use shared::image_saver::storage::{ImageStore, create_image_store};
 use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
 use shared::queue::tasks::{ImageTask, MemberColorData};
 use tokio::sync::Semaphore;

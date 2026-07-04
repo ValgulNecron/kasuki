@@ -2,9 +2,9 @@ use crate::command::admin::anilist::add_activity::{get_minimal_anime_media, get_
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand_group::get_option_map_string_subcommand_group;
-use anyhow::{anyhow, Result};
-use fluent_templates::fluent_bundle::FluentValue;
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
+use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use sea_orm::ColumnTrait;
 use sea_orm::DatabaseConnection;

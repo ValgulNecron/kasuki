@@ -117,7 +117,7 @@ pub fn App() -> impl IntoView {
         // 3. Try JWT from localStorage — check expiry client-side to avoid
         //    unnecessary API calls with a token the server would reject anyway
         let local_storage = window().expect("window").local_storage().unwrap().unwrap();
-        if let Ok(Some(jwt_from_storage)) = local_storage.get_item("jwt") {
+        match local_storage.get_item("jwt") { Ok(Some(jwt_from_storage)) => {
             if is_jwt_expired(&jwt_from_storage) {
                 log!("JWT expired, clearing session");
                 let _ = local_storage.remove_item("jwt");
@@ -125,9 +125,9 @@ pub fn App() -> impl IntoView {
             } else {
                 use_jwt(jwt_from_storage);
             }
-        } else {
+        } _ => {
             set_user_session_data.set(None);
-        }
+        }}
     };
 
     // Handle initial page load based on hash

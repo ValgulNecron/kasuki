@@ -2,7 +2,7 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::constant::COLOR;
 use crate::helper::progress_bar_generator::generate_progress_bar_image_in_memory;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use kasuki_macros::slash_command;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;

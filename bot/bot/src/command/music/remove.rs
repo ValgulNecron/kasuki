@@ -35,8 +35,9 @@ async fn remove_command(self_: RemoveCommand) -> Result<EmbedsContents<'_>> {
 
 	player.get_queue().remove(index)?;
 
-	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_remove-title"))
-		.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_remove-success"));
+	let embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_remove-title"))
+			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_remove-success"));
 
 	let embed_contents = EmbedsContents::new(vec![embed_content]);
 

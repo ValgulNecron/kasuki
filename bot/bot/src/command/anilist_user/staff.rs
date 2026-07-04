@@ -7,12 +7,12 @@ use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::staff::{
 	Staff, StaffQuerryId, StaffQuerryIdVariables, StaffQuerrySearch, StaffQuerrySearchVariables,
 };
-use shared::anilist::character::{format_fuzzy_date, FuzzyDate as SharedFuzzyDate};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
+use shared::anilist::character::{FuzzyDate as SharedFuzzyDate, format_fuzzy_date};
 use shared::anilist::make_request::make_request_anilist;
 use shared::cache::CacheInterface;
 use shared::localization::USABLE_LOCALES;

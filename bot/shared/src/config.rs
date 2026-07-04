@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use std::time::Duration;

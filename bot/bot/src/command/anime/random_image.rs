@@ -1,7 +1,7 @@
 use crate::command::context::CommandContext;
 use crate::command::embed_content::{CommandFiles, EmbedContent, EmbedsContents};
 use crate::helper::get_option::subcommand::get_option_map_string_subcommand;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
 use image::EncodableLayout;
 use kasuki_macros::slash_command;

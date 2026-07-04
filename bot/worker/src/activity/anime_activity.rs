@@ -3,9 +3,9 @@ use std::time::Duration;
 
 use std::borrow::Cow;
 
-use anyhow::{anyhow, Context, Result};
-use base64::engine::general_purpose::STANDARD;
+use anyhow::{Context, Result, anyhow};
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter};
@@ -17,7 +17,7 @@ use shared::cache::CacheInterface;
 use shared::database::activity_data;
 use shared::database::activity_data::Model;
 use shared::database::prelude::ActivityData;
-use shared::localization::{get_language_identifier, FluentValue, Loader, USABLE_LOCALES};
+use shared::localization::{FluentValue, Loader, USABLE_LOCALES, get_language_identifier};
 use tracing::{error, info, trace};
 
 /// Manages activity notifications. Tracks the last check time internally
@@ -256,8 +256,7 @@ async fn remove_activity(
 ) -> Result<DeleteResult> {
 	trace!(
 		"Removing activity for anime_id={} guild={}",
-		row.anime_id,
-		guild_id
+		row.anime_id, guild_id
 	);
 
 	let result = ActivityData::delete(activity_data::ActiveModel {

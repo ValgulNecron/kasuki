@@ -3,7 +3,7 @@ pub use shared::anilist::character::*;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::convert_flavored_markdown::convert_anilist_flavored_to_discord_flavored_markdown;
 use crate::helper::trimer::trim;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
 use shared::localization::USABLE_LOCALES;
 use unic_langid::LanguageIdentifier;

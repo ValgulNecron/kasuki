@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use serenity::all::{

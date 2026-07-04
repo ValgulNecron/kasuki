@@ -1,10 +1,10 @@
 use axum::{
+	Json,
 	extract::{Query, State},
 	response::{IntoResponse, Redirect},
-	Json,
 };
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, Header};
+use jsonwebtoken::{Header, encode};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait};
 use serde::{Deserialize, Serialize};
 use shared::database::oauth_token;

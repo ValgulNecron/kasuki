@@ -20,7 +20,7 @@ pub trait Command {
 macro_rules! impl_command {
 	(
         for $type:ty,
-        get_contents = $get_contents_fn:expr
+        get_contents = $get_contents_fn:expr_2021
     ) => {
 		impl Command for $type {
 			fn get_ctx(&self) -> &SerenityContext {
@@ -61,13 +61,13 @@ impl<T: Command> CommandRun for T {
 				embed = embed.description(desc);
 			}
 			if let Some(thumbnail) = embed_content.thumbnail {
-				embed = embed.thumbnail(thumbnail);
+				embed = embed.thumbnail(thumbnail, None);
 			}
 			if let Some(url) = embed_content.url {
 				embed = embed.url(url);
 			}
 			if let Some(images_url) = embed_content.images_url {
-				embed = embed.image(images_url);
+				embed = embed.image(images_url, None);
 			}
 			if let Some(footer) = embed_content.footer {
 				let mut footer_builder = CreateEmbedFooter::new(footer.text);

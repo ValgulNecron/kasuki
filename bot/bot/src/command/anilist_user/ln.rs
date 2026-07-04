@@ -1,7 +1,9 @@
 use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
 use crate::structure::run::anilist::media;
-use crate::structure::run::anilist::media::{fetch_guild_scores, get_media, MediaFormat, MediaType};
+use crate::structure::run::anilist::media::{
+	MediaFormat, MediaType, fetch_guild_scores, get_media,
+};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -35,8 +37,7 @@ async fn ln_command(self_: LnCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let member_ids = cx.guild_member_ids();
-	let guild_scores =
-		fetch_guild_scores(&member_ids, data.id, &cx.db, anilist_cache).await;
+	let guild_scores = fetch_guild_scores(&member_ids, data.id, &cx.db, anilist_cache).await;
 
 	let lang_id = cx.lang_id().await;
 	let embed_content = media::media_content(data, &lang_id, cx.db.clone(), guild_scores).await?;

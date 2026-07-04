@@ -21,8 +21,9 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
@@ -35,7 +36,8 @@ async fn seek_command(self_: SeekCommand) -> Result<EmbedsContents<'_>> {
 
 	let now_playing = player.get_player().await?.track;
 
-	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-title"));
+	let mut embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_seek-title"));
 
 	if let Some(_) = now_playing {
 		player.set_position(Duration::from_secs(time)).await?;

@@ -4,7 +4,7 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-use shared::vndb::producer::{get_producer, Producer};
+use shared::vndb::producer::{Producer, get_producer};
 use tracing::trace;
 
 pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {

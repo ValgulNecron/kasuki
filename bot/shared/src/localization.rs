@@ -1,8 +1,8 @@
 use crate::helper::get_guild_lang::get_guild_language;
 use anyhow::Result;
+pub use fluent_templates::Loader;
 pub use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::static_loader;
-pub use fluent_templates::Loader;
 use sea_orm::DatabaseConnection;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -27,7 +27,7 @@ pub fn load_locales() -> Result<()> {
 /// ```
 #[macro_export]
 macro_rules! fluent_args {
-	($($key:expr => $val:expr),* $(,)?) => {{
+	($($key:expr_2021 => $val:expr_2021),* $(,)?) => {{
 		let mut args = std::collections::HashMap::<
 			std::borrow::Cow<'static, str>,
 			$crate::localization::FluentValue,

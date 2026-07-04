@@ -91,7 +91,13 @@ impl CommandContext {
 		self.command_interaction
 			.guild_id
 			.and_then(|gid| gid.to_guild_cached(&self.ctx.cache))
-			.map(|guild| guild.members.iter().map(|m| m.user.id.to_string()).collect())
+			.map(|guild| {
+				guild
+					.members
+					.iter()
+					.map(|m| m.user.id.to_string())
+					.collect()
+			})
 			.unwrap_or_default()
 	}
 }

@@ -138,8 +138,8 @@ mod tests {
 	#[test]
 	fn test_jwt_encode_decode_roundtrip() {
 		use crate::api::oauth::Claims;
-		use base64::{engine::general_purpose::STANDARD, Engine as _};
-		use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+		use base64::{Engine as _, engine::general_purpose::STANDARD};
+		use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 
 		let secret = STANDARD.encode(b"test-secret-key-for-unit-tests!!");
 		let secret_bytes = STANDARD.decode(&secret).unwrap();
@@ -171,8 +171,8 @@ mod tests {
 	#[test]
 	fn test_expired_jwt_rejected() {
 		use crate::api::oauth::Claims;
-		use base64::{engine::general_purpose::STANDARD, Engine as _};
-		use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+		use base64::{Engine as _, engine::general_purpose::STANDARD};
+		use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 
 		let secret = STANDARD.encode(b"test-secret-key-for-unit-tests!!");
 		let secret_bytes = STANDARD.decode(&secret).unwrap();

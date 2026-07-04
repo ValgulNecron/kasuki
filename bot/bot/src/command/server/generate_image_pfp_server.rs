@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::sync::Arc;
 
 use crate::command::context::CommandContext;
@@ -11,7 +11,7 @@ use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::prelude::ServerImage;
 use shared::database::server_image::Column;
 use shared::image_saver::storage::ImageStore;
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::localization::{Loader, USABLE_LOCALES, get_language_identifier};
 use uuid::Uuid;
 
 #[slash_command(

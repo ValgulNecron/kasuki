@@ -583,8 +583,9 @@ pub async fn fetch_guild_scores(
 	if member_user_ids.is_empty() {
 		return None;
 	}
-	let anilist_ids =
-		get_registered_anilist_ids_for_members(db, member_user_ids).await.unwrap_or_default();
+	let anilist_ids = get_registered_anilist_ids_for_members(db, member_user_ids)
+		.await
+		.unwrap_or_default();
 	if anilist_ids.is_empty() {
 		return None;
 	}

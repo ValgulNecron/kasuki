@@ -1,7 +1,7 @@
 use std::fmt::Write;
 use std::sync::Arc;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use cynic::{GraphQlResponse, QueryBuilder};
 
 use crate::anilist::make_request::make_request_anilist;

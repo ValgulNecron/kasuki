@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
@@ -10,16 +10,16 @@ use crate::structure::run::anilist::minimal_anime::{
 	Media, MediaTitle, MinimalAnimeId, MinimalAnimeIdVariables, MinimalAnimeSearch,
 	MinimalAnimeSearchVariables,
 };
+use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use base64::read::DecoderReader;
-use base64::Engine as _;
 use bytes::Bytes;
 use chrono::Utc;
 use cynic::{GraphQlResponse, QueryBuilder};
-use fluent_templates::fluent_bundle::FluentValue;
 use fluent_templates::Loader;
+use fluent_templates::fluent_bundle::FluentValue;
 use image::imageops::FilterType;
-use image::{guess_format, GenericImageView, ImageFormat};
+use image::{GenericImageView, ImageFormat, guess_format};
 use kasuki_macros::slash_command;
 use reqwest::get;
 use sea_orm::ActiveValue::Set;

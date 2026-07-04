@@ -1,5 +1,5 @@
-use image::imageops::FilterType;
 use image::RgbaImage;
+use image::imageops::FilterType;
 use palette::color_difference::ImprovedDeltaE;
 use palette::{IntoColor, Lab, Srgb};
 

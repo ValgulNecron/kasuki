@@ -23,8 +23,9 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 
@@ -37,7 +38,8 @@ async fn swap_command(self_: SwapCommand) -> Result<EmbedsContents<'_>> {
 
 	let index2 = map.get("index2").cloned().unwrap_or_default() as usize;
 
-	let mut embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-title"));
+	let mut embed_content =
+		EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_swap-title"));
 
 	let queue = player.get_queue();
 	let queue_len = queue.get_count().await?;

@@ -82,8 +82,7 @@ pub async fn ping_manager_thread(
 
 			trace!(
 				"Inserting ping history record for shard {} with latency {}",
-				shard_id,
-				latency
+				shard_id, latency
 			);
 			let result = PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),

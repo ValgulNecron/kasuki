@@ -113,7 +113,8 @@ impl SteamGameIndex {
 		if results.len() < limit {
 			let already_found: HashSet<u32> = results.iter().map(|(_, id)| *id).collect();
 			let remaining = limit - results.len();
-			let extra = self.search_by_substring(&query_lower, &query_words, remaining, &already_found);
+			let extra =
+				self.search_by_substring(&query_lower, &query_words, remaining, &already_found);
 			results.extend(extra);
 		}
 
@@ -155,8 +156,7 @@ impl SteamGameIndex {
 	/// Slow path: scan all games for substring matches.
 	/// Only called when word-prefix didn't produce enough results.
 	fn search_by_substring<'a>(
-		&'a self, query_lower: &str, query_words: &[&str], limit: usize,
-		exclude: &HashSet<u32>,
+		&'a self, query_lower: &str, query_words: &[&str], limit: usize, exclude: &HashSet<u32>,
 	) -> Vec<(&'a str, u32)> {
 		let mut candidates: Vec<u32> = Vec::new();
 
@@ -166,9 +166,7 @@ impl SteamGameIndex {
 				continue;
 			}
 
-			let all_match = query_words
-				.iter()
-				.all(|qw| game.name_lower.contains(qw));
+			let all_match = query_words.iter().all(|qw| game.name_lower.contains(qw));
 
 			if all_match {
 				candidates.push(idx);
@@ -384,12 +382,10 @@ mod tests {
 
 	#[test]
 	fn test_to_map_roundtrip() {
-		let original: HashMap<String, u32> = [
-			("Game A".to_string(), 1u32),
-			("Game B".to_string(), 2u32),
-		]
-		.into_iter()
-		.collect();
+		let original: HashMap<String, u32> =
+			[("Game A".to_string(), 1u32), ("Game B".to_string(), 2u32)]
+				.into_iter()
+				.collect();
 		let index = SteamGameIndex::from_map(original.clone());
 		let recovered = index.to_map();
 		assert_eq!(recovered, original);
@@ -461,11 +457,7 @@ mod tests {
 
 	#[test]
 	fn test_substring_mid_word() {
-		let index = make_index(&[
-			("Terraria", 1),
-			("Undertale", 2),
-			("Terra Nil", 3),
-		]);
+		let index = make_index(&[("Terraria", 1), ("Undertale", 2), ("Terra Nil", 3)]);
 		let results = index.search("erra", 10);
 		assert!(results.len() >= 2);
 		let names: Vec<&str> = results.iter().map(|(n, _)| *n).collect();
@@ -510,11 +502,7 @@ mod tests {
 
 	#[test]
 	fn test_word_prefix_preferred_over_substring() {
-		let index = make_index(&[
-			("Craftopia", 1),
-			("Minecraft", 2),
-			("Craft the World", 3),
-		]);
+		let index = make_index(&[("Craftopia", 1), ("Minecraft", 2), ("Craft the World", 3)]);
 		let results = index.search("craft", 10);
 		assert_eq!(results.len(), 3);
 		assert!(

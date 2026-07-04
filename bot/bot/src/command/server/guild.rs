@@ -4,7 +4,7 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use serenity::nonmax::NonMaxU64;
+use serenity::nonmax::NonMaxU32;
 use shared::localization::{Loader, USABLE_LOCALES};
 
 #[slash_command(
@@ -47,7 +47,7 @@ async fn guild_command(self_: GuildCommand) -> Result<EmbedsContents<'_>> {
 
 	let max_online = guild
 		.max_presences
-		.unwrap_or(NonMaxU64::new(25000).unwrap_or_default());
+		.unwrap_or(NonMaxU32::new(25000).unwrap_or_default());
 
 	let guild_banner = guild.banner_url();
 

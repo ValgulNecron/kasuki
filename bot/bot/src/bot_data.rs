@@ -1,3 +1,5 @@
+use crate::structure::steam_game_index::SteamGameIndex;
+use arc_swap::ArcSwap;
 use chrono::{DateTime, Timelike, Utc};
 use lavalink_rs::client::LavalinkClient;
 use reqwest::Client;
@@ -12,11 +14,9 @@ use shared::config::Config;
 use shared::image_saver::storage::ImageStore;
 use shared::queue::tasks::ImageTask;
 use songbird::Songbird;
-use arc_swap::ArcSwap;
-use crate::structure::steam_game_index::SteamGameIndex;
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicBool, AtomicUsize};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicUsize};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
@@ -89,7 +89,7 @@ impl BotData {
 						"Reconnected to Redis at {}:{}",
 						self.config.queue.host, self.config.queue.port
 					);
-						*guard = Some(conn);
+					*guard = Some(conn);
 					Some(guard)
 				},
 				Err(e) => {

@@ -18,8 +18,9 @@ async fn pause_command(self_: PauseCommand) -> Result<EmbedsContents<'_>> {
 	.await?;
 
 	let Some(player) = mcx.get_player() else {
-		let embed_content = EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_pause-title"))
-			.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_pause-error_no_voice"));
+		let embed_content =
+			EmbedContent::new(USABLE_LOCALES.lookup(&mcx.lang_id, "music_pause-title"))
+				.description(USABLE_LOCALES.lookup(&mcx.lang_id, "music_pause-error_no_voice"));
 
 		let embed_contents = EmbedsContents::new(vec![embed_content]);
 		return Ok(embed_contents);

@@ -100,6 +100,5 @@ pub async fn launch_game_management_thread(
 				}
 			},
 		}
-
 	}
 }

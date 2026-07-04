@@ -71,7 +71,8 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 		let mut inner_embed = embed_content.clone();
 
 		for (command, usage_count) in &usage {
-			let args = fluent_args!("command" => command.clone(), "usage" => usage_count.to_string());
+			let args =
+				fluent_args!("command" => command.clone(), "usage" => usage_count.to_string());
 			description.push_str(
 				USABLE_LOCALES
 					.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args)

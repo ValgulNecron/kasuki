@@ -4,7 +4,7 @@ use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
-use shared::vndb::character::{get_character, Character};
+use shared::vndb::character::{Character, get_character};
 use tracing::trace;
 
 pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {

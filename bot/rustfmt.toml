@@ -1,5 +1,5 @@
 attr_fn_like_width = 80
-edition = "2021"
+edition = "2024"
 fn_params_layout = "Compressed"
 hard_tabs = true
 match_block_trailing_comma = true

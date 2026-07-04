@@ -4,8 +4,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use crate::command::registry::{
-	all_parent_commands, all_slash_commands, init_registries, CommandMeta, DiscordCommandType,
-	GroupDef,
+	CommandMeta, DiscordCommandType, GroupDef, all_parent_commands, all_slash_commands,
+	init_registries,
 };
 use fluent_templates::Loader;
 use serenity::all::{
