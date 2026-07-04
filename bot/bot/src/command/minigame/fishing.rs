@@ -4,10 +4,11 @@ use anyhow::{Context as AnyhowContext, Result};
 use kasuki_macros::slash_command;
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+	ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, QueryFilter, Statement,
+};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use shared::database::item::{Entity as Item, Model as ItemModel};
-use shared::database::user_inventory::ActiveModel as UserInventoryActiveModel;
 use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
 use tracing::info;
@@ -48,7 +49,6 @@ async fn fishing_command(self_: FishingCommand) -> Result<EmbedsContents<'_>> {
 		caught_fish.item_id.clone(),
 		fish_size,
 		fish_rarity,
-		caught_fish.base_xp_boost,
 	)
 	.await?;
 
@@ -129,21 +129,27 @@ fn catch_random_fish(fish_items: &[ItemModel]) -> Result<&ItemModel> {
 
 async fn add_fish_to_inventory(
 	db: &DatabaseConnection, user_id: String, server_id: String, item_id: String, size: i32,
-	rarity: i32, item_xp_boost: f32,
+	rarity: i32,
 ) -> Result<()> {
-	let unique_id = uuid::Uuid::new_v4().to_string();
-	let inventory_item = UserInventoryActiveModel {
-		id: Set(unique_id),
-		item_id: Set(item_id),
-		user_id: Set(user_id),
-		server_id: Set(server_id),
-		size: Set(size),
-		rarity: Set(rarity),
-		item_xp_boost: Set(item_xp_boost),
-	};
+	let backend = db.get_database_backend();
+	let stmt = Statement::from_sql_and_values(
+		backend,
+		r#"
+		INSERT INTO user_inventory (user_id, server_id, item_id, size, rarity, quantity)
+		VALUES ($1, $2, $3, $4, $5, 1)
+		ON CONFLICT (user_id, server_id, item_id, size, rarity) DO UPDATE SET
+			quantity = user_inventory.quantity + 1
+		"#,
+		[
+			user_id.into(),
+			server_id.into(),
+			item_id.into(),
+			size.into(),
+			rarity.into(),
+		],
+	);
 
-	inventory_item
-		.insert(db)
+	db.execute_raw(stmt)
 		.await
 		.context("Failed to add fish to user's inventory")?;
 

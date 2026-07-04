@@ -66,8 +66,11 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 		let mut fish_summary = String::new();
 
 		for (fish_name, fish_list) in &fish_by_name {
-			let count = fish_list.len();
-			let total_value = fish_list.iter().map(|(_, item)| item.price).sum::<i32>();
+			let count: i64 = fish_list.iter().map(|(inv, _)| inv.quantity).sum();
+			let total_value: i64 = fish_list
+				.iter()
+				.map(|(inv, item)| item.price as i64 * inv.quantity)
+				.sum();
 
 			let args = fluent_args!(
 				"fish_name" => fish_name.clone(),
@@ -131,7 +134,7 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 				"size_description" => size_description,
 				"size" => inventory_item.size.to_string(),
 				"rarity_text" => rarity_text,
-				"xp_boost" => ((inventory_item.item_xp_boost * 100.0) as i32).to_string(),
+				"xp_boost" => ((item.base_xp_boost * 100.0) as i32).to_string(),
 			);
 
 			fish_details.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -200,8 +203,11 @@ async fn inventory_command(self_: InventoryCommand) -> Result<EmbedsContents<'_>
 			false,
 		)]);
 
-		let total_fish_count = fish_items.len();
-		let total_fish_value = fish_items.iter().map(|(_, item)| item.price).sum::<i32>();
+		let total_fish_count: i64 = fish_items.iter().map(|(inv, _)| inv.quantity).sum();
+		let total_fish_value: i64 = fish_items
+			.iter()
+			.map(|(inv, item)| item.price as i64 * inv.quantity)
+			.sum();
 
 		let summary_args = fluent_args!(
 			"total_fish_count" => total_fish_count.to_string(),

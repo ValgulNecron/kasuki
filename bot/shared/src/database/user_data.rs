@@ -22,6 +22,8 @@ pub enum Relation {
 	LeaderBoard,
 	#[sea_orm(has_many = "super::message::Entity")]
 	Message,
+	#[sea_orm(has_many = "super::message_summary::Entity")]
+	MessageSummary,
 	#[sea_orm(has_one = "super::registered_user::Entity")]
 	RegisteredUser,
 	#[sea_orm(has_many = "super::server_user_relation::Entity")]
@@ -34,6 +36,8 @@ pub enum Relation {
 	UserSubscription,
 	#[sea_orm(has_many = "super::vocal::Entity")]
 	Vocal,
+	#[sea_orm(has_many = "super::vocal_summary::Entity")]
+	VocalSummary,
 }
 
 impl Related<super::command_usage::Entity> for Entity {
@@ -57,6 +61,12 @@ impl Related<super::leader_board::Entity> for Entity {
 impl Related<super::message::Entity> for Entity {
 	fn to() -> RelationDef {
 		Relation::Message.def()
+	}
+}
+
+impl Related<super::message_summary::Entity> for Entity {
+	fn to() -> RelationDef {
+		Relation::MessageSummary.def()
 	}
 }
 
@@ -93,6 +103,12 @@ impl Related<super::user_subscription::Entity> for Entity {
 impl Related<super::vocal::Entity> for Entity {
 	fn to() -> RelationDef {
 		Relation::Vocal.def()
+	}
+}
+
+impl Related<super::vocal_summary::Entity> for Entity {
+	fn to() -> RelationDef {
+		Relation::VocalSummary.def()
 	}
 }
 

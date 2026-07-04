@@ -322,6 +322,8 @@ pub struct TaskIntervalConfig {
 	pub db_cleanup_interval_hours: u64,
 	#[serde(default = "default_db_retention_days")]
 	pub db_retention_days: u64,
+	#[serde(default = "default_image_retention_days")]
+	pub image_retention_days: u64,
 }
 
 fn default_db_cleanup_interval_hours() -> u64 {
@@ -330,6 +332,10 @@ fn default_db_cleanup_interval_hours() -> u64 {
 
 fn default_db_retention_days() -> u64 {
 	90
+}
+
+fn default_image_retention_days() -> u64 {
+	30
 }
 
 #[derive(Debug, Deserialize, Clone)]

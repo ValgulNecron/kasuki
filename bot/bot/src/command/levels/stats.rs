@@ -9,8 +9,11 @@ use sea_orm::QueryFilter;
 use sea_orm::{ColumnTrait, Condition};
 use serenity::all::{ChannelId, CommandInteraction, Context as SerenityContext};
 use serenity::model::Colour;
-use shared::database::prelude::{Message as DatabaseMessage, Vocal as DatabaseVocal};
-use shared::database::{message, vocal};
+use shared::database::prelude::{
+	Message as DatabaseMessage, MessageSummary as DatabaseMessageSummary, Vocal as DatabaseVocal,
+	VocalSummary as DatabaseVocalSummary,
+};
+use shared::database::{message, message_summary, vocal, vocal_summary};
 use shared::localization::{Loader, USABLE_LOCALES};
 use uuid::Uuid;
 
@@ -45,19 +48,46 @@ async fn levels_stats_command(self_: LevelsStatsCommand) -> Result<EmbedsContent
 		.all(&*cx.db)
 		.await?;
 
-	let total_message = messages.len() as i128;
+	let mut total_message = messages.len() as i128;
+
+	let message_summary_condition = Condition::all()
+		.add(message_summary::Column::UserId.eq(user_id.clone()))
+		.add(message_summary::Column::ChannelId.is_in(vec_string.clone()));
+
+	let message_summaries = DatabaseMessageSummary::find()
+		.filter(message_summary_condition)
+		.all(&*cx.db)
+		.await?;
+
+	for summary in message_summaries {
+		total_message += summary.message_count as i128;
+	}
 
 	let condition = Condition::all()
-		.add(vocal::Column::UserId.eq(user_id))
-		.add(vocal::Column::ChannelId.is_in(vec_string));
+		.add(vocal::Column::UserId.eq(user_id.clone()))
+		.add(vocal::Column::ChannelId.is_in(vec_string.clone()));
 
 	let vocals = DatabaseVocal::find().filter(condition).all(&*cx.db).await?;
 
-	let total_vocal = vocals.len() as i128;
+	let mut total_vocal = vocals.len() as i128;
 
 	let mut total_vocal_len: i128 = 0;
 	for vocal in vocals {
 		total_vocal_len += vocal.duration as i128;
+	}
+
+	let summary_condition = Condition::all()
+		.add(vocal_summary::Column::UserId.eq(user_id))
+		.add(vocal_summary::Column::ChannelId.is_in(vec_string));
+
+	let summaries = DatabaseVocalSummary::find()
+		.filter(summary_condition)
+		.all(&*cx.db)
+		.await?;
+
+	for summary in summaries {
+		total_vocal += summary.session_count as i128;
+		total_vocal_len += summary.duration_total_seconds as i128;
 	}
 
 	let hours = total_vocal_len / 3600;

@@ -60,8 +60,11 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 	let mut fish_summary = String::new();
 
 	for (fish_name, fish_list) in &fish_by_name {
-		let count = fish_list.len();
-		let total_value = fish_list.iter().map(|(_, item)| item.price).sum::<i32>();
+		let count: i64 = fish_list.iter().map(|(inv, _)| inv.quantity).sum();
+		let total_value: i64 = fish_list
+			.iter()
+			.map(|(inv, item)| item.price as i64 * inv.quantity)
+			.sum();
 
 		let base_rarity = match fish_list[0].1.minimum_rarity {
 			1 => USABLE_LOCALES.lookup(&lang_id, "minigame_fish_inventory-common"),
@@ -129,7 +132,7 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 				"size_description" => size_description,
 				"size" => inventory_item.size.to_string(),
 				"rarity" => rarity_text,
-				"xp_boost" => ((inventory_item.item_xp_boost * 100.0) as i32).to_string(),
+				"xp_boost" => ((fish_list[0].1.base_xp_boost * 100.0) as i32).to_string(),
 			);
 
 			fish_details.push_str(&USABLE_LOCALES.lookup_with_args(
@@ -146,11 +149,11 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		false,
 	));
 
-	let mut rarity_distribution_map = HashMap::new();
+	let mut rarity_distribution_map: HashMap<i32, i64> = HashMap::new();
 	for (inventory_item, _) in &inventory_items {
 		*rarity_distribution_map
 			.entry(inventory_item.rarity)
-			.or_insert(0) += 1;
+			.or_insert(0) += inventory_item.quantity;
 	}
 
 	let mut rarity_text = String::new();
@@ -180,11 +183,11 @@ async fn fish_inventory_command(self_: FishInventoryCommand) -> Result<EmbedsCon
 		false,
 	));
 
-	let total_fish_count = inventory_items.len();
-	let total_fish_value = inventory_items
+	let total_fish_count: i64 = inventory_items.iter().map(|(inv, _)| inv.quantity).sum();
+	let total_fish_value: i64 = inventory_items
 		.iter()
-		.map(|(_, item)| item.price)
-		.sum::<i32>();
+		.map(|(inv, item)| item.price as i64 * inv.quantity)
+		.sum();
 
 	let count_args = fluent_args!("count" => total_fish_count.to_string());
 

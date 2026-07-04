@@ -45,6 +45,7 @@ impl Handler {
 			data: Set(data),
 			chat_length: Set(length as i32),
 			channel_id: Set(channel_id),
+			created_at: Set(chrono::Utc::now().naive_utc()),
 		};
 
 		if let Err(e) = DatabaseMessage::insert(active_message)

@@ -31,6 +31,10 @@ mod m20260210_000000_remove_user_banner;
 mod m20260225_000000_create_oauth_token;
 mod m20260307_000000_drop_bad_unique_constraints;
 mod m20260317_000000_add_channel_id_to_activity;
+mod m20260605_000000_create_vocal_summary;
+mod m20260605_000100_add_created_at_to_message;
+mod m20260605_000200_create_message_summary;
+mod m20260605_000300_collapse_user_inventory;
 
 pub struct Migrator;
 
@@ -69,6 +73,10 @@ impl MigratorTrait for Migrator {
 			Box::new(m20260225_000000_create_oauth_token::Migration),
 			Box::new(m20260307_000000_drop_bad_unique_constraints::Migration),
 			Box::new(m20260317_000000_add_channel_id_to_activity::Migration),
+			Box::new(m20260605_000000_create_vocal_summary::Migration),
+			Box::new(m20260605_000100_add_created_at_to_message::Migration),
+			Box::new(m20260605_000200_create_message_summary::Migration),
+			Box::new(m20260605_000300_collapse_user_inventory::Migration),
 		]
 	}
 }

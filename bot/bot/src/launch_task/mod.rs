@@ -95,10 +95,11 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 
 	let task_intervals_c = task_intervals.clone();
 	let db_connection_c = db_connection.clone();
+	let image_store_c = bot_data.image_store.clone();
 	let mut db_cleanup_shutdown_rx = shutdown_signal.subscribe();
 	let db_cleanup = tokio::spawn(async move {
 		tokio::select! {
-			_ = db_cleanup_task(db_connection_c, task_intervals_c) => {
+			_ = db_cleanup_task(db_connection_c, task_intervals_c, image_store_c) => {
 				info!("DB cleanup task completed");
 			},
 			_ = db_cleanup_shutdown_rx.recv() => {
