@@ -53,6 +53,7 @@ redis.workspace = true
 sentry.workspace = true
 parking_lot.workspace = true
 arc-swap.workspace = true
+libc.workspace = true
 
 [build-dependencies]
 cynic-codegen.workspace = true

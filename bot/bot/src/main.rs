@@ -37,6 +37,9 @@ mod structure;
 #[tokio::main]
 async fn main() {
 	if let Err(e) = run().await {
+		// Also print to stderr: if `run` failed while initialising the logger
+		// itself, `error!` has no subscriber and would be silent otherwise.
+		eprintln!("Fatal error: {:#}", e);
 		error!("Fatal error: {:#}", e);
 		process::exit(1);
 	}
@@ -66,6 +69,9 @@ async fn run() -> anyhow::Result<()> {
 	let log = config.logging.log_level.clone();
 	let max_log_retention_days = config.logging.max_log_retention;
 	create_log_directory().context("Failed to create log directory")?;
+	// Free space on the log volume *before* the appender opens today's file, so a
+	// process coming up to an already-full disk can still initialise its logger.
+	launch_task::log_cleanup::enforce_log_budget_at_startup(&config.logging);
 	let _guard =
 		init_logger(log.as_str(), max_log_retention_days).context("Failed to initialize logger")?;
 	info!("Logger initialized successfully with level: {}", log);

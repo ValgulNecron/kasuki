@@ -44,8 +44,12 @@ impl EventHandler for Handler {
 			FullEvent::VoiceStateUpdate { old, new } => {
 				self.voice_state_update(ctx, old.clone(), new.clone()).await;
 			},
-			_ => {
-				trace!("this event is not handled nothing to worry {:?}", event)
+			other => {
+				// Log only the event's variant name, not its full payload — a
+				// `{:?}` dump of e.g. MessageUpdate is multiple KB per event and
+				// fills the log volume at trace level.
+				let event_name: &'static str = other.into();
+				trace!(event = event_name, "unhandled gateway event");
 			},
 		}
 	}

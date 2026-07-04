@@ -42,7 +42,11 @@ impl Handler {
 							},
 						}
 					},
-					CommandType::Message => trace!("{:?}", command_interaction),
+					CommandType::Message => trace!(
+						command = %command_interaction.data.name,
+						user_id = %command_interaction.user.id,
+						"message command interaction received"
+					),
 					_ => {},
 				}
 				// Only reached on error — send a user-facing error response

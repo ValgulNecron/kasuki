@@ -66,8 +66,15 @@ s3_access_key = ""
 s3_secret_key = ""
 
 [logging]
+# "trace" is extremely verbose; prefer "info"/"warn" for long-running deployments.
 log_level = "trace"
 max_log_retention = 30
+# Disk-aware log rotation, enforced by the bot process itself. When free space on
+# the log volume falls below disk_min_free_percent, the oldest log files are
+# deleted (newest always kept) until disk_target_free_percent is free again.
+disk_cleanup_interval_secs = 300
+disk_min_free_percent = 10
+disk_target_free_percent = 20
 
 [ai.image]
 ai_image_token = ""

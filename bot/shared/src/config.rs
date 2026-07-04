@@ -228,6 +228,29 @@ impl Default for StorageConfig {
 pub struct LoggingConfig {
 	pub log_level: String,
 	pub max_log_retention: u32,
+	/// How often the process checks free space on the log volume, in seconds.
+	#[serde(default = "default_disk_cleanup_interval_secs")]
+	pub disk_cleanup_interval_secs: u64,
+	/// When free space drops below this percentage of the log volume, the
+	/// process prunes its own oldest log files.
+	#[serde(default = "default_disk_min_free_percent")]
+	pub disk_min_free_percent: u8,
+	/// Pruning deletes oldest log files until at least this percentage of the
+	/// volume is free (hysteresis so cleanup does not run every tick).
+	#[serde(default = "default_disk_target_free_percent")]
+	pub disk_target_free_percent: u8,
+}
+
+fn default_disk_cleanup_interval_secs() -> u64 {
+	300
+}
+
+fn default_disk_min_free_percent() -> u8 {
+	10
+}
+
+fn default_disk_target_free_percent() -> u8 {
+	20
 }
 
 #[derive(Debug, Deserialize, Clone)]

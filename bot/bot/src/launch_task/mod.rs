@@ -1,6 +1,7 @@
 pub mod bot_info_update;
 pub mod db_cleanup;
 pub mod game_management;
+pub mod log_cleanup;
 pub mod ping_manager;
 pub mod queue_publisher;
 pub mod user_blacklist;
@@ -15,6 +16,7 @@ use tracing::info;
 use self::bot_info_update::update_bot_info;
 use self::db_cleanup::db_cleanup_task;
 use self::game_management::launch_game_management_thread;
+use self::log_cleanup::log_cleanup_task;
 use self::ping_manager::ping_manager_thread;
 use self::user_blacklist::update_user_blacklist;
 
@@ -108,6 +110,20 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 		}
 	});
 	shutdown_receivers.push(db_cleanup);
+
+	let logging_c = bot_data.config.logging.clone();
+	let mut log_cleanup_shutdown_rx = shutdown_signal.subscribe();
+	let log_cleanup = tokio::spawn(async move {
+		tokio::select! {
+			_ = log_cleanup_task(logging_c) => {
+				info!("Log cleanup task completed");
+			},
+			_ = log_cleanup_shutdown_rx.recv() => {
+				info!("Received shutdown signal, terminating log cleanup task gracefully");
+			}
+		}
+	});
+	shutdown_receivers.push(log_cleanup);
 
 	sleep(Duration::from_secs(task_intervals.before_server_image)).await;
 
