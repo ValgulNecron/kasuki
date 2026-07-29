@@ -34,40 +34,49 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 
 	let va = staff
 		.characters
-		.unwrap()
-		.nodes
-		.unwrap()
-		.iter()
-		.filter_map(|x| {
-			let x = x.clone().unwrap();
-			let name = x.name.unwrap();
-			let full = name.full.as_deref();
-			let native = name.native.as_deref();
-			get_full_name(full, native)
+		.as_ref()
+		.and_then(|c| c.nodes.as_ref())
+		.map(|nodes| {
+			nodes
+				.iter()
+				.filter_map(|x| {
+					let x = x.as_ref()?;
+					let name = x.name.as_ref()?;
+					let full = name.full.as_deref();
+					let native = name.native.as_deref();
+					get_full_name(full, native)
+				})
+				.take(5)
+				.collect::<Vec<String>>()
+				.join("\n")
 		})
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n");
+		.unwrap_or_default();
 
 	let media = staff
 		.staff_media
-		.unwrap()
-		.edges
-		.unwrap()
-		.iter()
-		.filter_map(|x| {
-			let node = x.clone().unwrap().node.unwrap();
-			let title = node.title.unwrap();
-			let romaji = title.romaji.as_deref();
-			let english = title.english.as_deref();
-			get_full_name(romaji, english)
+		.as_ref()
+		.and_then(|m| m.edges.as_ref())
+		.map(|edges| {
+			edges
+				.iter()
+				.filter_map(|x| {
+					let node = x.as_ref()?.node.as_ref()?;
+					let title = node.title.as_ref()?;
+					let romaji = title.romaji.as_deref();
+					let english = title.english.as_deref();
+					get_full_name(romaji, english)
+				})
+				.take(5)
+				.collect::<Vec<String>>()
+				.join("\n")
 		})
-		.take(5)
-		.collect::<Vec<String>>()
-		.join("\n");
+		.unwrap_or_default();
 
-	let job = staff.primary_occupations.unwrap()[0]
-		.clone()
+	let job = staff
+		.primary_occupations
+		.as_ref()
+		.and_then(|occs| occs.first().cloned())
+		.flatten()
 		.unwrap_or_default();
 
 	let gender = staff.gender.unwrap_or_else(|| String::from("Unknown."));
@@ -125,7 +134,10 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 		))
 	}
 
-	let name = staff.name.unwrap();
+	let name = staff
+		.name
+		.clone()
+		.ok_or_else(|| anyhow!("AniList staff response missing name field"))?;
 	if let Some(ref dob) = staff.date_of_birth {
 		let shared_dob = SharedFuzzyDate {
 			month: dob.month,
@@ -167,7 +179,12 @@ async fn staff_command(self_: StaffCommand) -> Result<EmbedsContents<'_>> {
 		.description(convert_anilist_flavored_to_discord_flavored_markdown(
 			staff.description.unwrap_or_default(),
 		))
-		.thumbnail(staff.image.unwrap().large.unwrap_or_default())
+		.thumbnail(
+			staff
+				.image
+				.and_then(|i| i.large)
+				.unwrap_or_default(),
+		)
 		.url(staff.site_url.unwrap_or_default())
 		.fields(fields);
 
@@ -195,7 +212,10 @@ async fn get_staff(
 		let data: GraphQlResponse<StaffQuerryId> =
 			make_request_anilist(operation, true, anilist_cache).await?;
 
-		data.data.unwrap().staff.unwrap()
+		data.data
+			.ok_or_else(|| anyhow!("AniList returned no data for staff query"))?
+			.staff
+			.ok_or_else(|| anyhow!("AniList staff with id '{}' not found", value))?
 	} else {
 		let var = StaffQuerrySearchVariables {
 			search: Some(value),
@@ -206,7 +226,10 @@ async fn get_staff(
 		let data: GraphQlResponse<StaffQuerrySearch> =
 			make_request_anilist(operation, true, anilist_cache).await?;
 
-		data.data.unwrap().staff.unwrap()
+		data.data
+			.ok_or_else(|| anyhow!("AniList returned no data for staff search"))?
+			.staff
+			.ok_or_else(|| anyhow!("AniList staff '{}' not found", value))?
 	};
 
 	Ok(staff)

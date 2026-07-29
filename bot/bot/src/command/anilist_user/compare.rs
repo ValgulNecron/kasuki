@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 use std::collections::HashSet;
 
+use anyhow::anyhow;
 use fluent_templates::Loader;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -63,8 +64,14 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	let username = user.name.clone();
 
 	let username2 = user2.name.clone();
-	let statistics = user.statistics.unwrap();
-	let statistics2 = user2.statistics.unwrap();
+	let statistics = user
+		.statistics
+		.clone()
+		.ok_or_else(|| anyhow!("AniList returned no statistics for user '{}'", username))?;
+	let statistics2 = user2
+		.statistics
+		.clone()
+		.ok_or_else(|| anyhow!("AniList returned no statistics for user '{}'", username2))?;
 
 	let affinity = get_affinity(&statistics, &statistics2);
 
@@ -86,9 +93,17 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 		common_text.push('\n');
 	}
 
-	let anime = statistics.anime.unwrap();
+	let anime = statistics
+		.anime
+		.clone()
+		.ok_or_else(|| anyhow!("AniList returned no anime statistics for user '{}'", username))?;
 
-	let anime2 = statistics2.anime.unwrap();
+	let anime2 = statistics2.anime.clone().ok_or_else(|| {
+		anyhow!(
+			"AniList returned no anime statistics for user '{}'",
+			username2
+		)
+	})?;
 
 	let minutes_watched = anime.minutes_watched;
 
@@ -176,9 +191,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 		},
 	}
 
-	let tag = get_tag(&anime.tags.unwrap());
+	let tag = get_tag(anime.tags.as_deref().unwrap_or(&[]));
 
-	let tag2 = get_tag(&anime2.tags.unwrap());
+	let tag2 = get_tag(anime2.tags.as_deref().unwrap_or(&[]));
 
 	common_text.push_str(&diff(
 		&tag,
@@ -191,9 +206,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	));
 	common_text.push('\n');
 
-	let genre = get_genre(&anime.genres.unwrap());
+	let genre = get_genre(anime.genres.as_deref().unwrap_or(&[]));
 
-	let genre2 = get_genre(&anime2.genres.unwrap());
+	let genre2 = get_genre(anime2.genres.as_deref().unwrap_or(&[]));
 
 	common_text.push_str(&diff(
 		&genre,
@@ -206,9 +221,17 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	));
 	common_text.push('\n');
 
-	let manga = statistics.manga.unwrap();
+	let manga = statistics
+		.manga
+		.clone()
+		.ok_or_else(|| anyhow!("AniList returned no manga statistics for user '{}'", username))?;
 
-	let manga2 = statistics2.manga.unwrap();
+	let manga2 = statistics2.manga.clone().ok_or_else(|| {
+		anyhow!(
+			"AniList returned no manga statistics for user '{}'",
+			username2
+		)
+	})?;
 
 	let count = manga.count;
 
@@ -296,9 +319,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 		},
 	}
 
-	let tag = get_tag(&manga.tags.unwrap());
+	let tag = get_tag(manga.tags.as_deref().unwrap_or(&[]));
 
-	let tag2 = get_tag(&manga2.tags.unwrap());
+	let tag2 = get_tag(manga2.tags.as_deref().unwrap_or(&[]));
 
 	common_text.push_str(&diff(
 		&tag,
@@ -311,9 +334,9 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	));
 	common_text.push('\n');
 
-	let genre = get_genre(&manga.genres.unwrap());
+	let genre = get_genre(manga.genres.as_deref().unwrap_or(&[]));
 
-	let genre2 = get_genre(&manga2.genres.unwrap());
+	let genre2 = get_genre(manga2.genres.as_deref().unwrap_or(&[]));
 
 	common_text.push_str(&diff(
 		&genre,
@@ -326,12 +349,20 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 	));
 	common_text.push('\n');
 
+	let avatar_url = user
+		.avatar
+		.and_then(|a| a.large)
+		.unwrap_or_default();
+	let avatar_url2 = user2
+		.avatar
+		.and_then(|a| a.large)
+		.unwrap_or_default();
 	let section_u1 = (
 		vec![CreateSectionComponent::TextDisplay(CreateTextDisplay::new(
 			u1_text,
 		))],
 		CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
-			user.avatar.unwrap().large.unwrap(),
+			avatar_url,
 		))),
 	);
 	let section_u2 = (
@@ -339,7 +370,7 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 			u2_text,
 		))],
 		CreateSectionAccessory::Thumbnail(CreateThumbnail::new(CreateUnfurledMediaItem::new(
-			user2.avatar.unwrap().large.unwrap(),
+			avatar_url2,
 		))),
 	);
 	let common = CreateContainerComponent::TextDisplay(CreateTextDisplay::new(common_text));
@@ -365,30 +396,35 @@ async fn compare_command(self_: CompareCommand) -> Result<EmbedsContents<'_>> {
 }
 
 fn get_affinity(s1: &UserStatisticTypes, s2: &UserStatisticTypes) -> f64 {
-	let anime = s1.anime.as_ref().unwrap();
-	let anime2 = s2.anime.as_ref().unwrap();
+	// Missing anime/manga statistics ⇒ contribute 0 to affinity rather than crashing the command.
+	let (anime, anime2) = match (s1.anime.as_ref(), s2.anime.as_ref()) {
+		(Some(a), Some(b)) => (a, b),
+		_ => return 0.0,
+	};
 
 	let mut affinity = jaccard_index(
-		&tag_string(anime.tags.as_deref().unwrap()),
-		&tag_string(anime2.tags.as_deref().unwrap()),
+		&tag_string(anime.tags.as_deref().unwrap_or(&[])),
+		&tag_string(anime2.tags.as_deref().unwrap_or(&[])),
 	);
 
 	affinity += jaccard_index(
-		&genre_string(anime.genres.as_deref().unwrap()),
-		&genre_string(anime2.genres.as_deref().unwrap()),
+		&genre_string(anime.genres.as_deref().unwrap_or(&[])),
+		&genre_string(anime2.genres.as_deref().unwrap_or(&[])),
 	);
 
-	let manga = s1.manga.as_ref().unwrap();
-	let manga2 = s2.manga.as_ref().unwrap();
+	let (manga, manga2) = match (s1.manga.as_ref(), s2.manga.as_ref()) {
+		(Some(a), Some(b)) => (a, b),
+		_ => return ((affinity / 2.0) + other_affinity_anime(anime, anime2)) * 100.0,
+	};
 
 	let mut affinity2 = jaccard_index(
-		&tag_string(manga.tags.as_deref().unwrap()),
-		&tag_string(manga2.tags.as_deref().unwrap()),
+		&tag_string(manga.tags.as_deref().unwrap_or(&[])),
+		&tag_string(manga2.tags.as_deref().unwrap_or(&[])),
 	);
 
 	affinity2 += jaccard_index(
-		&genre_string(manga.genres.as_deref().unwrap()),
-		&genre_string(manga2.genres.as_deref().unwrap()),
+		&genre_string(manga.genres.as_deref().unwrap_or(&[])),
+		&genre_string(manga2.genres.as_deref().unwrap_or(&[])),
 	);
 
 	let mut affinity3 = other_affinity_anime(anime, anime2);
@@ -399,10 +435,10 @@ fn get_affinity(s1: &UserStatisticTypes, s2: &UserStatisticTypes) -> f64 {
 
 fn other_affinity_anime(anime: &UserStatistics, anime0: &UserStatistics) -> f64 {
 	let (current, planning, completed, dropped, paused, repeating) =
-		get_number_by_status(anime.statuses.as_deref().unwrap());
+		get_number_by_status(anime.statuses.as_deref().unwrap_or(&[]));
 
 	let (current0, planning0, completed0, dropped0, paused0, repeating0) =
-		get_number_by_status(anime0.statuses.as_deref().unwrap());
+		get_number_by_status(anime0.statuses.as_deref().unwrap_or(&[]));
 
 	let mut affinity = 0.0;
 
@@ -442,10 +478,10 @@ fn other_affinity_anime(anime: &UserStatistics, anime0: &UserStatistics) -> f64 
 
 fn other_affinity_manga(manga: &UserStatistics2, manga0: &UserStatistics2) -> f64 {
 	let (current, planning, completed, dropped, paused, repeating) =
-		get_number_by_status(manga.statuses.as_deref().unwrap());
+		get_number_by_status(manga.statuses.as_deref().unwrap_or(&[]));
 
 	let (current0, planning0, completed0, dropped0, paused0, repeating0) =
-		get_number_by_status(manga0.statuses.as_deref().unwrap());
+		get_number_by_status(manga0.statuses.as_deref().unwrap_or(&[]));
 
 	let mut affinity = 0.0;
 
@@ -508,10 +544,11 @@ fn get_number_by_status(s: &[Option<UserStatusStatistic>]) -> (i32, i32, i32, i3
 
 	let mut repeating = 0;
 
-	for statuses in s {
-		let statuses = statuses.as_ref().unwrap();
-
-		let status = statuses.status.as_ref().unwrap();
+	for statuses in s.iter().flatten() {
+		let status = match statuses.status.as_ref() {
+			Some(s) => s,
+			None => continue,
+		};
 
 		match *status {
 			MediaListStatus::Current => current = statuses.count,

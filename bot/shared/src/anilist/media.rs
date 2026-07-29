@@ -1,4 +1,4 @@
-use std::fmt::{Display, Write};
+use std::fmt::Display;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
@@ -443,7 +443,7 @@ pub fn get_staff(staff: Vec<Option<StaffEdge>>) -> String {
 		let s_role = s.role.clone();
 		let role = s_role.unwrap_or("Unknown".to_string());
 
-		write!(staff_text, "{}: {}\n", staff_name, role).unwrap();
+		staff_text.push_str(&format!("{}: {}\n", staff_name, role));
 		i += 1;
 	}
 
@@ -479,7 +479,8 @@ pub fn get_characters(characters: Vec<Option<CharacterEdge>>) -> String {
 		let user_pref = name.user_preferred;
 		let char_name = user_pref.unwrap_or(full.unwrap_or("Unknown".to_string()));
 
-		writeln!(characters_text, "{}", char_name).unwrap();
+		characters_text.push_str(&char_name);
+		characters_text.push('\n');
 		i += 1;
 	}
 
@@ -497,8 +498,12 @@ pub fn get_streaming_links(external_links: &Option<Vec<Option<MediaExternalLink>
 	let streaming: Vec<String> = links
 		.iter()
 		.flatten()
-		.filter(|link| link.link_type == Some(ExternalLinkType::Streaming) && link.url.is_some())
-		.map(|link| format!("[{}]({})", link.site, link.url.as_ref().unwrap()))
+		.filter(|link| link.link_type == Some(ExternalLinkType::Streaming))
+		.filter_map(|link| {
+			link.url
+				.as_ref()
+				.map(|url| format!("[{}]({})", link.site, url))
+		})
 		.collect();
 
 	// Pipe-separated for inline display in Discord embeds (e.g., "Crunchyroll | Funimation")

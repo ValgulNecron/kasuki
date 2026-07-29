@@ -1,4 +1,3 @@
-use std::fmt::Write;
 use std::sync::Arc;
 
 use anyhow::{Context, Result, anyhow};
@@ -75,7 +74,7 @@ pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 	let mut result = String::new();
 
 	if let Some(m) = date.month {
-		write!(result, "{:02}", m).unwrap();
+		result.push_str(&format!("{:02}", m));
 		has_month = true
 	}
 
@@ -84,7 +83,7 @@ pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 		if has_month {
 			result.push('/')
 		}
-		write!(result, "{:02}", d).unwrap();
+		result.push_str(&format!("{:02}", d));
 		has_day = true
 	}
 
@@ -92,7 +91,7 @@ pub fn format_fuzzy_date(date: &FuzzyDate) -> String {
 		if has_day {
 			result.push('/')
 		}
-		write!(result, "{:04}", y).unwrap();
+		result.push_str(&format!("{:04}", y));
 	}
 
 	result

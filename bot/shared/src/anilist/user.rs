@@ -171,7 +171,10 @@ pub async fn get_user(value: &str, anilist_cache: Arc<CacheInterface>) -> Result
 		let operation = UserQueryId::build(var);
 		let data: GraphQlResponse<UserQueryId> =
 			make_request_anilist(operation, true, anilist_cache).await?;
-		data.data.unwrap().user.unwrap()
+		data.data
+			.ok_or_else(|| anyhow::anyhow!("AniList returned no data for user id {}", id))?
+			.user
+			.ok_or_else(|| anyhow::anyhow!("AniList user with id {} not found", id))?
 	} else {
 		let var = UserQuerySearchVariables {
 			search: Some(value),
@@ -179,7 +182,10 @@ pub async fn get_user(value: &str, anilist_cache: Arc<CacheInterface>) -> Result
 		let operation = UserQuerySearch::build(var);
 		let data: GraphQlResponse<UserQuerySearch> =
 			make_request_anilist(operation, true, anilist_cache).await?;
-		data.data.unwrap().user.unwrap()
+		data.data
+			.ok_or_else(|| anyhow::anyhow!("AniList returned no data for user search '{}'", value))?
+			.user
+			.ok_or_else(|| anyhow::anyhow!("AniList user '{}' not found", value))?
 	};
 	Ok(user)
 }
@@ -193,14 +199,11 @@ pub fn get_banner(user_id: &i32) -> String {
 }
 
 pub fn get_color(user: User) -> u32 {
-	match user
+	let color = user
 		.options
-		.unwrap()
-		.profile_color
-		.clone()
-		.unwrap_or_else(|| "#FF00FF".to_string())
-		.as_str()
-	{
+		.and_then(|o| o.profile_color)
+		.unwrap_or_else(|| "#FF00FF".to_string());
+	match color.as_str() {
 		"blue" => 0x3498DB,
 		"purple" => 0x9B59B6,
 		"pink" => 0xE68397,
@@ -214,9 +217,14 @@ pub fn get_color(user: User) -> u32 {
 
 pub fn get_completed(statuses: Vec<Option<UserStatusStatistic>>) -> i32 {
 	let mut completed = 0;
-	for i in statuses {
-		let i = i.unwrap();
-		if i.status.unwrap().to_string() == *"COMPLETED" {
+	for i in statuses.into_iter().flatten() {
+		if i
+			.status
+			.as_ref()
+			.map(|s| s.to_string())
+			.unwrap_or_default()
+			== "COMPLETED"
+		{
 			completed = i.count;
 		}
 	}

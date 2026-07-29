@@ -58,8 +58,10 @@ pub async fn get_language_identifier(
 		"en" => "en-US",
 		other => other,
 	};
-	LanguageIdentifier::from_str(lang_code)
-		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap())
+	LanguageIdentifier::from_str(lang_code).unwrap_or_else(|_| {
+		LanguageIdentifier::from_str("en-US")
+			.expect("hardcoded fallback locale 'en-US' is a valid BCP-47 identifier")
+	})
 }
 
 #[cfg(test)]

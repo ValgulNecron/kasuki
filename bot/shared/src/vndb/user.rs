@@ -17,7 +17,7 @@ pub struct VnUser {
 }
 
 use crate::cache::CacheInterface;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 pub async fn get_user(
 	path: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
@@ -26,7 +26,11 @@ pub async fn get_user(
 
 	let response: HashMap<String, VnUser> = serde_json::from_str(&response)?;
 
-	let response = response.into_iter().next().unwrap().1;
+	let response = response
+		.into_iter()
+		.next()
+		.ok_or_else(|| anyhow!("VNDB returned no user for path '{}'", path))?
+		.1;
 
 	Ok(response)
 }
