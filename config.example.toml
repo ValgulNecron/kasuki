@@ -52,6 +52,15 @@ lavalink_hostname = ""
 lavalink_password = ""
 https = false
 
+# Optional. Steam features (the /steam game command and its autocomplete) are disabled
+# when this section is absent.
+#
+# A key is required: Valve removed the key-less ISteamApps/GetAppList endpoint from the
+# public API, so the app-list index can only be built via IStoreService/GetAppList.
+# Get a key at https://steamcommunity.com/dev/apikey
+# [steam]
+# api_key = ""
+
 [image]
 # max_workers = 1        # Defaults to max(cpus/10, 1)
 

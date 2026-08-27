@@ -25,6 +25,15 @@ async fn steam_game_info_command(self_: SteamGameInfoCommand) -> Result<EmbedsCo
 		self_.get_ctx().clone(),
 		self_.get_command_interaction().clone(),
 	);
+
+	// Steam's app list requires a Web API key; without one the lookup index is never
+	// populated, so fail loudly here instead of silently returning "game not found".
+	if cx.bot_data.config.steam.is_none() {
+		return Err(anyhow!(
+			"Steam commands are disabled: no Steam API key configured. Set [steam].api_key in config.toml (get one at https://steamcommunity.com/dev/apikey)."
+		));
+	}
+
 	let data = get_steam_game(
 		cx.bot_data.apps.clone(),
 		cx.command_interaction.clone(),

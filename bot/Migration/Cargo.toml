@@ -8,8 +8,6 @@ rust-version.workspace = true
 tokio.workspace = true
 sea-orm-migration.workspace = true
 shared.workspace = true
-# sea-orm 2.0.0-rc.41 fails to compile against sea-schema 0.18.1; pin until sea-orm moves past rc.41
-sea-schema = { version = "=0.18.0", default-features = false }
 
 [[bin]]
 name = "migration"

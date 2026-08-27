@@ -1,10 +1,15 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use image::codecs::png;
 use image::codecs::png::PngEncoder;
 use image::{ExtendedColorType, GenericImageView, ImageEncoder, RgbaImage};
-use palette::{IntoColor, Lab, Srgb};
+use palette::{FromColor, IntoColor, Lab, Srgb};
 use rayon::prelude::*;
-
+use palette::{
+	cam16::{Cam16, Cam16UcsJab, Parameters, StaticWp, Surround},
+	white_point::D65,
+	 LinSrgb,  Xyz,
+};
+use crate::calculate::make_params;
 use crate::color::{Color, ColorWithTile, find_closest_color_index};
 
 pub fn generate_mosaic(
@@ -16,22 +21,33 @@ pub fn generate_mosaic(
 
 	let mut combined_image = RgbaImage::new(canvas_dim, canvas_dim);
 
+	let params = make_params();
+
 	let indices: Vec<(u32, u32, usize)> = (0..guild_icon.height())
 		.flat_map(|y| (0..guild_icon.width()).map(move |x| (x, y)))
 		// Parallelize the expensive per-pixel color matching across CPU cores
 		.par_bridge()
 		.filter_map(|(x, y)| {
 			let pixel = guild_icon.get_pixel(x, y);
+			let alpha = pixel[3] as f32 / 255.0;
 
-			// Normalize [0,255] to [0.0,1.0] for the palette crate's sRGB type
-			let r = pixel[0] as f32 / 255.0;
-			let g = pixel[1] as f32 / 255.0;
-			let b = pixel[2] as f32 / 255.0;
+			if alpha < 0.1 {
+				return None;
+			}
 
-			// Convert to CIELAB: perceptually uniform, so delta E distances match human perception
-			let rgb_color = Srgb::new(r, g, b);
-			let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
-			let color_target = Color { cielab: lab_color };
+			let srgb: Srgb<u8> = Srgb::new(pixel[0], pixel[1], pixel[2]);
+			let linear: LinSrgb<f32> = srgb.into_linear();
+
+			let linear = LinSrgb::new(
+				linear.red   * alpha,
+				linear.green * alpha,
+				linear.blue  * alpha,
+			);
+
+			let xyz: Xyz<D65, f32> = linear.into_color();
+			let cam16 = Cam16::from_xyz(xyz, params);
+			let cam16_ucs = Cam16UcsJab::from_color(cam16);
+			let color_target = Color { cam16: cam16_ucs };
 
 			find_closest_color_index(average_colors, &color_target).map(|idx| (x, y, idx))
 		})
@@ -63,3 +79,4 @@ pub fn generate_mosaic(
 
 	Ok(image_data)
 }
+

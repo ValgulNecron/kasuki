@@ -16,7 +16,18 @@ pub struct Config {
 	pub api: ApiConfig,
 	pub cache: CacheConfig,
 	pub queue: QueueConfig,
+	pub steam: Option<SteamConfig>,
 	pub sentry_url: Option<String>,
+}
+
+/// Steam Web API access. Optional: when absent, Steam features are disabled.
+///
+/// The app-list endpoint (`IStoreService/GetAppList`) requires a key; Valve removed
+/// the old key-less `ISteamApps/GetAppList` from the public API.
+/// Get one at <https://steamcommunity.com/dev/apikey>.
+#[derive(Debug, Deserialize, Clone)]
+pub struct SteamConfig {
+	pub api_key: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -33,10 +33,15 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	let mut shutdown_receivers = Vec::new();
 
 	let task_intervals_c = task_intervals.clone();
+	let steam_api_key = bot_data
+		.config
+		.steam
+		.as_ref()
+		.map(|steam| steam.api_key.clone());
 	let mut game_shutdown_rx = shutdown_signal.subscribe();
 	let game_task = tokio::spawn(async move {
 		tokio::select! {
-			_ = launch_game_management_thread(apps, task_intervals_c, steam_cache) => {
+			_ = launch_game_management_thread(apps, task_intervals_c, steam_cache, steam_api_key) => {
 				info!("Game management task completed");
 			},
 			_ = game_shutdown_rx.recv() => {

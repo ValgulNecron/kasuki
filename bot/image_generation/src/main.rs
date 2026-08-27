@@ -34,13 +34,9 @@ async fn main() -> Result<()> {
 	let config = Config::new().context("Failed to load config.toml")?;
 
 	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
-		let guard = sentry::init((
-			url,
-			sentry::ClientOptions {
-				release: sentry::release_name!(),
-				..Default::default()
-			},
-		));
+		let mut options = sentry::ClientOptions::default();
+		options.release = sentry::release_name!();
+		let guard = sentry::init((url, options));
 		println!("Sentry initialized successfully");
 		guard
 	});

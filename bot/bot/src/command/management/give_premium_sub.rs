@@ -4,7 +4,9 @@ use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::helper::get_option::command::{get_option_map_string, get_option_map_user};
 use kasuki_macros::slash_command;
-use serenity::all::{CommandInteraction, Context as SerenityContext, EntitlementOwner};
+use serenity::all::{
+	CommandInteraction, Context as SerenityContext, CreateTestEntitlement, EntitlementOwner,
+};
 use shared::fluent_args;
 use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
@@ -53,10 +55,8 @@ async fn give_premium_sub_command(self_: GivePremiumSubCommand) -> Result<Embeds
 		}
 	}
 
-	let _ = cx
-		.ctx
-		.http
-		.create_test_entitlement(sku_id, EntitlementOwner::User(user))
+	let _ = CreateTestEntitlement::new(sku_id, EntitlementOwner::User(user))
+		.execute(&cx.ctx.http)
 		.await?;
 
 	let lang_id = cx.lang_id().await;

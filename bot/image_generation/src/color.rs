@@ -1,57 +1,88 @@
+use anyhow::Context;
 use image::RgbaImage;
 use image::imageops::FilterType;
 use palette::color_difference::ImprovedDeltaE;
-use palette::{IntoColor, Lab, Srgb};
+use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb, Xyz};
+use palette::cam16::{Cam16, Cam16UcsJab};
+use palette::white_point::D65;
+use crate::calculate::make_params;
 
 #[derive(Clone, Debug)]
 pub struct Color {
-	pub cielab: Lab,
+	pub cam16: Cam16UcsJab<f32>,
 }
 
 #[derive(Clone, Debug)]
 pub struct ColorWithTile {
-	pub cielab: Lab,
+	pub cam16: Cam16UcsJab<f32>,
 	pub tile: RgbaImage,
 }
 
-// Assumes "#RRGGBB" format; index starts at 1 to skip the leading '#'
-fn convert_hex_to_rgb(hex: &str) -> (u8, u8, u8) {
-	(
-		u8::from_str_radix(&hex[1..3], 16).unwrap_or_default(),
-		u8::from_str_radix(&hex[3..5], 16).unwrap_or_default(),
-		u8::from_str_radix(&hex[5..7], 16).unwrap_or_default(),
-	)
-}
 
-pub fn create_color_tile(hex: &str, png_bytes: &[u8], tile_size: u32) -> Option<ColorWithTile> {
+pub fn create_color_tile(color_string: &str, png_bytes: &[u8], tile_size: u32) -> Option<ColorWithTile> {
 	let img = image::load_from_memory(png_bytes).ok()?;
 
-	let (r, g, b) = convert_hex_to_rgb(hex);
-	let rgb_color = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-	let lab_color: Lab = rgb_color.into_color();
+	let cam16_ucs = match color_from_string(color_string) {
+		Ok(a) => a,
+		_ => return None,
+	};
 
 	// Triangle (bilinear) filter: fast and sufficient for small tile thumbnails
 	let tile = image::imageops::resize(&img, tile_size, tile_size, FilterType::Triangle);
 
 	Some(ColorWithTile {
-		cielab: lab_color,
+		cam16: cam16_ucs.cam16,
 		tile,
 	})
 }
 
 // Finds the tile whose average color is perceptually closest to the target
+
+
 pub fn find_closest_color_index(colors: &[ColorWithTile], target: &Color) -> Option<usize> {
 	colors
 		.iter()
 		.enumerate()
 		.min_by(|(_, a), (_, b)| {
-			// CIEDE2000 ("improved delta E"): more accurate than Euclidean RGB distance
-			let delta_e_a = a.cielab.improved_delta_e(target.cielab);
-			let delta_e_b = b.cielab.improved_delta_e(target.cielab);
-			// partial_cmp because f32; fallback to Equal handles potential NaN from degenerate colors
-			delta_e_a
-				.partial_cmp(&delta_e_b)
-				.unwrap_or(std::cmp::Ordering::Equal)
+			let da = cam16_delta_e(&a.cam16, &target.cam16);
+			let db = cam16_delta_e(&b.cam16, &target.cam16);
+			da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
 		})
 		.map(|(i, _)| i)
+}
+
+fn cam16_delta_e(a: &Cam16UcsJab<f32>, b: &Cam16UcsJab<f32>) -> f32 {
+	let dj = a.lightness - b.lightness;
+	let da = a.a - b.a;
+	let db = a.b - b.b;
+	(dj * dj + da * da + db * db).sqrt()
+}
+
+pub fn color_from_string(s: &str) -> anyhow::Result<Color> {
+	if let Some(rest) = s.strip_prefix("cam16;") {
+		let parts: Vec<&str> = rest.splitn(3, ';').collect();
+		if parts.len() != 3 {
+			anyhow::bail!("invalid cam16 color string: {s}");
+		}
+		let j: f32 = parts[0].parse().context("invalid J")?;
+		let a: f32 = parts[1].parse().context("invalid a")?;
+		let b: f32 = parts[2].parse().context("invalid b")?;
+		Ok(Color {
+			cam16: Cam16UcsJab { lightness: j, a, b },
+		})
+	} else if let Some(hex) = s.strip_prefix('#') {
+		if hex.len() != 6 {
+			anyhow::bail!("invalid hex color string: {s}");
+		}
+		let r = u8::from_str_radix(&hex[0..2], 16).context("invalid R")?;
+		let g = u8::from_str_radix(&hex[2..4], 16).context("invalid G")?;
+		let b = u8::from_str_radix(&hex[4..6], 16).context("invalid B")?;
+		let params = make_params();
+		let linear: LinSrgb<f32> = Srgb::new(r, g, b).into_linear();
+		let xyz: Xyz<D65, f32> = linear.into_color();
+		let cam16_ucs = Cam16UcsJab::from_color(Cam16::from_xyz(xyz, params));
+		Ok(Color {cam16: cam16_ucs})
+	} else {
+		anyhow::bail!("unknown color format: {s}")
+	}
 }

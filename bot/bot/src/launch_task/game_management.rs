@@ -10,11 +10,18 @@ use tokio::time::interval;
 use tracing::{debug, error, info, warn};
 
 /// Asynchronously launches the game management thread.
-#[tracing::instrument(skip(apps, task_intervals, steam_cache), level = "info")]
+#[tracing::instrument(skip(apps, task_intervals, steam_cache, steam_api_key), level = "info")]
 pub async fn launch_game_management_thread(
 	apps: Arc<ArcSwap<SteamGameIndex>>, task_intervals: TaskIntervalConfig,
-	steam_cache: Arc<CacheInterface>,
+	steam_cache: Arc<CacheInterface>, steam_api_key: Option<String>,
 ) {
+	// Valve removed the key-less app-list endpoint, so without a key there is nothing this
+	// task can do. Return instead of looping on a request that can only ever fail.
+	let Some(steam_api_key) = steam_api_key else {
+		info!("No Steam API key configured ([steam].api_key); Steam features are disabled");
+		return;
+	};
+
 	let mut interval = interval(Duration::from_secs(task_intervals.game_update));
 
 	info!("Launching the steam management thread!");
@@ -35,7 +42,7 @@ pub async fn launch_game_management_thread(
 
 		let current_size = apps.load().len();
 
-		match get_game(apps.clone(), steam_cache.clone())
+		match get_game(apps.clone(), steam_cache.clone(), &steam_api_key)
 			.await
 			.context("Failed to update game data")
 		{
@@ -70,7 +77,7 @@ pub async fn launch_game_management_thread(
 			},
 			Err(e) => {
 				consecutive_failures += 1;
-				error!("Game data update cycle #{} failed: {}", update_count, e);
+				error!("Game data update cycle #{} failed: {:#}", update_count, e);
 				warn!(
 					"This is consecutive failure #{} for game data updates",
 					consecutive_failures
