@@ -1,12 +1,14 @@
 use crate::event_handler::{BotData, Handler};
 use crate::handlers::user_db::add_user_data_to_db;
-use crate::server_image::calculate_user_color::{enqueue_user_color, get_member};
+use crate::server_image::calculate_user_color::{
+	enqueue_user_color, enqueue_user_color_if_avatar_changed, get_member,
+};
 use crate::server_image::generate_server_image::{
 	enqueue_global_server_image, enqueue_local_server_image, server_image_management,
 };
 use sea_orm::ActiveValue::Set;
 use sea_orm::EntityTrait;
-use serenity::all::{Guild, GuildMembersChunkEvent, Member};
+use serenity::all::{Guild, GuildMembersChunkEvent, Member, PartialGuild};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::{GuildData, ServerUserRelation, UserData};
 use std::sync::atomic::Ordering;
@@ -218,6 +220,61 @@ impl Handler {
 					},
 				}
 			}
+		}
+	}
+
+	/// Recalculates a member's colour when their avatar changes.
+	///
+	/// This event also fires for nickname, role and timeout edits, so the actual avatar
+	/// comparison is delegated to `enqueue_user_color_if_avatar_changed`.
+	pub(crate) async fn guild_member_update(&self, ctx: &SerenityContext, new: Option<Member>) {
+		let Some(member) = new else {
+			// Without the new member payload there is no avatar to compare against.
+			return;
+		};
+
+		let bot_data = ctx.data::<BotData>().clone();
+		enqueue_user_color_if_avatar_changed(
+			bot_data.user_blacklist.clone(),
+			&member.user,
+			&bot_data,
+		)
+		.await;
+	}
+
+	/// Regenerates the server images when a guild's icon changes.
+	///
+	/// `GuildUpdate` fires for every guild setting (name, roles, emojis, ...), so the icon is
+	/// diffed against the cached copy first. When the old guild is not cached there is nothing
+	/// to diff, and regenerating on every unrelated update would be far more expensive than
+	/// letting the next join-triggered pass pick the change up, so that case is skipped.
+	pub(crate) async fn guild_update(
+		&self, ctx: &SerenityContext, old_data_if_available: Option<Guild>, new_data: PartialGuild,
+	) {
+		let Some(old) = old_data_if_available else {
+			trace!(guild_id = %new_data.id, "Guild not cached, skipping icon change check");
+			return;
+		};
+
+		if old.icon == new_data.icon {
+			return;
+		}
+
+		info!(guild_id = %new_data.id, "Guild icon changed, regenerating server images");
+
+		let bot_data = ctx.data::<BotData>().clone();
+		let image_config = bot_data.config.image.clone();
+		let db_connection = bot_data.db_connection.clone();
+
+		if let Err(e) =
+			enqueue_local_server_image(ctx, new_data.id, &image_config, db_connection.clone()).await
+		{
+			warn!(guild_id = %new_data.id, error = %e, "Failed to enqueue local server image");
+		}
+		if let Err(e) =
+			enqueue_global_server_image(ctx, new_data.id, &image_config, db_connection).await
+		{
+			warn!(guild_id = %new_data.id, error = %e, "Failed to enqueue global server image");
 		}
 	}
 }

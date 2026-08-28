@@ -344,7 +344,6 @@ pub struct AICfgTranscription {
 pub struct TaskIntervalConfig {
 	pub ping_update: u64,
 	pub before_server_image: u64,
-	pub server_image_update: u64,
 	pub game_update: u64,
 	pub bot_info: u64,
 	pub blacklisted_user_update: u64,
@@ -494,7 +493,6 @@ impl Config {
 		for (name, val) in [
 			("ping_update", intervals.ping_update),
 			("before_server_image", intervals.before_server_image),
-			("server_image_update", intervals.server_image_update),
 			("game_update", intervals.game_update),
 			("bot_info", intervals.bot_info),
 			("blacklisted_user_update", intervals.blacklisted_user_update),

@@ -1,19 +1,15 @@
 use anyhow::{Context, Result};
 use image::codecs::png::PngEncoder;
-use image::{DynamicImage, ExtendedColorType, ImageEncoder, ImageReader, GenericImageView};
-use std::io::Cursor;
-use tracing::debug;
+use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder, ImageReader};
 use palette::{
-	cam16::{
-		BakedParameters, Cam16, Cam16Jmh, Cam16UcsJab,
-		Parameters, StaticWp, Surround,
-	},
+	Clamp, FromColor, IntoColor, LinSrgb, LinSrgba, Srgb, Srgba, Xyz,
+	cam16::{BakedParameters, Cam16, Cam16Jmh, Cam16UcsJab, Parameters, StaticWp, Surround},
 	cast::ComponentsAs,
 	white_point::D65,
-	Clamp, FromColor, IntoColor,
-	LinSrgb, LinSrgba, Srgb, Srgba, Xyz,
 };
 use rayon::prelude::*;
+use std::io::Cursor;
+use tracing::debug;
 
 // Discord CDN URLs carry size/quality as query params; strip and replace to control output
 pub fn change_to_x128_url(url: &str) -> String {
@@ -52,15 +48,15 @@ fn change_to_full_size_url(url: &str) -> String {
 }
 
 const CAT16: [[f32; 3]; 3] = [
-	[ 0.401288,  0.650173, -0.051461],
-	[-0.250268,  1.204414,  0.045854],
-	[-0.002079,  0.048952,  0.953127],
+	[0.401288, 0.650173, -0.051461],
+	[-0.250268, 1.204414, 0.045854],
+	[-0.002079, 0.048952, 0.953127],
 ];
 
 const CAT16_INV: [[f32; 3]; 3] = [
-	[ 1.862068,  -1.011255,  0.149187],
-	[ 0.387526,   0.621447, -0.008973],
-	[-0.015885,  -0.034197,  1.049082],
+	[1.862068, -1.011255, 0.149187],
+	[0.387526, 0.621447, -0.008973],
+	[-0.015885, -0.034197, 1.049082],
 ];
 
 fn mat3_mul_vec3(m: &[[f32; 3]; 3], v: [f32; 3]) -> [f32; 3] {
@@ -118,12 +114,12 @@ fn estimate_white_point(linear_pixels: &[LinSrgba<f32>]) -> [f32; 3] {
 	[sum_x / n / y, 1.0, sum_z / n / y]
 }
 
-fn apply_cat16_to_pixels_par(linear_pixels: &mut [LinSrgba<f32>]) { // &mut [T] not Vec
+fn apply_cat16_to_pixels_par(linear_pixels: &mut [LinSrgba<f32>]) {
+	// &mut [T] not Vec
 	let src_wp = estimate_white_point(linear_pixels);
 
 	// If the estimated white is already D65, skip the whole pass
-	let diff = (src_wp[0] - D65_XYZ[0]).abs()
-		+ (src_wp[2] - D65_XYZ[2]).abs(); // Y is always 1.0
+	let diff = (src_wp[0] - D65_XYZ[0]).abs() + (src_wp[2] - D65_XYZ[2]).abs(); // Y is always 1.0
 	if diff < 1e-4 {
 		return;
 	}
@@ -142,8 +138,7 @@ fn apply_cat16_to_pixels_par(linear_pixels: &mut [LinSrgba<f32>]) { // &mut [T] 
 		let lms = mat3_mul_vec3(&CAT16, [xyz.x, xyz.y, xyz.z]);
 		let lms_a = [lms[0] * scale[0], lms[1] * scale[1], lms[2] * scale[2]];
 		let [x, y, z] = mat3_mul_vec3(&CAT16_INV, lms_a);
-		let mut adapted: LinSrgba<f32> =
-			Xyz::<D65, f32>::new(x, y, z).into_color();
+		let mut adapted: LinSrgba<f32> = Xyz::<D65, f32>::new(x, y, z).into_color();
 		adapted = Clamp::clamp(adapted);
 		adapted.alpha = a;
 		*pixel = adapted;
@@ -168,9 +163,9 @@ fn to_cam16ucs_par(linear_pixels: &[LinSrgba<f32>]) -> Vec<Option<Cam16UcsJab<f3
 			}
 
 			let rgb = LinSrgb::new(
-				pixel.red   * pixel.alpha,
+				pixel.red * pixel.alpha,
 				pixel.green * pixel.alpha,
-				pixel.blue  * pixel.alpha,
+				pixel.blue * pixel.alpha,
 			);
 
 			let xyz: Xyz<D65, f32> = rgb.into_color();
@@ -183,16 +178,14 @@ fn to_cam16ucs_par(linear_pixels: &[LinSrgba<f32>]) -> Vec<Option<Cam16UcsJab<f3
 fn is_chromatic(px: &Cam16UcsJab<f32>) -> bool {
 	let chroma = (px.a * px.a + px.b * px.b).sqrt();
 	let j = px.lightness;
-	chroma > 8.0
-		&& j > 10.0
-		&& j < 95.0
+	chroma > 8.0 && j > 10.0 && j < 95.0
 }
 
 fn center_saliency(row: usize, col: usize, height: usize, width: usize) -> f32 {
 	let dy = (row as f32 - height as f32 * 0.5) / (height as f32 * 0.5);
 	let dx = (col as f32 - width as f32 * 0.5) / (width as f32 * 0.5);
 	let sigma2 = 0.5f32 * 0.5;
-	(-( dx * dx + dy * dy) / (2.0 * sigma2)).exp()
+	(-(dx * dx + dy * dy) / (2.0 * sigma2)).exp()
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -211,11 +204,7 @@ impl Jab {
 	}
 }
 
-fn weighted_kmeans(
-	points: &[(Jab, f32)],
-	k: usize,
-	max_iters: usize,
-) -> Vec<Jab> {
+fn weighted_kmeans(points: &[(Jab, f32)], k: usize, max_iters: usize) -> Vec<Jab> {
 	if points.is_empty() || k == 0 {
 		return vec![];
 	}
@@ -266,9 +255,7 @@ fn weighted_kmeans(
 					.iter()
 					.enumerate()
 					.min_by(|(_, ca), (_, cb)| {
-						jab.dist_sq(ca)
-							.partial_cmp(&jab.dist_sq(cb))
-							.unwrap()
+						jab.dist_sq(ca).partial_cmp(&jab.dist_sq(cb)).unwrap()
 					})
 					.unwrap()
 					.0
@@ -307,18 +294,14 @@ fn weighted_kmeans(
 	for (idx, (_, w)) in assignments.iter().zip(points.iter()) {
 		cluster_weights[*idx] += w;
 	}
-	let mut indexed: Vec<(usize, f32)> =
-		cluster_weights.into_iter().enumerate().collect();
+	let mut indexed: Vec<(usize, f32)> = cluster_weights.into_iter().enumerate().collect();
 	indexed.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
 	indexed.iter().map(|(i, _)| centroids[*i]).collect()
 }
 
 pub fn dominant_cam16_color(
-	cam16_pixels: &[Option<Cam16UcsJab<f32>>],
-	img_width: u32,
-	img_height: u32,
-	k: usize,
+	cam16_pixels: &[Option<Cam16UcsJab<f32>>], img_width: u32, img_height: u32, k: usize,
 ) -> Option<Cam16UcsJab<f32>> {
 	let width = img_width as usize;
 	let height = img_height as usize;
@@ -334,7 +317,14 @@ pub fn dominant_cam16_color(
 			let row = i / width;
 			let col = i % width;
 			let saliency = center_saliency(row, col, height, width);
-			Some((Jab { j: px.lightness, a: px.a, b: px.b }, saliency))
+			Some((
+				Jab {
+					j: px.lightness,
+					a: px.a,
+					b: px.b,
+				},
+				saliency,
+			))
 		})
 		.collect();
 	if points.is_empty() {
@@ -361,7 +351,7 @@ pub fn cam16ucs_to_srgb_u8(dominant: Cam16UcsJab<f32>) -> [u8; 3] {
 	[srgb_u8.red, srgb_u8.green, srgb_u8.blue]
 }
 
-pub fn cam16ucs_to_hex(r:u8, g:u8, b:u8) -> String {
+pub fn cam16ucs_to_hex(r: u8, g: u8, b: u8) -> String {
 	format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
@@ -376,10 +366,8 @@ pub async fn calculate_user_color_from_url(
 		let img = img.to_rgba8();
 		let raw: &[u8] = img.as_raw();
 		let srgba_pixels: &[Srgba<u8>] = raw.components_as();
-		let mut linear_pixels: Vec<LinSrgba<f32>> = srgba_pixels
-			.par_iter()
-			.map(|p| p.into_linear())
-			.collect();
+		let mut linear_pixels: Vec<LinSrgba<f32>> =
+			srgba_pixels.par_iter().map(|p| p.into_linear()).collect();
 
 		apply_cat16_to_pixels_par(&mut linear_pixels);
 
@@ -389,7 +377,7 @@ pub async fn calculate_user_color_from_url(
 			.ok_or_else(|| anyhow::anyhow!("image is fully achromatic"))?;
 		//let [r, g, b] = cam16ucs_to_srgb_u8(dominant);
 		//let hex = cam16ucs_to_hex(r, g, b);
-		let cam16_str = format!("cam16;{};{};{}", dominant.lightness,dominant.a, dominant.b);
+		let cam16_str = format!("cam16;{};{};{}", dominant.lightness, dominant.a, dominant.b);
 
 		debug!("Calculated color: {}", cam16_str);
 

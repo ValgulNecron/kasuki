@@ -1,11 +1,11 @@
+use crate::calculate::make_params;
 use anyhow::Context;
 use image::RgbaImage;
 use image::imageops::FilterType;
-use palette::color_difference::ImprovedDeltaE;
-use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb, Xyz};
 use palette::cam16::{Cam16, Cam16UcsJab};
+use palette::color_difference::ImprovedDeltaE;
 use palette::white_point::D65;
-use crate::calculate::make_params;
+use palette::{FromColor, IntoColor, Lab, LinSrgb, Srgb, Xyz};
 
 #[derive(Clone, Debug)]
 pub struct Color {
@@ -18,8 +18,9 @@ pub struct ColorWithTile {
 	pub tile: RgbaImage,
 }
 
-
-pub fn create_color_tile(color_string: &str, png_bytes: &[u8], tile_size: u32) -> Option<ColorWithTile> {
+pub fn create_color_tile(
+	color_string: &str, png_bytes: &[u8], tile_size: u32,
+) -> Option<ColorWithTile> {
 	let img = image::load_from_memory(png_bytes).ok()?;
 
 	let cam16_ucs = match color_from_string(color_string) {
@@ -37,7 +38,6 @@ pub fn create_color_tile(color_string: &str, png_bytes: &[u8], tile_size: u32) -
 }
 
 // Finds the tile whose average color is perceptually closest to the target
-
 
 pub fn find_closest_color_index(colors: &[ColorWithTile], target: &Color) -> Option<usize> {
 	colors
@@ -81,7 +81,7 @@ pub fn color_from_string(s: &str) -> anyhow::Result<Color> {
 		let linear: LinSrgb<f32> = Srgb::new(r, g, b).into_linear();
 		let xyz: Xyz<D65, f32> = linear.into_color();
 		let cam16_ucs = Cam16UcsJab::from_color(Cam16::from_xyz(xyz, params));
-		Ok(Color {cam16: cam16_ucs})
+		Ok(Color { cam16: cam16_ucs })
 	} else {
 		anyhow::bail!("unknown color format: {s}")
 	}

@@ -1,11 +1,13 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use sea_orm::EntityTrait;
 use serenity::all::{Context as SerenityContext, GuildId, User, UserId};
 use serenity::nonmax::NonMaxU16;
+use shared::database::prelude::UserColor;
 use shared::queue::tasks::ImageTask;
 use tokio::sync::RwLock;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::event_handler::BotData;
 
@@ -95,4 +97,38 @@ pub async fn enqueue_user_color(
 			user.id
 		);
 	}
+}
+
+/// Enqueues a colour recalculation only when the user's avatar differs from the one the
+/// stored colour was derived from.
+///
+/// `GuildMemberUpdate` fires for nickname, role and timeout changes too, so recomputing
+/// unconditionally would queue an image download per member edit. The `user_color` row
+/// already records the `profile_picture_url` it was calculated from, which makes it the
+/// authoritative staleness check -- more reliable than diffing against the gateway's
+/// `old_if_available`, which is empty whenever the member is not cached.
+pub async fn enqueue_user_color_if_avatar_changed(
+	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: &User, bot_data: &BotData,
+) {
+	let current_avatar = user.face();
+
+	match UserColor::find_by_id(user.id.to_string())
+		.one(&*bot_data.db_connection)
+		.await
+	{
+		Ok(Some(existing)) if existing.profile_picture_url == current_avatar => {
+			debug!(user_id = %user.id, "Avatar unchanged, skipping colour recalculation");
+			return;
+		},
+		// No stored colour yet, or the avatar moved on: fall through and recalculate.
+		Ok(_) => {},
+		// Never drop a genuine avatar change because the lookup failed; recomputing an
+		// already-current colour is wasteful but harmless.
+		Err(e) => {
+			warn!(user_id = %user.id, error = %e, "Failed to read stored user colour, recalculating anyway");
+		},
+	}
+
+	debug!(user_id = %user.id, "Avatar changed, queueing colour recalculation");
+	enqueue_user_color(user_blacklist_server_image, user, bot_data).await;
 }

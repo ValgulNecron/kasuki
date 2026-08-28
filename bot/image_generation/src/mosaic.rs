@@ -1,16 +1,16 @@
+use crate::calculate::make_params;
+use crate::color::{Color, ColorWithTile, find_closest_color_index};
 use anyhow::{Context, Result};
 use image::codecs::png;
 use image::codecs::png::PngEncoder;
 use image::{ExtendedColorType, GenericImageView, ImageEncoder, RgbaImage};
 use palette::{FromColor, IntoColor, Lab, Srgb};
-use rayon::prelude::*;
 use palette::{
+	LinSrgb, Xyz,
 	cam16::{Cam16, Cam16UcsJab, Parameters, StaticWp, Surround},
 	white_point::D65,
-	 LinSrgb,  Xyz,
 };
-use crate::calculate::make_params;
-use crate::color::{Color, ColorWithTile, find_closest_color_index};
+use rayon::prelude::*;
 
 pub fn generate_mosaic(
 	guild_icon: &image::DynamicImage, average_colors: &[ColorWithTile],
@@ -79,4 +79,3 @@ pub fn generate_mosaic(
 
 	Ok(image_data)
 }
-

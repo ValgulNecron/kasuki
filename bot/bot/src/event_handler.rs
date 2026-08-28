@@ -16,6 +16,16 @@ impl EventHandler for Handler {
 			FullEvent::GuildMemberAddition { new_member } => {
 				self.guild_member_addition(ctx, new_member.clone()).await;
 			},
+			FullEvent::GuildMemberUpdate { new, .. } => {
+				self.guild_member_update(ctx, new.clone()).await;
+			},
+			FullEvent::GuildUpdate {
+				old_data_if_available,
+				new_data,
+			} => {
+				self.guild_update(ctx, old_data_if_available.clone(), new_data.clone())
+					.await;
+			},
 			FullEvent::GuildMembersChunk { chunk } => {
 				self.guild_members_chunk(ctx, chunk.clone()).await;
 			},

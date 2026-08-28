@@ -116,7 +116,6 @@ ai_transcription_model = ""
 [task_intervals]
 ping_update = 600
 before_server_image = 1800
-server_image_update = 21600
 game_update = 86400
 bot_info = 1800
 blacklisted_user_update = 3600

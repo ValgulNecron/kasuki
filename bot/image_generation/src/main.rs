@@ -28,6 +28,18 @@ use shared::database::server_image::{ActiveModel, Column};
 const TILE_SIZE: u32 = 32;
 const DB_PAGE_SIZE: u64 = 500;
 const TASK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(600);
+/// How long BLPOP parks server-side waiting for a queued task.
+const QUEUE_BLOCK_TIMEOUT_SECS: f64 = 30.0;
+/// redis-rs applies a 500 ms client-side response timeout by default, which would abort the
+/// BLPOP above long before the server ever replies -- turning the blocking wait into a hot
+/// reconnect loop. Allow comfortably past the block window, but keep an upper bound so a
+/// wedged server still can't hang the worker forever.
+const REDIS_RESPONSE_TIMEOUT: std::time::Duration =
+	std::time::Duration::from_secs(QUEUE_BLOCK_TIMEOUT_SECS as u64 * 2);
+
+fn redis_connection_config() -> redis::AsyncConnectionConfig {
+	redis::AsyncConnectionConfig::new().set_response_timeout(Some(REDIS_RESPONSE_TIMEOUT))
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -79,7 +91,7 @@ async fn main() -> Result<()> {
 	let client =
 		redis::Client::open(redis_url.as_str()).context("Failed to create Redis client")?;
 	let mut connection = client
-		.get_multiplexed_async_connection()
+		.get_multiplexed_async_connection_with_config(&redis_connection_config())
 		.await
 		.context("Failed to connect to Redis")?;
 
@@ -108,7 +120,10 @@ async fn main() -> Result<()> {
 			Err(e) => {
 				warn!("Redis error while waiting for task: {:#}", e);
 				drop(permit);
-				match client.get_multiplexed_async_connection().await {
+				match client
+					.get_multiplexed_async_connection_with_config(&redis_connection_config())
+					.await
+				{
 					Ok(new_conn) => {
 						connection = new_conn;
 						info!(
@@ -168,7 +183,10 @@ async fn get_priority_task(
 	}
 
 	let result: Option<(String, String)> = connection
-		.blpop(&[USER_COLOR_QUEUE_KEY, SERVER_IMAGE_QUEUE_KEY], 30.0)
+		.blpop(
+			&[USER_COLOR_QUEUE_KEY, SERVER_IMAGE_QUEUE_KEY],
+			QUEUE_BLOCK_TIMEOUT_SECS,
+		)
 		.await?;
 	Ok(result.map(|(_key, payload)| payload))
 }
