@@ -1,19 +1,19 @@
-use crate::calculate::cam16ucs_to_lab;
+use crate::calculate::make_params;
 use anyhow::Context;
 use image::RgbaImage;
 use image::imageops::FilterType;
-use palette::cam16::Cam16UcsJab;
-use palette::color_difference::ImprovedDeltaE;
-use palette::{IntoColor, Lab, Srgb};
+use palette::cam16::{Cam16, Cam16UcsJab};
+use palette::white_point::D65;
+use palette::{FromColor, IntoColor, LinSrgb, Srgb, Xyz};
 
 #[derive(Clone, Debug)]
 pub struct Color {
-	pub cielab: Lab,
+	pub cam16: Cam16UcsJab<f32>,
 }
 
 #[derive(Clone, Debug)]
 pub struct ColorWithTile {
-	pub cielab: Lab,
+	pub cam16: Cam16UcsJab<f32>,
 	pub tile: RgbaImage,
 }
 
@@ -22,7 +22,7 @@ pub fn create_color_tile(
 ) -> Option<ColorWithTile> {
 	let img = image::load_from_memory(png_bytes).ok()?;
 
-	let color = match color_from_string(color_string) {
+	let cam16_ucs = match color_from_string(color_string) {
 		Ok(a) => a,
 		_ => return None,
 	};
@@ -31,30 +31,40 @@ pub fn create_color_tile(
 	let tile = image::imageops::resize(&img, tile_size, tile_size, FilterType::Triangle);
 
 	Some(ColorWithTile {
-		cielab: color.cielab,
+		cam16: cam16_ucs.cam16,
 		tile,
 	})
 }
 
 // Finds the tile whose average color is perceptually closest to the target
+
 pub fn find_closest_color_index(colors: &[ColorWithTile], target: &Color) -> Option<usize> {
 	colors
 		.iter()
 		.enumerate()
 		.min_by(|(_, a), (_, b)| {
-			// CIEDE2000 ("improved delta E"): more accurate than Euclidean RGB distance
-			let delta_e_a = a.cielab.improved_delta_e(target.cielab);
-			let delta_e_b = b.cielab.improved_delta_e(target.cielab);
+			let da = cam16_delta_e_weighted(&a.cam16, &target.cam16);
+			let db = cam16_delta_e_weighted(&b.cam16, &target.cam16);
 			// partial_cmp because f32; fallback to Equal handles potential NaN from degenerate colors
-			delta_e_a
-				.partial_cmp(&delta_e_b)
-				.unwrap_or(std::cmp::Ordering::Equal)
+			da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
 		})
 		.map(|(i, _)| i)
 }
 
-// Stored user colors come in two flavours: the CAM16-UCS triple written by the mean-color pass
-// ("cam16;J;a;b") and legacy "#RRGGBB" hex. Both are normalized to CIELAB, the space matching runs in.
+// Euclidean distance in CAM16-UCS, with lightness weighted above chromaticity: at mosaic scale
+// the J channel is what carries the structure of the source icon (edges, facial features), so
+// a tile that matches in hue but not in lightness reads as a hole in the image.
+pub fn cam16_delta_e_weighted(a: &Cam16UcsJab<f32>, b: &Cam16UcsJab<f32>) -> f32 {
+	let dj = a.lightness - b.lightness;
+	let da = a.a - b.a;
+	let db = a.b - b.b;
+
+	const W_J: f32 = 1.4;
+	const W_C: f32 = 1.0;
+
+	((W_J * dj * dj) + (W_C * (da * da + db * db))).sqrt()
+}
+
 pub fn color_from_string(s: &str) -> anyhow::Result<Color> {
 	if let Some(rest) = s.strip_prefix("cam16;") {
 		let parts: Vec<&str> = rest.splitn(3, ';').collect();
@@ -64,9 +74,8 @@ pub fn color_from_string(s: &str) -> anyhow::Result<Color> {
 		let j: f32 = parts[0].parse().context("invalid J")?;
 		let a: f32 = parts[1].parse().context("invalid a")?;
 		let b: f32 = parts[2].parse().context("invalid b")?;
-		let cam16 = Cam16UcsJab { lightness: j, a, b };
 		Ok(Color {
-			cielab: cam16ucs_to_lab(cam16),
+			cam16: Cam16UcsJab { lightness: j, a, b },
 		})
 	} else if let Some(hex) = s.strip_prefix('#') {
 		if hex.len() != 6 {
@@ -75,10 +84,11 @@ pub fn color_from_string(s: &str) -> anyhow::Result<Color> {
 		let r = u8::from_str_radix(&hex[0..2], 16).context("invalid R")?;
 		let g = u8::from_str_radix(&hex[2..4], 16).context("invalid G")?;
 		let b = u8::from_str_radix(&hex[4..6], 16).context("invalid B")?;
-		let srgb: Srgb<f32> = Srgb::new(r, g, b).into_format();
-		Ok(Color {
-			cielab: srgb.into_color(),
-		})
+		let params = make_params();
+		let linear: LinSrgb<f32> = Srgb::new(r, g, b).into_linear();
+		let xyz: Xyz<D65, f32> = linear.into_color();
+		let cam16_ucs = Cam16UcsJab::from_color(Cam16::from_xyz(xyz, params));
+		Ok(Color { cam16: cam16_ucs })
 	} else {
 		anyhow::bail!("unknown color format: {s}")
 	}
