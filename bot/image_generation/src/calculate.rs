@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use image::codecs::png::PngEncoder;
 use image::{DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder, ImageReader};
 use palette::{
-	Clamp, FromColor, IntoColor, LinSrgb, LinSrgba, Srgb, Srgba, Xyz,
+	Clamp, FromColor, IntoColor, Lab, LinSrgb, LinSrgba, Srgb, Srgba, Xyz,
 	cam16::{BakedParameters, Cam16, Cam16Jmh, Cam16UcsJab, Parameters, StaticWp, Surround},
 	cast::ComponentsAs,
 	white_point::D65,
@@ -339,11 +339,23 @@ pub fn dominant_cam16_color(
 	})
 }
 
-pub fn cam16ucs_to_srgb_u8(dominant: Cam16UcsJab<f32>) -> [u8; 3] {
+// CAM16-UCS is only used to *pick* colors; every downstream consumer (delta E matching,
+// hex rendering) works from XYZ, so funnel both through one inverse transform.
+pub fn cam16ucs_to_xyz(color: Cam16UcsJab<f32>) -> Xyz<D65, f32> {
 	let params = make_params();
-	let jmh = Cam16Jmh::from_color(dominant);
+	let jmh = Cam16Jmh::from_color(color);
 	let cam16: Cam16<f32> = jmh.into_full(params);
-	let xyz: Xyz<D65, f32> = cam16.into_xyz(params);
+	cam16.into_xyz(params)
+}
+
+// Color *matching* is done with CIEDE2000 in CIELAB, so the CAM16-derived mean color has to
+// come back out to Lab before it can be compared against anything.
+pub fn cam16ucs_to_lab(color: Cam16UcsJab<f32>) -> Lab<D65, f32> {
+	Lab::from_color(cam16ucs_to_xyz(color))
+}
+
+pub fn cam16ucs_to_srgb_u8(dominant: Cam16UcsJab<f32>) -> [u8; 3] {
+	let xyz = cam16ucs_to_xyz(dominant);
 	let linear: LinSrgb<f32> = xyz.into_color();
 	let linear = Clamp::clamp(linear);
 	let srgb_f32: Srgb<f32> = Srgb::from_linear(linear);
