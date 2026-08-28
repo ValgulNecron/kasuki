@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake clang \
     && rm -rf /var/lib/apt/lists/*
 
-RUN rustup default nightly && rustup update
-
 WORKDIR /kasuki
 
 # Copy workspace configuration
@@ -38,11 +36,8 @@ RUN mkdir -p bot/src api-server/src worker/src Migration/src shared/src kasuki-m
 # Build dependencies
 RUN cargo build --release
 
-# Remove dummy files and kasuki-macros build artifacts to force rebuild
-RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src image_generation/src \
-    && rm -rf target/release/.fingerprint/kasuki-macros-* \
-              target/release/deps/libkasuki_macros-* \
-              target/release/deps/kasuki_macros-*
+# Remove dummy files
+RUN rm -rf bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src image_generation/src
 
 # Copy real source code and assets
 COPY shared/schemas ./shared/schemas
@@ -61,6 +56,16 @@ COPY image_generation/src ./image_generation/src
 
 COPY Migration/src ./Migration/src
 COPY kasuki-macros/src ./kasuki-macros/src
+
+# COPY preserves mtimes from the build context, so the real sources are typically OLDER
+# than the stub sources this image compiled a moment ago. Cargo's freshness check is
+# mtime-based, so without this it treats the stub build as up to date and silently skips
+# rebuilding the workspace crates -- most damagingly kasuki-macros, leaving every
+# `use kasuki_macros::slash_command;` unresolved. Touching the real sources forces the
+# rebuild regardless of where cargo happens to keep its artifacts.
+RUN find bot/src api-server/src worker/src Migration/src shared/src kasuki-macros/src image_generation/src \
+         -name '*.rs' -exec touch {} + \
+    && touch bot/build.rs shared/build.rs
 
 # Build everything
 RUN cargo build --release
