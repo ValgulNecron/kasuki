@@ -24,16 +24,20 @@ pub fn generate_mosaic(
 		.par_bridge()
 		.filter_map(|(x, y)| {
 			let pixel = guild_icon.get_pixel(x, y);
-			let alpha = pixel[3] as f32 / 255.0;
 
-			// Icon pixels below the alpha cutoff stay empty in the mosaic
-			if alpha < 0.1 {
-				return None;
-			}
+			// Composite over white, matching how tile descriptors resolve alpha: the mosaic
+			// is an opaque image on a white ground, so transparent icon regions become white
+			// targets instead of holes, and semi-transparent edges match their displayed color
+			let alpha = pixel[3] as u32;
+			let inverse = 255 - alpha;
+			let composite = |c: u8| ((c as u32 * alpha + 255 * inverse) / 255) as u8;
 
-			// Straight (non-premultiplied) color: premultiplying toward black darkened every
-			// semi-transparent edge pixel, ringing shapes with dark rim tiles
-			let srgb: Srgb<f32> = Srgb::new(pixel[0], pixel[1], pixel[2]).into_format();
+			let srgb: Srgb<f32> = Srgb::new(
+				composite(pixel[0]),
+				composite(pixel[1]),
+				composite(pixel[2]),
+			)
+			.into_format();
 			let target = srgb_to_cam16ucs(srgb, params);
 
 			find_closest_color_index(average_colors, &target).map(|idx| (x, y, idx))

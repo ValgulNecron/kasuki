@@ -1,4 +1,4 @@
-use crate::calculate::{COLOR_STRING_PREFIX, make_params, srgb_to_cam16ucs};
+use crate::calculate::{COLOR_STRING_PREFIX, composite_over_white, make_params, srgb_to_cam16ucs};
 use anyhow::Context;
 use image::RgbaImage;
 use image::imageops::FilterType;
@@ -21,18 +21,24 @@ pub fn create_color_tile(
 	let cam16 = color_from_string(color_string).ok()?;
 	let img = image::load_from_memory(png_bytes).ok()?;
 
+	// Flatten against white before resizing so the pasted tile is opaque and displays
+	// exactly the color the descriptor was computed from (the descriptor composites over
+	// white too); resizing straight-alpha RGBA would also bleed hidden colors at edges
+	let flat = composite_over_white(&img.to_rgba8());
+
 	// Triangle (bilinear) filter: fast and sufficient for small tile thumbnails
-	let tile = image::imageops::resize(&img, tile_size, tile_size, FilterType::Triangle);
+	let tile = image::imageops::resize(&flat, tile_size, tile_size, FilterType::Triangle);
 
 	Some(ColorWithTile { cam16, tile })
 }
 
-// "cam16v2;J;a;b" is the precomputed display-referenced mean in CAM16-UCS. Legacy formats
-// stay parseable so a half-migrated palette still renders: "cam16;J;a;b" (previous algorithm)
-// and "#RRGGBB" (original gamma mean, converted on the fly).
+// "cam16v3;J;a;b" is the precomputed display-referenced mean in CAM16-UCS. Legacy formats
+// stay parseable so a half-migrated palette still renders: "cam16v2;J;a;b" and "cam16;J;a;b"
+// (previous algorithms) and "#RRGGBB" (original gamma mean, converted on the fly).
 pub fn color_from_string(s: &str) -> anyhow::Result<Cam16UcsJab<f32>> {
 	if let Some(rest) = s
 		.strip_prefix(COLOR_STRING_PREFIX)
+		.or_else(|| s.strip_prefix("cam16v2;"))
 		.or_else(|| s.strip_prefix("cam16;"))
 	{
 		let parts: Vec<&str> = rest.splitn(3, ';').collect();
@@ -95,16 +101,19 @@ mod tests {
 
 	#[test]
 	fn parses_current_version_string() {
-		let c = color_from_string("cam16v2;61.5;-2.25;4.0").unwrap();
+		let c = color_from_string("cam16v3;61.5;-2.25;4.0").unwrap();
 		assert_eq!(c.lightness, 61.5);
 		assert_eq!(c.a, -2.25);
 		assert_eq!(c.b, 4.0);
 	}
 
 	#[test]
-	fn parses_legacy_cam16_string() {
-		let c = color_from_string("cam16;40;1;-3").unwrap();
-		assert_eq!(c.lightness, 40.0);
+	fn parses_legacy_cam16_strings() {
+		assert_eq!(
+			color_from_string("cam16v2;55;2;-1").unwrap().lightness,
+			55.0
+		);
+		assert_eq!(color_from_string("cam16;40;1;-3").unwrap().lightness, 40.0);
 	}
 
 	#[test]

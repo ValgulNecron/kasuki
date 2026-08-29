@@ -49,7 +49,7 @@ fn change_to_full_size_url(url: &str) -> String {
 /// the freshness window in handle_calculate_user_color skips records younger than 7 days, so
 /// without a version bump a full recalculation right after a deploy silently no-ops and the
 /// mosaic keeps matching on values from the previous algorithm.
-pub const COLOR_STRING_PREFIX: &str = "cam16v2;";
+pub const COLOR_STRING_PREFIX: &str = "cam16v3;";
 
 // NOTE: avatars are synthetic sRGB graphics, not photographs of a scene under some unknown
 // illuminant, so no chromatic adaptation is applied. Estimating a white point from the
@@ -65,37 +65,62 @@ pub fn make_params() -> BakedParameters<StaticWp<D65>, f32> {
 
 // The mosaic needs the color an image *displays as* once it is shrunk down to tile size.
 // Every resampler in the display chain (Discord's thumbnailer, browsers, image::imageops)
-// averages gamma-encoded sRGB values, so the display-accurate mean is the alpha-weighted
-// average of the raw channel values -- exactly what a downscale to 1x1 produces. Averaging
-// per-pixel CAM16-UCS coordinates instead ("average of appearances", the previous approach)
+// averages gamma-encoded sRGB values, so the display-accurate mean is the plain average of
+// the raw channel values -- exactly what a downscale to 1x1 produces. Averaging per-pixel
+// CAM16-UCS coordinates instead ("average of appearances", the previous approach)
 // underestimates lightness and chroma by an amount that grows with the tile's internal
 // contrast, so every tile carried a different error and nearest-neighbor ranking on large
 // palettes was effectively scrambled. The perceptual space is still used for matching: the
 // single mean color is converted to CAM16-UCS afterwards, in srgb_to_cam16ucs.
+//
+// Alpha is resolved by compositing over WHITE, everywhere (this mean, the pasted tile, the
+// guild-icon target): the mosaic is defined as an opaque image on a white ground. Many
+// avatars are cutout PNGs with real transparency; weighting them by alpha instead described
+// them by their visible subject's color, while the placed tile actually displays mostly
+// white -- which is why white regions of the source rendered as gray.
 pub fn mean_displayed_srgb(img: &RgbaImage) -> Option<Srgb<f32>> {
-	let (sum_r, sum_g, sum_b, total_weight) =
-		img.pixels()
-			.fold((0.0f64, 0.0f64, 0.0f64, 0.0f64), |(r, g, b, w), px| {
-				let alpha = px[3] as f64 / 255.0;
-				(
-					r + px[0] as f64 * alpha,
-					g + px[1] as f64 * alpha,
-					b + px[2] as f64 * alpha,
-					w + alpha,
-				)
-			});
-
-	// Fully transparent image: nothing to average
-	if total_weight < 1e-4 {
+	let num_pixels = img.width() as f64 * img.height() as f64;
+	if num_pixels == 0.0 {
 		return None;
 	}
 
-	let scale = total_weight * 255.0;
+	let (sum_r, sum_g, sum_b) = img
+		.pixels()
+		.fold((0.0f64, 0.0f64, 0.0f64), |(r, g, b), px| {
+			let alpha = px[3] as f64 / 255.0;
+			let white = 255.0 * (1.0 - alpha);
+			(
+				r + px[0] as f64 * alpha + white,
+				g + px[1] as f64 * alpha + white,
+				b + px[2] as f64 * alpha + white,
+			)
+		});
+
+	let scale = num_pixels * 255.0;
 	Some(Srgb::new(
 		(sum_r / scale) as f32,
 		(sum_g / scale) as f32,
 		(sum_b / scale) as f32,
 	))
+}
+
+// Flattens transparency against a white ground, in gamma space -- the same way a browser or
+// Discord shows the PNG on a white page. Done before any resize: resizing straight-alpha
+// RGBA first would bleed the hidden colors of transparent pixels into the edges.
+pub fn composite_over_white(img: &RgbaImage) -> RgbaImage {
+	let mut out = img.clone();
+	for px in out.pixels_mut() {
+		let alpha = px[3] as u32;
+		if alpha == 255 {
+			continue;
+		}
+		let inverse = 255 - alpha;
+		px[0] = ((px[0] as u32 * alpha + 255 * inverse) / 255) as u8;
+		px[1] = ((px[1] as u32 * alpha + 255 * inverse) / 255) as u8;
+		px[2] = ((px[2] as u32 * alpha + 255 * inverse) / 255) as u8;
+		px[3] = 255;
+	}
+	out
 }
 
 pub fn srgb_to_cam16ucs(
@@ -122,8 +147,7 @@ pub async fn calculate_user_color_from_url(
 		// stored in the DB; mosaic builds only parse the stored string. The mean commutes
 		// with gamma-space downscaling, so the thumbnail gives the same value as the full
 		// image at a fraction of the pixels.
-		let mean = mean_displayed_srgb(&thumb)
-			.ok_or_else(|| anyhow::anyhow!("image is fully transparent"))?;
+		let mean = mean_displayed_srgb(&thumb).ok_or_else(|| anyhow::anyhow!("empty image"))?;
 		let ucs = srgb_to_cam16ucs(mean, make_params());
 		let cam16_str = format!(
 			"{}{};{};{}",
@@ -197,20 +221,36 @@ mod tests {
 	}
 
 	#[test]
-	fn transparent_pixels_do_not_contribute() {
-		// 10 opaque dark pixels, 30 fully transparent white ones: the white must not leak in
+	fn transparent_pixels_read_as_white() {
+		// A cutout avatar: 10 opaque dark pixels, 30 fully transparent ones (whatever their
+		// hidden RGB is). Displayed on a white ground it reads mostly white, and the
+		// descriptor must agree: (10*dark + 30*white) / 40.
 		let mut px = vec![(10u8, 20, 30, 255); 10];
-		px.extend(vec![(255u8, 255, 255, 0); 30]);
+		px.extend(vec![(0u8, 0, 0, 0); 30]);
 		let mean = mean_displayed_srgb(&image_of(&px, 8)).unwrap();
 
-		assert!((mean.red - 10.0 / 255.0).abs() < 1e-4, "{mean:?}");
-		assert!((mean.green - 20.0 / 255.0).abs() < 1e-4);
-		assert!((mean.blue - 30.0 / 255.0).abs() < 1e-4);
+		let expected_r = (10.0 * 10.0 + 30.0 * 255.0) / 40.0 / 255.0;
+		assert!((mean.red - expected_r).abs() < 1e-4, "{mean:?}");
+		assert!(mean.green > 0.75 && mean.blue > 0.75, "{mean:?}");
 	}
 
 	#[test]
-	fn fully_transparent_returns_none() {
+	fn fully_transparent_is_white() {
 		let img = image_of(&vec![(255u8, 0, 0, 0); 16], 4);
-		assert!(mean_displayed_srgb(&img).is_none());
+		let mean = mean_displayed_srgb(&img).unwrap();
+		assert!((mean.red - 1.0).abs() < 1e-4, "{mean:?}");
+		assert!((mean.green - 1.0).abs() < 1e-4);
+		assert!((mean.blue - 1.0).abs() < 1e-4);
+	}
+
+	#[test]
+	fn composite_flattens_alpha_against_white() {
+		let img = image_of(&[(0u8, 0, 0, 128), (100, 200, 50, 255), (9, 9, 9, 0)], 3);
+		let flat = composite_over_white(&img);
+
+		// 50%-alpha black blends to mid-gray; opaque stays; fully transparent becomes white
+		assert_eq!(flat.get_pixel(0, 0).0, [127, 127, 127, 255]);
+		assert_eq!(flat.get_pixel(1, 0).0, [100, 200, 50, 255]);
+		assert_eq!(flat.get_pixel(2, 0).0, [255, 255, 255, 255]);
 	}
 }
