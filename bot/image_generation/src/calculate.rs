@@ -1,13 +1,11 @@
 use anyhow::{Context, Result};
 use image::codecs::png::PngEncoder;
-use image::{DynamicImage, ExtendedColorType, ImageEncoder, ImageReader};
+use image::{DynamicImage, ExtendedColorType, ImageEncoder, ImageReader, RgbaImage};
 use palette::{
-	Clamp, FromColor, IntoColor, LinSrgb, LinSrgba, Srgb, Srgba, Xyz,
-	cam16::{BakedParameters, Cam16, Cam16Jmh, Cam16UcsJab, Parameters, StaticWp, Surround},
-	cast::ComponentsAs,
+	FromColor, IntoColor, LinSrgb, Srgb, Xyz,
+	cam16::{BakedParameters, Cam16, Cam16UcsJab, Parameters, StaticWp, Surround},
 	white_point::D65,
 };
-use rayon::prelude::*;
 use std::io::Cursor;
 use tracing::debug;
 
@@ -59,68 +57,47 @@ pub fn make_params() -> BakedParameters<StaticWp<D65>, f32> {
 	p.bake()
 }
 
-// The mosaic needs the *optical spatial average* of a tile -- what the eye integrates when the
-// tile is shrunk down -- not the most prominent distinct object in it. A plain alpha-weighted
-// mean in CAM16-UCS gives exactly that. The previous k-means pass filtered to "chromatic"
-// pixels first (chroma > 8, 10 < J < 95), which threw away skin tones, pale highlights and
-// near-white backgrounds; a tile that was 95% pale skin with a few dark green pixels came back
-// dark green. Nothing is discarded here except fully transparent pixels.
-pub fn calculate_tile_mean_cam16(linear_pixels: &[LinSrgba<f32>]) -> Option<Cam16UcsJab<f32>> {
-	let params = make_params();
-
-	// rayon fold/reduce keeps the per-pixel CAM16 forward transform parallel: a full-size
-	// avatar is 4096x4096, so this runs over ~16M pixels.
-	let (sum_j, sum_a, sum_b, total_weight) = linear_pixels
-		.par_iter()
-		.filter(|pixel| pixel.alpha >= 0.05)
-		.map(|pixel| {
-			let rgb = LinSrgb::new(
-				pixel.red * pixel.alpha,
-				pixel.green * pixel.alpha,
-				pixel.blue * pixel.alpha,
-			);
-
-			let xyz: Xyz<D65, f32> = rgb.into_color();
-			let ucs = Cam16UcsJab::from_color(Cam16::from_xyz(xyz, params));
-
-			(
-				ucs.lightness * pixel.alpha,
-				ucs.a * pixel.alpha,
-				ucs.b * pixel.alpha,
-				pixel.alpha,
-			)
-		})
-		.reduce(
-			|| (0.0f32, 0.0f32, 0.0f32, 0.0f32),
-			|a, b| (a.0 + b.0, a.1 + b.1, a.2 + b.2, a.3 + b.3),
-		);
+// The mosaic needs the color an image *displays as* once it is shrunk down to tile size.
+// Every resampler in the display chain (Discord's thumbnailer, browsers, image::imageops)
+// averages gamma-encoded sRGB values, so the display-accurate mean is the alpha-weighted
+// average of the raw channel values -- exactly what a downscale to 1x1 produces. Averaging
+// per-pixel CAM16-UCS coordinates instead ("average of appearances", the previous approach)
+// underestimates lightness and chroma by an amount that grows with the tile's internal
+// contrast, so every tile carried a different error and nearest-neighbor ranking on large
+// palettes was effectively scrambled. The perceptual space is still used for matching: the
+// single mean color is converted to CAM16-UCS afterwards, in srgb_to_cam16ucs.
+pub fn mean_displayed_srgb(img: &RgbaImage) -> Option<Srgb<f32>> {
+	let (sum_r, sum_g, sum_b, total_weight) =
+		img.pixels()
+			.fold((0.0f64, 0.0f64, 0.0f64, 0.0f64), |(r, g, b, w), px| {
+				let alpha = px[3] as f64 / 255.0;
+				(
+					r + px[0] as f64 * alpha,
+					g + px[1] as f64 * alpha,
+					b + px[2] as f64 * alpha,
+					w + alpha,
+				)
+			});
 
 	// Fully transparent image: nothing to average
 	if total_weight < 1e-4 {
 		return None;
 	}
 
-	Some(Cam16UcsJab {
-		lightness: sum_j / total_weight,
-		a: sum_a / total_weight,
-		b: sum_b / total_weight,
-	})
+	let scale = total_weight * 255.0;
+	Some(Srgb::new(
+		(sum_r / scale) as f32,
+		(sum_g / scale) as f32,
+		(sum_b / scale) as f32,
+	))
 }
 
-pub fn cam16ucs_to_srgb_u8(dominant: Cam16UcsJab<f32>) -> [u8; 3] {
-	let params = make_params();
-	let jmh = Cam16Jmh::from_color(dominant);
-	let cam16: Cam16<f32> = jmh.into_full(params);
-	let xyz: Xyz<D65, f32> = cam16.into_xyz(params);
-	let linear: LinSrgb<f32> = xyz.into_color();
-	let linear = Clamp::clamp(linear);
-	let srgb_f32: Srgb<f32> = Srgb::from_linear(linear);
-	let srgb_u8: Srgb<u8> = srgb_f32.into_format();
-	[srgb_u8.red, srgb_u8.green, srgb_u8.blue]
-}
-
-pub fn cam16ucs_to_hex(r: u8, g: u8, b: u8) -> String {
-	format!("#{:02X}{:02X}{:02X}", r, g, b)
+pub fn srgb_to_cam16ucs(
+	srgb: Srgb<f32>, params: BakedParameters<StaticWp<D65>, f32>,
+) -> Cam16UcsJab<f32> {
+	let linear: LinSrgb<f32> = srgb.into_linear();
+	let xyz: Xyz<D65, f32> = linear.into_color();
+	Cam16UcsJab::from_color(Cam16::from_xyz(xyz, params))
 }
 
 pub async fn calculate_user_color_from_url(
@@ -131,14 +108,11 @@ pub async fn calculate_user_color_from_url(
 
 	tokio::task::spawn_blocking(move || {
 		let img = img.to_rgba8();
-		let raw: &[u8] = img.as_raw();
-		let srgba_pixels: &[Srgba<u8>] = raw.components_as();
-		let linear_pixels: Vec<LinSrgba<f32>> =
-			srgba_pixels.par_iter().map(|p| p.into_linear()).collect();
 
-		let mean = calculate_tile_mean_cam16(&linear_pixels)
+		let mean = mean_displayed_srgb(&img)
 			.ok_or_else(|| anyhow::anyhow!("image is fully transparent"))?;
-		let cam16_str = format!("cam16;{};{};{}", mean.lightness, mean.a, mean.b);
+		let ucs = srgb_to_cam16ucs(mean, make_params());
+		let cam16_str = format!("cam16;{};{};{}", ucs.lightness, ucs.a, ucs.b);
 
 		debug!("Calculated color: {}", cam16_str);
 
@@ -160,7 +134,7 @@ pub async fn calculate_user_color_from_url(
 			ExtendedColorType::Rgba8,
 		)?;
 
-		// Returns: hex color string, 128x128 thumbnail (for mosaic tiles), full-size PNG (for display)
+		// Returns: color string, 128x128 thumbnail (for mosaic tiles), full-size PNG (for display)
 		Ok((cam16_str, thumb_png_bytes, full_png_bytes))
 	})
 	.await
@@ -170,59 +144,59 @@ pub async fn calculate_user_color_from_url(
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use palette::Srgba;
 
-	fn cam16_of(r: u8, g: u8, b: u8) -> Cam16UcsJab<f32> {
-		let linear: LinSrgb<f32> = Srgb::new(r, g, b).into_linear();
-		let xyz: Xyz<D65, f32> = linear.into_color();
-		Cam16UcsJab::from_color(Cam16::from_xyz(xyz, make_params()))
-	}
-
-	fn lin(pixels: &[(u8, u8, u8, u8)]) -> Vec<LinSrgba<f32>> {
-		pixels
-			.iter()
-			.map(|(r, g, b, a)| Srgba::new(*r, *g, *b, *a).into_linear())
-			.collect()
+	fn image_of(pixels: &[(u8, u8, u8, u8)], width: u32) -> RgbaImage {
+		let height = pixels.len() as u32 / width;
+		let mut img = RgbaImage::new(width, height);
+		for (i, (r, g, b, a)) in pixels.iter().enumerate() {
+			img.put_pixel(
+				i as u32 % width,
+				i as u32 / width,
+				image::Rgba([*r, *g, *b, *a]),
+			);
+		}
+		img
 	}
 
 	#[test]
 	fn solid_color_mean_equals_that_color() {
-		let px = lin(&vec![(192u8, 128, 64, 255); 64]);
-		let mean = calculate_tile_mean_cam16(&px).unwrap();
+		let img = image_of(&vec![(192u8, 128, 64, 255); 64], 8);
+		let mean = mean_displayed_srgb(&img).unwrap();
 
-		let expected = cam16_of(192, 128, 64);
-		assert!(
-			(mean.lightness - expected.lightness).abs() < 0.01,
-			"{mean:?}"
-		);
-		assert!((mean.a - expected.a).abs() < 0.01);
-		assert!((mean.b - expected.b).abs() < 0.01);
+		assert!((mean.red - 192.0 / 255.0).abs() < 1e-4, "{mean:?}");
+		assert!((mean.green - 128.0 / 255.0).abs() < 1e-4);
+		assert!((mean.blue - 64.0 / 255.0).abs() < 1e-4);
 	}
 
 	#[test]
-	fn pale_skin_majority_is_not_hijacked_by_a_few_dark_pixels() {
-		// 95% pale skin (low chroma, high J -> the old is_chromatic filter dropped it),
-		// 5% dark green. The mean must stay near the skin tone.
-		let mut px = vec![(245u8, 214, 190, 255); 95];
-		px.extend(vec![(10u8, 60, 20, 255); 5]);
-		let mean = calculate_tile_mean_cam16(&lin(&px)).unwrap();
+	fn high_contrast_tile_reads_as_its_displayed_gray() {
+		// Half black, half white: a downscaler shows this as mid-gray (#808080). The
+		// descriptor must agree with the displayed color, not with a perceptual average
+		// (a mean of per-pixel CAM16-UCS lightness lands ~15 J' darker).
+		let mut px = vec![(0u8, 0, 0, 255); 32];
+		px.extend(vec![(255u8, 255, 255, 255); 32]);
+		let mean = mean_displayed_srgb(&image_of(&px, 8)).unwrap();
 
-		let skin = cam16_of(245, 214, 190);
-		let dark_green = cam16_of(10, 60, 20);
-		let d_skin = (mean.lightness - skin.lightness).abs();
-		let d_green = (mean.lightness - dark_green.lightness).abs();
-		assert!(d_skin < d_green, "mean {mean:?} closer to green than skin");
+		assert!((mean.red - 0.5).abs() < 0.01, "{mean:?}");
+		assert!((mean.green - 0.5).abs() < 0.01);
+		assert!((mean.blue - 0.5).abs() < 0.01);
+	}
+
+	#[test]
+	fn transparent_pixels_do_not_contribute() {
+		// 10 opaque dark pixels, 30 fully transparent white ones: the white must not leak in
+		let mut px = vec![(10u8, 20, 30, 255); 10];
+		px.extend(vec![(255u8, 255, 255, 0); 30]);
+		let mean = mean_displayed_srgb(&image_of(&px, 8)).unwrap();
+
+		assert!((mean.red - 10.0 / 255.0).abs() < 1e-4, "{mean:?}");
+		assert!((mean.green - 20.0 / 255.0).abs() < 1e-4);
+		assert!((mean.blue - 30.0 / 255.0).abs() < 1e-4);
 	}
 
 	#[test]
 	fn fully_transparent_returns_none() {
-		assert!(calculate_tile_mean_cam16(&lin(&vec![(255u8, 0, 0, 0); 16])).is_none());
-	}
-
-	#[test]
-	fn pure_grayscale_no_longer_fails() {
-		// Used to bail with "image is fully achromatic" -- every pixel failed is_chromatic.
-		let px = lin(&vec![(128u8, 128, 128, 255); 32]);
-		assert!(calculate_tile_mean_cam16(&px).is_some());
+		let img = image_of(&vec![(255u8, 0, 0, 0); 16], 4);
+		assert!(mean_displayed_srgb(&img).is_none());
 	}
 }

@@ -242,7 +242,7 @@ async fn build_global_tiles(
 
 			match store.load(&uc.images).await {
 				Ok(png_bytes) => {
-					if let Some(tile) = color::create_color_tile(&uc.color, &png_bytes, TILE_SIZE) {
+					if let Some(tile) = color::create_color_tile(&png_bytes, TILE_SIZE) {
 						color_tiles.push(tile);
 					}
 				},
@@ -292,14 +292,13 @@ async fn build_local_tiles(
 
 		let db_record = color_map.get(&member.user_id);
 
-		let (hex_color, png_bytes) = match db_record {
+		let png_bytes = match db_record {
 			Some(record)
 				if record.profile_picture_url == member.profile_picture_url
 					&& !record.images.starts_with("data:") =>
 			{
-				let color = record.color.clone();
 				match store.load(&record.images).await {
-					Ok(bytes) => (color, bytes),
+					Ok(bytes) => bytes,
 					Err(e) => {
 						debug!(
 							"Failed to load cached image for user {} from storage: {:#}",
@@ -317,7 +316,7 @@ async fn build_local_tiles(
 									store,
 								)
 								.await;
-								(color, thumb_png)
+								thumb_png
 							},
 							Err(e) => {
 								warn!(
@@ -342,7 +341,7 @@ async fn build_local_tiles(
 						store,
 					)
 					.await;
-					(color, thumb_png)
+					thumb_png
 				},
 				Err(e) => {
 					warn!(
@@ -354,7 +353,7 @@ async fn build_local_tiles(
 			},
 		};
 
-		if let Some(tile) = color::create_color_tile(&hex_color, &png_bytes, TILE_SIZE) {
+		if let Some(tile) = color::create_color_tile(&png_bytes, TILE_SIZE) {
 			color_tiles.push(tile);
 		}
 	}
