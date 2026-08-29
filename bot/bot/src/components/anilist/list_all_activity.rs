@@ -1,6 +1,6 @@
 use crate::components::handler::ComponentHandler;
 use crate::constant::{ACTIVITY_LIST_LIMIT, COLOR};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use fluent_templates::Loader;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serenity::all::{

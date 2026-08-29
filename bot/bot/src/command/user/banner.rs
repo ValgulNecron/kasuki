@@ -1,13 +1,10 @@
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::{get_user_command, get_user_command_user};
-use crate::event_handler::BotData;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
+use shared::fluent_args;
+use shared::localization::{Loader, USABLE_LOCALES};
 
 #[slash_command(
 	name = "banner", desc = "Get the banner.",
@@ -17,26 +14,20 @@ use std::collections::HashMap;
 	args = [(name = "username", desc = "Username of the user you want the profile of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn banner_command(self_: BannerCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let user = match command_interaction.data.kind.0 {
-		1 => get_user_command(ctx, command_interaction).await?,
-		2 => get_user_command_user(ctx, command_interaction).await,
+	let user = match cx.command_interaction.data.kind.0 {
+		1 => get_user_command(&cx.ctx, &cx.command_interaction).await?,
+		2 => get_user_command_user(&cx.ctx, &cx.command_interaction).await,
 		_ => {
 			return Err(anyhow::anyhow!("Invalid command type"));
 		},
 	};
 
-	let db_connection = bot_data.db_connection.clone();
-
-	let guild_id = match command_interaction.guild_id {
-		Some(id) => id.to_string(),
-		None => String::from("0"),
-	};
-
-	let lang_id = get_language_identifier(guild_id, db_connection.clone()).await;
+	let lang_id = cx.lang_id().await;
 
 	let banner = match user.banner_url() {
 		Some(url) => url,
@@ -49,11 +40,7 @@ async fn banner_command(self_: BannerCommand) -> Result<EmbedsContents<'_>> {
 
 	let username = user.name.as_str();
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let args = fluent_args!("user" => username.to_string());
 
 	let embed_content =
 		EmbedContent::new(USABLE_LOCALES.lookup_with_args(&lang_id, "user_banner-title", &args))
@@ -75,11 +62,7 @@ async fn banner_user_command(self_: BannerCommand) -> Result<EmbedsContents<'_>>
 }
 
 pub fn no_banner(username: &str, lang_id: &unic_langid::LanguageIdentifier) -> Vec<EmbedContent> {
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let args = fluent_args!("user" => username.to_string());
 
 	let embed_content =
 		EmbedContent::new(USABLE_LOCALES.lookup(lang_id, "user_banner-no_banner_title"))

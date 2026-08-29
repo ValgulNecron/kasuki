@@ -6,21 +6,12 @@ use serenity::all::Colour;
 
 pub const AUTOCOMPLETE_COUNT_LIMIT: u32 = 25;
 
-/*
-App embed color.
- */
-
 /// Color for the app embed.
-
 pub const COLOR: Colour = Colour::FABLED_PINK;
 
 /// Log level for other crates.
 
 pub const OTHER_CRATE_LEVEL: &str = "warn";
-
-/// Default string value.
-
-pub const UNKNOWN: &str = "Unknown";
 
 /// Map of language codes to language names.
 
@@ -53,8 +44,6 @@ pub const DEFAULT_STRING: &str = "";
 /// The version of the application, fetched from the environment variable "CARGO_PKG_VERSION".
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// Vec of all available bot commands.
 
 /// Used library.
 

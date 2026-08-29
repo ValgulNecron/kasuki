@@ -1,6 +1,7 @@
+use crate::autocomplete::admin::lang as admin_lang;
 use crate::autocomplete::anilist_server::{add_anime_activity, delete_activity};
 use crate::autocomplete::anilist_user::{
-	anime, character, compare, ln, manga, search, staff, studio, user,
+	anime, character, compare, level, ln, manga, search, staff, studio, user,
 };
 use crate::autocomplete::game::steam_game_info;
 use crate::autocomplete::management::give_premium_sub::give_premium_sub_autocomplete;
@@ -10,17 +11,18 @@ use crate::helper::get_option::subcommand_group::get_subcommand;
 use serenity::all::{CommandInteraction, Context};
 use tracing::trace;
 
-pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete_dispatching(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	trace!(?autocomplete_interaction);
 	match autocomplete_interaction.data.name.as_str() {
 		"admin" => admin_autocomplete(ctx, autocomplete_interaction).await,
 		"anime" => anime::autocomplete(ctx, autocomplete_interaction).await,
 		"ln" => ln::autocomplete(ctx, autocomplete_interaction).await,
 		"manga" => manga::autocomplete(ctx, autocomplete_interaction).await,
-		"user" => user::autocomplete(ctx, autocomplete_interaction).await,
+		"user" | "anilist_user" => user::autocomplete(ctx, autocomplete_interaction).await,
 		"character" => character::autocomplete(ctx, autocomplete_interaction).await,
 		"compare" => compare::autocomplete(ctx, autocomplete_interaction).await,
 		"register" => user::autocomplete(ctx, autocomplete_interaction).await,
+		"level" => level::autocomplete(ctx, autocomplete_interaction).await,
 		"staff" => staff::autocomplete(ctx, autocomplete_interaction).await,
 		"studio" => studio::autocomplete(ctx, autocomplete_interaction).await,
 		"search" => search::autocomplete(ctx, autocomplete_interaction).await,
@@ -32,21 +34,32 @@ pub async fn autocomplete_dispatching(ctx: Context, autocomplete_interaction: Co
 	}
 }
 
-async fn admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
-	if autocomplete_interaction
+async fn admin_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
+	match autocomplete_interaction
 		.data
 		.options
 		.first()
 		.unwrap()
 		.name
 		.as_str()
-		== "anilist"
 	{
-		anilist_admin_autocomplete(ctx, autocomplete_interaction).await
+		"anilist" => anilist_admin_autocomplete(ctx, autocomplete_interaction).await,
+		"general" => general_admin_autocomplete(ctx, autocomplete_interaction).await,
+		_ => {},
 	}
 }
 
-async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+async fn general_admin_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
+	let interaction = autocomplete_interaction.clone();
+	let subcommand = get_subcommand(&interaction).unwrap();
+
+	match subcommand.name {
+		"lang" => admin_lang::autocomplete(ctx, autocomplete_interaction).await,
+		_ => {},
+	}
+}
+
+async fn vn_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	match autocomplete_interaction
 		.data
 		.options
@@ -58,11 +71,12 @@ async fn vn_autocomplete(ctx: Context, autocomplete_interaction: CommandInteract
 		"game" => game::autocomplete(ctx, autocomplete_interaction).await,
 		"character" => vn::character::autocomplete(ctx, autocomplete_interaction).await,
 		"producer" => producer::autocomplete(ctx, autocomplete_interaction).await,
+		"staff" => vn::staff::autocomplete(ctx, autocomplete_interaction).await,
 		_ => {},
 	}
 }
 
-async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+async fn anilist_admin_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let interaction = autocomplete_interaction.clone();
 	let subcommand = get_subcommand(&interaction).unwrap();
 
@@ -77,7 +91,7 @@ async fn anilist_admin_autocomplete(ctx: Context, autocomplete_interaction: Comm
 	}
 }
 
-async fn steam_autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+async fn steam_autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	if autocomplete_interaction
 		.data
 		.options

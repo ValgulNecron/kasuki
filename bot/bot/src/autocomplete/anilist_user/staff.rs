@@ -1,80 +1,36 @@
-use crate::constant::DEFAULT_STRING;
-use crate::event_handler::BotData;
-use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::staff::{
-	StaffAutocomplete, StaffAutocompleteVariables,
-};
-use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::trace;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+use crate::constant::DEFAULT_STRING;
+use crate::event_handler::BotData;
+use crate::helper::get_option::command::get_option_map_string;
+use shared::anilist::autocomplete::search_staff;
+
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
+
 	let staff_search = map
 		.get(&FixedString::from_str_trunc("staff_name"))
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
-	let var = StaffAutocompleteVariables {
-		search: Some(staff_search),
-	};
+	let results = match search_staff(staff_search, bot_data.anilist_cache.clone()).await {
+		Ok(results) => results,
+		Err(e) => {
+			tracing::error!(?e);
 
-	let operation = StaffAutocomplete::build(var);
-
-	let data: GraphQlResponse<StaffAutocomplete> =
-		match make_request_anilist(operation, true, bot_data.anilist_cache.clone()).await {
-			Ok(data) => data,
-			Err(e) => {
-				tracing::error!(?e);
-				return;
-			},
-		};
-	trace!(?data);
-	let mut choices = Vec::new();
-
-	let staffs = match data.data {
-		Some(data) => match data.page {
-			Some(page) => match page.staff {
-				Some(staff) => staff,
-				None => {
-					tracing::debug!("No staff");
-					return;
-				},
-			},
-			None => {
-				tracing::debug!("No page");
-				return;
-			},
-		},
-		None => {
-			tracing::debug!("No data");
 			return;
 		},
 	};
 
-	for staff in staffs {
-		let data = staff.unwrap();
-
-		let name = data.name.unwrap();
-
-		let user_pref = name.user_preferred;
-
-		let native = name.native;
-
-		let full = name.full;
-
-		let name = user_pref.unwrap_or(native.unwrap_or(full.unwrap_or_default()));
-
-		choices.push(AutocompleteChoice::new(name, data.id.to_string()))
-	}
-
-	trace!(?choices);
+	let choices: Vec<AutocompleteChoice> = results
+		.into_iter()
+		.map(|(name, id)| AutocompleteChoice::new(name, id))
+		.collect();
 
 	let data = CreateAutocompleteResponse::new().set_choices(choices);
 

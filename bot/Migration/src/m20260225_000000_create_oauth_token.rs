@@ -31,12 +31,19 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
+#[sea_orm(iden = "oauth_token")]
 pub enum OAuthToken {
 	Table,
+	#[sea_orm(iden = "user_id")]
 	UserId,
+	#[sea_orm(iden = "access_token")]
 	AccessToken,
+	#[sea_orm(iden = "refresh_token")]
 	RefreshToken,
+	#[sea_orm(iden = "expires_at")]
 	ExpiresAt,
+	#[sea_orm(iden = "created_at")]
 	CreatedAt,
+	#[sea_orm(iden = "updated_at")]
 	UpdatedAt,
 }

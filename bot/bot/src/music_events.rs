@@ -23,8 +23,7 @@ pub async fn raw_event(_client: LavalinkClient, session_id: String, event: &serd
 	if event["op"].as_str() == Some("event") || event["op"].as_str() == Some("playerUpdate") {
 		trace!(
 			"Lavalink raw event received for session {}: {:?}",
-			session_id,
-			event
+			session_id, event
 		);
 	}
 }

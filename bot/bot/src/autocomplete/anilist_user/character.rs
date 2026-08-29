@@ -1,20 +1,15 @@
-use cynic::{GraphQlResponse, QueryBuilder};
 use serenity::all::{
 	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
 	CreateInteractionResponse,
 };
 use small_fixed_array::FixedString;
-use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
-use crate::structure::autocomplete::anilist::character::{
-	CharacterAutocomplete, CharacterAutocompleteVariables,
-};
+use shared::anilist::autocomplete::search_characters;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
@@ -23,56 +18,19 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 
-	let var = CharacterAutocompleteVariables {
-		search: Some(character_search),
-	};
-
-	let operation = CharacterAutocomplete::build(var);
-
-	let data: GraphQlResponse<CharacterAutocomplete> =
-		match make_request_anilist(operation, true, bot_data.anilist_cache.clone()).await {
-			Ok(data) => data,
-			Err(e) => {
-				tracing::debug!(?e);
-
-				return;
-			},
-		};
-
-	trace!(?data);
-
-	let mut choices = Vec::new();
-
-	let characters = match data.data {
-		Some(data) => match data.page {
-			Some(page) => match page.characters {
-				Some(characters) => characters,
-				None => return,
-			},
-			None => return,
-		},
-		None => {
-			tracing::debug!(?data.errors);
+	let results = match search_characters(character_search, bot_data.anilist_cache.clone()).await {
+		Ok(results) => results,
+		Err(e) => {
+			tracing::debug!(?e);
 
 			return;
 		},
 	};
 
-	for character in characters {
-		let data = character.unwrap();
-
-		let name = data.name.unwrap();
-
-		let full = name.full.clone();
-
-		let user_pref = name.user_preferred.clone();
-
-		let native = name.native.clone();
-
-		let name = user_pref.unwrap_or(full.unwrap_or(native.unwrap_or_default()));
-
-		choices.push(AutocompleteChoice::new(name, data.id.to_string()))
-	}
+	let choices: Vec<AutocompleteChoice> = results
+		.into_iter()
+		.map(|(name, id)| AutocompleteChoice::new(name, id))
+		.collect();
 
 	let data = CreateAutocompleteResponse::new().set_choices(choices);
 

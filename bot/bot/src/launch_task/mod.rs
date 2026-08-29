@@ -1,5 +1,7 @@
 pub mod bot_info_update;
+pub mod db_cleanup;
 pub mod game_management;
+pub mod log_cleanup;
 pub mod ping_manager;
 pub mod queue_publisher;
 pub mod user_blacklist;
@@ -9,49 +11,37 @@ use serenity::all::Context as SerenityContext;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
-use tracing::{debug, info};
+use tracing::info;
 
 use self::bot_info_update::update_bot_info;
+use self::db_cleanup::db_cleanup_task;
 use self::game_management::launch_game_management_thread;
+use self::log_cleanup::log_cleanup_task;
 use self::ping_manager::ping_manager_thread;
 use self::user_blacklist::update_user_blacklist;
 
 /// Main function responsible for launching and managing all background tasks.
 #[tracing::instrument(skip(ctx, bot_data), level = "info")]
 pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotData>) {
-	debug!("Preparing shared resources for background tasks");
-
 	let apps = bot_data.apps.clone();
+	let steam_cache = bot_data.steam_cache.clone();
 	let user_blacklist_server_image = bot_data.user_blacklist.clone();
 	let db_connection = bot_data.db_connection.clone();
 	let task_intervals = bot_data.config.task_intervals.clone();
 	let shutdown_signal = bot_data.shutdown_signal.clone();
 
-	debug!("Setting up shutdown signal receivers for background tasks");
 	let mut shutdown_receivers = Vec::new();
 
-	debug!(
-		"Task intervals configuration: game_update={}s, ping_update={}s, bot_info_update={}s, blacklisted_user_update={}s, server_image_update={}s, before_server_image={}s",
-		task_intervals.game_update,
-		task_intervals.ping_update,
-		task_intervals.bot_info_update,
-		task_intervals.blacklisted_user_update,
-		task_intervals.server_image_update,
-		task_intervals.before_server_image
-	);
-
-	// === USER INTERACTION TASKS ===
-	info!("Launching user interaction background tasks");
-
-	debug!(
-		"Spawning game management task (interval: {}s)",
-		task_intervals.game_update
-	);
 	let task_intervals_c = task_intervals.clone();
+	let steam_api_key = bot_data
+		.config
+		.steam
+		.as_ref()
+		.map(|steam| steam.api_key.clone());
 	let mut game_shutdown_rx = shutdown_signal.subscribe();
 	let game_task = tokio::spawn(async move {
 		tokio::select! {
-			_ = launch_game_management_thread(apps, task_intervals_c) => {
+			_ = launch_game_management_thread(apps, task_intervals_c, steam_cache, steam_api_key) => {
 				info!("Game management task completed");
 			},
 			_ = game_shutdown_rx.recv() => {
@@ -61,13 +51,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(game_task);
 
-	// === BOT STATUS TASKS ===
-	info!("Launching bot status monitoring background tasks");
-
-	debug!(
-		"Spawning ping manager task (interval: {}s)",
-		task_intervals.ping_update
-	);
 	let task_intervals_c = task_intervals.clone();
 	let ctx_c = ctx.clone();
 	let db_connection_c = db_connection.clone();
@@ -87,10 +70,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(ping_task);
 
-	debug!(
-		"Spawning bot info update task (interval: {}s)",
-		task_intervals.bot_info_update
-	);
 	let task_intervals_c = task_intervals.clone();
 	let mut bot_info_shutdown_rx = shutdown_signal.subscribe();
 	let ctx_c = ctx.clone();
@@ -107,13 +86,6 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(bot_info_task);
 
-	// === SECURITY TASKS ===
-	info!("Launching security background tasks");
-
-	debug!(
-		"Spawning user blacklist update task (interval: {}s)",
-		task_intervals.blacklisted_user_update
-	);
 	let task_intervals_c = task_intervals.clone();
 	let mut blacklist_shutdown_rx = shutdown_signal.subscribe();
 	let blacklist_task = tokio::spawn(async move {
@@ -128,30 +100,39 @@ pub async fn thread_management_launcher(ctx: SerenityContext, bot_data: Arc<BotD
 	});
 	shutdown_receivers.push(blacklist_task);
 
-	// === VISUAL TASKS (with delay) ===
-	info!(
-		"Scheduling visual tasks with delay of {}s",
-		task_intervals.before_server_image
-	);
+	let task_intervals_c = task_intervals.clone();
+	let db_connection_c = db_connection.clone();
+	let image_store_c = bot_data.image_store.clone();
+	let mut db_cleanup_shutdown_rx = shutdown_signal.subscribe();
+	let db_cleanup = tokio::spawn(async move {
+		tokio::select! {
+			_ = db_cleanup_task(db_connection_c, task_intervals_c, image_store_c) => {
+				info!("DB cleanup task completed");
+			},
+			_ = db_cleanup_shutdown_rx.recv() => {
+				info!("Received shutdown signal, terminating DB cleanup task gracefully");
+			}
+		}
+	});
+	shutdown_receivers.push(db_cleanup);
 
-	debug!(
-		"Waiting {}s before launching server image management task",
-		task_intervals.before_server_image
-	);
+	let logging_c = bot_data.config.logging.clone();
+	let mut log_cleanup_shutdown_rx = shutdown_signal.subscribe();
+	let log_cleanup = tokio::spawn(async move {
+		tokio::select! {
+			_ = log_cleanup_task(logging_c) => {
+				info!("Log cleanup task completed");
+			},
+			_ = log_cleanup_shutdown_rx.recv() => {
+				info!("Received shutdown signal, terminating log cleanup task gracefully");
+			}
+		}
+	});
+	shutdown_receivers.push(log_cleanup);
+
 	sleep(Duration::from_secs(task_intervals.before_server_image)).await;
 
 	let _image_config = bot_data.config.image.clone();
 
-	debug!(
-		"Spawning server image management task (interval: {}s)",
-		task_intervals.server_image_update
-	);
-
-	info!("All background tasks have been successfully launched");
-	debug!(
-		"Registered {} background tasks with shutdown handlers",
-		shutdown_receivers.len()
-	);
-
-	info!("Background task manager initialization complete");
+	info!("All background tasks launched");
 }

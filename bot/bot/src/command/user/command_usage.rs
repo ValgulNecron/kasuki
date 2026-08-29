@@ -17,17 +17,14 @@
 //! };
 //! let embed_contents = command_usage.get_contents().await?;
 //! ```
-use crate::command::command::CommandRun;
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
 use crate::command::user::avatar::get_user_command;
-use crate::event_handler::BotData;
 use anyhow::Result;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
-use std::borrow::Cow;
-use std::collections::HashMap;
+use shared::fluent_args;
+use shared::localization::{Loader, USABLE_LOCALES};
 
 #[slash_command(
 	name = "command_usage", desc = "Show the usage of each command for an user.",
@@ -37,33 +34,23 @@ use std::collections::HashMap;
 	args = [(name = "username", desc = "Username of the user you want the usage of.", arg_type = User, required = false, autocomplete = false)],
 )]
 async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsContents<'_>> {
-	let user = get_user_command(&self_.ctx, &self_.command_interaction).await?;
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
+	let user = get_user_command(&cx.ctx, &cx.command_interaction).await?;
 
 	let user_id = user.id.to_string();
 	let username = user.name.clone();
 
 	// Query database for user's command usage
-	let db_connection = bot_data.db_connection.clone();
+	let usage = get_usage_for_id(&user_id, &*cx.db).await?;
 
-	let usage = get_usage_for_id(&user_id, &db_connection).await?;
-
-	let guild_id = command_interaction
-		.guild_id
-		.map(|id| id.to_string())
-		.unwrap_or("0".to_string());
-
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	let mut embed_contents = vec![];
 
-	let mut title_args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	title_args.insert(
-		Cow::Borrowed("user"),
-		FluentValue::from(username.to_string()),
-	);
+	let title_args = fluent_args!("user" => username.to_string());
 	let embed_content = EmbedContent::new(USABLE_LOCALES.lookup_with_args(
 		&lang_id,
 		"user_command_usage-title",
@@ -71,11 +58,7 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 	));
 
 	if usage.is_empty() {
-		let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-		args.insert(
-			Cow::Borrowed("user"),
-			FluentValue::from(username.to_string()),
-		);
+		let args = fluent_args!("user" => username.to_string());
 		let inner_embed = embed_content.description(USABLE_LOCALES.lookup_with_args(
 			&lang_id,
 			"user_command_usage-no_usage",
@@ -88,12 +71,8 @@ async fn command_usage_command(self_: CommandUsageCommand) -> Result<EmbedsConte
 		let mut inner_embed = embed_content.clone();
 
 		for (command, usage_count) in &usage {
-			let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-			args.insert(Cow::Borrowed("command"), FluentValue::from(command.clone()));
-			args.insert(
-				Cow::Borrowed("usage"),
-				FluentValue::from(usage_count.to_string()),
-			);
+			let args =
+				fluent_args!("command" => command.clone(), "usage" => usage_count.to_string());
 			description.push_str(
 				USABLE_LOCALES
 					.lookup_with_args(&lang_id, "user_command_usage-command_usage", &args)

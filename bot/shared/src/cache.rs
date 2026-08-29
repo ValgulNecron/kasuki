@@ -1,3 +1,5 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use anyhow::{Context, Result};
 use moka::future::Cache;
 use redis::AsyncCommands;
@@ -17,9 +19,9 @@ pub struct CacheInterface {
 }
 
 impl CacheInterface {
-	/// In-memory cache with default settings (10 000 entries, 1 hour TTL).
+	/// In-memory cache with default settings (2 000 entries, 1 hour TTL).
 	pub fn new() -> Self {
-		Self::new_memory(10_000, 3600)
+		Self::new_memory(2_000, 3600)
 	}
 
 	pub fn new_memory(max_capacity: u64, ttl_secs: u64) -> Self {
@@ -69,8 +71,8 @@ impl CacheInterface {
 					_ => format!("redis://{}:{}", host, port),
 				};
 
-				let client =
-					redis::Client::open(redis_url.as_str()).context("Invalid Redis URL for cache")?;
+				let client = redis::Client::open(redis_url.as_str())
+					.context("Invalid Redis URL for cache")?;
 				let conn = client
 					.get_multiplexed_async_connection()
 					.await
@@ -82,21 +84,46 @@ impl CacheInterface {
 		}
 	}
 
-	pub async fn read(&self, key: &String) -> Result<Option<String>> {
+	/// Create from config with a fallback to in-memory on failure.
+	pub async fn from_config_or_default(config: &CacheConfig, label: &str) -> std::sync::Arc<Self> {
+		std::sync::Arc::new(match Self::from_config(config).await {
+			Ok(c) => {
+				tracing::info!(
+					"{} cache initialized with {} backend",
+					label,
+					config.cache_type
+				);
+				c
+			},
+			Err(e) => {
+				tracing::warn!(
+					"Failed to init {} cache with {} backend, falling back to memory: {}",
+					label,
+					config.cache_type,
+					e
+				);
+				Self::new()
+			},
+		})
+	}
+
+	pub async fn read(&self, key: &str) -> Result<Option<String>> {
+		let hashed = hash_key(key);
 		match &self.backend {
-			CacheBackend::Memory(cache) => Ok(cache.get(key).await),
+			CacheBackend::Memory(cache) => Ok(cache.get(&hashed).await),
 			CacheBackend::Redis { connection, .. } => {
 				let mut conn = connection.clone();
-				let value: Option<String> = conn.get(key).await?;
+				let value: Option<String> = conn.get(&hashed).await?;
 				Ok(value)
 			},
 		}
 	}
 
 	pub async fn write(&self, key: String, value: String) -> Result<()> {
+		let hashed = hash_key(&key);
 		match &self.backend {
 			CacheBackend::Memory(cache) => {
-				cache.insert(key, value).await;
+				cache.insert(hashed, value).await;
 				Ok(())
 			},
 			CacheBackend::Redis {
@@ -104,11 +131,26 @@ impl CacheInterface {
 				ttl_secs,
 			} => {
 				let mut conn = connection.clone();
-				conn.set_ex::<_, _, ()>(&key, &value, *ttl_secs).await?;
+				conn.set_ex::<_, _, ()>(&hashed, &value, *ttl_secs).await?;
 				Ok(())
 			},
 		}
 	}
+}
+
+/// Hash a string to a fixed 32-char hex string (128-bit, two independent SipHash passes).
+/// Collision probability for 10K entries: ~2.9×10⁻³¹.
+pub fn hash_key(key: &str) -> String {
+	let mut h1 = DefaultHasher::new();
+	key.hash(&mut h1);
+	let a = h1.finish();
+
+	let mut h2 = DefaultHasher::new();
+	0x517cc1b727220a95_u64.hash(&mut h2);
+	key.hash(&mut h2);
+	let b = h2.finish();
+
+	format!("{:016x}{:016x}", a, b)
 }
 
 impl Default for CacheInterface {

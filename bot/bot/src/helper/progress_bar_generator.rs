@@ -19,17 +19,17 @@ pub fn generate_progress_bar_image_in_memory(percent: u32, user_color: [u8; 4]) 
 	// Ensure percent is between 0 and 100
 	let percent = percent.min(100);
 
-	// Define image dimensions
+	// 10:1 aspect ratio sized for Discord embed thumbnails without looking blurry
 	let width = 500;
 	let height = 50;
 
 	// Create a new image
 	let mut img = RgbaImage::new(width, height);
 
-	// Define colors
-	let background_color = Rgba([30, 30, 30, 255]); // Flat dark color
+	// Near-black tones to blend with Discord's dark theme
+	let background_color = Rgba([30, 30, 30, 255]);
 	let progress_color = Rgba::from(user_color);
-	let border_color = Rgba([50, 50, 50, 255]); // Darker border
+	let border_color = Rgba([50, 50, 50, 255]); // Slightly lighter than background so the edge is visible
 
 	// Fill background
 	for x in 0..width {
@@ -64,6 +64,8 @@ pub fn generate_progress_bar_image_in_memory(percent: u32, user_color: [u8; 4]) 
 
 	// Encode the image as PNG
 	let mut image_data: Vec<u8> = Vec::new();
+	// Best compression + Adaptive filter: image is tiny and solid-color blocks compress well,
+	// so extra CPU cost is negligible and produces the smallest payload for Discord upload
 	PngEncoder::new_with_quality(
 		&mut image_data,
 		CompressionType::Best,

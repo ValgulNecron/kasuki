@@ -14,11 +14,12 @@ use serenity::all::Ready;
 use serenity::gateway::{ActivityData, ChunkGuildFilter};
 use serenity::prelude::Context as SerenityContext;
 use shared::database::prelude::CommandList;
+use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tracing::{info, trace, warn};
 
 impl Handler {
-	pub(crate) async fn ready(&self, ctx: SerenityContext, ready: Ready) {
+	pub(crate) async fn ready(&self, ctx: &SerenityContext, ready: Ready) {
 		let bot_data = ctx.data::<BotData>().clone();
 		if bot_data.lavalink.read().await.is_none() {
 			if let Some(music_config) = bot_data.config.music.as_ref() {
@@ -29,8 +30,7 @@ impl Handler {
 					..Default::default()
 				};
 
-				let user_id =
-					lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
+				let user_id = lavalink_rs::model::UserId::from(ctx.cache.current_user().id.get());
 
 				let node_local = NodeBuilder {
 					hostname: music_config.lavalink_hostname.clone(),
@@ -47,20 +47,23 @@ impl Handler {
 					NodeDistributionStrategy::round_robin(),
 				)
 				.await;
-				*bot_data.lavalink.write().await = Some(client);
+				*bot_data.lavalink.write().await = Some(Arc::new(client));
 				info!("Lavalink client initialized");
 			} else {
 				warn!("No music configuration found. Music features will be disabled.");
 			}
 		}
 
-		for guild in ctx.cache.guilds() {
-			ctx.chunk_guild(guild, None, true, ChunkGuildFilter::None, None);
-			trace!(
-				guild_id = %guild,
-				"Chunking guild"
-			);
-		}
+		let guilds = ctx.cache.guilds();
+		info!("Requesting member chunks for {} guilds", guilds.len());
+		let ctx_chunk = ctx.clone();
+		tokio::spawn(async move {
+			for guild in &guilds {
+				ctx_chunk.chunk_guild(*guild, None, true, ChunkGuildFilter::None, None);
+				trace!(guild_id = %guild, "Chunking guild");
+				tokio::time::sleep(std::time::Duration::from_millis(600)).await;
+			}
+		});
 
 		info!(
 			"Shard {:?} of {} is connected!",
@@ -79,7 +82,6 @@ impl Handler {
 			let db_for_commands = bot_data.db_connection.clone();
 			tokio::spawn(async move {
 				command_registration(&http, remove_old).await;
-				// Populate command_list table with all registered slash commands
 				let registry = get_slash_registry();
 				for command_name in registry.keys() {
 					let model = shared::database::command_list::ActiveModel {
@@ -110,12 +112,18 @@ impl Handler {
 				);
 			});
 
+			let delay_secs = bot_data.config.task_intervals.before_server_image;
 			if !bot_data.server_image_running.swap(true, Ordering::SeqCst) {
 				let ctx_clone = ctx.clone();
 				let image_config_clone = bot_data.config.image.clone();
 				let db_clone = bot_data.db_connection.clone();
 				let flag = bot_data.server_image_running.clone();
 				tokio::spawn(async move {
+					info!(
+						"Waiting {}s before server image management to let cache populate",
+						delay_secs
+					);
+					tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
 					server_image_management(&ctx_clone, image_config_clone, db_clone).await;
 					flag.store(false, Ordering::SeqCst);
 				});

@@ -1,26 +1,31 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
-use serenity::all::{Context as SerenityContext, GuildId, Member, User, UserId};
+use sea_orm::EntityTrait;
+use serenity::all::{Context as SerenityContext, GuildId, User, UserId};
 use serenity::nonmax::NonMaxU16;
+use shared::database::prelude::UserColor;
 use shared::queue::tasks::ImageTask;
 use tokio::sync::RwLock;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::event_handler::BotData;
 
-pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Member> {
+pub async fn get_member(ctx_clone: &SerenityContext, guild: GuildId) -> Vec<User> {
 	if let Some(guild_cache) = guild.to_guild_cached(&ctx_clone.cache) {
 		debug!("Using cached members for guild {}", guild);
-		let members = guild_cache.members.clone();
-		return members.into_iter().map(|m| m.into()).collect();
+		return guild_cache.members.iter().map(|m| m.user.clone()).collect();
 	}
 
 	debug!("Cache miss for guild {}, fetching from API", guild);
 	let mut i = 0;
-	let mut members_temp_out: Vec<Member> = Vec::new();
+	let mut members_temp_out: Vec<User> = Vec::new();
+	// 1000 is Discord's max members per API request
 
+	// Paginate: a full page (1000) means more members may exist; fewer means we're done
 	while members_temp_out.len() == (1000 * i) {
-		let mut members_temp_in = if i == 0 {
+		// First page has no cursor; subsequent pages pass the last user ID as "after"
+		let members_temp_in = if i == 0 {
 			match guild
 				.members(
 					&ctx_clone.http,
@@ -37,7 +42,7 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 			}
 		} else {
 			let user: UserId = match members_temp_out.last() {
-				Some(member) => member.user.id,
+				Some(u) => u.id,
 				None => break,
 			};
 
@@ -58,15 +63,16 @@ pub async fn get_member(ctx_clone: SerenityContext, guild: GuildId) -> Vec<Membe
 		};
 
 		i += 1;
-		members_temp_out.append(&mut members_temp_in);
+		members_temp_out.extend(members_temp_in.into_iter().map(|m| m.user));
 	}
 
 	members_temp_out
 }
 
 pub async fn enqueue_user_color(
-	user_blacklist_server_image: Arc<RwLock<Vec<String>>>, user: User, bot_data: Arc<BotData>,
+	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: &User, bot_data: &BotData,
 ) {
+	// Skip users whose color was already computed this cycle to avoid redundant work
 	if user_blacklist_server_image
 		.read()
 		.await
@@ -84,7 +90,45 @@ pub async fn enqueue_user_color(
 		profile_picture_url: user.face(),
 	};
 
-	if let Err(_) = bot_data.user_color_task_tx.send(task) {
-		error!("User color queue publisher stopped, dropping task for user {}", user.id);
+	// Unbounded channel — send only fails if the receiver has been dropped (shutdown)
+	if bot_data.user_color_task_tx.send(task).is_err() {
+		error!(
+			"User color queue publisher stopped, dropping task for user {}",
+			user.id
+		);
 	}
+}
+
+/// Enqueues a colour recalculation only when the user's avatar differs from the one the
+/// stored colour was derived from.
+///
+/// `GuildMemberUpdate` fires for nickname, role and timeout changes too, so recomputing
+/// unconditionally would queue an image download per member edit. The `user_color` row
+/// already records the `profile_picture_url` it was calculated from, which makes it the
+/// authoritative staleness check -- more reliable than diffing against the gateway's
+/// `old_if_available`, which is empty whenever the member is not cached.
+pub async fn enqueue_user_color_if_avatar_changed(
+	user_blacklist_server_image: Arc<RwLock<HashSet<String>>>, user: &User, bot_data: &BotData,
+) {
+	let current_avatar = user.face();
+
+	match UserColor::find_by_id(user.id.to_string())
+		.one(&*bot_data.db_connection)
+		.await
+	{
+		Ok(Some(existing)) if existing.profile_picture_url == current_avatar => {
+			debug!(user_id = %user.id, "Avatar unchanged, skipping colour recalculation");
+			return;
+		},
+		// No stored colour yet, or the avatar moved on: fall through and recalculate.
+		Ok(_) => {},
+		// Never drop a genuine avatar change because the lookup failed; recomputing an
+		// already-current colour is wasteful but harmless.
+		Err(e) => {
+			warn!(user_id = %user.id, error = %e, "Failed to read stored user colour, recalculating anyway");
+		},
+	}
+
+	debug!(user_id = %user.id, "Avatar changed, queueing colour recalculation");
+	enqueue_user_color(user_blacklist_server_image, user, bot_data).await;
 }

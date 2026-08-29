@@ -8,11 +8,13 @@ on:
 
 concurrency:
   group: "dev_docker"
+  # Queue rather than cancel — builds are expensive and we want each push deployed
   cancel-in-progress: false
 
 jobs:
   docker:
     runs-on: ${{ matrix.os }}
+    # Each arch builds on a native runner (not QEMU) for faster compilation
     strategy:
       matrix:
         include:
@@ -29,6 +31,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Increase kernel limits needed by the Rust linker/compiler for large builds
       - name: Configure system
         run: |
           sudo sysctl -w vm.max_map_count=262144
@@ -49,6 +52,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:dev-${{ matrix.arch }}
           platforms: ${{ matrix.platform }}
+          # Disable provenance attestation to avoid multi-platform manifest issues
           provenance: false
 
   manifest:
@@ -67,6 +71,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      # Combine per-arch images into a single multi-arch tag so `docker pull` auto-selects
       - name: Create and push manifest list
         run: |
           docker manifest create ${{ secrets.DOCKER_HUB_USERNAME }}/kasuki:dev \

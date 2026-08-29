@@ -1,3 +1,5 @@
+use crate::structure::steam_game_index::SteamGameIndex;
+use arc_swap::ArcSwap;
 use chrono::{DateTime, Timelike, Utc};
 use lavalink_rs::client::LavalinkClient;
 use reqwest::Client;
@@ -12,9 +14,9 @@ use shared::config::Config;
 use shared::image_saver::storage::ImageStore;
 use shared::queue::tasks::ImageTask;
 use songbird::Songbird;
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicUsize};
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicUsize};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
@@ -23,16 +25,17 @@ pub type RedisConnection = Arc<RwLock<Option<redis::aio::MultiplexedConnection>>
 pub struct BotData {
 	pub config: Arc<Config>,
 	pub bot_info: Arc<RwLock<Option<CurrentApplicationInfo>>>,
-	pub anilist_cache: Arc<RwLock<CacheInterface>>,
-	pub vndb_cache: Arc<RwLock<CacheInterface>>,
+	pub anilist_cache: Arc<CacheInterface>,
+	pub vndb_cache: Arc<CacheInterface>,
+	pub steam_cache: Arc<CacheInterface>,
 	pub already_launched: RwLock<bool>,
-	pub apps: Arc<RwLock<HashMap<String, u128>>>,
-	pub user_blacklist: Arc<RwLock<Vec<String>>>,
+	pub apps: Arc<ArcSwap<SteamGameIndex>>,
+	pub user_blacklist: Arc<RwLock<HashSet<String>>>,
 	pub db_connection: Arc<DatabaseConnection>,
 	pub manager: Arc<Songbird>,
 	pub http_client: Arc<Client>,
 	pub shard_manager: Arc<RwLock<HashMap<ShardId, Arc<parking_lot::RwLock<ShardRunnerInfo>>>>>,
-	pub lavalink: Arc<RwLock<Option<LavalinkClient>>>,
+	pub lavalink: Arc<RwLock<Option<Arc<LavalinkClient>>>>,
 	pub shutdown_signal: Arc<tokio::sync::broadcast::Sender<()>>,
 	pub vocal_session: Arc<RwLock<HashMap<(String, String), DateTime<Utc>>>>,
 	pub user_color_update_count: Arc<AtomicUsize>,
@@ -64,6 +67,7 @@ impl BotData {
 			Ok(count) => count as u128,
 			Err(e) => {
 				error!("DB error reading command usage: {}", e);
+				// Return 0 on DB errors so the command isn't blocked by a transient failure
 				0u128
 			},
 		}

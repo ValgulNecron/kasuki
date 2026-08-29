@@ -15,7 +15,8 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
 		added_at: Set(Utc::now().naive_utc()),
 		is_bot: Set(user.bot()),
 	};
-	if let Err(e) = UserData::insert(model)
+	// Upsert: insert new user or refresh username/bot-flag on conflict (user may have renamed)
+	match UserData::insert(model)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::column(shared::database::user_data::Column::UserId)
 				.update_columns([
@@ -27,13 +28,14 @@ pub async fn add_user_data_to_db(user: User, connection: Arc<DatabaseConnection>
 		.exec(&*connection)
 		.await
 	{
-		warn!(
-			user_id = %user.id,
-			error = %e,
-			"Failed to insert or update user data in database"
-		);
-		Err(e.into())
-	} else {
-		Ok(())
+		Err(e) => {
+			warn!(
+				user_id = %user.id,
+				error = %e,
+				"Failed to insert or update user data in database"
+			);
+			Err(e.into())
+		},
+		_ => Ok(()),
 	}
 }

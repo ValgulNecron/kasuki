@@ -4,20 +4,18 @@
 //!
 //! # Fields
 //! - `ctx`
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_user;
 use anyhow::anyhow;
-use fluent_templates::fluent_bundle::FluentValue;
 use kasuki_macros::slash_command;
 use serenity::all::CreateInteractionResponse::Defer;
 use serenity::all::{
 	CommandInteraction, Context as SerenityContext, CreateInteractionResponseMessage,
 };
-use shared::localization::{get_language_identifier, Loader, USABLE_LOCALES};
+use shared::fluent_args;
+use shared::localization::{Loader, USABLE_LOCALES};
 use small_fixed_array::FixedString;
-use std::borrow::Cow;
-use std::collections::HashMap;
 use tracing::error;
 
 #[slash_command(
@@ -27,12 +25,12 @@ use tracing::error;
 	args = [(name = "user", desc = "The user to remove the subscription from.", arg_type = User, required = true, autocomplete = false)],
 )]
 async fn remove_test_sub_command(self_: RemoveTestSubCommand) -> Result<EmbedsContents<'_>> {
-	let ctx = self_.get_ctx();
-	let bot_data = ctx.data::<BotData>().clone();
-	let command_interaction = self_.get_command_interaction();
-	let _config = bot_data.config.clone();
+	let cx = CommandContext::new(
+		self_.get_ctx().clone(),
+		self_.get_command_interaction().clone(),
+	);
 
-	let map = get_option_map_user(command_interaction);
+	let map = get_option_map_user(&cx.command_interaction);
 
 	let user = map.get(&FixedString::from_str_trunc("user"));
 
@@ -43,30 +41,38 @@ async fn remove_test_sub_command(self_: RemoveTestSubCommand) -> Result<EmbedsCo
 		},
 	};
 
-	let entitlements = ctx
+	let entitlements = cx
+		.ctx
 		.http
 		.get_entitlements(Some(*user), None, None, None, None, None, None)
 		.await?;
-	let db_connection = bot_data.db_connection.clone();
 
-	let guild_id = command_interaction.guild_id.unwrap().to_string();
-	let lang_id = get_language_identifier(guild_id, db_connection).await;
+	let lang_id = cx.lang_id().await;
 
 	// defer the response
 	let builder_message = Defer(CreateInteractionResponseMessage::new());
 
-	command_interaction
-		.create_response(&ctx.http, builder_message)
+	cx.command_interaction
+		.create_response(&cx.ctx.http, builder_message)
 		.await?;
 
-	for entitlement in entitlements {
-		if let Err(e) = ctx.http.delete_test_entitlement(entitlement.id).await {
-			error!("Error while deleting entitlement: {}", e);
+	let mut failed = 0u32;
+	for entitlement in &entitlements {
+		if let Err(e) = cx.ctx.http.delete_test_entitlement(entitlement.id).await {
+			error!("Error while deleting entitlement {}: {}", entitlement.id, e);
+			failed += 1;
 		}
 	}
 
-	let mut args: HashMap<Cow<'static, str>, FluentValue> = HashMap::new();
-	args.insert(Cow::Borrowed("user"), FluentValue::from(user.to_string()));
+	if failed > 0 {
+		return Err(anyhow!(
+			"Failed to delete {} of {} entitlements",
+			failed,
+			entitlements.len()
+		));
+	}
+
+	let args = fluent_args!("user" => user.to_string());
 
 	let success_msg =
 		USABLE_LOCALES.lookup_with_args(&lang_id, "management_remove_test_sub-success", &args);

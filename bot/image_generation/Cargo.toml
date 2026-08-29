@@ -2,6 +2,7 @@
 name = "image_generation"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 tokio.workspace = true
@@ -21,3 +22,4 @@ rayon.workspace = true
 uuid.workspace = true
 redis.workspace = true
 sentry.workspace = true
+libc.workspace = true

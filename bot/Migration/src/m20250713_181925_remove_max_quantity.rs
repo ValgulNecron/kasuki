@@ -1,4 +1,3 @@
-// remove the max quantity from the items model
 use crate::m20250712_120900_create_item::Item;
 use sea_orm_migration::prelude::*;
 

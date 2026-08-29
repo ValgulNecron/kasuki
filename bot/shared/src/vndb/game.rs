@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use crate::cache::CacheInterface;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 
@@ -58,7 +57,7 @@ pub struct VN {
 	pub image: Option<Image>,
 	pub staff: Vec<Staff>,
 	pub rating: Option<f64>,
-	pub length_minutes: Option<f64>, // Kept as Option since it might be null
+	pub length_minutes: Option<f64>,
 	pub platforms: Vec<String>,
 	pub title: String,
 	pub average: Option<f64>,
@@ -80,7 +79,7 @@ pub struct VNRoot {
 }
 
 pub async fn get_vn(
-	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+	value: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<VNRoot> {
 	let value = value.to_lowercase();
 
@@ -149,7 +148,7 @@ impl Serialize for DevStatus {
 			Self::Finished => 0,
 			Self::Development => 1,
 			Self::Cancelled => 2,
-			Self::Unknown => 99, // Assuming 99 as a placeholder for unknown
+			Self::Unknown => 99,
 		};
 
 		value.serialize(serializer)

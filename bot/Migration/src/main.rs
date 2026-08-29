@@ -1,4 +1,4 @@
-use migration::sea_orm::sqlx::{query, PgPool};
+use migration::sea_orm::sqlx::{AssertSqlSafe, PgPool, query};
 use sea_orm_migration::prelude::*;
 use std::env;
 
@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		Err(_) => {
 			let database_url = database_url.replace(db_name, "");
 			let pool = PgPool::connect(&database_url).await?;
-			query(&format!("CREATE DATABASE {}", db_name))
+			query(AssertSqlSafe(format!("CREATE DATABASE {}", db_name)))
 				.execute(&pool)
 				.await?;
 		},

@@ -1,8 +1,8 @@
 use crate::helper::get_guild_lang::get_guild_language;
 use anyhow::Result;
-use fluent_templates::static_loader;
-pub use fluent_templates::fluent_bundle::FluentValue;
 pub use fluent_templates::Loader;
+pub use fluent_templates::fluent_bundle::FluentValue;
+use fluent_templates::static_loader;
 use sea_orm::DatabaseConnection;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -19,6 +19,36 @@ pub fn load_locales() -> Result<()> {
 	Ok(())
 }
 
+/// Build a Fluent argument map with less boilerplate.
+///
+/// ```ignore
+/// let args = fluent_args!("user" => username, "count" => 42);
+/// USABLE_LOCALES.lookup_with_args(&lang_id, "key", &args);
+/// ```
+#[macro_export]
+macro_rules! fluent_args {
+	($($key:expr_2021 => $val:expr_2021),* $(,)?) => {{
+		let mut args = std::collections::HashMap::<
+			std::borrow::Cow<'static, str>,
+			$crate::localization::FluentValue,
+		>::new();
+		$(
+			args.insert(
+				std::borrow::Cow::Borrowed($key),
+				$crate::localization::FluentValue::from($val),
+			);
+		)*
+		args
+	}};
+}
+
+/// Returns the list of available locales baked in at compile time by `static_loader!`.
+pub fn available_locales() -> Vec<String> {
+	let mut locales: Vec<String> = USABLE_LOCALES.locales().map(|l| l.to_string()).collect();
+	locales.sort();
+	locales
+}
+
 pub async fn get_language_identifier(
 	guild_id: String, db_connection: Arc<DatabaseConnection>,
 ) -> LanguageIdentifier {
@@ -28,8 +58,10 @@ pub async fn get_language_identifier(
 		"en" => "en-US",
 		other => other,
 	};
-	LanguageIdentifier::from_str(lang_code)
-		.unwrap_or_else(|_| LanguageIdentifier::from_str("en-US").unwrap())
+	LanguageIdentifier::from_str(lang_code).unwrap_or_else(|_| {
+		LanguageIdentifier::from_str("en-US")
+			.expect("hardcoded fallback locale 'en-US' is a valid BCP-47 identifier")
+	})
 }
 
 #[cfg(test)]
@@ -280,4 +312,3 @@ mod tests {
 		}
 	}
 }
-

@@ -1,6 +1,7 @@
 pub mod clear;
 pub mod join;
 pub mod leave;
+pub mod music_context;
 pub mod pause;
 pub mod play;
 pub mod queue;

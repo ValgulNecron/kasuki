@@ -52,6 +52,15 @@ lavalink_hostname = ""
 lavalink_password = ""
 https = false
 
+# Optional. Steam features (the /steam game command and its autocomplete) are disabled
+# when this section is absent.
+#
+# A key is required: Valve removed the key-less ISteamApps/GetAppList endpoint from the
+# public API, so the app-list index can only be built via IStoreService/GetAppList.
+# Get a key at https://steamcommunity.com/dev/apikey
+# [steam]
+# api_key = ""
+
 [image]
 # max_workers = 1        # Defaults to max(cpus/10, 1)
 
@@ -66,8 +75,15 @@ s3_access_key = ""
 s3_secret_key = ""
 
 [logging]
+# "trace" is extremely verbose; prefer "info"/"warn" for long-running deployments.
 log_level = "trace"
 max_log_retention = 30
+# Disk-aware log rotation, enforced by the bot process itself. When free space on
+# the log volume falls below disk_min_free_percent, the oldest log files are
+# deleted (newest always kept) until disk_target_free_percent is free again.
+disk_cleanup_interval_secs = 300
+disk_min_free_percent = 10
+disk_target_free_percent = 20
 
 [ai.image]
 ai_image_token = ""
@@ -100,7 +116,6 @@ ai_transcription_model = ""
 [task_intervals]
 ping_update = 600
 before_server_image = 1800
-server_image_update = 21600
 game_update = 86400
 bot_info = 1800
 blacklisted_user_update = 3600

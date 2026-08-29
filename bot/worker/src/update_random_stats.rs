@@ -12,7 +12,6 @@ use shared::cache::CacheInterface;
 use shared::config::TaskIntervalConfig;
 use shared::database::random_stats;
 use tokio::sync::broadcast;
-use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, error, info, warn};
 
@@ -38,6 +37,7 @@ struct PageState {
 
 impl Default for PageState {
 	fn default() -> Self {
+		// Start near AniList's current max page — we only need new/recent entries, not the full history
 		Self {
 			anime_last_page: 1796,
 			manga_last_page: 1796,
@@ -46,7 +46,7 @@ impl Default for PageState {
 }
 
 pub async fn update_random_stats_launcher(
-	anilist_cache: Arc<RwLock<CacheInterface>>, task_intervals: TaskIntervalConfig,
+	anilist_cache: Arc<CacheInterface>, task_intervals: TaskIntervalConfig,
 	db: Arc<DatabaseConnection>, mut shutdown_rx: broadcast::Receiver<()>,
 ) {
 	info!("Launching random stats update task");
@@ -84,6 +84,7 @@ pub async fn update_random_stats_launcher(
 						error!("Cycle #{} failed: {:#}", cycle, err);
 
 						if consecutive_failures > MAX_CONSECUTIVE_FAILURES {
+							// Exponential backoff: 5s * 1.5^(n-3), grows gently to avoid hammering AniList
 							let delay = base_retry_delay
 								.mul_f32(1.5_f32.powi(consecutive_failures as i32 - 3));
 							warn!("Backing off for {:?} after {} failures", delay, consecutive_failures);
@@ -97,7 +98,7 @@ pub async fn update_random_stats_launcher(
 }
 
 async fn update_random_stats(
-	anilist_cache: Arc<RwLock<CacheInterface>>, db: Arc<DatabaseConnection>,
+	anilist_cache: Arc<CacheInterface>, db: Arc<DatabaseConnection>,
 ) -> Result<PageState> {
 	let mut state = match random_stats::Entity::find_by_id(1).one(&*db).await? {
 		Some(model) => {
@@ -116,20 +117,19 @@ async fn update_random_stats(
 		},
 	};
 
-	// Update anime pages, then manga pages
 	let anime_pages = update_category(StatCategory::Anime, &mut state, anilist_cache.clone()).await;
 	info!("Anime stats: processed {} pages", anime_pages);
 
 	let manga_pages = update_category(StatCategory::Manga, &mut state, anilist_cache).await;
 	info!("Manga stats: processed {} pages", manga_pages);
 
-	// Persist updated page state
 	let active_model = random_stats::ActiveModel {
 		id: Set(1),
 		last_anime_page: Set(state.anime_last_page),
 		last_manga_page: Set(state.manga_last_page),
 	};
 
+	// Upsert with fixed id=1 — only one row needed to track global pagination state
 	random_stats::Entity::insert(active_model)
 		.on_conflict(
 			sea_orm::sea_query::OnConflict::column(random_stats::Column::Id)
@@ -148,8 +148,9 @@ async fn update_random_stats(
 
 /// Paginate through one category (anime or manga) until no more pages or too many failures.
 async fn update_category(
-	category: StatCategory, state: &mut PageState, anilist_cache: Arc<RwLock<CacheInterface>>,
+	category: StatCategory, state: &mut PageState, anilist_cache: Arc<CacheInterface>,
 ) -> u32 {
+	// Cap per-category failures independently from the outer cycle failure counter
 	const MAX_FAILURES: u32 = 5;
 	let mut failures = 0;
 	let mut pages_processed = 0;
@@ -172,6 +173,7 @@ async fn update_category(
 		let page = get_page(state, category);
 		match fetch_page(category, page, anilist_cache.clone()).await {
 			Ok(has_next) => {
+				// Reset failures on success so transient errors don't accumulate across pages
 				failures = 0;
 				pages_processed += 1;
 
@@ -193,13 +195,14 @@ async fn update_category(
 					category, page, failures, MAX_FAILURES, e
 				);
 
+				// Linear backoff (2s, 4s, 6s...) — retry the same page, don't advance
 				let delay = Duration::from_secs((2 * failures).into());
 				sleep(delay).await;
 				continue;
 			},
 		}
 
-		// Avoid API rate limiting
+		// Pace requests to stay within AniList's rate limit (90 req/min)
 		sleep(Duration::from_secs(1)).await;
 	}
 
@@ -208,11 +211,8 @@ async fn update_category(
 
 /// Fetch a single page of statistics from the AniList API.
 async fn fetch_page(
-	category: StatCategory, page: i32, anilist_cache: Arc<RwLock<CacheInterface>>,
+	category: StatCategory, page: i32, anilist_cache: Arc<CacheInterface>,
 ) -> Result<bool> {
-	// Both AnimeStat and MangaStat share the same response shape and both
-	// use a field named `manga` on SiteStatistics (this is how the shared
-	// GraphQL types are defined — the field name doesn't affect correctness).
 	let data: GraphQlResponse<AnimeStat> = match category {
 		StatCategory::Anime => {
 			let op = AnimeStat::build(AnimeStatVariables { page: Some(page) });
@@ -224,7 +224,7 @@ async fn fetch_page(
 		},
 	};
 
-	// Extract has_next_page from the nested response
+	// Both anime and manga responses share the same GraphQL type; `.manga` field works for both
 	let has_next = data
 		.data
 		.and_then(|d| d.site_statistics)

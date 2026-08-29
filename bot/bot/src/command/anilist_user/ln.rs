@@ -1,19 +1,9 @@
-//! Represents the `LnCommand` structure, which implements the `Command` trait
-//! and handles interactions for fetching Light Novel (LN) data from AniList.
-//!
-//! # Fields
-//! * `ctx` - The Serenity context used for accessing Discord API and application data.
-//! * `command_interaction` - The interaction object representing the command invocation by the user.
-//!
 use crate::command::context::CommandContext;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::helper::make_graphql_cached::make_request_anilist;
 use crate::structure::run::anilist::media;
 use crate::structure::run::anilist::media::{
-	Media, MediaFormat, MediaQuerryId, MediaQuerryIdVariables, MediaQuerrySearch,
-	MediaQuerrySearchVariables, MediaType,
+	MediaFormat, MediaType, fetch_guild_scores, get_media,
 };
-use cynic::{GraphQlResponse, QueryBuilder};
 use kasuki_macros::slash_command;
 use serenity::all::{CommandInteraction, Context as SerenityContext};
 use small_fixed_array::FixedString;
@@ -37,37 +27,20 @@ async fn ln_command(self_: LnCommand) -> Result<EmbedsContents<'_>> {
 		.cloned()
 		.unwrap_or(String::new());
 
-	let data: Media = if value.parse::<i32>().is_ok() {
-		let id = value.parse::<i32>()?;
+	let format_in = Some(vec![Some(MediaFormat::Novel)]);
+	let data = get_media(
+		&value,
+		Some(MediaType::Manga),
+		format_in,
+		anilist_cache.clone(),
+	)
+	.await?;
 
-		let var = MediaQuerryIdVariables {
-			format_in: Some(vec![Some(MediaFormat::Novel)]),
-			id: Some(id),
-			media_type: Some(MediaType::Manga),
-		};
+	let member_ids = cx.guild_member_ids();
+	let guild_scores = fetch_guild_scores(&member_ids, data.id, &cx.db, anilist_cache).await;
 
-		let operation = MediaQuerryId::build(var);
-
-		let data: GraphQlResponse<MediaQuerryId> =
-			make_request_anilist(operation, true, anilist_cache).await?;
-
-		data.data.unwrap().media.unwrap()
-	} else {
-		let var = MediaQuerrySearchVariables {
-			format_in: Some(vec![Some(MediaFormat::Novel)]),
-			search: Some(&*value),
-			media_type: Some(MediaType::Manga),
-		};
-
-		let operation = MediaQuerrySearch::build(var);
-
-		let data: GraphQlResponse<MediaQuerrySearch> =
-			make_request_anilist(operation, true, anilist_cache).await?;
-
-		data.data.unwrap().media.unwrap()
-	};
-	let embed_content =
-		media::media_content(cx.ctx, cx.command_interaction, data, cx.db, cx.bot_data).await?;
+	let lang_id = cx.lang_id().await;
+	let embed_content = media::media_content(data, &lang_id, cx.db.clone(), guild_scores).await?;
 
 	Ok(embed_content)
 }

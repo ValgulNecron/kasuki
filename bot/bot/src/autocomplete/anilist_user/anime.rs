@@ -1,17 +1,20 @@
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{
+	AutocompleteChoice, CommandInteraction, Context, CreateAutocompleteResponse,
+	CreateInteractionResponse,
+};
 use small_fixed_array::FixedString;
 use tracing::trace;
 
 use crate::constant::DEFAULT_STRING;
 use crate::event_handler::BotData;
 use crate::helper::get_option::command::get_option_map_string;
-use crate::structure::autocomplete::anilist::media::{
-	send_auto_complete, MediaAutocompleteVariables, MediaFormat, MediaType,
-};
+use shared::anilist::autocomplete::media::{MediaFormat, MediaType};
+use shared::anilist::autocomplete::search_media;
 
-pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &Context, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
+
 	let anime_search = map
 		.get(&FixedString::from_str_trunc("anime_name"))
 		.map(String::as_str)
@@ -19,29 +22,42 @@ pub async fn autocomplete(ctx: Context, autocomplete_interaction: CommandInterac
 
 	trace!("anime_search: {}", anime_search);
 
-	let var = get_autocomplete_media_variables(anime_search);
+	let anime_formats = vec![
+		Some(MediaFormat::Tv),
+		Some(MediaFormat::TvShort),
+		Some(MediaFormat::Movie),
+		Some(MediaFormat::Special),
+		Some(MediaFormat::Ova),
+		Some(MediaFormat::Ona),
+		Some(MediaFormat::Music),
+	];
 
-	send_auto_complete(
-		&ctx,
-		autocomplete_interaction,
-		var,
+	let results = match search_media(
+		anime_search,
+		Some(MediaType::Anime),
+		Some(anime_formats),
 		bot_data.anilist_cache.clone(),
 	)
-	.await;
-}
+	.await
+	{
+		Ok(results) => results,
+		Err(e) => {
+			tracing::debug!(?e);
 
-pub fn get_autocomplete_media_variables(anime_search: &str) -> MediaAutocompleteVariables<'_> {
-	MediaAutocompleteVariables {
-		search: Some(anime_search),
-		in_media_format: Some(vec![
-			Some(MediaFormat::Tv),
-			Some(MediaFormat::TvShort),
-			Some(MediaFormat::Movie),
-			Some(MediaFormat::Special),
-			Some(MediaFormat::Ova),
-			Some(MediaFormat::Ona),
-			Some(MediaFormat::Music),
-		]),
-		media_type: Some(MediaType::Anime),
-	}
+			return;
+		},
+	};
+
+	let choices: Vec<AutocompleteChoice> = results
+		.into_iter()
+		.map(|(name, id)| AutocompleteChoice::new(name, id))
+		.collect();
+
+	let data = CreateAutocompleteResponse::new().set_choices(choices);
+
+	let builder = CreateInteractionResponse::Autocomplete(data);
+
+	let _ = autocomplete_interaction
+		.create_response(&ctx.http, builder)
+		.await;
 }

@@ -12,6 +12,7 @@ pub struct Model {
 	pub data: String,
 	pub chat_length: i32,
 	pub channel_id: String,
+	pub created_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

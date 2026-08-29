@@ -1,23 +1,27 @@
-use crate::api::auth::{auth_middleware, Claims};
+use crate::api::auth::{Claims, auth_middleware};
+use crate::api::blacklist;
 use crate::api::error::AppError;
-use crate::api::oauth::{get_user_guilds, get_user_info, refresh_discord_token, Guild, UserInfo};
-use crate::api::rate_limit::{create_rate_limiter, rate_limit_middleware};
+use crate::api::guild;
+use crate::api::oauth::{Guild, UserInfo, get_user_guilds, get_user_info, refresh_discord_token};
+use crate::api::rate_limit::{
+	create_rate_limiter, rate_limit_middleware, spawn_rate_limiter_cleanup,
+};
 use crate::api::state::AppState;
 use crate::api::{health, oauth as oauth_handlers};
 use axum::{
+	Extension, Json, Router,
 	extract::State,
 	http::Method,
 	middleware,
 	response::IntoResponse,
 	routing::{get, post},
-	Extension, Json, Router,
 };
 use chrono::{Duration, Utc};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait};
 use serde::{Deserialize, Serialize};
 use shared::database::oauth_token;
 use tower_http::cors::{AllowOrigin, Any, CorsLayer};
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserDataResponse {
@@ -32,8 +36,7 @@ pub async fn get_user_profile(
 	let user_id = claims.sub;
 
 	let (user_info, guilds) = state
-		.user_cache
-		.get(&user_id)
+		.get_cached_user(&user_id)
 		.await
 		.ok_or_else(|| AppError::not_found("User not found"))?;
 
@@ -75,10 +78,7 @@ pub async fn update_user_data(
 	let user_info = get_user_info(&state.http_client, &access_token).await?;
 	let guilds = get_user_guilds(&state.http_client, &access_token).await?;
 
-	state
-		.user_cache
-		.insert(user_id.clone(), (user_info.clone(), guilds.clone()))
-		.await;
+	state.cache_user(user_id, &user_info, &guilds).await;
 
 	info!(user = %user_id, "refreshed user data from discord");
 
@@ -109,7 +109,13 @@ fn build_cors_layer(config: &shared::config::Config) -> CorsLayer {
 				}
 				false
 			}))
-			.allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+			.allow_methods([
+				Method::GET,
+				Method::POST,
+				Method::PUT,
+				Method::DELETE,
+				Method::OPTIONS,
+			])
 			.allow_headers([
 				axum::http::header::AUTHORIZATION,
 				axum::http::header::CONTENT_TYPE,
@@ -121,7 +127,13 @@ fn build_cors_layer(config: &shared::config::Config) -> CorsLayer {
 			.allow_origin(AllowOrigin::predicate(move |origin, _| {
 				origin.to_str().unwrap_or("") == frontend_url
 			}))
-			.allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+			.allow_methods([
+				Method::GET,
+				Method::POST,
+				Method::PUT,
+				Method::DELETE,
+				Method::OPTIONS,
+			])
 			.allow_headers([
 				axum::http::header::AUTHORIZATION,
 				axum::http::header::CONTENT_TYPE,
@@ -130,11 +142,81 @@ fn build_cors_layer(config: &shared::config::Config) -> CorsLayer {
 	}
 }
 
+/// Background task: refresh all Discord OAuth tokens that expire within the next hour.
+/// Runs every 30 minutes so tokens are always fresh, even if the user never comes back.
+pub fn spawn_discord_token_refresh(state: AppState) {
+	tokio::spawn(async move {
+		let mut interval = tokio::time::interval(std::time::Duration::from_secs(30 * 60));
+		loop {
+			interval.tick().await;
+			if let Err(e) = refresh_expiring_tokens(&state).await {
+				error!("discord token refresh task failed: {}", e.message);
+			}
+		}
+	});
+}
+
+async fn refresh_expiring_tokens(state: &AppState) -> Result<(), AppError> {
+	use sea_orm::{ColumnTrait, QueryFilter};
+
+	// Find tokens expiring within the next hour
+	let cutoff = (Utc::now() + Duration::hours(1)).naive_utc();
+	let expiring = oauth_token::Entity::find()
+		.filter(oauth_token::Column::ExpiresAt.lt(cutoff))
+		.all(&*state.db)
+		.await?;
+
+	if expiring.is_empty() {
+		return Ok(());
+	}
+
+	info!(
+		count = expiring.len(),
+		"refreshing discord tokens expiring soon"
+	);
+
+	for record in expiring {
+		let user_id = record.user_id.clone();
+		match refresh_discord_token(state, &record.refresh_token).await {
+			Ok(new_tokens) => {
+				let now = Utc::now().naive_utc();
+				let expires_at = now + Duration::seconds(new_tokens.expires_in as i64);
+				let mut active: oauth_token::ActiveModel = record.into();
+				active.access_token = Set(new_tokens.access_token);
+				active.refresh_token = Set(new_tokens.refresh_token);
+				active.expires_at = Set(expires_at);
+				active.updated_at = Set(now);
+				match active.update(&*state.db).await {
+					Err(e) => {
+						error!(user = %user_id, error = %e, "failed to save refreshed tokens");
+					},
+					_ => {
+						debug!(user = %user_id, "refreshed discord token");
+					},
+				}
+			},
+			Err(e) => {
+				// Refresh token might be revoked — delete the record so it doesn't retry forever
+				error!(user = %user_id, error = %e.message, "discord token refresh failed, removing record");
+				let _ = oauth_token::Entity::delete_by_id(user_id)
+					.exec(&*state.db)
+					.await;
+			},
+		}
+	}
+
+	Ok(())
+}
+
 pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 	let port = state.config.api.port;
 	let cors = build_cors_layer(&state.config);
 
 	let rate_limiter = create_rate_limiter(state.config.api.rate_limit_per_minute);
+	spawn_rate_limiter_cleanup(&rate_limiter);
+
+	// Background task to keep Discord tokens fresh
+	spawn_discord_token_refresh(state.clone());
 
 	let oauth_router = Router::new()
 		.route("/login", get(oauth_handlers::oauth_login))
@@ -149,16 +231,26 @@ pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 	let user_router = Router::new()
 		.route("/me", get(get_user_profile))
 		.route("/update", post(update_user_data))
+		.route("/blacklist-request", post(blacklist::request_blacklist))
 		.layer(middleware::from_fn_with_state(
 			state.clone(),
 			auth_middleware,
 		))
 		.with_state(state.clone());
 
+	let guild_router = guild::guild_router(state.clone());
+	let anilist_router = guild::anilist_router(state.clone());
+
 	let app = Router::new()
 		.route("/api/health", get(health::health_check))
+		.route(
+			"/api/health/ready",
+			get(health::readiness_check).with_state(state.clone()),
+		)
 		.nest("/api/oauth", oauth_router)
 		.nest("/api/user", user_router)
+		.nest("/api/guild", guild_router)
+		.nest("/api/anilist", anilist_router)
 		.layer(cors);
 
 	let addr = format!("0.0.0.0:{}", port);

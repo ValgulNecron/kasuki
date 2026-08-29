@@ -10,7 +10,7 @@ use tracing::{info, instrument, trace, warn};
 impl Handler {
 	#[instrument(skip(self, ctx, old, new))]
 	pub(crate) async fn voice_state_update(
-		&self, ctx: SerenityContext, old: Option<VoiceState>, new: VoiceState,
+		&self, ctx: &SerenityContext, old: Option<VoiceState>, new: VoiceState,
 	) {
 		let user_id = new.user_id;
 		trace!(user_id = %user_id, "Voice state update received for user");

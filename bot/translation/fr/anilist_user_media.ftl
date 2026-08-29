@@ -11,3 +11,6 @@ anilist_user_media-source = Source:
 anilist_user_media-staffs = Staff avec le rôle:
 anilist_user_media-start_date = Date de début:
 anilist_user_media-tag = Tag
+anilist_user_media-streaming = Diffusion
+anilist_user_media-trailer = Bande-annonce
+anilist_user_media-server_members = Membres du serveur

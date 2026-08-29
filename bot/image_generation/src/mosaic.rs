@@ -1,60 +1,65 @@
+use crate::calculate::{make_params, srgb_to_cam16ucs};
+use crate::color::{ColorWithTile, find_closest_color_index};
 use anyhow::Result;
 use image::codecs::png;
 use image::codecs::png::PngEncoder;
-use image::imageops::FilterType;
-use image::{DynamicImage, ExtendedColorType, GenericImage, GenericImageView, ImageEncoder};
-use palette::{IntoColor, Lab, Srgb};
+use image::{ExtendedColorType, GenericImageView, ImageEncoder, RgbaImage};
+use palette::Srgb;
 use rayon::prelude::*;
 
-use crate::color::{find_closest_color_index, Color, ColorWithUrl};
-
-/// Generate a mosaic image from a guild icon and member color data.
-/// Returns raw PNG bytes.
 pub fn generate_mosaic(
-	guild_icon: &DynamicImage, average_colors: &[ColorWithUrl],
+	guild_icon: &image::DynamicImage, average_colors: &[ColorWithTile],
 ) -> Result<Vec<u8>> {
 	let tile_size: u32 = 32;
+	// Guild icons are 128x128; each pixel becomes one tile, so canvas = 128 * 32 = 4096px
 	let canvas_dim = 128 * tile_size;
 
-	let mut combined_image = DynamicImage::new_rgba8(canvas_dim, canvas_dim);
+	// Opaque white canvas: the mosaic is defined on a white ground, so any pixel a tile ever
+	// fails to cover renders white in every Discord theme instead of theme-dependent
+	// transparency. Tiles are already flattened against white in create_color_tile (before
+	// their resize, to avoid straight-alpha edge bleed), so replace() pastes opaque pixels.
+	let mut combined_image =
+		RgbaImage::from_pixel(canvas_dim, canvas_dim, image::Rgba([255, 255, 255, 255]));
 
-	let pixels: Vec<(u32, u32)> = (0..guild_icon.height())
+	let params = make_params();
+
+	let indices: Vec<(u32, u32, usize)> = (0..guild_icon.height())
 		.flat_map(|y| (0..guild_icon.width()).map(move |x| (x, y)))
-		.collect();
-
-	let indices: Vec<(u32, u32, usize)> = pixels
-		.par_iter()
-		.filter_map(|&(x, y)| {
+		// Parallelize the expensive per-pixel color matching across CPU cores
+		.par_bridge()
+		.filter_map(|(x, y)| {
 			let pixel = guild_icon.get_pixel(x, y);
 
-			let r = pixel[0] as f32 / 255.0;
-			let g = pixel[1] as f32 / 255.0;
-			let b = pixel[2] as f32 / 255.0;
+			// Composite over white, matching how tile descriptors resolve alpha: the mosaic
+			// is an opaque image on a white ground, so transparent icon regions become white
+			// targets instead of holes, and semi-transparent edges match their displayed color
+			let alpha = pixel[3] as u32;
+			let inverse = 255 - alpha;
+			let composite = |c: u8| ((c as u32 * alpha + 255 * inverse) / 255) as u8;
 
-			let rgb_color = Srgb::new(r, g, b);
-			let lab_color: Lab = <palette::rgb::Rgb as IntoColor<Lab>>::into_color(rgb_color);
-			let color_target = Color { cielab: lab_color };
+			let srgb: Srgb<f32> = Srgb::new(
+				composite(pixel[0]),
+				composite(pixel[1]),
+				composite(pixel[2]),
+			)
+			.into_format();
+			let target = srgb_to_cam16ucs(srgb, params);
 
-			find_closest_color_index(average_colors, &color_target).map(|idx| (x, y, idx))
+			find_closest_color_index(average_colors, &target).map(|idx| (x, y, idx))
 		})
 		.collect();
 
+	// Sequential placement: image mutation is not thread-safe, but matching was done in parallel above
 	for (x, y, idx) in indices {
-		let tile = image::imageops::resize(
-			&average_colors[idx].image,
-			tile_size,
-			tile_size,
-			FilterType::Triangle,
+		image::imageops::replace(
+			&mut combined_image,
+			&average_colors[idx].tile,
+			(x * tile_size) as i64,
+			(y * tile_size) as i64,
 		);
-		let tile_img = DynamicImage::ImageRgba8(tile);
-		if combined_image
-			.copy_from(&tile_img, x * tile_size, y * tile_size)
-			.is_err()
-		{
-			continue;
-		}
 	}
 
+	// Best compression + adaptive filter: mosaic PNGs are large (~4096x4096), worth the CPU cost
 	let mut image_data: Vec<u8> = Vec::new();
 	PngEncoder::new_with_quality(
 		&mut image_data,
@@ -62,7 +67,7 @@ pub fn generate_mosaic(
 		png::FilterType::Adaptive,
 	)
 	.write_image(
-		combined_image.as_bytes(),
+		combined_image.as_raw(),
 		combined_image.width(),
 		combined_image.height(),
 		ExtendedColorType::Rgba8,

@@ -9,3 +9,4 @@ bot_credit-desc =
     {"["}waifu.pics](https://waifu.pics/) for anime images
     {"["}VNDB](https://vndb.org/) for visual novel data
     {"["}Steam](https://store.steampowered.com/) for game data
+bot_credit-contributors = Contributors

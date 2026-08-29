@@ -1,5 +1,5 @@
 use crate::command::guess_kind::guess_command_kind;
-use crate::command::registry::{get_message_registry, get_slash_registry, get_user_registry};
+use crate::command::registry::{get_slash_registry, get_user_registry};
 use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use serenity::all::{CommandInteraction, Context as SerenityContext};
@@ -27,9 +27,35 @@ pub async fn dispatch_command(
 		kind, name, full_command_name
 	);
 
+	// Hash IDs before sending to Sentry to avoid leaking raw Discord snowflakes (PII)
+	// Truncate to 16 chars — enough for unique identification without full hash overhead
+	let hashed_user =
+		shared::cache::hash_key(&command_interaction.user.id.to_string())[..16].to_string();
+	let hashed_guild = command_interaction
+		.guild_id
+		.map(|g| shared::cache::hash_key(&g.to_string())[..16].to_string())
+		.unwrap_or_else(|| "dm".to_string());
+
+	sentry::configure_scope(|scope| {
+		scope.set_user(Some(sentry::User {
+			id: Some(hashed_user.into()),
+			..Default::default()
+		}));
+		scope.set_tag("command", &full_command_name);
+		scope.set_tag("guild_id", &hashed_guild);
+	});
+
+	sentry::add_breadcrumb(sentry::Breadcrumb {
+		category: Some("command".into()),
+		message: Some(format!("Starting command: {}", full_command_name)),
+		level: sentry::Level::Info,
+		..Default::default()
+	});
+
 	let start_time = Instant::now();
 	info!("Executing command: {}", full_command_name);
 
+	// Lookup uses the dispatch key (e.g. "parent_sub" for subcommands) — built by guess_command_kind
 	let handler = get_slash_registry().get(name.as_str()).ok_or_else(|| {
 		error!("Unknown command requested: {}", full_command_name);
 		anyhow::anyhow!("Command not found: {}", full_command_name)
@@ -46,6 +72,7 @@ pub async fn dispatch_command(
 		full_command_name, execution_time
 	);
 
+	// 1000ms threshold: Discord shows "interaction failed" after 3s, so flag anything >1s
 	if execution_time.as_millis() > 1000 {
 		warn!(
 			"Command {} took over 1 second to execute: {:?}",
@@ -53,9 +80,19 @@ pub async fn dispatch_command(
 		);
 	}
 
+	sentry::add_breadcrumb(sentry::Breadcrumb {
+		category: Some("command".into()),
+		message: Some(format!(
+			"Command {} completed in {:?}",
+			full_command_name, execution_time
+		)),
+		level: sentry::Level::Info,
+		..Default::default()
+	});
+
 	bot_data
 		.increment_command_use_per_command(
-			full_command_name.clone(),
+			name.to_string(),
 			command_interaction.user.id.to_string(),
 			command_interaction.user.name.to_string(),
 		)
@@ -72,15 +109,5 @@ pub async fn dispatch_user_command(
 	let handler = get_user_registry()
 		.get(name)
 		.ok_or_else(|| anyhow::anyhow!("Unknown user command: {}", name))?;
-	handler.run(ctx, command_interaction, name).await
-}
-
-pub async fn dispatch_message_command(
-	ctx: &SerenityContext, command_interaction: &CommandInteraction,
-) -> Result<()> {
-	let name = command_interaction.data.name.as_str();
-	let handler = get_message_registry()
-		.get(name)
-		.ok_or_else(|| anyhow::anyhow!("Unknown message command: {}", name))?;
 	handler.run(ctx, command_interaction, name).await
 }

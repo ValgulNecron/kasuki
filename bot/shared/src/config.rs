@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use sea_orm::DatabaseConnection;
 use serde::Deserialize;
 use std::time::Duration;
@@ -16,7 +16,18 @@ pub struct Config {
 	pub api: ApiConfig,
 	pub cache: CacheConfig,
 	pub queue: QueueConfig,
+	pub steam: Option<SteamConfig>,
 	pub sentry_url: Option<String>,
+}
+
+/// Steam Web API access. Optional: when absent, Steam features are disabled.
+///
+/// The app-list endpoint (`IStoreService/GetAppList`) requires a key; Valve removed
+/// the old key-less `ISteamApps/GetAppList` from the public API.
+/// Get one at <https://steamcommunity.com/dev/apikey>.
+#[derive(Debug, Deserialize, Clone)]
+pub struct SteamConfig {
+	pub api_key: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -33,7 +44,7 @@ pub struct CacheConfig {
 	/// TTL in seconds for cache entries (default: 3600)
 	#[serde(default = "default_cache_ttl")]
 	pub ttl_secs: u64,
-	/// Maximum number of entries for the in-memory backend (default: 10 000)
+	/// Maximum number of entries for the in-memory backend (default: 2 000)
 	#[serde(default = "default_cache_max_capacity")]
 	pub max_capacity: u64,
 }
@@ -47,7 +58,7 @@ fn default_cache_ttl() -> u64 {
 }
 
 fn default_cache_max_capacity() -> u64 {
-	10_000
+	2_000
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -62,7 +73,6 @@ impl QueueConfig {
 	pub fn redis_url(&self) -> String {
 		match self.password.as_deref() {
 			Some(pw) if !pw.is_empty() => {
-				// Percent-encode the password so special chars don't break URL parsing
 				let encoded: String = pw
 					.bytes()
 					.map(|b| match b {
@@ -182,7 +192,9 @@ pub struct ImageConfig {
 }
 
 fn default_max_workers() -> usize {
-	let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+	let cpus = std::thread::available_parallelism()
+		.map(|n| n.get())
+		.unwrap_or(1);
 	(cpus / 10).max(1)
 }
 
@@ -227,6 +239,29 @@ impl Default for StorageConfig {
 pub struct LoggingConfig {
 	pub log_level: String,
 	pub max_log_retention: u32,
+	/// How often the process checks free space on the log volume, in seconds.
+	#[serde(default = "default_disk_cleanup_interval_secs")]
+	pub disk_cleanup_interval_secs: u64,
+	/// When free space drops below this percentage of the log volume, the
+	/// process prunes its own oldest log files.
+	#[serde(default = "default_disk_min_free_percent")]
+	pub disk_min_free_percent: u8,
+	/// Pruning deletes oldest log files until at least this percentage of the
+	/// volume is free (hysteresis so cleanup does not run every tick).
+	#[serde(default = "default_disk_target_free_percent")]
+	pub disk_target_free_percent: u8,
+}
+
+fn default_disk_cleanup_interval_secs() -> u64 {
+	300
+}
+
+fn default_disk_min_free_percent() -> u8 {
+	10
+}
+
+fn default_disk_target_free_percent() -> u8 {
+	20
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -309,7 +344,6 @@ pub struct AICfgTranscription {
 pub struct TaskIntervalConfig {
 	pub ping_update: u64,
 	pub before_server_image: u64,
-	pub server_image_update: u64,
 	pub game_update: u64,
 	pub bot_info: u64,
 	pub blacklisted_user_update: u64,
@@ -317,6 +351,24 @@ pub struct TaskIntervalConfig {
 	pub random_stats_update: u64,
 	pub anisong_update: u64,
 	pub bot_info_update: u64,
+	#[serde(default = "default_db_cleanup_interval_hours")]
+	pub db_cleanup_interval_hours: u64,
+	#[serde(default = "default_db_retention_days")]
+	pub db_retention_days: u64,
+	#[serde(default = "default_image_retention_days")]
+	pub image_retention_days: u64,
+}
+
+fn default_db_cleanup_interval_hours() -> u64 {
+	24
+}
+
+fn default_db_retention_days() -> u64 {
+	90
+}
+
+fn default_image_retention_days() -> u64 {
+	30
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -331,6 +383,7 @@ pub struct ApiConfig {
 	pub rate_limit_per_minute: u32,
 	#[serde(default)]
 	pub cache: ApiCacheConfig,
+	pub blacklist_webhook_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -390,20 +443,138 @@ pub struct OAuthConfig {
 	pub discord_client_secret: String,
 	pub discord_redirect_uri: String,
 	pub frontend_url: String,
-	pub jwt_secret: String, // New field for JWT secret
+	pub jwt_secret: String,
 }
 
 impl Config {
 	pub fn new() -> Result<Self> {
 		let config = std::fs::read_to_string("config.toml")?;
 		let config: Config = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
 	}
 
 	pub fn load_from_path(path: &str) -> Result<Self> {
 		let config = std::fs::read_to_string(path)?;
 		let config: Config = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
+	}
+
+	fn validate(&self) -> Result<()> {
+		// Bot config
+		if self.bot.discord_token.is_empty() {
+			bail!("bot.discord_token must not be empty");
+		}
+
+		// Database config
+		if let Some(max) = self.db.max_connections {
+			if max == 0 {
+				bail!("db.max_connections must be > 0");
+			}
+		}
+		if let Some(min) = self.db.min_connections {
+			if min == 0 {
+				bail!("db.min_connections must be > 0");
+			}
+		}
+		if let (Some(max), Some(min)) = (self.db.max_connections, self.db.min_connections) {
+			if min > max {
+				bail!(
+					"db.min_connections ({}) must not exceed db.max_connections ({})",
+					min,
+					max
+				);
+			}
+		}
+
+		// Task intervals — zero would cause busy-loop or panic in Duration::from_secs
+		let intervals = &self.task_intervals;
+		for (name, val) in [
+			("ping_update", intervals.ping_update),
+			("before_server_image", intervals.before_server_image),
+			("game_update", intervals.game_update),
+			("bot_info", intervals.bot_info),
+			("blacklisted_user_update", intervals.blacklisted_user_update),
+			("activity_check", intervals.activity_check),
+			("random_stats_update", intervals.random_stats_update),
+			("anisong_update", intervals.anisong_update),
+			("bot_info_update", intervals.bot_info_update),
+		] {
+			if val == 0 {
+				bail!("task_intervals.{} must be > 0", name);
+			}
+		}
+
+		// Cache config
+		if self.cache.max_capacity == 0 {
+			bail!("cache.max_capacity must be > 0");
+		}
+
+		// Queue config
+		if self.queue.host.is_empty() {
+			bail!("queue.host must not be empty");
+		}
+
+		// Storage config — S3 requires its fields
+		if self.image.storage.storage_type == "s3" {
+			if self
+				.image
+				.storage
+				.s3_bucket
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
+				bail!("image.storage.s3_bucket is required when storage_type = \"s3\"");
+			}
+			if self
+				.image
+				.storage
+				.s3_access_key
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
+				bail!("image.storage.s3_access_key is required when storage_type = \"s3\"");
+			}
+			if self
+				.image
+				.storage
+				.s3_secret_key
+				.as_ref()
+				.is_none_or(|s| s.is_empty())
+			{
+				bail!("image.storage.s3_secret_key is required when storage_type = \"s3\"");
+			}
+		}
+
+		// API rate limit
+		if self.api.rate_limit_per_minute == 0 {
+			bail!("api.rate_limit_per_minute must be > 0");
+		}
+
+		// AI rate limits — zero multiplier would give premium users 0 requests
+		let ai_limits = &self.ai.rate_limits;
+		for (name, val) in [
+			("paid_image_multiplier", ai_limits.paid_image_multiplier),
+			(
+				"paid_question_multiplier",
+				ai_limits.paid_question_multiplier,
+			),
+			(
+				"paid_translation_multiplier",
+				ai_limits.paid_translation_multiplier,
+			),
+			(
+				"paid_transcript_multiplier",
+				ai_limits.paid_transcript_multiplier,
+			),
+		] {
+			if val <= 0.0 {
+				bail!("ai.rate_limits.{} must be > 0", name);
+			}
+		}
+
+		Ok(())
 	}
 }
 
@@ -421,6 +592,33 @@ impl WorkerConfig {
 	pub fn new() -> Result<Self> {
 		let config = std::fs::read_to_string("config.toml")?;
 		let config: WorkerConfig = toml::from_str(&config)?;
+		config.validate()?;
 		Ok(config)
+	}
+
+	fn validate(&self) -> Result<()> {
+		if self.bot.discord_token.is_empty() {
+			bail!("bot.discord_token must not be empty");
+		}
+		if let Some(max) = self.db.max_connections {
+			if max == 0 {
+				bail!("db.max_connections must be > 0");
+			}
+		}
+		if let Some(min) = self.db.min_connections {
+			if min == 0 {
+				bail!("db.min_connections must be > 0");
+			}
+		}
+		if let (Some(max), Some(min)) = (self.db.max_connections, self.db.min_connections) {
+			if min > max {
+				bail!(
+					"db.min_connections ({}) must not exceed db.max_connections ({})",
+					min,
+					max
+				);
+			}
+		}
+		Ok(())
 	}
 }

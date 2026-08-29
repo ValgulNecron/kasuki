@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use crate::cache::CacheInterface;
 use anyhow::{Context, Result};
 use cynic::{GraphQlResponse, Operation, QueryFragment, QueryVariables};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, error, info, warn};
+
+static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
 
 pub async fn make_request_anilist<
 	'a,
@@ -14,32 +15,24 @@ pub async fn make_request_anilist<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, always_update: bool, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, use_cache: bool, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
-	trace!("Starting GraphQL request to Anilist");
-	debug!("GraphQL query type: {}", std::any::type_name::<T>());
-	debug!("Always update cache: {}", always_update);
-
-	if !always_update {
-		info!("Bypassing cache check, making direct GraphQL request");
-		do_request(operation, anilist_cache)
-			.await
-			.with_context(|| "Failed to make direct GraphQL request to Anilist")
-	} else {
-		debug!("Checking cache before making GraphQL request");
+	if use_cache {
+		info!("Checking cache");
 		let return_data: GraphQlResponse<U> = match check_cache(operation, anilist_cache).await {
-			Ok(data) => {
-				debug!("Successfully retrieved GraphQL response");
-				data
-			},
+			Ok(data) => data,
 			Err(e) => {
 				error!("GraphQL request failed: {:#}", e);
 				return Err(e).with_context(|| "Failed to check cache or make GraphQL request");
 			},
 		};
 
-		trace!("GraphQL request completed successfully");
 		Ok(return_data)
+	} else {
+		info!("Bypassing cache, making direct request");
+		do_request(operation, anilist_cache)
+			.await
+			.with_context(|| "Failed to make direct GraphQL request to Anilist")
 	}
 }
 
@@ -49,35 +42,20 @@ async fn check_cache<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
-	trace!("Checking cache for GraphQL query");
-
-	let query_hash = operation.query.chars().take(20).collect::<String>();
-	debug!("Query hash: {}...", query_hash);
-
-	let anilist_cache_clone = anilist_cache.clone();
-
-	trace!("Acquiring read lock on cache");
-	let guard = anilist_cache_clone.read().await;
-
-	// Key must include variables so different queries don't collide in the cache
+	// Key = query text + serialized variables so identical queries with different params get separate cache entries
 	let key = format!(
 		"{}{}",
 		operation.query,
 		serde_json::to_string(&operation.variables).unwrap_or_default()
 	);
 
-	trace!("Looking up query in cache");
-	let cache = guard.read(&key).await?;
-
-	drop(guard);
-	trace!("Released cache read lock");
+	let cache = anilist_cache.read(&key).await?;
 
 	match cache {
 		Some(data) => {
 			info!("Cache hit for GraphQL query");
-			debug!("Deserializing cached response");
 			get_type(data).with_context(|| "Failed to deserialize cached GraphQL response")
 		},
 		None => {
@@ -94,20 +72,9 @@ async fn do_request<
 	S: QueryVariables + Serialize,
 	U: for<'de> Deserialize<'de>,
 >(
-	operation: Operation<T, S>, anilist_cache: Arc<RwLock<CacheInterface>>,
+	operation: Operation<T, S>, anilist_cache: Arc<CacheInterface>,
 ) -> Result<GraphQlResponse<U>> {
-	let query_hash = operation.query.chars().take(20).collect::<String>();
-	info!("Making GraphQL request to Anilist API");
-	debug!("Query hash: {}...", query_hash);
-
-	trace!("Creating HTTP client");
-	let client = Client::new();
-
-	trace!("Preparing GraphQL request");
-	debug!("Request URL: https://graphql.anilist.co/");
-
-	trace!("Sending GraphQL request");
-	let resp = match client
+	let resp = match HTTP_CLIENT
 		.post("https://graphql.anilist.co/")
 		.header("Content-Type", "application/json")
 		.header("Accept", "application/json")
@@ -126,13 +93,9 @@ async fn do_request<
 		},
 	};
 
-	trace!("Extracting response text");
+	// Cache raw JSON text instead of deserialized types so the cache is type-agnostic
 	let response_text = match resp.text().await {
-		Ok(text) => {
-			trace!("Successfully extracted response text");
-			debug!("Response size: {} bytes", text.len());
-			text
-		},
+		Ok(text) => text,
 		Err(e) => {
 			error!("Failed to extract text from response: {}", e);
 			return Err::<GraphQlResponse<U>, anyhow::Error>(e.into())
@@ -140,21 +103,14 @@ async fn do_request<
 		},
 	};
 
-	// Key must include variables so different queries don't collide in the cache
+	// Reconstruct the same key used in check_cache so reads and writes stay consistent
 	let key = format!(
 		"{}{}",
 		operation.query,
 		serde_json::to_string(&operation.variables).unwrap_or_default()
 	);
-	trace!("Acquiring write lock on cache");
-	anilist_cache
-		.write()
-		.await
-		.write(key, response_text.clone())
-		.await?;
-	trace!("Updated cache with new response");
+	anilist_cache.write(key, response_text.clone()).await?;
 
-	debug!("Deserializing GraphQL response");
 	get_type(response_text).with_context(|| {
 		format!(
 			"Failed to deserialize GraphQL response for query: {}",
@@ -163,26 +119,16 @@ async fn do_request<
 	})
 }
 
+// Deserializes raw JSON into the caller's expected response type (deferred from cache/network layer)
 fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlResponse<U>> {
-	trace!("Deserializing JSON response to GraphQL type");
-	debug!("Target type: {}", std::any::type_name::<U>());
-
 	let data = match serde_json::from_str::<GraphQlResponse<U>>(&value) {
 		Ok(parsed) => {
-			trace!("Successfully deserialized GraphQL response");
-
+			// GraphQL can return partial data alongside errors; log them but don't fail
 			if let Some(errors) = &parsed.errors {
 				if !errors.is_empty() {
 					warn!("GraphQL response contains {} errors", errors.len());
 					for (i, error) in errors.iter().enumerate() {
 						warn!("GraphQL error #{}: {}", i + 1, error.message);
-
-						if let Some(locations) = &error.locations {
-							debug!("Error locations: {:?}", locations);
-						}
-						if let Some(path) = &error.path {
-							debug!("Error path: {:?}", path);
-						}
 					}
 				}
 			}
@@ -196,6 +142,5 @@ fn get_type<U: for<'de> Deserialize<'de>>(value: String) -> Result<GraphQlRespon
 		},
 	};
 
-	debug!("GraphQL deserialization completed successfully");
 	Ok(data)
 }

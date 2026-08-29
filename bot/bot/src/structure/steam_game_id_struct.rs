@@ -1,138 +1,137 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
-// Import necessary libraries and modules
-use anyhow::{Context as AnyhowContext, Result};
+use anyhow::{Context as AnyhowContext, Result, anyhow};
+use arc_swap::ArcSwap;
+use reqwest::Client;
 use serde::Deserialize;
-use serde_json::Value;
-use tokio::sync::RwLock;
-use tracing::{debug, trace};
+use shared::cache::CacheInterface;
+use tracing::{debug, info, warn};
 
-// App is a struct that represents a Steam app
-#[derive(Debug, Deserialize, Clone)]
+use crate::structure::steam_game_index::SteamGameIndex;
+
+static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
+
+const STEAM_CACHE_KEY: &str = "steam_app_list";
+
+/// Response shape of `IStoreService/GetAppList/v1`.
+#[derive(Debug, Deserialize)]
+struct AppListResponse {
+	response: AppListPage,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct AppListPage {
+	#[serde(default)]
+	apps: Vec<App>,
+	/// Absent once the final page has been returned.
+	#[serde(default)]
+	have_more_results: bool,
+	/// Cursor to pass as `last_appid` for the next page.
+	#[serde(default)]
+	last_appid: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct App {
-	// app_id is the id of the app
 	#[serde(rename = "appid")]
-	pub app_id: u128,
-	// name is the name of the app
+	pub app_id: u32,
+	#[serde(default)]
 	pub name: String,
 }
 
-/// `get_game` is an asynchronous function that gets the list of Steam apps and stores them in the APPS constant.
-/// It returns the number of new entries added to the cache.
-///
-/// # Arguments
-///
-/// * `apps_data` - An Arc-wrapped RwLock containing a HashMap of game names to app IDs
-///
-/// # Returns
-///
-/// * `Ok(usize)` - The number of new entries added to the cache
-/// * `Err(Error)` - If there is an error during the operation
-///
-/// # Errors
-///
-/// This function will return an error if it encounters any issues while:
-/// - Making the HTTP request to the Steam API
-/// - Parsing the response body
-/// - Deserializing the JSON
-/// - Updating the apps cache
+/// Valve caps a single page at 50 000 entries.
+const STEAM_PAGE_SIZE: u32 = 50_000;
+/// Safety bound so a misbehaving cursor can never loop forever.
+const STEAM_MAX_PAGES: u32 = 40;
 
-pub async fn get_game(apps_data: Arc<RwLock<HashMap<String, u128>>>) -> Result<usize> {
-	// Log the start of the process
+pub async fn get_game(
+	apps_data: Arc<ArcSwap<SteamGameIndex>>, steam_cache: Arc<CacheInterface>, api_key: &str,
+) -> Result<usize> {
 	debug!("Started Steam game data update process");
-	trace!("Preparing to fetch game list from Steam API");
 
-	// Define the URL for the Steam API
-	let url = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json";
-	debug!("Using Steam API URL: {}", url);
+	let is_cold_start = apps_data.load().is_empty();
+	if is_cold_start {
+		if let Ok(Some(cached_json)) = steam_cache.read(STEAM_CACHE_KEY).await {
+			let app_map: HashMap<String, u32> = serde_json::from_str(&cached_json)
+				.context("Failed to deserialize cached Steam app list")?;
+			let size = app_map.len();
 
-	// Make the HTTP request with proper error context
-	let response = reqwest::get(url)
-		.await
-		.context("Failed to connect to Steam API")?;
-
-	// Get the response status for logging
-	debug!(
-		"Received response from Steam API with status: {}",
-		response.status()
-	);
-
-	// Get the response body with proper error context
-	let body = response
-		.text()
-		.await
-		.context("Failed to read Steam API response body")?;
-
-	trace!(
-		"Successfully retrieved response body ({} bytes)",
-		body.len()
-	);
-
-	// Parse the response body as JSON with proper error context
-	let json: Value =
-		serde_json::from_str(&body).context("Failed to parse Steam API response as JSON")?;
-
-	debug!("Successfully parsed Steam API response as JSON");
-
-	// Ensure the expected JSON structure exists
-	if !json.get("applist").and_then(|v| v.get("apps")).is_some() {
-		return Err(anyhow::anyhow!(
-			"Steam API response missing expected 'applist.apps' structure"
-		))
-		.context("Invalid Steam API response format")?;
+			info!(
+				"Loaded {} Steam apps from cache (skipping HTTP fetch)",
+				size
+			);
+			apps_data.store(Arc::new(SteamGameIndex::from_map(app_map)));
+			return Ok(size);
+		}
 	}
 
-	// Deserialize the JSON into a vector of App structs with proper error context
-	let apps: Vec<App> = serde_json::from_value(json["applist"]["apps"].clone())
-		.context("Failed to deserialize Steam app list from JSON")?;
+	let mut app_map: HashMap<String, u32> = HashMap::new();
+	let mut last_appid: Option<u32> = None;
 
-	debug!(
-		"Successfully deserialized {} Steam apps from JSON",
-		apps.len()
-	);
+	for page in 0..STEAM_MAX_PAGES {
+		let mut request = HTTP_CLIENT
+			.get("https://api.steampowered.com/IStoreService/GetAppList/v1/")
+			.query(&[("key", api_key)])
+			.query(&[("include_games", "true")])
+			.query(&[("max_results", STEAM_PAGE_SIZE.to_string())]);
 
-	// Get the current size of the apps cache for comparison
-	let _current_size = {
-		let read_guard = apps_data.read().await;
-		read_guard.len()
-	};
+		if let Some(cursor) = last_appid {
+			request = request.query(&[("last_appid", cursor.to_string())]);
+		}
 
-	// Clear the apps cache and insert the new apps
-	let mut write_guard = apps_data.write().await;
-	trace!("Acquired write lock on apps cache");
+		let response: AppListResponse = request
+			.send()
+			.await
+			.context("Failed to connect to Steam API")?
+			.error_for_status()
+			.context("Steam API returned an error status")?
+			.json()
+			.await
+			.context("Failed to parse Steam API response")?;
 
-	// Clear the existing data and free memory
-	write_guard.clear();
-	write_guard.shrink_to_fit();
-	trace!("Cleared existing apps cache");
+		let page_data = response.response;
+		let received = page_data.apps.len();
+		debug!("Steam app list page {}: {} entries", page, received);
 
-	// Convert the vector of apps into a hashmap
-	let app_map: HashMap<String, u128> = apps
-		.iter()
-		.map(|app| (app.name.clone(), app.app_id))
-		.collect();
+		app_map.extend(page_data.apps.into_iter().map(|app| (app.name, app.app_id)));
 
-	// Update the cache with the new data
-	*write_guard = app_map;
+		// Stop when Valve says there is nothing left, or when it gives us no cursor to
+		// advance with — continuing without a moving cursor would refetch the same page.
+		if !page_data.have_more_results {
+			break;
+		}
+		match page_data.last_appid {
+			Some(cursor) if Some(cursor) != last_appid => last_appid = Some(cursor),
+			_ => {
+				warn!("Steam reported more results but returned no new cursor; stopping early");
+				break;
+			},
+		}
 
-	// Optimize memory usage
-	write_guard.shrink_to_fit();
+		if page + 1 == STEAM_MAX_PAGES {
+			warn!(
+				"Reached the {}-page safety limit for the Steam app list; results may be partial",
+				STEAM_MAX_PAGES
+			);
+		}
+	}
 
-	// Calculate how many new entries were added
-	let new_size = write_guard.len();
-	let new_entries = new_size;
+	let new_size = app_map.len();
+	debug!("Deserialized {} Steam apps from API", new_size);
 
-	// Release the write lock
-	drop(write_guard);
-	trace!("Released write lock on apps cache");
+	if new_size == 0 {
+		return Err(anyhow!("Steam API returned an empty app list"));
+	}
 
-	debug!(
-		"Successfully updated Steam game cache: {} entries",
-		new_size
-	);
-	debug!("Steam game data update process completed");
+	if let Ok(json) = serde_json::to_string(&app_map) {
+		if let Err(e) = steam_cache.write(STEAM_CACHE_KEY.to_string(), json).await {
+			warn!("Failed to persist Steam app list to cache: {}", e);
+		}
+	}
 
-	// Return the number of new entries
-	Ok(new_entries)
+	apps_data.store(Arc::new(SteamGameIndex::from_map(app_map)));
+
+	debug!("Updated Steam game cache: {} entries", new_size);
+	Ok(new_size)
 }

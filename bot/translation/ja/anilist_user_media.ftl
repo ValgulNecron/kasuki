@@ -11,3 +11,6 @@ anilist_user_media-source = ソース:
 anilist_user_media-staffs = スタッフとロール:
 anilist_user_media-start_date = 開始日:
 anilist_user_media-tag = タグ
+anilist_user_media-streaming = 配信サイト
+anilist_user_media-trailer = 予告編
+anilist_user_media-server_members = サーバーメンバー

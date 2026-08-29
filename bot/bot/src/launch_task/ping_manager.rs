@@ -62,8 +62,11 @@ pub async fn ping_manager_thread(
 			trace!("Processing shard {}", shard_id);
 
 			let (now, latency) = {
+				// Scope the parking_lot lock so it drops before the async DB insert.
+				// parking_lot locks are !Send, so holding one across .await won't compile.
 				let shard_info = shard_arc.read();
 
+				// Latency is None until the first heartbeat ACK; default to 0ms
 				let latency = shard_info
 					.latency
 					.unwrap_or_default()
@@ -79,8 +82,7 @@ pub async fn ping_manager_thread(
 
 			trace!(
 				"Inserting ping history record for shard {} with latency {}",
-				shard_id,
-				latency
+				shard_id, latency
 			);
 			let result = PingHistory::insert(ActiveModel {
 				shard_id: Set(shard_id.to_string()),
@@ -138,6 +140,7 @@ pub async fn ping_manager_thread(
 		trace!("Ping update cycle completed");
 	}
 
+	// The loop above never exits, but we need Ok(()) for the Result return type.
 	#[allow(unreachable_code)]
 	Ok(())
 }

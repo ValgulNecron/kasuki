@@ -1,5 +1,5 @@
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
-use jsonwebtoken::{decode, Validation};
+use jsonwebtoken::{Validation, decode};
 use tracing::warn;
 
 use crate::api::error::AppError;

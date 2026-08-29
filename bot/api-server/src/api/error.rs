@@ -1,7 +1,7 @@
 use axum::{
+	Json,
 	http::StatusCode,
 	response::{IntoResponse, Response},
-	Json,
 };
 
 pub struct AppError {
@@ -14,6 +14,13 @@ impl AppError {
 		Self {
 			status: StatusCode::UNAUTHORIZED,
 			message: "Unauthorized".into(),
+		}
+	}
+
+	pub fn forbidden(msg: impl Into<String>) -> Self {
+		Self {
+			status: StatusCode::FORBIDDEN,
+			message: msg.into(),
 		}
 	}
 

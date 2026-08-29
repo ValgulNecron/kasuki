@@ -29,21 +29,11 @@ pub struct Page {
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
 #[cynic(variables = "SeiyuuSearchVariables")]
-#[allow(dead_code)]
 pub struct Staff {
 	pub site_url: Option<String>,
 	pub image: Option<StaffImage>,
-	pub name: Option<StaffName>,
 	#[arguments(perPage: $ per_page, sort: "FAVOURITES")]
 	pub characters: Option<CharacterConnection>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct StaffName {
-	pub user_preferred: Option<String>,
-	pub native: Option<String>,
-	pub full: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -59,18 +49,8 @@ pub struct CharacterConnection {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
 pub struct Character {
 	pub image: Option<CharacterImage>,
-	pub name: Option<CharacterName>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct CharacterName {
-	pub full: Option<String>,
-	pub native: Option<String>,
-	pub user_preferred: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
@@ -79,31 +59,10 @@ pub struct CharacterImage {
 	pub large: Option<String>,
 }
 
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-#[allow(dead_code)]
-pub enum CharacterSort {
-	Id,
-	IdDesc,
-	Role,
-	RoleDesc,
-	SearchMatch,
-	Favourites,
-	FavouritesDesc,
-	Relevance,
-}
-
 impl From<CharacterImage> for seiyuu_id::CharacterImage {
 	fn from(character_image: CharacterImage) -> Self {
 		Self {
 			large: character_image.large,
-		}
-	}
-}
-
-impl From<CharacterName> for seiyuu_id::CharacterName {
-	fn from(character_name: CharacterName) -> Self {
-		Self {
-			full: character_name.full,
 		}
 	}
 }
@@ -140,14 +99,6 @@ impl From<StaffImage> for seiyuu_id::StaffImage {
 	fn from(staff_image: StaffImage) -> Self {
 		Self {
 			large: staff_image.large,
-		}
-	}
-}
-
-impl From<StaffName> for seiyuu_id::StaffName {
-	fn from(staff_name: StaffName) -> Self {
-		Self {
-			full: staff_name.full,
 		}
 	}
 }

@@ -11,12 +11,12 @@ use serenity::all::{
 use shared::database::activity_data::Column;
 use shared::database::prelude::ActivityData;
 
-pub async fn autocomplete(ctx: SerenityContext, autocomplete_interaction: CommandInteraction) {
+pub async fn autocomplete(ctx: &SerenityContext, autocomplete_interaction: CommandInteraction) {
 	let map = get_option_map_string_autocomplete_subcommand_group(&autocomplete_interaction);
 	let bot_data = ctx.data::<BotData>().clone();
 
 	let activity_search = map
-		.get(&String::from("anime_name"))
+		.get("anime_name")
 		.map(String::as_str)
 		.unwrap_or(DEFAULT_STRING);
 

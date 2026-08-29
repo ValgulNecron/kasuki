@@ -1,4 +1,3 @@
-// Service Worker for Kasuki Website
 const CACHE_NAME = 'kasuki-v1';
 const STATIC_ASSETS = [
     '/',
@@ -9,7 +8,6 @@ const STATIC_ASSETS = [
     '/public/assets/icon-160.webp',
 ];
 
-// Install - cache static assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -19,7 +17,6 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
-// Activate - clean old caches
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -31,15 +28,12 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch - stale-while-revalidate for most assets
 self.addEventListener('fetch', (event) => {
     const {request} = event;
     const url = new URL(request.url);
 
-    // Skip non-GET requests
     if (request.method !== 'GET') return;
 
-    // Skip API calls and external requests
     if (url.pathname.startsWith('/api') || url.origin !== self.location.origin) {
         return;
     }

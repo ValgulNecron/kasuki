@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::OnceLock;
 
-// ─── Command metadata types ─────────────────────────────────────────────────
-
 #[derive(Debug, Clone, Copy)]
 pub enum DiscordCommandType {
 	ChatInput,
@@ -221,8 +219,6 @@ pub struct CommandMeta {
 	pub args: &'static [ArgDef],
 }
 
-// ─── SlashCommand trait ──────────────────────────────────────────────────────
-
 pub trait SlashCommand: Send + Sync + 'static {
 	fn meta(&self) -> &'static CommandMeta;
 	fn dispatch_key(&self) -> &'static str;
@@ -232,9 +228,8 @@ pub trait SlashCommand: Send + Sync + 'static {
 	) -> Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>>;
 }
 
+// inventory collects all #[slash_command]-annotated commands across the crate at link time
 inventory::collect!(&'static dyn SlashCommand);
-
-// ─── ParentCommand for grouping subcommands ──────────────────────────────────
 
 pub struct ParentCommand {
 	pub name: &'static str,
@@ -251,13 +246,15 @@ pub struct GroupDef {
 	pub desc: &'static str,
 }
 
+// Parent commands define the top-level grouping for subcommand hierarchies
 inventory::collect!(&'static ParentCommand);
 
-// ─── Global registries ──────────────────────────────────────────────────────
-
+// OnceLock guarantees thread-safe one-time init without async — unlike Mutex/RwLock, reads
+// after init are zero-cost (no locking). Separate maps per command type for O(1) dispatch.
 static SLASH_REGISTRY: OnceLock<HashMap<String, &'static dyn SlashCommand>> = OnceLock::new();
 static USER_REGISTRY: OnceLock<HashMap<String, &'static dyn SlashCommand>> = OnceLock::new();
 static MESSAGE_REGISTRY: OnceLock<HashMap<String, &'static dyn SlashCommand>> = OnceLock::new();
+// Guild commands are stored as a Vec (not a map) because they need to be iterated for per-guild registration
 static GUILD_REGISTRY: OnceLock<Vec<&'static dyn SlashCommand>> = OnceLock::new();
 
 fn build_registries() {
@@ -282,12 +279,14 @@ fn build_registries() {
 				message.insert(key, *cmd);
 			},
 			DiscordCommandType::GuildChatInput { .. } => {
+				// Guild commands go into both maps: slash for dispatch, guild vec for registration
 				slash.insert(key, *cmd);
 				guild.push(*cmd);
 			},
 		}
 	}
 
+	// Ignoring set() results — if already initialized (race), the existing values win
 	let _ = SLASH_REGISTRY.set(slash);
 	let _ = USER_REGISTRY.set(user);
 	let _ = MESSAGE_REGISTRY.set(message);
@@ -295,6 +294,9 @@ fn build_registries() {
 }
 
 pub fn get_slash_registry() -> &'static HashMap<String, &'static dyn SlashCommand> {
+	// get_or_init closure is the fallback if init_registries() wasn't called at startup.
+	// build_registries() populates the real OnceLock; the closure return is only used if
+	// set() failed (shouldn't happen), so unwrap_or_default is a safe fallback.
 	SLASH_REGISTRY.get_or_init(|| {
 		build_registries();
 		SLASH_REGISTRY.get().cloned().unwrap_or_default()
@@ -305,20 +307,6 @@ pub fn get_user_registry() -> &'static HashMap<String, &'static dyn SlashCommand
 	USER_REGISTRY.get_or_init(|| {
 		build_registries();
 		USER_REGISTRY.get().cloned().unwrap_or_default()
-	})
-}
-
-pub fn get_message_registry() -> &'static HashMap<String, &'static dyn SlashCommand> {
-	MESSAGE_REGISTRY.get_or_init(|| {
-		build_registries();
-		MESSAGE_REGISTRY.get().cloned().unwrap_or_default()
-	})
-}
-
-pub fn get_guild_commands() -> &'static Vec<&'static dyn SlashCommand> {
-	GUILD_REGISTRY.get_or_init(|| {
-		build_registries();
-		GUILD_REGISTRY.get().cloned().unwrap_or_default()
 	})
 }
 

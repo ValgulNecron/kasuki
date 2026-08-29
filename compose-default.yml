@@ -28,6 +28,12 @@ services:
       - /etc/localtime:/etc/localtime:ro
     networks:
       kasuki:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     deploy:
       replicas: 1
 

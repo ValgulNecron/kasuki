@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use crate::cache::CacheInterface;
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 
@@ -57,7 +56,7 @@ pub struct CharacterRoot {
 }
 
 pub async fn get_character(
-	value: String, vndb_cache: Arc<RwLock<CacheInterface>>, client: &reqwest::Client,
+	value: String, vndb_cache: Arc<CacheInterface>, client: &reqwest::Client,
 ) -> Result<CharacterRoot> {
 	let value = value.to_lowercase();
 

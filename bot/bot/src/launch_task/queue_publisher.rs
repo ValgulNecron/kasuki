@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use shared::queue::publisher::{publish_task, SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
+use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY, publish_task};
 use shared::queue::tasks::ImageTask;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{error, info};
@@ -42,9 +42,7 @@ pub async fn server_image_queue_publisher(
 				continue;
 			},
 		};
-		if let Err(e) =
-			publish_task(guard.as_mut().unwrap(), SERVER_IMAGE_QUEUE_KEY, &task).await
-		{
+		if let Err(e) = publish_task(guard.as_mut().unwrap(), SERVER_IMAGE_QUEUE_KEY, &task).await {
 			error!("Failed to publish server image task: {:#}", e);
 		}
 		drop(task);

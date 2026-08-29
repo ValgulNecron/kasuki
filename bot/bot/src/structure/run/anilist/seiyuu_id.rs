@@ -35,12 +35,6 @@ pub struct Staff {
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct StaffName {
-	pub full: Option<String>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
 
 pub struct StaffImage {
 	pub large: Option<String>,
@@ -56,12 +50,6 @@ pub struct CharacterConnection {
 
 pub struct Character {
 	pub image: Option<CharacterImage>,
-}
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct CharacterName {
-	pub full: Option<String>,
 }
 
 #[derive(cynic::QueryFragment, Debug, Clone)]

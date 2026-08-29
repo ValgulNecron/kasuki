@@ -2,14 +2,15 @@ mod calculate;
 mod color;
 mod mosaic;
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use redis::AsyncCommands;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use shared::config::Config;
-use shared::image_saver::storage::{create_image_store, ImageStore};
+use shared::image_saver::storage::{ImageStore, create_image_store};
 use shared::queue::publisher::{SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY};
 use shared::queue::tasks::{ImageTask, MemberColorData};
 use tokio::sync::Semaphore;
@@ -18,24 +19,36 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::calculate::{calculate_user_color_from_url, get_image_from_url};
-use crate::color::create_color_vector;
+use crate::color::ColorWithTile;
 
 use shared::database::guild_data::ActiveModel as GuildActiveModel;
 use shared::database::prelude::{GuildData, ServerImage};
 use shared::database::server_image::{ActiveModel, Column};
+
+const TILE_SIZE: u32 = 32;
+const DB_PAGE_SIZE: u64 = 500;
+const TASK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(600);
+/// How long BLPOP parks server-side waiting for a queued task.
+const QUEUE_BLOCK_TIMEOUT_SECS: f64 = 30.0;
+/// redis-rs applies a 500 ms client-side response timeout by default, which would abort the
+/// BLPOP above long before the server ever replies -- turning the blocking wait into a hot
+/// reconnect loop. Allow comfortably past the block window, but keep an upper bound so a
+/// wedged server still can't hang the worker forever.
+const REDIS_RESPONSE_TIMEOUT: std::time::Duration =
+	std::time::Duration::from_secs(QUEUE_BLOCK_TIMEOUT_SECS as u64 * 2);
+
+fn redis_connection_config() -> redis::AsyncConnectionConfig {
+	redis::AsyncConnectionConfig::new().set_response_timeout(Some(REDIS_RESPONSE_TIMEOUT))
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
 	let config = Config::new().context("Failed to load config.toml")?;
 
 	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
-		let guard = sentry::init((
-			url,
-			sentry::ClientOptions {
-				release: sentry::release_name!(),
-				..Default::default()
-			},
-		));
+		let mut options = sentry::ClientOptions::default();
+		options.release = sentry::release_name!();
+		let guard = sentry::init((url, options));
 		println!("Sentry initialized successfully");
 		guard
 	});
@@ -47,7 +60,9 @@ async fn main() -> Result<()> {
 		.unwrap_or(tracing::Level::INFO);
 	let sentry_layer = sentry::integrations::tracing::layer();
 	tracing_subscriber::registry()
-		.with(tracing_subscriber::filter::LevelFilter::from_level(log_level))
+		.with(tracing_subscriber::filter::LevelFilter::from_level(
+			log_level,
+		))
 		.with(sentry_layer)
 		.with(tracing_subscriber::fmt::layer())
 		.init();
@@ -64,8 +79,7 @@ async fn main() -> Result<()> {
 	info!("Connected to database");
 
 	let store: Arc<dyn ImageStore> = Arc::from(
-		create_image_store(&config.image.storage)
-			.context("Failed to create image store")?,
+		create_image_store(&config.image.storage).context("Failed to create image store")?,
 	);
 	info!(
 		"Image store initialized (type: {})",
@@ -77,7 +91,7 @@ async fn main() -> Result<()> {
 	let client =
 		redis::Client::open(redis_url.as_str()).context("Failed to create Redis client")?;
 	let mut connection = client
-		.get_multiplexed_async_connection()
+		.get_multiplexed_async_connection_with_config(&redis_connection_config())
 		.await
 		.context("Failed to connect to Redis")?;
 
@@ -97,45 +111,84 @@ async fn main() -> Result<()> {
 			.await
 			.expect("semaphore closed unexpectedly");
 
-		let result: Option<(String, String)> = match connection
-			.blpop(&[SERVER_IMAGE_QUEUE_KEY, USER_COLOR_QUEUE_KEY], 30.0)
-			.await
-		{
-			Ok(r) => r,
+		let payload = match get_priority_task(&mut connection).await {
+			Ok(Some(payload)) => payload,
+			Ok(None) => {
+				drop(permit);
+				continue;
+			},
 			Err(e) => {
-				debug!("Redis error while waiting for task: {:#}", e);
+				warn!("Redis error while waiting for task: {:#}", e);
+				drop(permit);
+				match client
+					.get_multiplexed_async_connection_with_config(&redis_connection_config())
+					.await
+				{
+					Ok(new_conn) => {
+						connection = new_conn;
+						info!(
+							"Reconnected to Redis at {}:{}",
+							queue_config.host, queue_config.port
+						);
+					},
+					Err(re) => {
+						error!("Redis reconnect failed: {:#}", re);
+						tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+					},
+				}
+				continue;
+			},
+		};
+
+		info!("Received task ({} bytes)", payload.len());
+		let task: ImageTask = match serde_json::from_str(&payload) {
+			Ok(t) => t,
+			Err(e) => {
+				error!("Failed to deserialize task: {:#}", e);
 				drop(permit);
 				continue;
 			},
 		};
 
-		match result {
-			Some((_key, payload)) => {
-				info!("Received task ({} bytes)", payload.len());
-				let task: ImageTask = match serde_json::from_str(&payload) {
-					Ok(t) => t,
-					Err(e) => {
-						error!("Failed to deserialize task: {:#}", e);
-						drop(permit);
-						continue;
-					},
-				};
+		let db = db.clone();
+		let store = store.clone();
+		tokio::spawn(async move {
+			let _permit = permit;
+			let result = tokio::time::timeout(TASK_TIMEOUT, handle_task(task, &db, &store)).await;
+			match result {
+				Ok(Ok(())) => {},
+				Ok(Err(e)) => error!("Failed to process task: {:#}", e),
+				Err(_) => error!("Task timed out after {}s", TASK_TIMEOUT.as_secs()),
+			}
 
-				let db = db.clone();
-				let store = store.clone();
-				tokio::spawn(async move {
-					let _permit = permit;
-					if let Err(e) = handle_task(task, &db, &store).await {
-						error!("Failed to process task: {:#}", e);
-					}
-				});
-			},
-			None => {
-				drop(permit);
-				continue;
-			},
-		}
+			#[cfg(target_os = "linux")]
+			unsafe {
+				libc::malloc_trim(0);
+			}
+		});
 	}
+}
+
+async fn get_priority_task(
+	connection: &mut redis::aio::MultiplexedConnection,
+) -> redis::RedisResult<Option<String>> {
+	let user_color: Option<String> = connection.lpop(USER_COLOR_QUEUE_KEY, None).await?;
+	if user_color.is_some() {
+		return Ok(user_color);
+	}
+
+	let server_image: Option<String> = connection.lpop(SERVER_IMAGE_QUEUE_KEY, None).await?;
+	if server_image.is_some() {
+		return Ok(server_image);
+	}
+
+	let result: Option<(String, String)> = connection
+		.blpop(
+			&[USER_COLOR_QUEUE_KEY, SERVER_IMAGE_QUEUE_KEY],
+			QUEUE_BLOCK_TIMEOUT_SECS,
+		)
+		.await?;
+	Ok(result.map(|(_key, payload)| payload))
 }
 
 async fn handle_task(
@@ -169,91 +222,92 @@ async fn handle_task(
 	}
 }
 
-async fn handle_generate_server_image(
-	guild_id: String, guild_name: String, guild_icon_url: String, image_type: String,
-	members: Vec<MemberColorData>, blacklist: Vec<String>, db: &Arc<DatabaseConnection>,
-	store: &Arc<dyn ImageStore>,
-) -> Result<()> {
-	// For global images, members is empty — fetch all users from DB directly.
-	// For local images, members contains user IDs + current PFP URLs from Discord API.
-	let is_global = members.is_empty();
+async fn build_global_tiles(
+	blacklist: &HashSet<String>, db: &DatabaseConnection, store: &Arc<dyn ImageStore>,
+) -> Result<Vec<ColorWithTile>> {
+	use shared::database::prelude::UserColor;
 
+	let paginator = UserColor::find().paginate(db, DB_PAGE_SIZE);
+	let num_pages = paginator.num_pages().await.unwrap_or(0);
+
+	let mut color_tiles: Vec<ColorWithTile> = Vec::new();
+
+	for page_num in 0..num_pages {
+		let page = paginator.fetch_page(page_num).await.unwrap_or_default();
+
+		for uc in page {
+			if blacklist.contains(&uc.user_id) || uc.images.starts_with("data:") {
+				continue;
+			}
+
+			match store.load(&uc.images).await {
+				Ok(png_bytes) => {
+					if let Some(tile) = color::create_color_tile(&uc.color, &png_bytes, TILE_SIZE) {
+						color_tiles.push(tile);
+					}
+				},
+				Err(e) => {
+					debug!(
+						"Skipping user {} – failed to load image: {:#}",
+						uc.user_id, e
+					);
+				},
+			}
+		}
+	}
+
+	Ok(color_tiles)
+}
+
+async fn build_local_tiles(
+	members: &[MemberColorData], blacklist: &HashSet<String>, db: &Arc<DatabaseConnection>,
+	store: &Arc<dyn ImageStore>,
+) -> Result<Vec<ColorWithTile>> {
 	use shared::database::prelude::UserColor;
 	use shared::database::user_color::Column as UserColorColumn;
 
-	let (effective_members, color_map) = if is_global {
-		// Global: single DB query provides both member list and color data
-		let all_colors = UserColor::find().all(&**db).await.unwrap_or_default();
-		info!(
-			"Generating global server image for guild {} ({} users from DB)",
-			guild_id,
-			all_colors.len()
-		);
+	let member_user_ids: Vec<String> = members
+		.iter()
+		.filter(|m| !blacklist.contains(&m.user_id))
+		.map(|m| m.user_id.clone())
+		.collect();
 
-		let mut members_out = Vec::with_capacity(all_colors.len());
-		let mut map = std::collections::HashMap::with_capacity(all_colors.len());
+	let color_records = UserColor::find()
+		.filter(UserColorColumn::UserId.is_in(member_user_ids))
+		.all(&**db)
+		.await
+		.unwrap_or_default();
 
-		for uc in all_colors {
-			if blacklist.contains(&uc.user_id) {
-				continue;
-			}
-			members_out.push(MemberColorData {
-				user_id: uc.user_id.clone(),
-				profile_picture_url: uc.profile_picture_url.clone(),
-			});
-			map.insert(uc.user_id.clone(), uc);
-		}
+	let color_map: std::collections::HashMap<String, _> = color_records
+		.into_iter()
+		.map(|r| (r.user_id.clone(), r))
+		.collect();
 
-		(members_out, map)
-	} else {
-		info!(
-			"Generating local server image for guild {} ({} members)",
-			guild_id,
-			members.len()
-		);
+	let mut color_tiles: Vec<ColorWithTile> = Vec::new();
 
-		// Local: batch-load cached colors/image keys from DB for provided members
-		let member_user_ids: Vec<String> = members
-			.iter()
-			.filter(|m| !blacklist.contains(&m.user_id))
-			.map(|m| m.user_id.clone())
-			.collect();
-
-		let color_records = UserColor::find()
-			.filter(UserColorColumn::UserId.is_in(member_user_ids))
-			.all(&**db)
-			.await
-			.unwrap_or_default();
-
-		let map = color_records
-			.into_iter()
-			.map(|r| (r.user_id.clone(), r))
-			.collect();
-
-		(members, map)
-	};
-
-	let mut color_tuples: Vec<(String, Vec<u8>)> = Vec::with_capacity(effective_members.len());
-
-	for member in &effective_members {
+	for member in members {
 		if blacklist.contains(&member.user_id) {
 			continue;
 		}
 
 		let db_record = color_map.get(&member.user_id);
 
-		let (hex_color, png_bytes) = match db_record {
-			Some(record) if record.profile_picture_url == member.profile_picture_url => {
-				let color = record.color.clone();
-				// Load image from storage using the key stored in DB
+		let (color, png_bytes) = match db_record {
+			// Cache is only reused when the stored color carries the current algorithm
+			// version; older records are recalculated so the palette never mixes descriptors
+			// produced by different algorithms
+			Some(record)
+				if record.profile_picture_url == member.profile_picture_url
+					&& !record.images.starts_with("data:")
+					&& record.color.starts_with(calculate::COLOR_STRING_PREFIX) =>
+			{
 				match store.load(&record.images).await {
-					Ok(bytes) => (color, bytes),
+					Ok(bytes) => (record.color.clone(), bytes),
 					Err(e) => {
 						debug!(
 							"Failed to load cached image for user {} from storage: {:#}",
 							member.user_id, e
 						);
-						// Fall back to recalculating
 						match calculate_user_color_from_url(&member.profile_picture_url).await {
 							Ok((color, thumb_png, full_png)) => {
 								save_user_color(
@@ -303,10 +357,37 @@ async fn handle_generate_server_image(
 			},
 		};
 
-		color_tuples.push((hex_color, png_bytes));
+		if let Some(tile) = color::create_color_tile(&color, &png_bytes, TILE_SIZE) {
+			color_tiles.push(tile);
+		}
 	}
 
-	if color_tuples.is_empty() {
+	Ok(color_tiles)
+}
+
+async fn handle_generate_server_image(
+	guild_id: String, guild_name: String, guild_icon_url: String, image_type: String,
+	members: Vec<MemberColorData>, blacklist: HashSet<String>, db: &Arc<DatabaseConnection>,
+	store: &Arc<dyn ImageStore>,
+) -> Result<()> {
+	let is_global = members.is_empty();
+
+	let color_tiles = if is_global {
+		info!(
+			"Generating global server image for guild {} (paginated, page_size={})",
+			guild_id, DB_PAGE_SIZE
+		);
+		build_global_tiles(&blacklist, db, store).await?
+	} else {
+		info!(
+			"Generating local server image for guild {} ({} members)",
+			guild_id,
+			members.len()
+		);
+		build_local_tiles(&members, &blacklist, db, store).await?
+	};
+
+	if color_tiles.is_empty() {
 		warn!(
 			"No color data for guild {}, skipping image generation",
 			guild_id
@@ -314,19 +395,20 @@ async fn handle_generate_server_image(
 		return Ok(());
 	}
 
-	let color_vec = tokio::task::spawn_blocking(move || create_color_vector(color_tuples))
-		.await
-		.context("spawn_blocking panicked")?;
+	info!(
+		"Built {} color tiles for guild {}, generating mosaic...",
+		color_tiles.len(),
+		guild_id
+	);
 
 	let guild_icon_download_url = calculate::change_to_x128_url(&guild_icon_url);
 	let guild_icon = get_image_from_url(&guild_icon_download_url).await?;
 
 	let image_data =
-		tokio::task::spawn_blocking(move || mosaic::generate_mosaic(&guild_icon, &color_vec))
+		tokio::task::spawn_blocking(move || mosaic::generate_mosaic(&guild_icon, &color_tiles))
 			.await
 			.context("spawn_blocking panicked")??;
 
-	// Save mosaic image to storage
 	let storage_key = format!("server_images/{}/{}.png", guild_id, image_type);
 	store
 		.save(&storage_key, &image_data)
@@ -348,7 +430,6 @@ async fn handle_generate_server_image(
 	.await
 	.context("Failed to upsert guild_data before server image")?;
 
-	// Store the storage key in the DB instead of base64 data
 	ServerImage::insert(ActiveModel {
 		server_id: Set(guild_id.clone()),
 		server_name: Set(guild_name),
@@ -388,7 +469,16 @@ async fn handle_calculate_user_color(
 		.await?;
 
 	if let Some(ref record) = existing {
-		if record.profile_picture_url == profile_picture_url {
+		let age = chrono::Utc::now().naive_utc() - record.calculated_at;
+		let is_stale = age > chrono::Duration::days(7);
+		// A record from an older descriptor algorithm (different version prefix) is always
+		// recalculated, even inside the freshness window: without this, a recalculation
+		// sweep right after a deploy silently no-ops on every fresh record.
+		if record.profile_picture_url == profile_picture_url
+			&& !record.images.starts_with("data:")
+			&& !is_stale
+			&& record.color.starts_with(calculate::COLOR_STRING_PREFIX)
+		{
 			info!("User {} color is up to date, skipping", user_id);
 			return Ok(());
 		}
@@ -412,7 +502,6 @@ async fn handle_calculate_user_color(
 	Ok(())
 }
 
-/// Save user color images (thumbnail + full-size) to storage and upsert the thumbnail key into the database.
 async fn save_user_color(
 	user_id: &str, profile_picture_url: &str, color: &str, thumb_png: &[u8], full_png: &[u8],
 	db: &Arc<DatabaseConnection>, store: &Arc<dyn ImageStore>,
@@ -433,7 +522,6 @@ async fn save_user_color(
 			"Failed to save user color full image for {} to storage: {:#}",
 			user_id, e
 		);
-		// Thumbnail already saved, continue with DB upsert using thumbnail key
 	}
 
 	use shared::database::prelude::UserColor;
@@ -444,6 +532,7 @@ async fn save_user_color(
 		profile_picture_url: Set(profile_picture_url.to_string()),
 		color: Set(color.to_string()),
 		images: Set(thumb_key),
+		calculated_at: Set(chrono::Utc::now().naive_utc()),
 		..Default::default()
 	})
 	.on_conflict(
@@ -451,6 +540,7 @@ async fn save_user_color(
 			.update_column(Column::Color)
 			.update_column(Column::ProfilePictureUrl)
 			.update_column(Column::Images)
+			.update_column(Column::CalculatedAt)
 			.to_owned(),
 	)
 	.exec(&**db)

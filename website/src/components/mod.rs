@@ -1,3 +1,4 @@
+pub mod activities;
 pub mod header;
 pub mod footer;
 pub mod hero;
@@ -8,3 +9,4 @@ pub mod setup;
 pub mod privacy;
 pub mod terms;
 pub mod profile;
+pub mod server_settings;

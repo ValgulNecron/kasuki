@@ -1,6 +1,6 @@
 use crate::command::command::{Command, CommandRun};
+use crate::command::context::CommandContext;
 use crate::command::embed_content::{EmbedContent, EmbedsContents};
-use crate::event_handler::BotData;
 use anyhow::{Context as AnyhowContext, Result};
 use sea_orm::{
     ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
@@ -20,9 +20,10 @@ pub struct TriviaCommand {
 impl_command!(
 	for TriviaCommand,
 	get_contents = |self_: InventoryCommand| async move {
-		let ctx = self_.get_ctx();
-		let bot_data = ctx.data::<BotData>().clone();
-		let command_interaction = self_.get_command_interaction();
+		let cx = CommandContext::new(
+			self_.get_ctx().clone(),
+			self_.get_command_interaction().clone(),
+		);
 
 	}
 );

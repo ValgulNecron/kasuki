@@ -10,8 +10,8 @@ use shared::config::WorkerConfig;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
-use tracing::{error, info, warn, Level};
+use tokio::sync::broadcast;
+use tracing::{Level, error, info, warn};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -24,20 +24,18 @@ async fn main() -> Result<()> {
 	let config = WorkerConfig::new().context("Failed to load config.toml")?;
 
 	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
-		let guard = sentry::init((
-			url,
-			sentry::ClientOptions {
-				release: sentry::release_name!(),
-				..Default::default()
-			},
-		));
+		let mut options = sentry::ClientOptions::default();
+		options.release = sentry::release_name!();
+		let guard = sentry::init((url, options));
 		println!("Sentry initialized successfully");
 		guard
 	});
 
 	let sentry_layer = sentry::integrations::tracing::layer();
 	tracing_subscriber::registry()
-		.with(tracing_subscriber::filter::LevelFilter::from_level(Level::INFO))
+		.with(tracing_subscriber::filter::LevelFilter::from_level(
+			Level::INFO,
+		))
 		.with(sentry_layer)
 		.with(tracing_subscriber::fmt::layer())
 		.init();
@@ -55,21 +53,22 @@ async fn main() -> Result<()> {
 	);
 	info!("Database connected");
 
-	let anilist_cache = Arc::new(RwLock::new(
-		match CacheInterface::from_config(&config.cache).await {
-			Ok(c) => {
-				info!("AniList cache initialized with {} backend", config.cache.cache_type);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init cache with {} backend, falling back to memory: {}",
-					config.cache.cache_type, e
-				);
-				CacheInterface::new()
-			},
+	let anilist_cache = Arc::new(match CacheInterface::from_config(&config.cache).await {
+		Ok(c) => {
+			info!(
+				"AniList cache initialized with {} backend",
+				config.cache.cache_type
+			);
+			c
 		},
-	));
+		Err(e) => {
+			warn!(
+				"Failed to init cache with {} backend, falling back to memory: {}",
+				config.cache.cache_type, e
+			);
+			CacheInterface::new()
+		},
+	});
 
 	let token = Token::from_str(&config.bot.discord_token).context("Invalid Discord token")?;
 	let http = Arc::new(Http::new(token));
@@ -77,7 +76,6 @@ async fn main() -> Result<()> {
 	let (shutdown_tx, _) = broadcast::channel::<()>(1);
 	let task_intervals = config.task_intervals.clone();
 
-	// Spawn Anisong DB Update Task
 	let mut shutdown_rx = shutdown_tx.subscribe();
 	let db_clone = connection.clone();
 	let intervals_clone = task_intervals.clone();
@@ -105,7 +103,6 @@ async fn main() -> Result<()> {
 		}
 	});
 
-	// Spawn Random Stats Update Task
 	let shutdown_rx = shutdown_tx.subscribe();
 	let cache_clone = anilist_cache.clone();
 	let intervals_clone = task_intervals.clone();
@@ -114,7 +111,6 @@ async fn main() -> Result<()> {
 		update_random_stats_launcher(cache_clone, intervals_clone, db_clone, shutdown_rx).await;
 	});
 
-	// Spawn Activity Management Task
 	let mut shutdown_rx = shutdown_tx.subscribe();
 	let http_clone = http.clone();
 	let cache_clone = anilist_cache.clone();
@@ -153,7 +149,6 @@ async fn main() -> Result<()> {
 	info!("Sending shutdown signal to all tasks...");
 	let _ = shutdown_tx.send(());
 
-	// Give tasks time to finish current work
 	let timeout = Duration::from_secs(10);
 	let _ = tokio::time::timeout(timeout, async {
 		let _ = tokio::join!(anisong_handle, stats_handle, activity_handle);

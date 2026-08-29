@@ -13,6 +13,7 @@ permissions:
 
 concurrency:
   group: "pages"
+  # Queue rather than cancel to ensure the latest push always deploys
   cancel-in-progress: false
 
 jobs:
@@ -26,6 +27,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+          # rust-src is required by wasm32 target for std library source access
           components: "rust-src"
 
       - name: Install wasm target
@@ -37,6 +39,8 @@ jobs:
           version: 'v0.18.0'
 
       - name: build wasm
+        # working-directory is needed because Trunk must run from the website/ dir
+        # where Trunk.toml and index.html live
         run: trunk build --release
         working-directory: ./website
 

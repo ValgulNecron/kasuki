@@ -3,17 +3,18 @@ use crate::logger::{create_log_directory, init_logger};
 use anyhow::Context;
 use shared::cache::CacheInterface;
 use shared::config::{Config, DbConfig};
-use shared::image_saver::storage::{create_image_store, ImageStore};
+use shared::image_saver::storage::{ImageStore, create_image_store};
 
-use serenity::all::GatewayIntents;
-use serenity::secrets::Token;
 use serenity::Client;
-use songbird::driver::DecodeMode;
+use serenity::all::GatewayIntents;
+use serenity::cache::Settings as CacheSettings;
+use serenity::secrets::Token;
+use songbird::driver::{DecodeConfig, DecodeMode};
 use std::process;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{broadcast, RwLock};
+use tokio::sync::{RwLock, broadcast};
 use tracing::{error, info, warn};
 
 pub mod autocomplete;
@@ -35,56 +36,45 @@ mod structure;
 
 #[tokio::main]
 async fn main() {
+	if let Err(e) = run().await {
+		// Also print to stderr: if `run` failed while initialising the logger
+		// itself, `error!` has no subscriber and would be silent otherwise.
+		eprintln!("Fatal error: {:#}", e);
+		error!("Fatal error: {:#}", e);
+		process::exit(1);
+	}
+}
+
+async fn run() -> anyhow::Result<()> {
 	rustls::crypto::aws_lc_rs::default_provider()
 		.install_default()
 		.expect("Failed to install default CryptoProvider");
 
 	println!("Preparing bot environment please wait...");
-	let config: Config = match Config::new() {
-		Ok(conf) => conf,
-		Err(e) => {
-			eprintln!("Error while reading config.toml: {:?}", e);
-			process::exit(2);
-		},
-	};
+	let config: Config = Config::new().context("Failed to read config.toml")?;
 	println!("Config loaded successfully");
 
 	let _sentry_guard = config.sentry_url.as_deref().map(|url| {
-		let guard = sentry::init((
-			url,
-			sentry::ClientOptions {
-				release: sentry::release_name!(),
-				..Default::default()
-			},
-		));
+		let mut options = sentry::ClientOptions::default();
+		options.release = sentry::release_name!();
+		let guard = sentry::init((url, options));
 		println!("Sentry initialized successfully");
 		guard
 	});
 
 	let log = config.logging.log_level.clone();
 	let max_log_retention_days = config.logging.max_log_retention;
-	if let Err(e) = create_log_directory() {
-		eprintln!("{:?}", e);
-
-		process::exit(2);
-	}
-	let _guard = match init_logger(log.as_str(), max_log_retention_days) {
-		Ok(guard) => {
-			info!("Logger initialized successfully with level: {}", log);
-			guard
-		},
-		Err(e) => {
-			eprintln!("{:?}", e);
-			process::exit(2);
-		},
-	};
+	create_log_directory().context("Failed to create log directory")?;
+	// Free space on the log volume *before* the appender opens today's file, so a
+	// process coming up to an already-full disk can still initialise its logger.
+	launch_task::log_cleanup::enforce_log_budget_at_startup(&config.logging);
+	let _guard =
+		init_logger(log.as_str(), max_log_retention_days).context("Failed to initialize logger")?;
+	info!("Logger initialized successfully with level: {}", log);
 	info!("Log retention days: {}", max_log_retention_days);
 
 	info!("Loading locales");
-	if let Err(e) = shared::localization::load_locales() {
-		error!("Failed to load locales: {}", e);
-		process::exit(8);
-	}
+	shared::localization::load_locales().context("Failed to load locales")?;
 	info!("Locales loaded successfully");
 
 	let discord_token = config.bot.discord_token.clone();
@@ -92,79 +82,24 @@ async fn main() {
 
 	info!("Initializing database");
 	let db_config = config.db.clone();
-	if let Err(e) = init_db(db_config).await {
-		let e = e.to_string().replace("\\\\n", "\n");
-		error!("Database initialization failed: {}", e);
-		process::exit(4);
-	}
+	init_db(db_config)
+		.await
+		.context("Database initialization failed")?;
 	info!("Database initialized successfully");
 
 	let cache_config = config.cache.clone();
 	info!("Initializing caches (backend: {})", cache_config.cache_type);
-	let anilist_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
-		match CacheInterface::from_config(&cache_config).await {
-			Ok(c) => {
-				info!("AniList cache initialized with {} backend", cache_config.cache_type);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init AniList cache with {} backend, falling back to memory: {}",
-					cache_config.cache_type, e
-				);
-				CacheInterface::new()
-			},
-		},
-	));
-	let vndb_cache: Arc<RwLock<CacheInterface>> = Arc::new(RwLock::new(
-		match CacheInterface::from_config(&cache_config).await {
-			Ok(c) => {
-				info!("VNDB cache initialized with {} backend", cache_config.cache_type);
-				c
-			},
-			Err(e) => {
-				warn!(
-					"Failed to init VNDB cache with {} backend, falling back to memory: {}",
-					cache_config.cache_type, e
-				);
-				CacheInterface::new()
-			},
-		},
-	));
+	let anilist_cache = CacheInterface::from_config_or_default(&cache_config, "AniList").await;
+	let vndb_cache = CacheInterface::from_config_or_default(&cache_config, "VNDB").await;
+	let steam_cache = CacheInterface::from_config_or_default(&cache_config, "Steam").await;
 	info!("Caches initialized successfully");
 
 	info!("Connecting to database");
-	let db_url = get_url(config.db.clone());
-	let mut connect_options = sea_orm::ConnectOptions::new(db_url);
-
-	// Configure connection pool settings
-	let max_connections = config.db.max_connections.unwrap_or(100);
-	let min_connections = config.db.min_connections.unwrap_or(5);
-	let connect_timeout = config.db.connect_timeout.unwrap_or(30);
-	let idle_timeout = config.db.idle_timeout.unwrap_or(600);
-
-	connect_options
-		.max_connections(max_connections)
-		.min_connections(min_connections)
-		.connect_timeout(Duration::from_secs(connect_timeout))
-		.idle_timeout(Duration::from_secs(idle_timeout))
-		.sqlx_logging(false); // Reduce log noise from sqlx
-
-	info!(
-		"Database pool config: max={}, min={}, connect_timeout={}s, idle_timeout={}s",
-		max_connections, min_connections, connect_timeout, idle_timeout
-	);
-
-	let connection = match sea_orm::Database::connect(connect_options).await {
-		Ok(connection) => {
-			info!("Successfully connected to database");
-			connection
-		},
-		Err(e) => {
-			error!("Failed to connect to the database: {}", e);
-			return;
-		},
-	};
+	let connection = config
+		.db
+		.connect()
+		.await
+		.context("Failed to connect to the database")?;
 	info!("Database connection established successfully");
 
 	info!("Configuring Discord gateway intents");
@@ -175,10 +110,7 @@ async fn main() {
 		gateway_intent_non_privileged
 	);
 
-	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS
-        // | GatewayIntents::GUILD_PRESENCES
-        // | GatewayIntents::MESSAGE_CONTENT
-        ;
+	let gateway_intent_privileged = GatewayIntents::GUILD_MEMBERS;
 	info!(
 		"Privileged intents configured: {:?}",
 		gateway_intent_privileged
@@ -192,23 +124,14 @@ async fn main() {
 	info!("Finished preparing the environment. Starting the bot.");
 
 	info!("Parsing Discord token");
-	let discord_token = match Token::from_str(discord_token.as_str()) {
-		Ok(token) => {
-			info!("Discord token parsed successfully");
-			token
-		},
-		Err(e) => {
-			error!("Failed to parse Discord token: {}", e);
-			return;
-		},
-	};
+	let discord_token =
+		Token::from_str(discord_token.as_str()).context("Failed to parse Discord token")?;
+	info!("Discord token parsed successfully");
 
 	info!("Initializing Songbird voice client");
-	let songbird_config = songbird::Config::default().decode_mode(DecodeMode::Decode);
-	info!(
-		"Songbird configured with decode mode: {:?}",
-		DecodeMode::Decode
-	);
+	let decode_mode = DecodeMode::Decode(DecodeConfig::default());
+	info!("Songbird configured with decode mode: {:?}", decode_mode);
+	let songbird_config = songbird::Config::default().decode_mode(decode_mode);
 
 	let manager = songbird::Songbird::serenity_from_config(songbird_config);
 	info!("Songbird voice client initialized successfully");
@@ -216,17 +139,14 @@ async fn main() {
 	let (shutdown_tx, _) = broadcast::channel(1);
 	info!("Created shutdown signal channel");
 
-	info!("Initializing image store (type: {})", config.image.storage.storage_type);
-	let image_store: Arc<dyn ImageStore> = match create_image_store(&config.image.storage) {
-		Ok(store) => {
-			info!("Image store initialized successfully");
-			Arc::from(store)
-		},
-		Err(e) => {
-			error!("Failed to create image store: {}", e);
-			process::exit(9);
-		},
-	};
+	info!(
+		"Initializing image store (type: {})",
+		config.image.storage.storage_type
+	);
+	let image_store: Arc<dyn ImageStore> = Arc::from(
+		create_image_store(&config.image.storage).context("Failed to create image store")?,
+	);
+	info!("Image store initialized successfully");
 
 	let (user_color_tx, user_color_rx) =
 		tokio::sync::mpsc::unbounded_channel::<shared::queue::tasks::ImageTask>();
@@ -266,12 +186,13 @@ async fn main() {
 
 	info!("Initializing bot data structure");
 	let bot_data: Arc<BotData> = Arc::new(BotData {
-		config: Arc::from(config.clone()),
+		config: Arc::new(config),
 		bot_info: Arc::new(RwLock::new(None)),
 		anilist_cache,
 		vndb_cache,
+		steam_cache,
 		already_launched: false.into(),
-		apps: Arc::new(Default::default()),
+		apps: Arc::new(arc_swap::ArcSwap::from_pointee(Default::default())),
 		user_blacklist: Arc::new(Default::default()),
 		db_connection: Arc::new(connection),
 		manager: Arc::clone(&manager),
@@ -300,22 +221,27 @@ async fn main() {
 	info!("Queue publisher tasks spawned");
 
 	info!("Creating Discord client");
+	let mut cache_settings = CacheSettings::default();
+	cache_settings.max_messages = 0;
+	cache_settings.cache_guilds = true;
+	cache_settings.cache_channels = true;
+	cache_settings.cache_users = true;
+
 	let mut client = Client::builder(discord_token, gateway_intent)
+		.cache_settings(cache_settings)
 		.data(bot_data.clone())
 		.voice_manager(manager)
 		.event_handler(Arc::new(Handler))
 		.await
-		.unwrap_or_else(|e| {
-			error!("Error while creating Discord client: {}", e);
-			process::exit(5);
-		});
+		.context("Failed to create Discord client")?;
 	info!("Discord client created successfully");
 
+	let shutdown_signal = bot_data.shutdown_signal.clone();
 	info!("Starting Discord client with auto-sharding");
 	tokio::spawn(async move {
 		if let Err(why) = client.start_autosharded().await {
 			error!("Discord client error: {:?}", why);
-			process::exit(6);
+			let _ = shutdown_signal.send(());
 		}
 
 		info!("Discord client shutdown gracefully");
@@ -325,22 +251,16 @@ async fn main() {
 	#[cfg(unix)]
 	{
 		info!("Setting up signal handlers for Unix environment");
-		// Create a signal handler for "all" signals in unix.
-		// If a signal is received, print a shutdown message.
-		// All signals and not only ctrl-c
-		let mut sigint =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
-				.expect("failed to register SIGINT handler");
+		let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+			.expect("failed to register SIGINT handler");
 		info!("Registered SIGINT handler");
 
-		let mut sigterm =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-				.expect("failed to register SIGTERM handler");
+		let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+			.expect("failed to register SIGTERM handler");
 		info!("Registered SIGTERM handler");
 
-		let mut sigquit =
-			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
-				.expect("failed to register SIGQUIT handler");
+		let mut sigquit = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::quit())
+			.expect("failed to register SIGQUIT handler");
 		info!("Registered SIGQUIT handler");
 
 		let mut sigusr1 =
@@ -355,17 +275,19 @@ async fn main() {
 
 		info!("All Unix signal handlers registered successfully, waiting for signals");
 
+		let mut shutdown_rx = bot_data.shutdown_signal.subscribe();
+
 		tokio::select! {
 			_ = sigint.recv() => { info!("Received SIGINT signal"); },
 			_ = sigterm.recv() => { info!("Received SIGTERM signal"); },
 			_ = sigquit.recv() => { info!("Received SIGQUIT signal"); },
 			_ = sigusr1.recv() => { info!("Received SIGUSR1 signal"); },
 			_ = sigusr2.recv() => { info!("Received SIGUSR2 signal"); },
+			_ = shutdown_rx.recv() => { info!("Received internal shutdown signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		// Send shutdown signal to all background tasks
 		info!("Sending shutdown signal to all background tasks");
 		if let Err(e) = bot_data.shutdown_signal.send(()) {
 			warn!("Failed to send shutdown signal: {}", e);
@@ -373,7 +295,6 @@ async fn main() {
 			info!("Shutdown signal sent successfully");
 		}
 
-		// Wait a moment for tasks to clean up
 		info!("Waiting for background tasks to shut down gracefully");
 		tokio::time::sleep(Duration::from_secs(2)).await;
 		info!("Proceeding with bot shutdown");
@@ -382,23 +303,20 @@ async fn main() {
 	#[cfg(windows)]
 	{
 		info!("Setting up signal handlers for Windows environment");
-		// Create a signal handler for "all" signals in windows.
-		// If a signal is received, print a shutdown message.
-		// All signals and not only ctrl-c
-		let mut ctrl_break = tokio::signal::windows::ctrl_break()
-			.expect("failed to register CTRL+BREAK handler");
+		let mut ctrl_break =
+			tokio::signal::windows::ctrl_break().expect("failed to register CTRL+BREAK handler");
 		info!("Registered CTRL+BREAK handler");
 
-		let mut ctrl_c = tokio::signal::windows::ctrl_c()
-			.expect("failed to register CTRL+C handler");
+		let mut ctrl_c =
+			tokio::signal::windows::ctrl_c().expect("failed to register CTRL+C handler");
 		info!("Registered CTRL+C handler");
 
-		let mut ctrl_close = tokio::signal::windows::ctrl_close()
-			.expect("failed to register CTRL+CLOSE handler");
+		let mut ctrl_close =
+			tokio::signal::windows::ctrl_close().expect("failed to register CTRL+CLOSE handler");
 		info!("Registered CTRL+CLOSE handler");
 
-		let mut ctrl_logoff = tokio::signal::windows::ctrl_logoff()
-			.expect("failed to register CTRL+LOGOFF handler");
+		let mut ctrl_logoff =
+			tokio::signal::windows::ctrl_logoff().expect("failed to register CTRL+LOGOFF handler");
 		info!("Registered CTRL+LOGOFF handler");
 
 		let mut ctrl_shutdown = tokio::signal::windows::ctrl_shutdown()
@@ -407,17 +325,19 @@ async fn main() {
 
 		info!("All Windows signal handlers registered successfully, waiting for signals");
 
+		let mut shutdown_rx = bot_data.shutdown_signal.subscribe();
+
 		tokio::select! {
 			_ = ctrl_break.recv() => { info!("Received CTRL+BREAK signal"); },
 			_ = ctrl_c.recv() => { info!("Received CTRL+C signal"); },
 			_ = ctrl_close.recv() => { info!("Received CTRL+CLOSE signal"); },
 			_ = ctrl_logoff.recv() => { info!("Received CTRL+LOGOFF signal"); },
 			_ = ctrl_shutdown.recv() => { info!("Received CTRL+SHUTDOWN signal"); },
+			_ = shutdown_rx.recv() => { info!("Received internal shutdown signal"); },
 		}
 
 		info!("Received bot shutdown signal. Shutting down bot.");
 
-		// Send shutdown signal to all background tasks
 		info!("Sending shutdown signal to all background tasks");
 		if let Err(e) = bot_data.shutdown_signal.send(()) {
 			warn!("Failed to send shutdown signal: {}", e);
@@ -425,109 +345,35 @@ async fn main() {
 			info!("Shutdown signal sent successfully");
 		}
 
-		// Wait a moment for tasks to clean up
 		info!("Waiting for background tasks to shut down gracefully");
 		tokio::time::sleep(Duration::from_secs(2)).await;
 		info!("Proceeding with bot shutdown");
-	}
-}
-
-async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
-	let url = get_url(db_config);
-	unsafe {
-		std::env::set_var("DATABASE_URL", url);
-	}
-	// check if the env var is set
-	match std::env::var("DATABASE_URL") {
-		Ok(_) => {},
-		Err(e) => {
-			println!("DATABASE_URL is not set: {}", e);
-			std::process::exit(1);
-		},
-	}
-
-	#[cfg(windows)]
-	{
-		let mut cmd = process::Command::new("./migration.exe");
-
-		let child = cmd.spawn().context("Failed to run Migration")?;
-
-		child
-			.wait_with_output()
-			.context("Failed to wait for Migration")?;
-	}
-
-	#[cfg(unix)]
-	{
-		let binary_name = if cfg!(debug_assertions) {
-			"./migration"
-		} else {
-			"migration"
-		};
-		let mut cmd = process::Command::new(binary_name);
-
-		let child = cmd.spawn().context("Failed to run Migration")?;
-
-		child
-			.wait_with_output()
-			.context("Failed to wait for Migration")?;
 	}
 
 	Ok(())
 }
 
-pub fn get_url(db_config: DbConfig) -> String {
-	match db_config.db_type.as_str() {
-		"postgresql" => {
-			let host = match db_config.host.clone() {
-				Some(host) => host,
-				None => {
-					error!("No host provided");
+async fn init_db(db_config: DbConfig) -> anyhow::Result<()> {
+	let url = db_config.get_url()?;
 
-					process::exit(7)
-				},
-			};
+	#[cfg(windows)]
+	let binary_name = "./migration.exe";
 
-			let port = match db_config.port {
-				Some(port) => port,
-				None => {
-					error!("No port provided");
+	#[cfg(unix)]
+	let binary_name = if cfg!(debug_assertions) {
+		"./migration"
+	} else {
+		"migration"
+	};
 
-					process::exit(7)
-				},
-			};
+	let child = process::Command::new(binary_name)
+		.env("DATABASE_URL", &url)
+		.spawn()
+		.context("Failed to run Migration")?;
 
-			let user = match db_config.user.clone() {
-				Some(user) => user,
-				None => {
-					error!("No user provided");
+	child
+		.wait_with_output()
+		.context("Failed to wait for Migration")?;
 
-					process::exit(7)
-				},
-			};
-
-			let password = match db_config.password.clone() {
-				Some(password) => password,
-				None => {
-					error!("No password provided");
-
-					process::exit(7)
-				},
-			};
-
-			let db_name = db_config.database.unwrap_or(String::from("kasuki"));
-
-			let param = vec![("user", user.as_str()), ("password", password.as_str())];
-
-			let param = serde_urlencoded::to_string(&param)
-				.expect("failed to encode database connection params");
-
-			let url = format!("postgresql://{}:{}/{}?{}", host, port, db_name, param);
-
-			url
-		},
-		_ => {
-			panic!("Unsupported database type");
-		},
-	}
+	Ok(())
 }

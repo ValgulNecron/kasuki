@@ -116,27 +116,3 @@ pub struct CharacterName {
 	pub full: Option<String>,
 	pub native: Option<String>,
 }
-
-#[derive(cynic::QueryFragment, Debug, Clone)]
-#[allow(dead_code)]
-pub struct CharacterImage {
-	pub large: Option<String>,
-}
-
-#[derive(cynic::Enum, Clone, Copy, Debug)]
-#[allow(dead_code)]
-pub enum MediaRelation {
-	Adaptation,
-	Prequel,
-	Sequel,
-	Parent,
-	SideStory,
-	Character,
-	Summary,
-	Alternative,
-	SpinOff,
-	Other,
-	Source,
-	Compilation,
-	Contains,
-}

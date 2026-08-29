@@ -10,11 +10,12 @@ pub struct Model {
 	#[sea_orm(primary_key, auto_increment = false)]
 	pub server_id: String,
 	pub episode: i32,
-	pub webhook: String,
+	pub webhook: Option<String>,
 	pub name: String,
 	pub image: String,
 	pub delay: i32,
 	pub timestamp: DateTime,
+	pub channel_id: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
