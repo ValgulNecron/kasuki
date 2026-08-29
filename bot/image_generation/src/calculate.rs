@@ -109,7 +109,14 @@ pub async fn calculate_user_color_from_url(
 	tokio::task::spawn_blocking(move || {
 		let img = img.to_rgba8();
 
-		let mean = mean_displayed_srgb(&img)
+		// Lanczos3 for the thumbnail: higher quality downscale than bilinear
+		let thumb = image::imageops::resize(&img, 128, 128, image::imageops::FilterType::Lanczos3);
+
+		// Computed once here, from the same thumbnail the mosaic tiles are cut from, and
+		// stored in the DB; mosaic builds only parse the stored string. The mean commutes
+		// with gamma-space downscaling, so the thumbnail gives the same value as the full
+		// image at a fraction of the pixels.
+		let mean = mean_displayed_srgb(&thumb)
 			.ok_or_else(|| anyhow::anyhow!("image is fully transparent"))?;
 		let ucs = srgb_to_cam16ucs(mean, make_params());
 		let cam16_str = format!("cam16;{};{};{}", ucs.lightness, ucs.a, ucs.b);
@@ -124,8 +131,6 @@ pub async fn calculate_user_color_from_url(
 			ExtendedColorType::Rgba8,
 		)?;
 
-		// Lanczos3 for the thumbnail: higher quality downscale than bilinear
-		let thumb = image::imageops::resize(&img, 128, 128, image::imageops::FilterType::Lanczos3);
 		let mut thumb_png_bytes: Vec<u8> = Vec::new();
 		PngEncoder::new(&mut thumb_png_bytes).write_image(
 			thumb.as_raw(),
