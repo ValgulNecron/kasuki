@@ -1,4 +1,4 @@
-use crate::calculate::{make_params, srgb_to_cam16ucs};
+use crate::calculate::{COLOR_STRING_PREFIX, make_params, srgb_to_cam16ucs};
 use anyhow::Context;
 use image::RgbaImage;
 use image::imageops::FilterType;
@@ -27,10 +27,14 @@ pub fn create_color_tile(
 	Some(ColorWithTile { cam16, tile })
 }
 
-// "cam16;J;a;b" is the precomputed display-referenced mean in CAM16-UCS; "#RRGGBB" (legacy
-// records) carries the same kind of mean as sRGB and is converted on the fly.
+// "cam16v2;J;a;b" is the precomputed display-referenced mean in CAM16-UCS. Legacy formats
+// stay parseable so a half-migrated palette still renders: "cam16;J;a;b" (previous algorithm)
+// and "#RRGGBB" (original gamma mean, converted on the fly).
 pub fn color_from_string(s: &str) -> anyhow::Result<Cam16UcsJab<f32>> {
-	if let Some(rest) = s.strip_prefix("cam16;") {
+	if let Some(rest) = s
+		.strip_prefix(COLOR_STRING_PREFIX)
+		.or_else(|| s.strip_prefix("cam16;"))
+	{
 		let parts: Vec<&str> = rest.splitn(3, ';').collect();
 		if parts.len() != 3 {
 			anyhow::bail!("invalid cam16 color string: {s}");
@@ -83,4 +87,37 @@ pub fn cam16_delta_e_weighted(a: &Cam16UcsJab<f32>, b: &Cam16UcsJab<f32>) -> f32
 	const W_C: f32 = 1.0;
 
 	((W_J * dj * dj) + (W_C * (da * da + db * db))).sqrt()
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn parses_current_version_string() {
+		let c = color_from_string("cam16v2;61.5;-2.25;4.0").unwrap();
+		assert_eq!(c.lightness, 61.5);
+		assert_eq!(c.a, -2.25);
+		assert_eq!(c.b, 4.0);
+	}
+
+	#[test]
+	fn parses_legacy_cam16_string() {
+		let c = color_from_string("cam16;40;1;-3").unwrap();
+		assert_eq!(c.lightness, 40.0);
+	}
+
+	#[test]
+	fn parses_legacy_hex_string() {
+		// #808080 is mid-gray: near-zero chroma, mid lightness
+		let c = color_from_string("#808080").unwrap();
+		assert!(c.lightness > 30.0 && c.lightness < 80.0, "{c:?}");
+		assert!(c.a.abs() < 3.0 && c.b.abs() < 3.0, "{c:?}");
+	}
+
+	#[test]
+	fn rejects_unknown_format() {
+		assert!(color_from_string("rgb(1,2,3)").is_err());
+		assert!(color_from_string("cam16v2;1;2").is_err());
+	}
 }

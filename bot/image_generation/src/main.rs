@@ -293,9 +293,13 @@ async fn build_local_tiles(
 		let db_record = color_map.get(&member.user_id);
 
 		let (color, png_bytes) = match db_record {
+			// Cache is only reused when the stored color carries the current algorithm
+			// version; older records are recalculated so the palette never mixes descriptors
+			// produced by different algorithms
 			Some(record)
 				if record.profile_picture_url == member.profile_picture_url
-					&& !record.images.starts_with("data:") =>
+					&& !record.images.starts_with("data:")
+					&& record.color.starts_with(calculate::COLOR_STRING_PREFIX) =>
 			{
 				match store.load(&record.images).await {
 					Ok(bytes) => (record.color.clone(), bytes),
@@ -467,9 +471,13 @@ async fn handle_calculate_user_color(
 	if let Some(ref record) = existing {
 		let age = chrono::Utc::now().naive_utc() - record.calculated_at;
 		let is_stale = age > chrono::Duration::days(7);
+		// A record from an older descriptor algorithm (different version prefix) is always
+		// recalculated, even inside the freshness window: without this, a recalculation
+		// sweep right after a deploy silently no-ops on every fresh record.
 		if record.profile_picture_url == profile_picture_url
 			&& !record.images.starts_with("data:")
 			&& !is_stale
+			&& record.color.starts_with(calculate::COLOR_STRING_PREFIX)
 		{
 			info!("User {} color is up to date, skipping", user_id);
 			return Ok(());

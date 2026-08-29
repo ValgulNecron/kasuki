@@ -45,6 +45,12 @@ fn change_to_full_size_url(url: &str) -> String {
 	format!("{}?size=4096&quality=lossless", base_url)
 }
 
+/// Version tag for the stored color string. Bump it whenever the descriptor algorithm changes:
+/// the freshness window in handle_calculate_user_color skips records younger than 7 days, so
+/// without a version bump a full recalculation right after a deploy silently no-ops and the
+/// mosaic keeps matching on values from the previous algorithm.
+pub const COLOR_STRING_PREFIX: &str = "cam16v2;";
+
 // NOTE: avatars are synthetic sRGB graphics, not photographs of a scene under some unknown
 // illuminant, so no chromatic adaptation is applied. Estimating a white point from the
 // brightest pixels used to read a bright yellow background as "white" and swing the whole
@@ -119,7 +125,10 @@ pub async fn calculate_user_color_from_url(
 		let mean = mean_displayed_srgb(&thumb)
 			.ok_or_else(|| anyhow::anyhow!("image is fully transparent"))?;
 		let ucs = srgb_to_cam16ucs(mean, make_params());
-		let cam16_str = format!("cam16;{};{};{}", ucs.lightness, ucs.a, ucs.b);
+		let cam16_str = format!(
+			"{}{};{};{}",
+			COLOR_STRING_PREFIX, ucs.lightness, ucs.a, ucs.b
+		);
 
 		debug!("Calculated color: {}", cam16_str);
 
