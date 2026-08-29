@@ -14,7 +14,12 @@ pub fn generate_mosaic(
 	// Guild icons are 128x128; each pixel becomes one tile, so canvas = 128 * 32 = 4096px
 	let canvas_dim = 128 * tile_size;
 
-	let mut combined_image = RgbaImage::new(canvas_dim, canvas_dim);
+	// Opaque white canvas: the mosaic is defined on a white ground, so any pixel a tile ever
+	// fails to cover renders white in every Discord theme instead of theme-dependent
+	// transparency. Tiles are already flattened against white in create_color_tile (before
+	// their resize, to avoid straight-alpha edge bleed), so replace() pastes opaque pixels.
+	let mut combined_image =
+		RgbaImage::from_pixel(canvas_dim, canvas_dim, image::Rgba([255, 255, 255, 255]));
 
 	let params = make_params();
 
